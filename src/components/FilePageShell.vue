@@ -143,7 +143,7 @@
               <FileFilterMenu
                 :title="isBbFileSource ? 'Building Block Filter' : 'File Filter'"
                 :sections="fileFilterMenuSections"
-                :expanded-section-key="isBbFileSource ? expandedBbFilterCategoryKey : expandedFilterSectionKey"
+                :expanded-section-key="isBbFileSource ? expandedBbFilterCategoryKey : expandedFilterViewKey"
                 @toggle-section="handleFileFilterToggleSection"
                 @toggle-item="handleFileFilterToggleItem"
                 @toggle-item-checkbox="handleFileFilterToggleItemCheckbox"
@@ -1013,9 +1013,9 @@ const hasActiveSourceLdb = computed(() =>
 const fileViews = computed(() => activeFileShellPayload.value.sections)
 const fileTokens = computed(() => activeFileShellPayload.value.tokens)
 const activeSectionKeyForCards = ref('')
-const activeFilterSectionKey = ref('')
+const activeFilterViewKey = ref('')
 const activeFilterTokenKey = ref('')
-const expandedFilterSectionKey = ref('')
+const expandedFilterViewKey = ref('')
 const activeBbCategoryKey = ref('')
 const activeBbBlockKey = ref('')
 const expandedBbFilterCategoryKey = ref('')
@@ -1436,7 +1436,7 @@ const displayRows = computed(() => {
         if (activeBbCategoryKey.value && categoryKey !== activeBbCategoryKey.value) return false
         if (activeBbBlockKey.value && blockKey !== activeBbBlockKey.value) return false
       }
-      if (activeFilterSectionKey.value && !row.sectionPresence[activeFilterSectionKey.value]) return false
+      if (activeFilterViewKey.value && !row.sectionPresence[activeFilterViewKey.value]) return false
       if (activeFilterTokenKey.value && !row.tokenPresence[activeFilterTokenKey.value]) return false
       if (!query) return true
       const haystack = [
@@ -1754,9 +1754,9 @@ const viewOptions = Object.freeze([
   { value: 'card', icon: 'grid_view', label: 'Card' },
 ])
 
-const multiTokenFilterSections = computed(() => {
+const multiTokenFilterViews = computed(() => {
   if (!activeView.value) return []
-  return getFilterSectionTokenCount(activeView.value.key) > 1 ? [activeView.value] : []
+  return getFilterViewTokenCount(activeView.value.key) > 1 ? [activeView.value] : []
 })
 
 const bbFilterGroups = computed(() => {
@@ -1813,11 +1813,11 @@ const fileFilterMenuSections = computed(() => {
     }))
   }
 
-  return multiTokenFilterSections.value.map((section) => ({
-    key: section.key,
-    label: section.label,
-    count: getFilterSectionTokenCount(section.key),
-    items: getSectionTokens(section.key).map((token) => ({
+  return multiTokenFilterViews.value.map((view) => ({
+    key: view.key,
+    label: view.label,
+    count: getFilterViewTokenCount(view.key),
+    items: getViewTokens(view.key).map((token) => ({
       key: `token:${token.key}`,
       label: token.label,
       selected: token.key === activeFilterTokenKey.value,
@@ -1902,24 +1902,24 @@ watch(
   },
   { immediate: true },
 )
-const tableLeftSections = computed(() =>
-  fileViews.value.filter((section) => {
-    const label = String(section.label || '').trim().toLowerCase()
+const toolbarLeftViews = computed(() =>
+  fileViews.value.filter((view) => {
+    const label = String(view.label || '').trim().toLowerCase()
     return !isRelationshipSectionLabel(label) && label !== 'system'
   }),
 )
-const tableRightSections = computed(() =>
-  fileViews.value.filter((section) => {
-    const label = String(section.label || '').trim().toLowerCase()
+const toolbarRightViews = computed(() =>
+  fileViews.value.filter((view) => {
+    const label = String(view.label || '').trim().toLowerCase()
     return isRelationshipSectionLabel(label) || label === 'system'
   }),
 )
 const governanceViewRows = computed(() =>
-  [...tableLeftSections.value, ...tableRightSections.value].map((section) => ({
-    key: section.key,
-    label: section.label,
-    side: tableRightSections.value.some((entry) => entry.key === section.key) ? 'Right' : 'Left',
-    tokenCount: fileTokens.value.filter((token) => token.parentKey === section.key).length,
+  [...toolbarLeftViews.value, ...toolbarRightViews.value].map((view) => ({
+    key: view.key,
+    label: view.label,
+    side: toolbarRightViews.value.some((entry) => entry.key === view.key) ? 'Right' : 'Left',
+    tokenCount: fileTokens.value.filter((token) => token.parentKey === view.key).length,
     subgroupCount: 0,
   })),
 )
@@ -1939,8 +1939,8 @@ const tokenGroupsByView = computed(() =>
 )
 const eventShellNavItems = computed(() =>
   buildStructureToolbarItems({
-    leftItems: tableLeftSections.value,
-    rightItems: tableRightSections.value,
+    leftItems: toolbarLeftViews.value,
+    rightItems: toolbarRightViews.value,
     governanceItems: [
       { value: 'tokens', title: 'Tokens' },
       { value: 'views', title: 'Views' },
@@ -1961,12 +1961,12 @@ watch(
   activeSourceKey,
   async () => {
     searchQuery.value = ''
-    activeFilterSectionKey.value = ''
+    activeFilterViewKey.value = ''
     activeFilterTokenKey.value = ''
     activeBbCategoryKey.value = ''
     activeBbBlockKey.value = ''
     expandedBbFilterCategoryKey.value = ''
-    expandedFilterSectionKey.value = ''
+    expandedFilterViewKey.value = ''
     rowHistoryByRecordId.value = {}
     rowHistoryLoadingByRecordId.value = {}
     await loadRows()
@@ -4242,24 +4242,24 @@ function deriveFileSourceKeyFromName(value) {
     .slice(0, 80)
 }
 
-function setActiveFilterSection(sectionKey) {
-  activeFilterSectionKey.value = sectionKey
+function setActiveFilterView(viewKey) {
+  activeFilterViewKey.value = viewKey
   if (activeFilterTokenKey.value) {
-  const tokenStillVisible = fileTokens.value.some(
-      (token) => token.key === activeFilterTokenKey.value && token.parentKey === sectionKey,
+    const tokenStillVisible = fileTokens.value.some(
+      (token) => token.key === activeFilterTokenKey.value && token.parentKey === viewKey,
     )
     if (!tokenStillVisible) activeFilterTokenKey.value = ''
   }
 }
 
-function clearSectionFilter() {
-  activeFilterSectionKey.value = ''
+function clearViewFilter() {
+  activeFilterViewKey.value = ''
 }
 
 function setActiveFilterToken(tokenKey) {
   activeFilterTokenKey.value = tokenKey
   const token = fileTokens.value.find((entry) => entry.key === tokenKey)
-  if (token?.parentKey) activeFilterSectionKey.value = token.parentKey
+  if (token?.parentKey) activeFilterViewKey.value = token.parentKey
 }
 
 function clearTokenFilter() {
@@ -4269,38 +4269,38 @@ function clearTokenFilter() {
 function toggleFilterToken(tokenKey, nextValue) {
   if (nextValue === false) {
     clearTokenFilter()
-    clearSectionFilter()
+    clearViewFilter()
     return
   }
   setActiveFilterToken(tokenKey)
 }
 
-function getSectionTokens(sectionKey) {
-  return fileTokens.value.filter((token) => token.parentKey === sectionKey)
+function getViewTokens(viewKey) {
+  return fileTokens.value.filter((token) => token.parentKey === viewKey)
 }
 
-function getFilterSectionTokenCount(sectionKey) {
-  return getSectionTokens(sectionKey).length
+function getFilterViewTokenCount(viewKey) {
+  return getViewTokens(viewKey).length
 }
 
-function toggleExpandedFilterSection(sectionKey) {
-  expandedFilterSectionKey.value = expandedFilterSectionKey.value === sectionKey ? '' : sectionKey
+function toggleExpandedFilterView(viewKey) {
+  expandedFilterViewKey.value = expandedFilterViewKey.value === viewKey ? '' : viewKey
 }
 
 function applyFilterSelection(value) {
   const normalized = String(value || '').trim()
   if (!normalized || normalized === 'all') {
     clearTokenFilter()
-    clearSectionFilter()
-    expandedFilterSectionKey.value = ''
+    clearViewFilter()
+    expandedFilterViewKey.value = ''
     return
   }
 
-  if (normalized.startsWith('section:')) {
+  if (normalized.startsWith('view:')) {
     clearTokenFilter()
-    const sectionKey = normalized.slice('section:'.length)
-    setActiveFilterSection(sectionKey)
-    expandedFilterSectionKey.value = sectionKey
+    const viewKey = normalized.slice('view:'.length)
+    setActiveFilterView(viewKey)
+    expandedFilterViewKey.value = viewKey
     return
   }
 
@@ -4308,7 +4308,7 @@ function applyFilterSelection(value) {
     const tokenKey = normalized.slice('token:'.length)
     setActiveFilterToken(tokenKey)
     const token = fileTokens.value.find((entry) => entry.key === tokenKey)
-    expandedFilterSectionKey.value = token?.parentKey || ''
+    expandedFilterViewKey.value = token?.parentKey || ''
   }
 }
 
@@ -4317,7 +4317,7 @@ function handleFileFilterToggleSection(sectionKey) {
     toggleExpandedBbFilterCategory(sectionKey)
     return
   }
-  toggleExpandedFilterSection(sectionKey)
+  toggleExpandedFilterView(sectionKey)
 }
 
 function handleFileFilterToggleItem(itemKey) {
