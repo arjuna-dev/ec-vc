@@ -28,7 +28,7 @@
         class="shell-section-toolbar__item"
         :class="{
           'shell-section-toolbar__item--active': modelValue === section.value,
-          'shell-section-toolbar__item--kdb': itemTone(section) === 'ldb',
+          'shell-section-toolbar__item--ldb': itemTone(section) === 'ldb',
           'shell-section-toolbar__item--system': itemTone(section) === 'system',
           'shell-section-toolbar__item--governance': itemTone(section) === 'governance',
         }"
@@ -94,16 +94,11 @@ const governanceItems = computed(() =>
 
 function itemLane(section = {}) {
   if (section?.lane) return String(section.lane).trim().toLowerCase()
-  if (section?.isGovernance) return 'governance'
-  if (section?.pushRight || section?.isKdb || section?.isSystem) return 'structural'
   return 'left'
 }
 
 function itemTone(section = {}) {
   if (section?.tone) return String(section.tone).trim().toLowerCase()
-  if (section?.isGovernance) return 'governance'
-  if (section?.isKdb) return 'ldb'
-  if (section?.isSystem) return 'system'
   return 'default'
 }
 </script>
@@ -183,7 +178,7 @@ function itemTone(section = {}) {
   border-color: var(--ds-color-brand-black);
 }
 
-.shell-section-toolbar__item--kdb {
+.shell-section-toolbar__item--ldb {
   border-color: var(--ds-color-border-dashed);
 }
 
@@ -195,7 +190,7 @@ function itemTone(section = {}) {
   border-color: var(--ds-color-border-dashed);
 }
 
-.shell-section-toolbar__item--kdb,
+.shell-section-toolbar__item--ldb,
 .shell-section-toolbar__item--system,
 .shell-section-toolbar__item--governance {
   height: var(--ds-toolbar-chip-compact-height);
@@ -206,14 +201,14 @@ function itemTone(section = {}) {
   flex: 0 0 auto;
 }
 
-.shell-section-toolbar__item--kdb .shell-section-toolbar__item-label,
+.shell-section-toolbar__item--ldb .shell-section-toolbar__item-label,
 .shell-section-toolbar__item--system .shell-section-toolbar__item-label,
 .shell-section-toolbar__item--governance .shell-section-toolbar__item-label {
   font-size: var(--ds-font-size-xs);
 }
 
-.shell-section-toolbar__item--kdb .shell-section-toolbar__item-icon {
-  font-size: var(--ds-toolbar-kdb-icon-size) !important;
+.shell-section-toolbar__item--ldb .shell-section-toolbar__item-icon {
+  font-size: var(--ds-toolbar-ldb-icon-size) !important;
 }
 
 .shell-section-toolbar--mini .shell-section-toolbar__lane--left,
@@ -242,7 +237,7 @@ function itemTone(section = {}) {
   border-radius: 4px;
 }
 
-.shell-section-toolbar--mini .shell-section-toolbar__item--kdb,
+.shell-section-toolbar--mini .shell-section-toolbar__item--ldb,
 .shell-section-toolbar--mini .shell-section-toolbar__item--system,
 .shell-section-toolbar--mini .shell-section-toolbar__item--governance {
   color: var(--ds-color-brand-black);
@@ -250,7 +245,7 @@ function itemTone(section = {}) {
   border-color: rgba(15, 23, 42, 0.12);
 }
 
-.shell-section-toolbar--mini .shell-section-toolbar__item--kdb:hover,
+.shell-section-toolbar--mini .shell-section-toolbar__item--ldb:hover,
 .shell-section-toolbar--mini .shell-section-toolbar__item--system:hover,
 .shell-section-toolbar--mini .shell-section-toolbar__item--governance:hover {
   color: var(--ds-color-brand-black);
@@ -258,7 +253,7 @@ function itemTone(section = {}) {
   border-color: rgba(15, 23, 42, 0.18);
 }
 
-.shell-section-toolbar--mini .shell-section-toolbar__item--kdb.shell-section-toolbar__item--active,
+.shell-section-toolbar--mini .shell-section-toolbar__item--ldb.shell-section-toolbar__item--active,
 .shell-section-toolbar--mini .shell-section-toolbar__item--system.shell-section-toolbar__item--active,
 .shell-section-toolbar--mini .shell-section-toolbar__item--governance.shell-section-toolbar__item--active {
   color: var(--ds-color-brand-white);
@@ -266,7 +261,7 @@ function itemTone(section = {}) {
   border-color: var(--ds-color-brand-black);
 }
 
-.shell-section-toolbar--mini .shell-section-toolbar__item--kdb,
+.shell-section-toolbar--mini .shell-section-toolbar__item--ldb,
 .shell-section-toolbar--mini .shell-section-toolbar__item--system,
 .shell-section-toolbar--mini .shell-section-toolbar__item--governance {
   height: var(--ds-toolbar-chip-compact-height);
@@ -276,7 +271,7 @@ function itemTone(section = {}) {
   flex: 0 0 auto;
 }
 
-.shell-section-toolbar--mini .shell-section-toolbar__item--kdb .shell-section-toolbar__item-label,
+.shell-section-toolbar--mini .shell-section-toolbar__item--ldb .shell-section-toolbar__item-label,
 .shell-section-toolbar--mini .shell-section-toolbar__item--system .shell-section-toolbar__item-label,
 .shell-section-toolbar--mini .shell-section-toolbar__item--governance .shell-section-toolbar__item-label {
   font-family: inherit;

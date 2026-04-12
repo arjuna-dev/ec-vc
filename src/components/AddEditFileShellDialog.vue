@@ -102,30 +102,9 @@
               class="file-structure-shell__content-box-title"
             />
           </div>
-          <div class="file-structure-shell__content-box-title-shell file-structure-shell__content-box-title-shell--menu">
-            <L2SettingsMenu
-              :title="generalElementSettingsTitle"
-              :groups="liveGeneralElementSettingsGroups"
-              @toggle-group="toggleSettingsGroup"
-              @toggle-item="toggleSettingsItem"
-            />
-          </div>
         </div>
         <div class="file-structure-shell__guide-panel">
           <div class="file-structure-shell__guide-divider" />
-          <div class="file-structure-shell__selected-l3-panel">
-            <div
-              v-for="item in selectedGeneralElementItems"
-              :key="item.key"
-              class="file-structure-shell__selected-l3-row"
-            >
-              <span class="file-structure-shell__selected-l3-label">{{ item.label }}</span>
-              <span class="file-structure-shell__selected-l3-meta">{{ item.groupLabel }}</span>
-            </div>
-            <div v-if="!selectedGeneralElementItems.length" class="file-structure-shell__guide-meta">
-              No L3 items selected for this file yet.
-            </div>
-          </div>
         </div>
       </RecordFieldsBox>
 
@@ -367,7 +346,6 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
 import DialogShellFrame from 'src/components/DialogShellFrame.vue'
-import L2SettingsMenu from 'src/components/L2SettingsMenu.vue'
 import RecordFieldsBox from 'src/components/RecordFieldsBox.vue'
 import DialogShellTitleRow from 'src/components/DialogShellTitleRow.vue'
 import MainMenuSubgroupRow from 'src/components/MainMenuSubgroupRow.vue'
@@ -401,8 +379,6 @@ const structureColumnsCollapsed = ref(false)
 const activeSubgroupKey = ref('')
 const draftLeafRowsBySource = ref({})
 const selectedLeafKeysBySource = ref({})
-const expandedSettingsGroupsBySource = ref({})
-const checkedSettingsItemsBySource = ref({})
 const requiredFieldKeysBySource = ref({})
 const columnWidths = reactive({
   select: 42,
@@ -487,50 +463,6 @@ const activeSettingsSection = computed(
 const isRelationshipSettingsSection = computed(() =>
   isRelationshipSectionLabel(activeSettingsSection.value?.label || activeSettingsSection.value?.rawLabel),
 )
-const generalElementSettingsTitle = computed(() => 'General')
-function isCoreGovernanceViewRow(view) {
-  const normalized = String(view?.label || '').trim().toLowerCase()
-  return normalized === 'general' || normalized === 'system' || normalized === 'ldb' || normalized === 'kdb'
-}
-const baseSettingsGroups = computed(() => {
-  const fileSpecificTokenGroups = tokenGroupsByView.value.filter((group) => {
-    const view = governanceViewRows.value.find((entry) => entry.key === group.key)
-    return view && !isCoreGovernanceViewRow(view)
-  })
-
-  return fileSpecificTokenGroups.map((group) => ({
-    key: group.key,
-    label: group.label,
-    items: group.tokens.map((item) => ({
-      key: item.key,
-      label: item.label,
-    })),
-  }))
-})
-const liveGeneralElementSettingsGroups = computed(() => {
-  const expandedKeys = new Set(expandedSettingsGroupsBySource.value[activeSettingsSourceKey.value] || [])
-  const checkedItems = checkedSettingsItemsBySource.value[activeSettingsSourceKey.value] || {}
-  return baseSettingsGroups.value.map((group) => ({
-    key: group.key,
-    label: group.label,
-    expanded: expandedKeys.has(group.key),
-    items: group.items.map((item) => ({
-      ...item,
-      checked: checkedItems[item.key] !== false,
-    })),
-  }))
-})
-const selectedGeneralElementItems = computed(() =>
-  liveGeneralElementSettingsGroups.value.flatMap((group) =>
-    group.items
-      .filter((item) => item.checked === true)
-      .map((item) => ({
-        key: item.key,
-        label: item.label,
-        groupLabel: group.label,
-      })),
-  ),
-)
 const subgroupTabs = computed(() => {
   if (isRelationshipSettingsSection.value) return []
   return (Array.isArray(activeSettingsSection.value?.subgroups) ? activeSettingsSection.value.subgroups : []).map((group) => ({
@@ -589,7 +521,6 @@ const activeLeafTokens = computed(() => {
   const tokens = [...draftTokens, ...sourceTokens]
 
   return tokens.map((token, index) => {
-    const checkedItems = checkedSettingsItemsBySource.value[activeSettingsSourceKey.value] || {}
     const requiredKeys = new Set(requiredFieldKeysBySource.value[activeSettingsSourceKey.value] || [])
     const writeTarget = token.isDraft ? null : getCanonicalTokenWriteTarget(token, activeShellSelectorOption.value.label, 'id')
     return {
@@ -600,7 +531,7 @@ const activeLeafTokens = computed(() => {
         ? '—'
         : token.draftParentSubgroup || subgroupMap.get(activeSubgroupKey.value)?.label || '—',
       type: token.tokenType || '—',
-      visible: checkedItems[token.key] !== false ? 'Yes' : 'No',
+      visible: 'Yes',
       required: requiredKeys.has(token.key),
       editable: token.editable === false ? 'No' : token.editable === true ? 'Yes' : '—',
       relationshipMeaning: token.relationshipGroup || '—',
@@ -614,7 +545,6 @@ const tokenGroupsByView = computed(() =>
   governanceViewRows.value.map((view) => {
     const section = dialogSectionGroups.value.find((entry) => entry.key === view.key)
     const groupTokens = Array.isArray(section?.tokens) ? section.tokens : []
-    const checkedItems = checkedSettingsItemsBySource.value[activeSettingsSourceKey.value] || {}
     const requiredKeys = new Set(requiredFieldKeysBySource.value[activeSettingsSourceKey.value] || [])
     return {
       key: view.key,
@@ -626,7 +556,7 @@ const tokenGroupsByView = computed(() =>
           label: token.label || '—',
           type: token.tokenType || '—',
           required: requiredKeys.has(token.key),
-          visible: checkedItems[token.key] !== false ? 'Yes' : 'No',
+          visible: 'Yes',
           writeTarget: writeTarget?.fieldName ? `${writeTarget.tableName}.${writeTarget.fieldName}` : token.dbFieldAliases?.join(', ') || '—',
         }
       }),
@@ -712,40 +642,6 @@ function toggleLeafSelection(tokenKey) {
   }
 }
 
-function toggleSettingsGroup(groupKey) {
-  const sourceKey = activeSettingsSourceKey.value
-  const current = Array.isArray(expandedSettingsGroupsBySource.value[sourceKey])
-    ? expandedSettingsGroupsBySource.value[sourceKey]
-    : []
-  const next = current.includes(groupKey)
-    ? current.filter((key) => key !== groupKey)
-    : [...current, groupKey]
-  expandedSettingsGroupsBySource.value = {
-    ...expandedSettingsGroupsBySource.value,
-    [sourceKey]: next,
-  }
-}
-
-function toggleSettingsItem(itemKey, value) {
-  const sourceKey = activeSettingsSourceKey.value
-  const current = checkedSettingsItemsBySource.value[sourceKey] || {}
-  checkedSettingsItemsBySource.value = {
-    ...checkedSettingsItemsBySource.value,
-    [sourceKey]: {
-      ...current,
-      [itemKey]: value,
-    },
-  }
-}
-
-function buildDefaultCheckedItems(groups = []) {
-  return Object.fromEntries(
-    groups.flatMap((group) =>
-      (Array.isArray(group?.items) ? group.items : []).map((item) => [item.key, false]),
-    ),
-  )
-}
-
 function getDefaultRequiredFieldKeysForSource(sourceKey) {
   const titleToken = getRegistryTitleTokenForSource(sourceKey)
   const normalizedKey = String(titleToken?.key || '').trim()
@@ -824,34 +720,9 @@ watch(
 )
 
 watch(
-  [activeSettingsSourceKey, baseSettingsGroups],
-  ([sourceKey, groups]) => {
-    const groupKeys = groups.map((group) => group.key)
-    const existingExpanded = Array.isArray(expandedSettingsGroupsBySource.value[sourceKey])
-      ? expandedSettingsGroupsBySource.value[sourceKey].filter((key) => groupKeys.includes(key))
-      : []
-    const nextExpanded = existingExpanded.length ? existingExpanded : groupKeys
-
-    expandedSettingsGroupsBySource.value = {
-      ...expandedSettingsGroupsBySource.value,
-      [sourceKey]: nextExpanded,
-    }
-
-    const existingChecked = checkedSettingsItemsBySource.value[sourceKey] || {}
-    const allowedItemKeys = new Set(groups.flatMap((group) => group.items.map((item) => item.key)))
-    const preservedChecked = Object.fromEntries(
-      Object.entries(existingChecked).filter(([itemKey]) => allowedItemKeys.has(itemKey)),
-    )
-    const nextChecked = Object.keys(preservedChecked).length
-      ? preservedChecked
-      : buildDefaultCheckedItems(groups)
-
-    checkedSettingsItemsBySource.value = {
-      ...checkedSettingsItemsBySource.value,
-      [sourceKey]: nextChecked,
-    }
-
-    const allowedRequiredKeys = new Set(payloadTokens.value.map((token) => token.key))
+  [activeSettingsSourceKey, payloadTokens],
+  ([sourceKey, tokens]) => {
+    const allowedRequiredKeys = new Set((Array.isArray(tokens) ? tokens : []).map((token) => token.key))
     const existingRequired = Array.isArray(requiredFieldKeysBySource.value[sourceKey])
       ? requiredFieldKeysBySource.value[sourceKey].filter((itemKey) => allowedRequiredKeys.has(itemKey))
       : []

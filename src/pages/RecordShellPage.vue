@@ -62,7 +62,7 @@
         aria-label="Record sections"
         :items="recordShellNavItems"
         :view-mode="recordShellTopNavViewMode"
-        :view-options="CONTACT_KDB_VIEW_OPTIONS"
+        :view-options="CONTACT_LDB_VIEW_OPTIONS"
         :show-view-toggle="false"
         @update:view-mode="recordShellTopNavViewMode = $event"
       />
@@ -501,7 +501,7 @@ import { buildTokenUpdateChanges, tokenSupportsRecordUpdate } from 'src/utils/to
 const route = useRoute()
 const router = useRouter()
 const $q = useQuasar()
-const CONTACT_KDB_VIEW_OPTIONS = [
+const CONTACT_LDB_VIEW_OPTIONS = [
   { value: 'grid', icon: 'grid_view' },
   { value: 'table', icon: 'view_list' },
 ]

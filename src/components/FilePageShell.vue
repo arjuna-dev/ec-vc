@@ -592,7 +592,7 @@
                   <template v-else-if="isLdbSectionActive">
                     <div
                       v-if="getLdbDisplayItems(tokenRow).length"
-                      class="test-shell-table__kdb-list"
+                      class="test-shell-table__ldb-list"
                       :class="[
                         { 'test-shell-table__cell--editable': canInlineEditTableCell(row, tokenRow.token) },
                         { 'test-shell-table__cell--direct': canInlineEditTableCell(row, tokenRow.token) },
@@ -602,14 +602,14 @@
                       <div
                         v-for="item in getLdbDisplayItems(tokenRow)"
                         :key="`${tokenRow.key}:${item.key}`"
-                        class="test-shell-table__kdb-item"
-                        :class="{ 'test-shell-table__kdb-item--linkable': item.canOpen }"
+                        class="test-shell-table__ldb-item"
+                        :class="{ 'test-shell-table__ldb-item--linkable': item.canOpen }"
                         @dblclick.stop="openLdbSourceCell(item)"
                       >
-                        <span class="test-shell-table__kdb-icon">
+                        <span class="test-shell-table__ldb-icon">
                           <q-icon name="share" size="10px" />
                         </span>
-                        <span class="test-shell-table__kdb-text">{{ item.label }}</span>
+                        <span class="test-shell-table__ldb-text">{{ item.label }}</span>
                       </div>
                     </div>
                     <span
@@ -5611,7 +5611,7 @@ function isBbGraphLinkToken(tokenRow) {
   justify-self: center;
 }
 
-.test-shell-table__kdb-list {
+.test-shell-table__ldb-list {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
@@ -5619,11 +5619,11 @@ function isBbGraphLinkToken(tokenRow) {
   max-width: 100%;
 }
 
-.test-shell-table__kdb-item--linkable {
+.test-shell-table__ldb-item--linkable {
   cursor: pointer;
 }
 
-.test-shell-table__kdb-item--linkable:hover {
+.test-shell-table__ldb-item--linkable:hover {
   border-color: rgba(31, 122, 61, 0.34);
   background: rgba(31, 122, 61, 0.1);
 }
@@ -5657,7 +5657,7 @@ function isBbGraphLinkToken(tokenRow) {
   background: rgba(248, 250, 252, 1);
 }
 
-.test-shell-table__kdb-item {
+.test-shell-table__ldb-item {
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -5671,7 +5671,7 @@ function isBbGraphLinkToken(tokenRow) {
   border-radius: 3px;
 }
 
-.test-shell-table__kdb-icon {
+.test-shell-table__ldb-icon {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -5681,7 +5681,7 @@ function isBbGraphLinkToken(tokenRow) {
   color: rgba(17, 17, 17, 0.7);
 }
 
-.test-shell-table__kdb-text {
+.test-shell-table__ldb-text {
   min-width: 0;
   color: #111111;
   font-family: var(--ds-font-family-body);
@@ -6015,7 +6015,7 @@ function isBbGraphLinkToken(tokenRow) {
     left: 28px;
   }
 
-  .test-shell-table__kdb-list {
+  .test-shell-table__ldb-list {
     grid-template-columns: 1fr;
   }
 }
