@@ -1,4 +1,4 @@
-{
+﻿{
     "version":  1,
     "entities":  [
                      {
@@ -62,9 +62,9 @@
                                              },
                                              {
                                                  "level_2":  "2",
-                                                 "subsection":  "KDB",
+                                                 "subsection":  "LDB",
                                                  "subsection_address":  "0.2.0",
-                                                 "structure_token":  "Event_KDB",
+                                                 "structure_token":  "Event_LDB",
                                                  "tokens":  [
 
                                                             ]
@@ -142,9 +142,9 @@
                                              },
                                              {
                                                  "level_2":  "2",
-                                                 "subsection":  "KDB",
+                                                 "subsection":  "LDB",
                                                  "subsection_address":  "1.2.0",
-                                                 "structure_token":  "Artifact_KDB",
+                                                 "structure_token":  "Artifact_LDB",
                                                  "tokens":  [
 
                                                             ]
@@ -230,9 +230,9 @@
                                              },
                                              {
                                                  "level_2":  "2",
-                                                 "subsection":  "KDB",
+                                                 "subsection":  "LDB",
                                                  "subsection_address":  "2.2.0",
-                                                 "structure_token":  "User_KDB",
+                                                 "structure_token":  "User_LDB",
                                                  "tokens":  [
 
                                                             ]
@@ -373,9 +373,9 @@
                                              },
                                              {
                                                  "level_2":  "4",
-                                                 "subsection":  "KDB",
+                                                 "subsection":  "LDB",
                                                  "subsection_address":  "3.4.0",
-                                                 "structure_token":  "Contact_KDB",
+                                                 "structure_token":  "Contact_LDB",
                                                  "tokens":  [
 
                                                             ]
@@ -468,9 +468,9 @@
                                              },
                                              {
                                                  "level_2":  "2",
-                                                 "subsection":  "KDB",
+                                                 "subsection":  "LDB",
                                                  "subsection_address":  "4.2.0",
-                                                 "structure_token":  "Company_KDB",
+                                                 "structure_token":  "Company_LDB",
                                                  "tokens":  [
 
                                                             ]
@@ -999,9 +999,9 @@
                                              },
                                              {
                                                  "level_2":  "2",
-                                                 "subsection":  "KDB",
+                                                 "subsection":  "LDB",
                                                  "subsection_address":  "17.2.0",
-                                                 "structure_token":  "Opportunity_KDB",
+                                                 "structure_token":  "Opportunity_LDB",
                                                  "tokens":  [
 
                                                             ]
@@ -1140,9 +1140,9 @@
                                              },
                                              {
                                                  "level_2":  "2",
-                                                 "subsection":  "KDB",
+                                                 "subsection":  "LDB",
                                                  "subsection_address":  "5.2.0",
-                                                 "structure_token":  "Fund_KDB",
+                                                 "structure_token":  "Fund_LDB",
                                                  "tokens":  [
 
                                                             ]
@@ -1362,9 +1362,9 @@
                                              },
                                              {
                                                  "level_2":  "2",
-                                                 "subsection":  "KDB",
+                                                 "subsection":  "LDB",
                                                  "subsection_address":  "6.2.0",
-                                                 "structure_token":  "Round_KDB",
+                                                 "structure_token":  "Round_LDB",
                                                  "tokens":  [
 
                                                             ]
@@ -1548,9 +1548,9 @@
                                              },
                                              {
                                                  "level_2":  "2",
-                                                 "subsection":  "KDB",
+                                                 "subsection":  "LDB",
                                                  "subsection_address":  "7.2.0",
-                                                 "structure_token":  "Project_KDB",
+                                                 "structure_token":  "Project_LDB",
                                                  "tokens":  [
 
                                                             ]
@@ -1754,9 +1754,9 @@
                                              },
                                              {
                                                  "level_2":  "2",
-                                                 "subsection":  "KDB",
+                                                 "subsection":  "LDB",
                                                  "subsection_address":  "8.2.0",
-                                                 "structure_token":  "Task_KDB",
+                                                 "structure_token":  "Task_LDB",
                                                  "tokens":  [
 
                                                             ]
@@ -1906,9 +1906,9 @@
                                              },
                                              {
                                                  "level_2":  "2",
-                                                 "subsection":  "KDB",
+                                                 "subsection":  "LDB",
                                                  "subsection_address":  "9.2.0",
-                                                 "structure_token":  "Note_KDB",
+                                                 "structure_token":  "Note_LDB",
                                                  "tokens":  [
 
                                                             ]
@@ -2039,9 +2039,9 @@
                                              },
                                              {
                                                  "level_2":  "6",
-                                                 "subsection":  "KDB",
+                                                 "subsection":  "LDB",
                                                  "subsection_address":  "10.6.0",
-                                                 "structure_token":  "Market_KDB",
+                                                 "structure_token":  "Market_LDB",
                                                  "tokens":  [
 
                                                             ]
@@ -2143,9 +2143,9 @@
                                              },
                                              {
                                                  "level_2":  "6",
-                                                 "subsection":  "KDB",
+                                                 "subsection":  "LDB",
                                                  "subsection_address":  "11.6.0",
-                                                 "structure_token":  "Location_KDB",
+                                                 "structure_token":  "Location_LDB",
                                                  "tokens":  [
 
                                                             ]
@@ -2263,9 +2263,9 @@
                                              },
                                              {
                                                  "level_2":  "7",
-                                                 "subsection":  "KDB",
+                                                 "subsection":  "LDB",
                                                  "subsection_address":  "12.7.0",
-                                                 "structure_token":  "Term_KDB",
+                                                 "structure_token":  "Term_LDB",
                                                  "tokens":  [
 
                                                             ]
@@ -2351,9 +2351,9 @@
                                              },
                                              {
                                                  "level_2":  "5",
-                                                 "subsection":  "KDB",
+                                                 "subsection":  "LDB",
                                                  "subsection_address":  "13.5.0",
-                                                 "structure_token":  "Academia_KDB",
+                                                 "structure_token":  "Academia_LDB",
                                                  "tokens":  [
 
                                                             ]
@@ -2439,9 +2439,9 @@
                                              },
                                              {
                                                  "level_2":  "5",
-                                                 "subsection":  "KDB",
+                                                 "subsection":  "LDB",
                                                  "subsection_address":  "14.5.0",
-                                                 "structure_token":  "Employment_KDB",
+                                                 "structure_token":  "Employment_LDB",
                                                  "tokens":  [
 
                                                             ]
@@ -2504,9 +2504,9 @@
                                              },
                                              {
                                                  "level_2":  "4",
-                                                 "subsection":  "KDB",
+                                                 "subsection":  "LDB",
                                                  "subsection_address":  "15.4.0",
-                                                 "structure_token":  "Stage_KDB",
+                                                 "structure_token":  "Stage_LDB",
                                                  "tokens":  [
 
                                                             ]
@@ -2542,9 +2542,9 @@
                                              },
                                              {
                                                  "level_2":  "2",
-                                                 "subsection":  "KDB",
+                                                 "subsection":  "LDB",
                                                  "subsection_address":  "18.2.0",
-                                                 "structure_token":  "Market_KDB",
+                                                 "structure_token":  "Market_LDB",
                                                  "tokens":  [
 
                                                             ]
@@ -2604,9 +2604,9 @@
                                              },
                                              {
                                                  "level_2":  "2",
-                                                 "subsection":  "KDB",
+                                                 "subsection":  "LDB",
                                                  "subsection_address":  "19.2.0",
-                                                 "structure_token":  "Security_KDB",
+                                                 "structure_token":  "Security_LDB",
                                                  "tokens":  [
 
                                                             ]
@@ -2662,9 +2662,9 @@
                                              },
                                              {
                                                  "level_2":  "2",
-                                                 "subsection":  "KDB",
+                                                 "subsection":  "LDB",
                                                  "subsection_address":  "20.2.0",
-                                                 "structure_token":  "Intake_KDB",
+                                                 "structure_token":  "Intake_LDB",
                                                  "tokens":  [
 
                                                             ]
@@ -2720,9 +2720,9 @@
                                              },
                                              {
                                                  "level_2":  "2",
-                                                 "subsection":  "KDB",
+                                                 "subsection":  "LDB",
                                                  "subsection_address":  "21.2.0",
-                                                 "structure_token":  "Role_KDB",
+                                                 "structure_token":  "Role_LDB",
                                                  "tokens":  [
 
                                                             ]
@@ -2784,9 +2784,9 @@
                                              },
                                              {
                                                  "level_2":  "2",
-                                                 "subsection":  "KDB",
+                                                 "subsection":  "LDB",
                                                  "subsection_address":  "22.2.0",
-                                                 "structure_token":  "Companion_Role_KDB",
+                                                 "structure_token":  "Companion_Role_LDB",
                                                  "tokens":  [
 
                                                             ]
@@ -2884,9 +2884,9 @@
                                              },
                                              {
                                                  "level_2":  "2",
-                                                 "subsection":  "KDB",
+                                                 "subsection":  "LDB",
                                                  "subsection_address":  "23.2.0",
-                                                 "structure_token":  "File_KDB",
+                                                 "structure_token":  "File_LDB",
                                                  "tokens":  [
 
                                                             ]
@@ -2997,10 +2997,10 @@
                                                                 },
                                                                 {
                                                                     "address":  "23.4.11",
-                                                                    "token_name":  "Requires_KDB",
+                                                                    "token_name":  "Requires_LDB",
                                                                     "token_type":  "boolean",
                                                                     "db_field_aliases":  [
-                                                                                             "Requires_KDB"
+                                                                                             "Requires_LDB"
                                                                                          ]
                                                                 },
                                                                 {
@@ -3351,3 +3351,4 @@
                                            ]
                      }
 }
+

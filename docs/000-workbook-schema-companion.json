@@ -1,4 +1,4 @@
-{
+﻿{
   "workbook_file": "B10_DOS v260400 vrev.xlsx",
   "source_sheet": "Tokens",
   "entities": [
@@ -41,7 +41,7 @@
         },
         "0.2.0": {
           "level_2": "2",
-          "subsection": "KDB",
+          "subsection": "LDB",
           "subsection_address": "0.2.0",
           "parent_id": "0.2.0",
           "tokens": [
@@ -59,7 +59,7 @@
             { "index": "", "level_3": "12", "address": "0.2.12", "token_name": "Event_Market", "token_type": "select_multi", "node_type": "leaf", "level": "3", "parent_id": "0.2.0", "option_source": "live_entity", "option_entity": "Markets", "relationship_group": "knowledge_db" },
             { "index": "", "level_3": "13", "address": "0.2.13", "token_name": "Event_Security", "token_type": "select_multi", "node_type": "leaf", "level": "3", "parent_id": "0.2.0", "option_source": "live_entity", "option_entity": "Securities", "relationship_group": "knowledge_db" },
             { "index": "", "level_3": "14", "address": "0.2.14", "token_name": "Event_Intake", "token_type": "select_multi", "node_type": "leaf", "level": "3", "parent_id": "0.2.0", "option_source": "live_entity", "option_entity": "Intake", "relationship_group": "knowledge_db" },
-            { "index": "", "level_3": "0", "address": "0.2.0", "token_name": "Event_KDB", "token_type": "structure", "node_type": "structure", "level": "2", "parent_id": "0.0.0" }
+            { "index": "", "level_3": "0", "address": "0.2.0", "token_name": "Event_LDB", "token_type": "structure", "node_type": "structure", "level": "2", "parent_id": "0.0.0" }
           ]
         },
         "0.3.0": {
@@ -160,7 +160,7 @@
         },
         "1.2.0": {
           "level_2": "2",
-          "subsection": "KDB",
+          "subsection": "LDB",
           "subsection_address": "1.2.0",
           "parent_id": "1.2.0",
           "tokens": [
@@ -337,7 +337,7 @@
               "index": "",
               "level_3": "0",
               "address": "1.2.0",
-              "token_name": "Artifact_KDB",
+              "token_name": "Artifact_LDB",
               "token_type": "structure",
               "node_type": "structure",
               "level": "2",
@@ -481,7 +481,7 @@
         },
         "2.2.0": {
           "level_2": "2",
-          "subsection": "KDB",
+          "subsection": "LDB",
           "subsection_address": "2.2.0",
           "parent_id": "2.2.0",
           "tokens": [
@@ -658,7 +658,7 @@
               "index": "",
               "level_3": "0",
               "address": "2.2.0",
-              "token_name": "User_KDB",
+              "token_name": "User_LDB",
               "token_type": "structure",
               "node_type": "structure",
               "level": "2",
@@ -916,7 +916,7 @@
         },
         "3.4.0": {
           "level_2": "4",
-          "subsection": "KDB",
+          "subsection": "LDB",
           "subsection_address": "3.4.0",
           "parent_id": "3.4.0",
           "tokens": [
@@ -1093,7 +1093,7 @@
               "index": "",
               "level_3": "0",
               "address": "3.4.0",
-              "token_name": "Contact_KDB",
+              "token_name": "Contact_LDB",
               "token_type": "structure",
               "node_type": "structure",
               "level": "2",
@@ -1296,7 +1296,7 @@
         },
         "4.2.0": {
           "level_2": "2",
-          "subsection": "KDB",
+          "subsection": "LDB",
           "subsection_address": "4.2.0",
           "parent_id": "4.2.0",
           "tokens": [
@@ -1473,7 +1473,7 @@
               "index": "",
               "level_3": "0",
               "address": "4.2.0",
-              "token_name": "Company_KDB",
+              "token_name": "Company_LDB",
               "token_type": "structure",
               "node_type": "structure",
               "level": "2",
@@ -2491,7 +2491,7 @@
         },
         "17.2.0": {
           "level_2": "2",
-          "subsection": "KDB",
+          "subsection": "LDB",
           "subsection_address": "17.2.0",
           "parent_id": "17.2.0",
           "tokens": [
@@ -2712,7 +2712,7 @@
               "index": "",
               "level_3": "0",
               "address": "17.2.0",
-              "token_name": "Opportunity_KDB",
+              "token_name": "Opportunity_LDB",
               "token_type": "structure",
               "node_type": "structure",
               "level": "2",
@@ -2965,7 +2965,7 @@
         },
         "5.2.0": {
           "level_2": "2",
-          "subsection": "KDB",
+          "subsection": "LDB",
           "subsection_address": "5.2.0",
           "parent_id": "5.2.0",
           "tokens": [
@@ -3142,7 +3142,7 @@
               "index": "",
               "level_3": "0",
               "address": "5.2.0",
-              "token_name": "Fund_KDB",
+              "token_name": "Fund_LDB",
               "token_type": "structure",
               "node_type": "structure",
               "level": "2",
@@ -3581,7 +3581,7 @@
         },
         "6.2.0": {
           "level_2": "2",
-          "subsection": "KDB",
+          "subsection": "LDB",
           "subsection_address": "6.2.0",
           "parent_id": "6.2.0",
           "tokens": [
@@ -3758,7 +3758,7 @@
               "index": "",
               "level_3": "0",
               "address": "6.2.0",
-              "token_name": "Round_KDB",
+              "token_name": "Round_LDB",
               "token_type": "structure",
               "node_type": "structure",
               "level": "2",
@@ -4136,7 +4136,7 @@
         },
         "7.2.0": {
           "level_2": "2",
-          "subsection": "KDB",
+          "subsection": "LDB",
           "subsection_address": "7.2.0",
           "parent_id": "7.2.0",
           "tokens": [
@@ -4313,7 +4313,7 @@
               "index": "",
               "level_3": "0",
               "address": "7.2.0",
-              "token_name": "Project_KDB",
+              "token_name": "Project_LDB",
               "token_type": "structure",
               "node_type": "structure",
               "level": "2",
@@ -4681,7 +4681,7 @@
         },
         "8.2.0": {
           "level_2": "2",
-          "subsection": "KDB",
+          "subsection": "LDB",
           "subsection_address": "8.2.0",
           "parent_id": "8.2.0",
           "tokens": [
@@ -4858,7 +4858,7 @@
               "index": "",
               "level_3": "0",
               "address": "8.2.0",
-              "token_name": "Task_KDB",
+              "token_name": "Task_LDB",
               "token_type": "structure",
               "node_type": "structure",
               "level": "2",
@@ -5137,7 +5137,7 @@
         },
         "9.2.0": {
           "level_2": "2",
-          "subsection": "KDB",
+          "subsection": "LDB",
           "subsection_address": "9.2.0",
           "parent_id": "9.2.0",
           "tokens": [
@@ -5314,7 +5314,7 @@
               "index": "",
               "level_3": "0",
               "address": "9.2.0",
-              "token_name": "Note_KDB",
+              "token_name": "Note_LDB",
               "token_type": "structure",
               "node_type": "structure",
               "level": "2",
@@ -5556,7 +5556,7 @@
         },
         "10.6.0": {
           "level_2": "6",
-          "subsection": "KDB",
+          "subsection": "LDB",
           "subsection_address": "10.6.0",
           "parent_id": "10.6.0",
           "tokens": [
@@ -5564,7 +5564,7 @@
               "index": "",
               "level_3": "0",
               "address": "10.6.0",
-              "token_name": "Market_KDB",
+              "token_name": "Market_LDB",
               "token_type": "structure",
               "node_type": "structure",
               "level": "2",
@@ -5761,7 +5761,7 @@
         },
         "11.6.0": {
           "level_2": "6",
-          "subsection": "KDB",
+          "subsection": "LDB",
           "subsection_address": "11.6.0",
           "parent_id": "11.6.0",
           "tokens": [
@@ -5769,7 +5769,7 @@
               "index": "",
               "level_3": "0",
               "address": "11.6.0",
-              "token_name": "Location_KDB",
+              "token_name": "Location_LDB",
               "token_type": "structure",
               "node_type": "structure",
               "level": "2",
@@ -5997,7 +5997,7 @@
         },
         "12.7.0": {
           "level_2": "7",
-          "subsection": "KDB",
+          "subsection": "LDB",
           "subsection_address": "12.7.0",
           "parent_id": "12.7.0",
           "tokens": [
@@ -6005,7 +6005,7 @@
               "index": "",
               "level_3": "0",
               "address": "12.7.0",
-              "token_name": "Term_KDB",
+              "token_name": "Term_LDB",
               "token_type": "structure",
               "node_type": "structure",
               "level": "2",
@@ -6171,7 +6171,7 @@
         },
         "13.5.0": {
           "level_2": "5",
-          "subsection": "KDB",
+          "subsection": "LDB",
           "subsection_address": "13.5.0",
           "parent_id": "13.5.0",
           "tokens": [
@@ -6179,7 +6179,7 @@
               "index": "",
               "level_3": "0",
               "address": "13.5.0",
-              "token_name": "Academia_KDB",
+              "token_name": "Academia_LDB",
               "token_type": "structure",
               "node_type": "structure",
               "level": "2",
@@ -6345,7 +6345,7 @@
         },
         "14.5.0": {
           "level_2": "5",
-          "subsection": "KDB",
+          "subsection": "LDB",
           "subsection_address": "14.5.0",
           "parent_id": "14.5.0",
           "tokens": [
@@ -6353,7 +6353,7 @@
               "index": "",
               "level_3": "0",
               "address": "14.5.0",
-              "token_name": "Employment_KDB",
+              "token_name": "Employment_LDB",
               "token_type": "structure",
               "node_type": "structure",
               "level": "2",
@@ -6475,7 +6475,7 @@
         },
         "15.4.0": {
           "level_2": "4",
-          "subsection": "KDB",
+          "subsection": "LDB",
           "subsection_address": "15.4.0",
           "parent_id": "15.4.0",
           "tokens": [
@@ -6483,7 +6483,7 @@
               "index": "",
               "level_3": "0",
               "address": "15.4.0",
-              "token_name": "Stage_KDB",
+              "token_name": "Stage_LDB",
               "token_type": "structure",
               "node_type": "structure",
               "level": "2",
@@ -6549,7 +6549,7 @@
         },
         "18.2.0": {
           "level_2": "2",
-          "subsection": "KDB",
+          "subsection": "LDB",
           "subsection_address": "18.2.0",
           "parent_id": "18.2.0",
           "tokens": [
@@ -6726,7 +6726,7 @@
               "index": "",
               "level_3": "0",
               "address": "18.2.0",
-              "token_name": "Market_KDB",
+              "token_name": "Market_LDB",
               "token_type": "structure",
               "node_type": "structure",
               "level": "2",
@@ -6836,7 +6836,7 @@
         },
         "19.2.0": {
           "level_2": "2",
-          "subsection": "KDB",
+          "subsection": "LDB",
           "subsection_address": "19.2.0",
           "parent_id": "19.2.0",
           "tokens": [
@@ -7013,7 +7013,7 @@
               "index": "",
               "level_3": "0",
               "address": "19.2.0",
-              "token_name": "Security_KDB",
+              "token_name": "Security_LDB",
               "token_type": "structure",
               "node_type": "structure",
               "level": "2",
@@ -7144,7 +7144,7 @@
         },
         "20.2.0": {
           "level_2": "2",
-          "subsection": "KDB",
+          "subsection": "LDB",
           "subsection_address": "20.2.0",
           "parent_id": "20.2.0",
           "tokens": [
@@ -7321,7 +7321,7 @@
               "index": "",
               "level_3": "0",
               "address": "20.2.0",
-              "token_name": "Intake_KDB",
+              "token_name": "Intake_LDB",
               "token_type": "structure",
               "node_type": "structure",
               "level": "2",
@@ -7425,7 +7425,7 @@
         },
         "21.2.0": {
           "level_2": "2",
-          "subsection": "KDB",
+          "subsection": "LDB",
           "subsection_address": "21.2.0",
           "parent_id": "21.2.0",
           "tokens": [
@@ -7602,7 +7602,7 @@
               "index": "",
               "level_3": "0",
               "address": "21.2.0",
-              "token_name": "Role_KDB",
+              "token_name": "Role_LDB",
               "token_type": "structure",
               "node_type": "structure",
               "level": "2",
@@ -7888,4 +7888,5 @@
     ]
   }
 }
+
 
