@@ -20,8 +20,8 @@ export function buildStructureToolbarItems({
   const normalizedRightItems = (Array.isArray(rightItems) ? rightItems : [])
     .map((item) => {
       const sectionLabels = Array.isArray(item?.sections)
-        ? item.sections.map((section) => String(section?.label || section?.rawLabel || '').trim().toLowerCase()).filter(Boolean)
-        : [String(item?.label || item?.rawLabel || item?.title || '').trim().toLowerCase()].filter(Boolean)
+        ? item.sections.map((section) => String(section?.label || '').trim().toLowerCase()).filter(Boolean)
+        : [String(item?.label || item?.title || '').trim().toLowerCase()].filter(Boolean)
 
       return {
         value: String(item?.value || item?.key || '').trim(),

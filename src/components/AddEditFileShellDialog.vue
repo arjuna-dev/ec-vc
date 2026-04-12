@@ -220,7 +220,6 @@ const shellSelectorButton = ref(null)
 const shellSelectorMenu = ref(null)
 const pendingShellSelectorValue = ref('')
 const activeL2Toolbar = ref('')
-const latestNotesBySource = ref({})
 const boxesCollapsed = ref(false)
 const leafItemsCollapsed = ref(false)
 const activeSubgroupKey = ref('')
@@ -271,7 +270,6 @@ const activeFilePayload = computed(() => {
     level_2: subsection.level_2,
     address: subsection.address,
     label: subsection.label,
-    rawLabel: subsection.rawLabel,
     structureToken: subsection.structureToken,
     subgroupKey: subsection.subgroupKey,
     subgroupLabel: subsection.subgroupLabel,
@@ -321,7 +319,7 @@ const activeSettingsSection = computed(
   },
 )
 const isRelationshipSettingsSection = computed(() =>
-  isRelationshipSectionLabel(activeSettingsSection.value?.label || activeSettingsSection.value?.rawLabel),
+  isRelationshipSectionLabel(activeSettingsSection.value?.label),
 )
 const subgroupTabs = computed(() => {
   if (isRelationshipSettingsSection.value) return []
@@ -332,7 +330,7 @@ const subgroupTabs = computed(() => {
 })
 const governanceViewRows = computed(() =>
   [...toolbarSectionSplit.value.leftSections, ...toolbarSectionSplit.value.rightSections].map((section) => {
-    const normalized = String(section.label || section.rawLabel || '').trim().toLowerCase()
+    const normalized = String(section.label || '').trim().toLowerCase()
     return {
       key: section.key,
       label: section.label,
@@ -461,21 +459,6 @@ function openFileGuideDoc() {
   window.ecvc?.openExternal?.(FILE_GUIDE_DOC_URL)
 }
 
-async function loadLatestNotes() {
-  if (typeof window === 'undefined') return
-  if (Array.isArray(latestNotesBySource.value[activeSettingsSourceKey.value])) return
-  const result = await window.ecvc?.notes?.list?.()
-  const rows = Array.isArray(result?.notes) ? result.notes.slice(0, 5) : []
-  latestNotesBySource.value = {
-    ...latestNotesBySource.value,
-    [activeSettingsSourceKey.value]: rows.map((note) => ({
-      id: String(note?.id || ''),
-      name: String(note?.Note_Name || note?.title || 'Untitled Note'),
-      summary: String(note?.Note_Content || '').trim().slice(0, 96) || 'No summary yet.',
-    })),
-  }
-}
-
 function toggleShellSelector() {
   shellSelectorOpen.value = !shellSelectorOpen.value
 }
@@ -571,7 +554,6 @@ function handleGlobalPointerDown(event) {
 onMounted(() => {
   if (typeof window === 'undefined' || typeof window.addEventListener !== 'function') return
   window.addEventListener('pointerdown', handleGlobalPointerDown)
-  loadLatestNotes()
 })
 
 onBeforeUnmount(() => {
@@ -620,10 +602,6 @@ watch(
   },
   { immediate: true },
 )
-
-watch(activeSettingsSourceKey, () => {
-  loadLatestNotes()
-})
 
 watch(
   fileStructureSnapshot,

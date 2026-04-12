@@ -18,7 +18,6 @@
         <AddEditFileShellDialog
           :shell-selector-value="activeSourceKey"
           :shell-selector-options="TEST_SHELL_SECTION_OPTIONS"
-          :can-configure-file-system="canConfigureFileSystem"
           @update:shell-selector-value="updateShellSelector"
           @change="updateFileStructureSession"
         />
@@ -28,7 +27,7 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { computed, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import AddEditFileShellDialog from 'src/components/AddEditFileShellDialog.vue'
 import { TEST_SHELL_SECTION_OPTIONS, resolveApprovedFileSectionKey } from 'src/utils/structureRegistry'
@@ -37,10 +36,8 @@ import { applyFileRegistryPresenceChanges, buildFileRegistryPresenceChanges, res
 const route = useRoute()
 const router = useRouter()
 const isElectronRuntime = computed(() => typeof window !== 'undefined')
-const canConfigureFileSystem = ref(false)
 const fileStructureSessionsBySource = ref({})
 const fileRegistryRows = ref([])
-const fileRegistryPresenceChangesBySource = ref({})
 const fileRegistrySaveInFlightBySource = ref({})
 
 const activeSourceKey = computed(() => resolveValidShellSection(route.query.section, route.query.entity))
@@ -72,10 +69,6 @@ async function updateFileStructureSession(snapshot = null) {
       ...snapshot,
     },
   }
-  fileRegistryPresenceChangesBySource.value = {
-    ...fileRegistryPresenceChangesBySource.value,
-    [sourceKey]: nextChanges,
-  }
 
   if (!fileRow?.id || !nextChanges.length || fileRegistrySaveInFlightBySource.value[sourceKey]) return
 
@@ -99,16 +92,6 @@ async function updateFileStructureSession(snapshot = null) {
   }
 }
 
-async function loadFileSystemOwnership() {
-  try {
-    const bridge = typeof window !== 'undefined' ? window.ecvc : null
-    const result = await bridge?.userSettings?.get?.()
-    canConfigureFileSystem.value = result?.canEditOwnerSettings !== false
-  } catch {
-    canConfigureFileSystem.value = false
-  }
-}
-
 async function loadFileRegistryRows() {
   try {
     const bridge = typeof window !== 'undefined' ? window.ecvc : null
@@ -118,11 +101,7 @@ async function loadFileRegistryRows() {
     fileRegistryRows.value = []
   }
 }
-
-onMounted(() => {
-  loadFileSystemOwnership()
-  loadFileRegistryRows()
-})
+loadFileRegistryRows()
 </script>
 
 <style scoped>
