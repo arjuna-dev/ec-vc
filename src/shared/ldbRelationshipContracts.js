@@ -236,19 +236,8 @@ export function getLdbRelationshipContractForToken(entityName, tokenOrName, targ
   if (!normalizedEntity) return null
 
   const resolvedTarget = normalizeEntityName(targetEntity) || (typeof tokenOrName === 'object' ? resolveTargetEntityFromToken(tokenOrName) : '')
-  if (resolvedTarget) return getLdbRelationshipContractForEntityPair(normalizedEntity, resolvedTarget)
-
-  const normalizedToken = typeof tokenOrName === 'string'
-    ? normalize(tokenOrName)
-    : normalize(tokenOrName?.tokenName || tokenOrName?.token_name)
-  if (!normalizedToken) return null
-  return (
-    LDB_RELATIONSHIP_CONTRACTS.find(
-      (contract) =>
-        normalizeEntityName(contract.sourceEntity) === normalizedEntity
-        && normalize(contract.sourceToken) === normalizedToken,
-    ) || null
-  )
+  if (!resolvedTarget) return null
+  return getLdbRelationshipContractForEntityPair(normalizedEntity, resolvedTarget)
 }
 
 export function getLdbRelationshipContractsForEntity(entityName) {
