@@ -37,6 +37,7 @@
         <div>activeView: {{ activeView?.label || activeViewKey || 'none' }}</div>
         <div>canonicalTitleToken: {{ canonicalTitleToken?.tokenName || 'none' }}</div>
         <div>firstTitle: {{ debugFirstTitle || 'none' }}</div>
+        <div>firstCardId: {{ debugFirstCardId || 'none' }}</div>
         <div>filterView: {{ activeFilterViewKey || 'none' }}</div>
         <div>filterToken: {{ activeFilterTokenKey || 'none' }}</div>
         <div>search: {{ searchQuery || 'none' }}</div>
@@ -830,6 +831,7 @@ const debugFirstTitle = computed(() => {
   if (!row || !canonicalTitleToken.value) return ''
   return stringifyValue(getCanonicalTokenValue(row, canonicalTitleToken.value))
 })
+const debugFirstCardId = computed(() => displayRows.value[0]?.cardId || '')
 const loading = ref(false)
 const error = ref('')
 const searchQuery = ref('')
