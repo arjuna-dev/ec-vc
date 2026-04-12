@@ -477,7 +477,6 @@ import MiniToolbar from 'src/components/MiniToolbar.vue'
 import RecordHistoryBox from 'src/components/RecordHistoryBox.vue'
 import RecordHero from 'src/components/RecordHero.vue'
 import StructureGovernancePanel from 'src/components/StructureGovernancePanel.vue'
-import { getLdbRelationshipContractsForEntity } from 'src/shared/ldbRelationshipContracts'
 import { setPendingAddEditShellRequest } from 'src/utils/addEditShellState'
 import {
   CANONICAL_OPTION_LISTS,

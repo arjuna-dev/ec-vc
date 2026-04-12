@@ -756,7 +756,7 @@ import {
     resolveApprovedFileSectionKey,
     buildFileShellPayload,
   } from 'src/utils/structureRegistry'
-import { getLdbRelationshipContractForToken, getLdbRelationshipContractsForEntity } from 'src/shared/ldbRelationshipContracts'
+import { getLdbRelationshipContractForToken } from 'src/shared/ldbRelationshipContracts'
 import { buildDialogViews, groupDialogViews, splitDialogViews } from 'src/utils/dialogShellPayload'
 import { buildRecordViewLocation } from 'src/utils/recordViewNavigation'
 import { shareRecordSelection } from 'src/utils/recordListSelectionActions'
