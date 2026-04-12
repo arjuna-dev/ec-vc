@@ -1123,7 +1123,7 @@ const l2ToolbarItems = [
   { value: 'general', title: 'General', isKdb: false, isSystem: false, pushRight: false },
   { value: 'resources', title: 'Resources', isKdb: false, isSystem: false, pushRight: false },
   { value: 'record-data', title: 'Record Data', isKdb: false, isSystem: false, pushRight: false },
-  { value: 'kdb', title: 'LDB', isKdb: true, isSystem: false, pushRight: true },
+  { value: 'ldb', title: 'LDB', isKdb: true, isSystem: false, pushRight: true },
   { value: 'system', title: 'System', isKdb: false, isSystem: true, pushRight: false },
 ]
 
@@ -1133,19 +1133,19 @@ const miniToolbarItems = buildStructureToolbarItems({
   ],
   rightItems: [
     { value: 'system', title: 'System', label: 'System' },
-    { value: 'kdb', title: 'KDB', label: 'KDB' },
+    { value: 'ldb', title: 'LDB', label: 'LDB' },
   ],
   governanceItems: [
     { value: 'tokens', title: 'Tokens' },
     { value: 'views', title: 'Views' },
   ],
-  isRelationshipSectionLabel: (label) => String(label || '').trim().toLowerCase() === 'kdb',
+  isRelationshipSectionLabel: (label) => String(label || '').trim().toLowerCase() === 'ldb',
 })
 
 const governanceViewRowsSample = [
   { key: 'general', label: 'General', side: 'Left', tokenCount: 2, subgroupCount: 0 },
   { key: 'system', label: 'System', side: 'Right', tokenCount: 3, subgroupCount: 0 },
-  { key: 'kdb', label: 'LDB', side: 'Right', tokenCount: 4, subgroupCount: 2 },
+  { key: 'ldb', label: 'LDB', side: 'Right', tokenCount: 4, subgroupCount: 2 },
   { key: 'overview', label: 'Overview', side: 'Left', tokenCount: 3, subgroupCount: 1 },
 ]
 

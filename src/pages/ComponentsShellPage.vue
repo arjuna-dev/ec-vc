@@ -426,7 +426,7 @@ const miniToolbarItems = buildStructureToolbarItems({
   ],
   rightItems: [
     { title: 'System', value: 'system', label: 'System' },
-    { title: 'KDB', value: 'kdb', label: 'KDB' },
+    { title: 'LDB', value: 'ldb', label: 'LDB' },
   ],
   governanceItems: [
     { title: 'Tokens', value: 'tokens' },

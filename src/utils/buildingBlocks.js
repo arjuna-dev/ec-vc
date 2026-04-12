@@ -836,7 +836,7 @@ export const BUILDING_BLOCK_DETAILS_BY_ID = {
     statusLabel: 'Canonical Shared',
     source: 'src/components/ShellSectionToolbar.vue',
     nextStep: 'Reuse the shared section toolbar directly and vary only section items and selected payload.',
-    summary: 'Use this for section switching across General, KDB, System, and similar level-2 groupings.',
+    summary: 'Use this for section switching across General, LDB, System, and similar section groupings.',
     prompt: 'Render the L2 Toolbar component from Building Blocks using the real ShellSectionToolbar component with the same compact section-chip treatment.',
     usedInShells: ['BB Shell', 'File Shell', 'Record Shell'],
     builtFromBbs: ['view-mode-toggle', 'colors', 'surfaces', 'borders', 'radius', 'spacing'],
