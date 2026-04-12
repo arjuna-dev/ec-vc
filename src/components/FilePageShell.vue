@@ -373,7 +373,7 @@
                         class="test-shell-card__note-pill"
                       >
                         <span class="test-shell-card__note-pill-name">
-                          {{ getCardRelationshipLabel(getRowRelationshipPanel(row)) }}
+                          {{ getRowRelationshipPanel(row) }}
                         </span>
                         <span class="test-shell-card__note-pill-value">{{ item }}</span>
                       </div>
@@ -730,10 +730,6 @@ import StructureGovernancePanel from 'components/StructureGovernancePanel.vue'
 import { buildStructureToolbarItems } from 'src/utils/structureToolbarContract'
 import EyeIconButton from 'components/buttons/EyeIconButton.vue'
 import SelectionActionBar from 'components/SelectionActionBar.vue'
-  import {
-    getCardRelationshipLabel,
-    resolveCardRelationshipPanel,
-  } from 'src/utils/card-kdb-relationships'
   import {
     CANONICAL_OPTION_LISTS,
     getCreateBranchEntry,
@@ -2167,7 +2163,7 @@ watch(
     rows.forEach((row) => {
       const rowId = getRowSelectionId(row)
       if (!rowId) return
-      nextMap[rowId] = resolveCardRelationshipPanel(cardRelationshipPanelById.value[rowId], row.relationshipItemsByType || {})
+      nextMap[rowId] = cardRelationshipPanelById.value[rowId] || ''
     })
     cardRelationshipPanelById.value = nextMap
   },
@@ -2738,7 +2734,7 @@ function getActiveRelationshipItems(row) {
 function getActiveRelationshipEmptyMessage(row) {
   const activePanel = String(getRowRelationshipPanel(row) || '').trim().toLowerCase()
   if (activePanel === 'events') return 'No history yet for this record.'
-  return `No ${getCardRelationshipLabel(activePanel).toLowerCase()} linked to this record.`
+  return `No ${String(activePanel || '').trim().toLowerCase()} linked to this record.`
 }
 
 function getRowRelationshipPanel(row) {
@@ -2812,7 +2808,7 @@ function setRowRelationshipPanel(row, nextValue) {
   if (!rowId) return
   cardRelationshipPanelById.value = {
     ...cardRelationshipPanelById.value,
-    [rowId]: resolveCardRelationshipPanel(nextValue, row.relationshipItemsByType || {}),
+    [rowId]: nextValue,
   }
 }
 
