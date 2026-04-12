@@ -17,7 +17,7 @@
               :key="`${stat.label}-${index}`"
               class="file-hero-sandbox__stat-card"
             >
-              <L3Box :label="stat.label" :value="stat.value" :caption="stat.caption" :tone="stat.tone" />
+              <L3Box :label="stat.label" :value="String(stat.value ?? '')" :caption="stat.caption" :tone="stat.tone" />
             </div>
           </div>
 

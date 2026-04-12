@@ -11,7 +11,7 @@
             v-for="stat in stats"
             :key="stat.label"
             :label="stat.label"
-            :value="stat.value"
+            :value="String(stat.value ?? '')"
             :caption="stat.caption || ''"
             tone="inverse"
             class="home-dashboard-hero__stat"
