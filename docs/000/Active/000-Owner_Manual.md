@@ -49,7 +49,7 @@ The shared LDB layer is derived from the file universe declared in `System Files
 This means:
 
 - every file can relate to every other file by default
-- file-specific relationship fields live inside that file’s token list
+- file-specific relationship fields live inside that file's token list
 - there is no separate LDB registry path or fallback
 
 ## Events / Provenance Rule
@@ -83,7 +83,7 @@ This keeps guidance local, easy to reach, and directly tied to the file’s decl
 
 ### 2. Architecture
 
-- Record Architecture (File → Card → Record View)
+- Record Architecture (File -> Card -> Record View)
 - Intake Architecture
 - Bootstrap / Genesis
 - Field Classification
