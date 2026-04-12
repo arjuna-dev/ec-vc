@@ -370,13 +370,22 @@ function normalizeTokens(subsection) {
       return level !== '0'
     })
     .map((token, index) => {
+      const tokenName = String(token?.token_name || '').trim()
       const explicitRole = String(token?.token_role || token?.field_role || '').trim()
       const legacyRole = String(token?.role || '').trim()
       const label = String(token?.label || '').trim().toLowerCase()
       const inferredRole =
         explicitRole ||
         legacyRole ||
-        (label === 'name' ? 'title' : label === 'summary' ? 'summary' : '')
+        (tokenName.endsWith('_Name') || tokenName === 'Name'
+          ? 'title'
+          : tokenName.endsWith('_Summary') || tokenName === 'Summary'
+            ? 'summary'
+            : label === 'name'
+              ? 'title'
+              : label === 'summary'
+                ? 'summary'
+                : '')
 
       return {
         ...token,
