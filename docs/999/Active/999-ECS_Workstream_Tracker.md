@@ -313,6 +313,7 @@ This tracker should stay aligned with:
   - `ViewSettingsMenu` is now the shared settings menu name (retired `L2SettingsMenu`)
   - live shell ordering now uses explicit token/section order (array order or `token_order` / `subsection_order`), not `level_2` / `level_3`
   - LDB relationship contracts now derive from the System Files universe (runtime registry), not canonical subsections
+  - canonical LDB/KDB tokens have been cleared to force all relationship UI through shared System Files LDB
 - current cleanup rule:
   - if a live runtime name only exists to preserve scaffold vocabulary, rename or delete it
   - keep canonical/workbook structure as reference input only
