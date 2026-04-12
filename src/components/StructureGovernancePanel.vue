@@ -175,7 +175,7 @@
           <td
             v-for="column in dataColumns"
             :key="`${row.key}:${column.key}`"
-            :class="[column.cellClass, { 'structure-governance-panel__cell--editable': isEditableColumn(column) }]"
+            :class="[column.cellClass, { 'structure-governance-panel__cell--editable': isEditableColumn(row, column) }]"
             @dblclick="startDataCellEdit(row, column)"
           >
             <SettingsCheckbox
@@ -277,8 +277,9 @@ function columnStyle(column = {}) {
   return width > 0 ? { width: `${width}px`, minWidth: `${width}px` } : {}
 }
 
-function isEditableColumn(column = {}) {
-  return Boolean(column?.editable) && column.kind !== 'checkbox'
+function isEditableColumn(row = {}, column = {}) {
+  const isRowEditable = String(row?.editable || '').trim().toLowerCase() !== 'no'
+  return Boolean(column?.editable) && column.kind !== 'checkbox' && isRowEditable
 }
 
 function isDataCellEditing(rowKey = '', columnKey = '') {
@@ -287,7 +288,7 @@ function isDataCellEditing(rowKey = '', columnKey = '') {
 }
 
 async function startDataCellEdit(row = {}, column = {}) {
-  if (!isEditableColumn(column)) return
+  if (!isEditableColumn(row, column)) return
   editingCell.value = {
     rowKey: String(row?.key || '').trim(),
     columnKey: String(column?.key || '').trim(),

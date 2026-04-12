@@ -246,6 +246,26 @@ const tokenTypeOptions = [
   { value: 'select_multi', label: 'Select Multi' },
   { value: 'creator', label: 'Creator' },
 ]
+const optionSourceOptions = [
+  { value: 'live_entity', label: 'Live Entity' },
+  { value: 'option_list', label: 'Option List' },
+  { value: 'shared_file_universe', label: 'Shared File Universe' },
+  { value: 'manual', label: 'Manual' },
+]
+const fieldClassOptions = [
+  { value: 'owned', label: 'Owned' },
+  { value: 'directional', label: 'Directional' },
+  { value: 'ldb_relationship', label: 'LDB Relationship' },
+  { value: 'system', label: 'System' },
+]
+const optionEntityOptions = computed(() =>
+  (Array.isArray(props.shellSelectorOptions) ? props.shellSelectorOptions : [])
+    .map((option) => {
+      const label = String(option?.label || '').trim()
+      return label ? { value: label, label } : null
+    })
+    .filter(Boolean),
+)
 const leafDataColumns = computed(() => [
   { key: 'parentView', label: 'View', width: 92, headerClass: 'file-structure-shell__colhead--structure', cellClass: 'file-structure-shell__cell--structure' },
   { key: 'parentSubgroup', label: 'Sub', width: 78, headerClass: 'file-structure-shell__colhead--structure', cellClass: 'file-structure-shell__cell--structure' },
@@ -253,6 +273,11 @@ const leafDataColumns = computed(() => [
   { key: 'order', label: 'Order', width: 54, headerClass: 'file-structure-shell__colhead--structure', cellClass: 'file-structure-shell__cell--structure' },
   { key: 'label', label: 'Label', width: 180, cellClass: 'file-structure-shell__cell--label', editable: true, kind: 'text' },
   { key: 'type', label: 'Type', width: 112, headerClass: 'file-structure-shell__colhead--data', cellClass: 'file-structure-shell__cell--data', editable: true, kind: 'select', options: tokenTypeOptions },
+  { key: 'optionSource', label: 'Option Source', width: 150, headerClass: 'file-structure-shell__colhead--data', cellClass: 'file-structure-shell__cell--data', editable: true, kind: 'select', options: optionSourceOptions },
+  { key: 'optionEntity', label: 'Option Entity', width: 160, headerClass: 'file-structure-shell__colhead--data', cellClass: 'file-structure-shell__cell--data', editable: true, kind: 'select', options: optionEntityOptions.value },
+  { key: 'optionList', label: 'Option List', width: 140, headerClass: 'file-structure-shell__colhead--data', cellClass: 'file-structure-shell__cell--data', editable: true, kind: 'text' },
+  { key: 'dbWriteField', label: 'DB Write Field', width: 180, headerClass: 'file-structure-shell__colhead--data', cellClass: 'file-structure-shell__cell--data', editable: true, kind: 'text' },
+  { key: 'fieldClass', label: 'Field Class', width: 140, headerClass: 'file-structure-shell__colhead--data', cellClass: 'file-structure-shell__cell--data', editable: true, kind: 'select', options: fieldClassOptions },
   { key: 'visible', label: 'Visible', width: 72, headerClass: 'file-structure-shell__colhead--data', cellClass: 'file-structure-shell__cell--data', editable: true, kind: 'select', options: [{ value: 'Yes', label: 'Yes' }, { value: 'No', label: 'No' }] },
   { key: 'required', label: 'Required', width: 84, headerClass: 'file-structure-shell__colhead--data', cellClass: 'file-structure-shell__cell--data', kind: 'checkbox' },
   { key: 'writeTarget', label: 'Write Target / Alias', width: 220, headerClass: 'file-structure-shell__colhead--data', cellClass: 'file-structure-shell__cell--data', editable: true, kind: 'text' },
@@ -350,6 +375,9 @@ const sharedLdbLeafTokens = computed(() => {
         dbFieldAliases: [],
         optionList: '',
         optionSource: 'shared_file_universe',
+        optionEntity: '',
+        fieldClass: 'ldb_relationship',
+        dbWriteField: '',
         targetSourceKey: sourceKey,
         editable: true,
       }
@@ -368,25 +396,30 @@ const activeLeafTokens = computed(() => {
   const draftTokens = draftLeafRowsBySource.value[activeSettingsSourceKey.value] || []
   const tokens = [...draftTokens, ...sourceTokens]
 
-  return tokens.map((token, index) => {
-    const requiredKeys = new Set(requiredFieldKeysBySource.value[activeSettingsSourceKey.value] || [])
-    const writeTarget = token.isDraft ? null : getCanonicalTokenWriteTarget(token, activeShellSelectorOption.value.label, 'id')
-    return {
-      key: token.key || '—',
-      label: token.label || '—',
+    return tokens.map((token, index) => {
+      const requiredKeys = new Set(requiredFieldKeysBySource.value[activeSettingsSourceKey.value] || [])
+      const writeTarget = token.isDraft ? null : getCanonicalTokenWriteTarget(token, activeShellSelectorOption.value.label, 'id')
+      return {
+        key: token.key || '—',
+        label: token.label || '—',
       parentView: token.parentLabel || activeViewSection.value?.label || '—',
       parentSubgroup: isRelationshipSettingsSection.value
         ? '—'
         : token.draftParentSubgroup || subgroupMap.get(activeSubgroupKey.value)?.label || '—',
-      type: token.tokenType || '—',
-      visible: 'Yes',
-      required: requiredKeys.has(token.key),
-      editable: token.editable === false ? 'No' : token.editable === true ? 'Yes' : '—',
-      relationshipMeaning: token.relationshipGroup || '—',
-      writeTarget: writeTarget?.fieldName ? `${writeTarget.tableName}.${writeTarget.fieldName}` : token.dbFieldAliases?.join(', ') || '—',
-      order: token.tokenOrder || String(index + 1),
-      uiTreatment: token.tokenType || token.optionList || token.optionSource || '—',
-    }
+        type: token.tokenType || '—',
+        optionSource: token.optionSource || '—',
+        optionEntity: token.optionEntity || '—',
+        optionList: token.optionList || '—',
+        dbWriteField: token.dbWriteField || token.dbFieldAliases?.[0] || '—',
+        fieldClass: token.fieldClass || token.field_class || '—',
+        visible: 'Yes',
+        required: requiredKeys.has(token.key),
+        editable: token.editable === false ? 'No' : token.editable === true ? 'Yes' : '—',
+        relationshipMeaning: token.relationshipGroup || '—',
+        writeTarget: writeTarget?.fieldName ? `${writeTarget.tableName}.${writeTarget.fieldName}` : token.dbFieldAliases?.join(', ') || '—',
+        order: token.tokenOrder || String(index + 1),
+        uiTreatment: token.tokenType || token.optionList || token.optionSource || '—',
+      }
   })
 })
 const tokenGroupsByView = computed(() =>
@@ -418,6 +451,11 @@ const displayLeafTokens = computed(() =>
       ...token,
       label: overrides.label ?? token.label,
       type: overrides.type ?? token.type,
+      optionSource: overrides.optionSource ?? token.optionSource,
+      optionEntity: overrides.optionEntity ?? token.optionEntity,
+      optionList: overrides.optionList ?? token.optionList,
+      dbWriteField: overrides.dbWriteField ?? token.dbWriteField,
+      fieldClass: overrides.fieldClass ?? token.fieldClass,
       visible: overrides.visible ?? token.visible,
       writeTarget: overrides.writeTarget ?? token.writeTarget,
     }
