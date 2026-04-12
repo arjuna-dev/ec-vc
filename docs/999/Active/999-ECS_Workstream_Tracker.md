@@ -98,6 +98,9 @@ This tracker should stay aligned with:
   - extraction should ask whether an artifact answers any declared `L1` / `L3` directive
   - parcel first-pass answers into the strongest matching file/token path
   - avoid repeating the same information across multiple sections when one higher-confidence destination already exists
+  - use page-title length as a light interpretation hint:
+    - `<= 30ch` more likely section/subsection
+    - `> 30ch` more likely summary/highlight guidance
 - birth-governance derivation:
   - document derivation rules
   - seed first registry-owned birth defaults into shared create

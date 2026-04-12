@@ -118,6 +118,15 @@ When intake is evaluating a source artifact:
 - if two sections seem similar, the steward should prefer the more reliable first-pass interpretation and keep the weaker one as a visible suggestion, not as duplicated data
 - first-pass confidence should help prevent repeated information and cross-section confusion before verification
 
+## Page Title Hint
+
+When intake is reading page structure or preparing extraction hints:
+
+- if a page title is set to `30ch` or below, assume that title is referring to a section or subsection label
+- if a page title is above `30ch`, assume it is acting more like a page summary with key highlights that help guide intention
+
+This should be treated as a guidance hint for interpretation, not as permission to override clearer canonical ownership.
+
 ## Stop Conditions
 
 The `Intake Steward` should stop implementation and surface the gap when:
