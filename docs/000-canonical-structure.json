@@ -1,56 +1,5 @@
 {
   "version": 1,
-  "status": "draft",
-  "notes": [
-    "This file is the canonical app-owned structure draft.",
-    "The workbook and workbook-schema-companion remain useful for validation, migration, and intake.",
-    "Addresses should remain stable whenever possible.",
-    "Every normal L1 should begin from one shared base structure before adding entity-specific extension layers.",
-    "Shared base fields should keep shared canonical names such as Name and Summary instead of drifting into entity-prefixed duplicates."
-  ],
-  "addressing": {
-    "entity_address_pattern": "L1.0.0",
-    "subsection_address_pattern": "L1.L2.0",
-    "token_address_pattern": "L1.L2.L3",
-    "subgroup_address_pattern": "L1.L2.a"
-  },
-  "base_l1_contract": {
-    "description": "The shared starter contract for normal L1 files.",
-    "structure_order": [
-      "shared_system_base",
-      "shared_kdb_base",
-      "shared_general_base",
-      "entity_extension_layers"
-    ],
-    "shared_system_base": {
-      "required_subsection": "System",
-      "required_token_set": [
-        "ID",
-        "EventLog"
-      ],
-      "rule": "Shared system fields should keep shared canonical names across L1 files."
-    },
-    "shared_kdb_base": {
-      "required_subsection": "KDB",
-      "required_contract": "linkage_container",
-      "rule": "KDB is the shared linkage section for declared relationships. It is a required base subsection, but it is not one fixed universal leaf set."
-    },
-    "shared_general_base": {
-      "required_subsection": "General",
-      "required_token_set": [
-        "Name",
-        "Summary"
-      ],
-      "rule": "Name and Summary are shared canonical fields and should not be renamed per entity when the meaning is shared."
-    },
-    "entity_extension_layers": {
-      "rule": "After the shared base, each L1 may add independent L2 sections and explicit L2.a-b-c-d subgrouping when canon declares it."
-    },
-    "controlled_exception": {
-      "entity": "Building_Blocks",
-      "rule": "BB File is a system-level file and may use its own approved subsection contract."
-    }
-  },
   "entities": [
     {
       "level_1": "0",
