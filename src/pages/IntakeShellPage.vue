@@ -54,6 +54,7 @@ import {
   getCanonicalTokenValue,
   getFilePageRegistryEntry,
   getFilePageRegistryEntryByEntityReference,
+  getRegistrySummaryTokenForSource,
   getRegistryTitleTokenForSource,
   getRuntimeTableNameForEntityName,
   resolveApprovedFileSectionKey,
@@ -116,7 +117,10 @@ const createPrimaryTokens = computed(() => {
   const branchToken = branchTokenName
     ? level3Tokens.value.find((token) => String(token?.tokenName || '').trim() === branchTokenName) || null
     : null
-  const tokens = level3Tokens.value.filter((token) => String(token.level_3) === '1' || String(token.level_3) === '2')
+  const tokens = [
+    getRegistryTitleTokenForSource(activeSourceKey.value),
+    getRegistrySummaryTokenForSource(activeSourceKey.value),
+  ]
   return [...tokens, branchToken]
     .filter(Boolean)
     .filter((token, index, list) => list.findIndex((entry) => entry.key === token.key) === index)
@@ -151,9 +155,9 @@ const canCreateWithShell = computed(() => {
 const canEditWithShell = computed(() => Boolean(dialogRecordId.value && dialogEntityName.value && bridge.value?.records?.update))
 function isRelationshipSectionLabel(value = '') {
   const normalized = String(value || '').trim().toLowerCase()
-  return normalized === 'kdb' || normalized === 'ldb'
+  return normalized === 'ldb'
 }
-const dialogKdbSectionKey = computed(
+const dialogLdbSectionKey = computed(
   () => createSectionGroups.value.find((section) => isRelationshipSectionLabel(section?.rawLabel || section?.label))?.key || 'general',
 )
 
@@ -204,7 +208,7 @@ watch(
     dialogMode.value = 'edit'
     dialogRecordId.value = normalizedRecordId
     dialogEntityName.value = String(editEntityName || activeRegistryEntry.value?.entityName || '').trim()
-    dialogInitialSectionKey.value = isRelationshipSectionLabel(editSection) ? dialogKdbSectionKey.value : 'general'
+    dialogInitialSectionKey.value = isRelationshipSectionLabel(editSection) ? dialogLdbSectionKey.value : 'general'
     dialogInitialValues.value = {}
     dialogInitialFieldMeta.value = {}
 

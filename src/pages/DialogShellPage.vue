@@ -68,6 +68,7 @@ import {
   getCanonicalTokenValue,
   getFilePageRegistryEntry,
   getFilePageRegistryEntryByEntityReference,
+  getRegistrySummaryTokenForSource,
   getRegistryTitleTokenForSource,
   getRuntimeTableNameForEntityName,
   resolveApprovedFileSectionKey,
@@ -84,7 +85,7 @@ function isRelationshipSection(sectionOrLabel) {
   )
     .trim()
     .toLowerCase()
-  return normalized === 'kdb' || normalized === 'ldb'
+  return normalized === 'ldb'
 }
 
 const route = useRoute()
@@ -135,10 +136,8 @@ const level3Tokens = computed(() =>
   ),
 )
 const groupedLevel2Sections = computed(() => groupDialogLevel2Sections(level2Sections.value))
-const canonicalNameToken = computed(() => level3Tokens.value.find((token) => String(token.level_3) === '1') || null)
-const canonicalSummaryToken = computed(() =>
-  level3Tokens.value.find((token) => String(token.level_3) === '2' || String(token.label || '').trim().toLowerCase() === 'summary') || null,
-)
+const canonicalNameToken = computed(() => getRegistryTitleTokenForSource(activeSourceKey.value) || null)
+const canonicalSummaryToken = computed(() => getRegistrySummaryTokenForSource(activeSourceKey.value) || null)
 
 const createPrimaryTokens = computed(() => {
   const branchTokenName = getCreateBranchTokenName(activeSourceKey.value)
@@ -255,7 +254,7 @@ const sharedLdbSectionTokens = computed(() => {
           || `File ${index + 1}`,
         tokenType: 'select_multi',
         inputOptions: buildLiveEntityOptions(sourceKey),
-        parentKey: dialogKdbSectionKey.value,
+        parentKey: dialogLdbSectionKey.value,
         parentLabel: 'LDB',
         isSharedLdbToken: true,
         targetSourceKey: sourceKey,
@@ -287,7 +286,7 @@ const canCreateWithShell = computed(() => {
   return Boolean(bridge.value?.[activeSourceKey.value]?.create)
 })
 const canEditWithShell = computed(() => Boolean(dialogRecordId.value && dialogEntityName.value && bridge.value?.records?.update))
-const dialogKdbSectionKey = computed(
+const dialogLdbSectionKey = computed(
   () => createSectionGroups.value.find((section) => isRelationshipSection(section))?.key || 'general',
 )
 const dialogHistoryTableName = computed(() => String(getRuntimeTableNameForEntityName(dialogEntityName.value) || '').trim())
@@ -372,7 +371,7 @@ watch(
     dialogMode.value = 'edit'
     dialogRecordId.value = normalizedRecordId
     dialogEntityName.value = String(editEntityName || activeRegistryEntry.value?.entityName || '').trim()
-    dialogInitialSectionKey.value = isRelationshipSection(editSection) ? dialogKdbSectionKey.value : 'general'
+    dialogInitialSectionKey.value = isRelationshipSection(editSection) ? dialogLdbSectionKey.value : 'general'
     dialogInitialValues.value = {}
     dialogInitialFieldMeta.value = {}
     dialogHistoryItems.value = []

@@ -7,37 +7,7 @@ export function getDialogSectionGroupValue(section) {
 
 function isRelationshipSectionLabel(value = '') {
   const normalized = String(value || '').trim().toLowerCase()
-  return normalized === 'kdb' || normalized === 'ldb'
-}
-
-function formatRelationshipGroupLabel(value = '') {
-  const normalized = String(value || '').trim().toLowerCase()
-  if (normalized === 'first_order') return 'First-Order'
-  if (normalized === 'knowledge_db') return 'Local DB'
-  return String(value || '')
-    .split('_')
-    .filter(Boolean)
-    .map((part) => part[0]?.toUpperCase() + part.slice(1).toLowerCase())
-    .join(' ')
-}
-
-function buildKdbSubgroups(tokens = []) {
-  const groups = new Map()
-  for (const token of Array.isArray(tokens) ? tokens : []) {
-    const key = String(token?.relationshipGroup || '').trim().toLowerCase()
-    if (!key) continue
-    const existing = groups.get(key)
-    if (existing) {
-      existing.tokens.push(token)
-      continue
-    }
-    groups.set(key, {
-      key: `kdb:${key}`,
-      label: formatRelationshipGroupLabel(key),
-      tokens: [token],
-    })
-  }
-  return Array.from(groups.values()).filter((group) => group.tokens.length)
+  return normalized === 'ldb'
 }
 
 export function groupDialogLevel2Sections(level2Sections = []) {
@@ -62,6 +32,7 @@ export function buildDialogSectionGroups({
   groupedSections = [],
   tokenFilter = () => true,
   mapToken = (token) => token,
+  keepEmptySections = false,
 } = {}) {
   return (Array.isArray(groupedSections) ? groupedSections : [])
     .map((group) => {
@@ -71,21 +42,18 @@ export function buildDialogSectionGroups({
           label: section.label,
           tokens: tokenFilter(section).map((token) => mapToken(token)),
         }))
-        .filter((section) => section.tokens.length)
+        .filter((section) => keepEmptySections || section.tokens.length)
 
       const flatTokens = subsectionGroups.flatMap((section) => section.tokens)
-      const isKdbGroup = isRelationshipSectionLabel(group?.title)
-      const kdbSubgroups = isKdbGroup ? buildKdbSubgroups(flatTokens) : []
-
       return {
         key: group.value,
         label: group.title,
         rawLabel: String(group?.sections?.[0]?.rawLabel || group?.title || '').trim(),
         tokens: flatTokens,
-        subgroups: kdbSubgroups.length ? kdbSubgroups : subsectionGroups.length > 1 ? subsectionGroups : [],
+        subgroups: subsectionGroups.length > 1 ? subsectionGroups : [],
       }
     })
-    .filter((group) => group.tokens.length)
+    .filter((group) => keepEmptySections || group.tokens.length)
 }
 
 export function splitDialogSections(sectionGroups = []) {

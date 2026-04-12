@@ -995,7 +995,7 @@ const hasSupportedBridge = computed(() => {
 const supportsActiveSourceEditing = computed(() => activeContentSourceKey.value !== 'events')
 function isRelationshipSectionLabel(value = '') {
   const normalized = String(value || '').trim().toLowerCase()
-  return normalized === 'kdb' || normalized === 'ldb'
+  return normalized === 'ldb'
 }
 const hasActiveSourceLdb = computed(() =>
   level2Sections.value.some((section) => isRelationshipSectionLabel(section?.rawLabel || section?.label)),

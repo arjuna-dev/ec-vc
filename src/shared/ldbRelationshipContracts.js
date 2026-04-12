@@ -161,7 +161,7 @@ const LDB_TOKENS = entities.flatMap((entity) => {
   return normalizeSubsections(entity)
     .filter((subsection) => {
       const subsectionName = normalize(subsection?.subsection).toLowerCase()
-      return subsectionName === 'kdb' || subsectionName === 'ldb'
+      return subsectionName === 'ldb'
     })
     .flatMap((subsection) =>
       normalizeTokens(subsection).map((token) => ({

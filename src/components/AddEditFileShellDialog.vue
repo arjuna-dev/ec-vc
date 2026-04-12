@@ -200,6 +200,7 @@
         <table class="file-structure-shell__leaf-table">
           <colgroup>
             <col :style="columnStyle('select')">
+            <col :style="columnStyle('view')">
             <col v-if="!structureColumnsCollapsed" :style="columnStyle('l2Section')">
             <col v-if="!structureColumnsCollapsed" :style="columnStyle('l2Sub')">
             <col v-if="!structureColumnsCollapsed" :style="columnStyle('l3Key')">
@@ -213,6 +214,7 @@
           <thead>
             <tr>
               <th aria-label="Selection"></th>
+              <th aria-label="View"></th>
               <th v-if="!structureColumnsCollapsed" class="file-structure-shell__colhead--structure">
                 <div class="file-structure-shell__header-cell">
                   <span>L2 Key</span>
@@ -333,6 +335,9 @@
                   @update:model-value="toggleLeafSelection(token.key)"
                 />
               </td>
+              <td class="file-structure-shell__cell--control">
+                <q-icon name="visibility" size="14px" class="file-structure-shell__eye-icon" />
+              </td>
               <td v-if="!structureColumnsCollapsed" class="file-structure-shell__cell--structure">{{ token.parentL2 }}</td>
               <td v-if="!structureColumnsCollapsed" class="file-structure-shell__cell--structure">{{ token.parentSubgroup }}</td>
               <td v-if="!structureColumnsCollapsed" class="file-structure-shell__cell--l3-key">{{ token.key }}</td>
@@ -350,7 +355,7 @@
               <td class="file-structure-shell__cell--data">{{ token.writeTarget }}</td>
             </tr>
             <tr v-if="!activeLeafTokens.length">
-              <td :colspan="structureColumnsCollapsed ? 5 : 9" class="file-structure-shell__leaf-empty">No leaf items declared for this selection.</td>
+              <td :colspan="structureColumnsCollapsed ? 6 : 10" class="file-structure-shell__leaf-empty">No leaf items declared for this selection.</td>
             </tr>
           </tbody>
         </table>
@@ -373,8 +378,8 @@ import SectionTabs from 'src/components/SectionTabs.vue'
 import MiniToolbar from 'src/components/MiniToolbar.vue'
 import StructureGovernancePanel from 'src/components/StructureGovernancePanel.vue'
 import { buildStructureToolbarItems } from 'src/utils/structureToolbarContract'
-import { buildDialogSectionGroups, groupDialogLevel2Sections, splitDialogSections } from 'src/utils/dialogShellPayload'
-import { LEVEL_2_FILE_REGISTRY_BY_KEY, LEVEL_3_FILE_REGISTRY_BY_KEY, getCanonicalTokenWriteTarget, getRegistryTitleTokenForSource } from 'src/utils/structureRegistry'
+import { splitDialogSections } from 'src/utils/dialogShellPayload'
+import { getCanonicalTokenWriteTarget, getFilePageRegistryEntry, getRegistryTitleTokenForSource } from 'src/utils/structureRegistry'
 
 const props = defineProps({
   shellSelectorValue: { type: String, default: '' },
@@ -387,6 +392,7 @@ const FILE_GUIDE_DOC_URL = 'file:///C:/Users/erikc/Coding_Repository/ec-vc/docs/
 const shellSelectorOpen = ref(false)
 const shellSelectorButton = ref(null)
 const shellSelectorMenu = ref(null)
+const pendingShellSelectorValue = ref('')
 const activeL2Toolbar = ref('')
 const latestNotesBySource = ref({})
 const boxesCollapsed = ref(false)
@@ -400,6 +406,7 @@ const checkedSettingsItemsBySource = ref({})
 const requiredFieldKeysBySource = ref({})
 const columnWidths = reactive({
   select: 42,
+  view: 30,
   l2Section: 92,
   l2Sub: 78,
   l3Key: 108,
@@ -416,29 +423,51 @@ const viewOptions = [
   { label: '', value: 'table', icon: 'table_rows' },
 ]
 const activeShellSelectorOption = computed(() =>
-  props.shellSelectorOptions.find((option) => option.value === props.shellSelectorValue)
+  props.shellSelectorOptions.find((option) => option.value === (pendingShellSelectorValue.value || props.shellSelectorValue))
   || props.shellSelectorOptions[0]
   || { value: '', label: 'Select File' },
 )
 const activeSettingsSourceKey = computed(() => activeShellSelectorOption.value.value || 'selected-file')
-const level2Sections = computed(() => LEVEL_2_FILE_REGISTRY_BY_KEY[activeSettingsSourceKey.value] || [])
-const level3Tokens = computed(() => LEVEL_3_FILE_REGISTRY_BY_KEY[activeSettingsSourceKey.value] || [])
-const groupedLevel2Sections = computed(() => groupDialogLevel2Sections(level2Sections.value))
-const dialogSectionGroups = computed(() =>
-  buildDialogSectionGroups({
-    groupedSections: groupedLevel2Sections.value,
-    tokenFilter: (section) => level3Tokens.value.filter((token) => token.parentKey === section.key),
-  }),
-)
-const dialogSectionSplit = computed(() => splitDialogSections(dialogSectionGroups.value))
+const activeFilePayload = computed(() => {
+  const registryEntry = getFilePageRegistryEntry(activeSettingsSourceKey.value) || null
+  const sections = (Array.isArray(registryEntry?.subsections) ? registryEntry.subsections : []).map((subsection) => ({
+    key: subsection.key,
+    level_2: subsection.level_2,
+    address: subsection.address,
+    label: subsection.label,
+    rawLabel: subsection.rawLabel,
+    structureToken: subsection.structureToken,
+    subgroupKey: subsection.subgroupKey,
+    subgroupLabel: subsection.subgroupLabel,
+    subgroupAddress: subsection.subgroupAddress,
+    displayGroup: subsection.displayGroup,
+    tokens: (Array.isArray(subsection.tokens) ? subsection.tokens : []).map((token) => ({
+      ...token,
+      parentKey: subsection.key,
+      parentLabel: subsection.label,
+      parentLevel_2: subsection.level_2,
+    })),
+    subgroups: [],
+  }))
+
+  return {
+    registryEntry,
+    sections,
+    tokens: sections.flatMap((section) => section.tokens || []),
+  }
+})
+const payloadSections = computed(() => activeFilePayload.value.sections)
+const payloadTokens = computed(() => activeFilePayload.value.tokens)
+const dialogSectionGroups = computed(() => payloadSections.value)
+const toolbarSectionSplit = computed(() => splitDialogSections(dialogSectionGroups.value))
 function isRelationshipSectionLabel(value = '') {
   const normalized = String(value || '').trim().toLowerCase()
-  return normalized === 'kdb' || normalized === 'ldb'
+  return normalized === 'ldb'
 }
 const miniToolbarItems = computed(() =>
   buildStructureToolbarItems({
-    leftItems: dialogSectionSplit.value.leftSections,
-    rightItems: dialogSectionSplit.value.rightSections,
+    leftItems: toolbarSectionSplit.value.leftSections,
+    rightItems: toolbarSectionSplit.value.rightSections,
     governanceItems: [
       { value: 'tokens', title: 'Tokens' },
       { value: 'views', title: 'Views' },
@@ -455,34 +484,26 @@ const activeSettingsSection = computed(
     return dialogSectionGroups.value.find((section) => section.key === activeL2Toolbar.value) || dialogSectionGroups.value[0] || null
   },
 )
-const generalSettingsSection = computed(() =>
-  dialogSectionGroups.value.find((section) => String(section?.label || '').trim().toLowerCase() === 'general')
-  || dialogSectionSplit.value.leftSections[0]
-  || dialogSectionGroups.value[0]
-  || null,
+const isRelationshipSettingsSection = computed(() =>
+  isRelationshipSectionLabel(activeSettingsSection.value?.rawLabel || activeSettingsSection.value?.label),
 )
 const generalElementSettingsTitle = computed(() => 'General')
+function isCoreGovernanceViewRow(view) {
+  const normalized = String(view?.label || '').trim().toLowerCase()
+  return normalized === 'general' || normalized === 'system' || normalized === 'ldb' || normalized === 'kdb'
+}
 const baseSettingsGroups = computed(() => {
-  if (!generalSettingsSection.value) return []
+  const fileSpecificTokenGroups = tokenGroupsByView.value.filter((group) => {
+    const view = governanceViewRows.value.find((entry) => entry.key === group.key)
+    return view && !isCoreGovernanceViewRow(view)
+  })
 
-  const subgroupSource = Array.isArray(generalSettingsSection.value.subgroups) && generalSettingsSection.value.subgroups.length
-    ? generalSettingsSection.value.subgroups.map((subgroup) => ({
-      key: subgroup.key,
-      label: subgroup.label,
-      tokens: Array.isArray(subgroup.tokens) ? subgroup.tokens : [],
-    }))
-    : [{
-      key: generalSettingsSection.value.key,
-      label: generalSettingsSection.value.label,
-      tokens: Array.isArray(generalSettingsSection.value.tokens) ? generalSettingsSection.value.tokens : [],
-    }]
-
-  return subgroupSource.map((group) => ({
+  return fileSpecificTokenGroups.map((group) => ({
     key: group.key,
     label: group.label,
-    items: group.tokens.map((token) => ({
-      key: token.key,
-      label: token.label,
+    items: group.tokens.map((item) => ({
+      key: item.key,
+      label: item.label,
     })),
   }))
 })
@@ -502,7 +523,7 @@ const liveGeneralElementSettingsGroups = computed(() => {
 const selectedGeneralElementItems = computed(() =>
   liveGeneralElementSettingsGroups.value.flatMap((group) =>
     group.items
-      .filter((item) => item.checked !== false)
+      .filter((item) => item.checked === true)
       .map((item) => ({
         key: item.key,
         label: item.label,
@@ -510,30 +531,58 @@ const selectedGeneralElementItems = computed(() =>
       })),
   ),
 )
-const subgroupTabs = computed(() =>
-  (Array.isArray(activeSettingsSection.value?.subgroups) ? activeSettingsSection.value.subgroups : []).map((group) => ({
+const subgroupTabs = computed(() => {
+  if (isRelationshipSettingsSection.value) return []
+  return (Array.isArray(activeSettingsSection.value?.subgroups) ? activeSettingsSection.value.subgroups : []).map((group) => ({
     key: group.key,
     label: group.label,
-  })),
-)
+  }))
+})
 const governanceViewRows = computed(() =>
-  [...dialogSectionSplit.value.leftSections, ...dialogSectionSplit.value.rightSections].map((section) => {
+  [...toolbarSectionSplit.value.leftSections, ...toolbarSectionSplit.value.rightSections].map((section) => {
     const normalized = String(section.rawLabel || section.label || '').trim().toLowerCase()
     return {
       key: section.key,
       label: section.label,
-      side: dialogSectionSplit.value.rightSections.some((entry) => entry.key === section.key) ? 'Right' : 'Left',
+      side: toolbarSectionSplit.value.rightSections.some((entry) => entry.key === section.key) ? 'Right' : 'Left',
       tokenCount: Array.isArray(section.tokens) ? section.tokens.length : 0,
       subgroupCount: Array.isArray(section.subgroups) ? section.subgroups.length : 0,
       sortOrder: normalized,
     }
   }),
 )
+const sharedLdbLeafTokens = computed(() => {
+  if (!isRelationshipSettingsSection.value) return []
+
+  return (Array.isArray(props.shellSelectorOptions) ? props.shellSelectorOptions : [])
+    .map((option, index) => {
+      const sourceKey = String(option?.value || '').trim().toLowerCase()
+      if (!sourceKey || sourceKey === 'bb-file') return null
+
+      const targetEntry = getFilePageRegistryEntry(sourceKey)
+      return {
+        key: `__shared_ldb__:${sourceKey}`,
+        label: String(option?.label || targetEntry?.label || `File ${index + 1}`).trim() || `File ${index + 1}`,
+        parentLabel: activeSettingsSection.value?.label || 'LDB',
+        tokenType: 'select_multi',
+        relationshipGroup: 'ldb',
+        level_3: String(index + 1),
+        dbFieldAliases: [],
+        optionList: '',
+        optionSource: 'shared_file_universe',
+        targetSourceKey: sourceKey,
+        editable: true,
+      }
+    })
+    .filter(Boolean)
+})
 const activeLeafTokens = computed(() => {
   const subgroupMap = new Map(
     (Array.isArray(activeSettingsSection.value?.subgroups) ? activeSettingsSection.value.subgroups : []).map((group) => [group.key, group]),
   )
-  const sourceTokens = subgroupTabs.value.length
+  const sourceTokens = isRelationshipSettingsSection.value
+    ? sharedLdbLeafTokens.value
+    : subgroupTabs.value.length
     ? (subgroupMap.get(activeSubgroupKey.value)?.tokens || [])
     : (Array.isArray(activeSettingsSection.value?.tokens) ? activeSettingsSection.value.tokens : [])
   const draftTokens = draftLeafRowsBySource.value[activeSettingsSourceKey.value] || []
@@ -547,7 +596,9 @@ const activeLeafTokens = computed(() => {
       key: token.key || '—',
       label: token.label || '—',
       parentL2: token.parentLabel || activeSettingsSection.value?.label || '—',
-      parentSubgroup: token.draftParentSubgroup || subgroupMap.get(activeSubgroupKey.value)?.label || '—',
+      parentSubgroup: isRelationshipSettingsSection.value
+        ? '—'
+        : token.draftParentSubgroup || subgroupMap.get(activeSubgroupKey.value)?.label || '—',
       type: token.tokenType || '—',
       visible: checkedItems[token.key] !== false ? 'Yes' : 'No',
       required: requiredKeys.has(token.key),
@@ -590,6 +641,7 @@ function columnStyle(columnKey) {
 }
 
 function selectShellSelectorOption(value) {
+  pendingShellSelectorValue.value = String(value || '').trim()
   emit('update:shellSelectorValue', value)
   shellSelectorOpen.value = false
 }
@@ -601,6 +653,7 @@ function openFileGuideDoc() {
 
 async function loadLatestNotes() {
   if (typeof window === 'undefined') return
+  if (Array.isArray(latestNotesBySource.value[activeSettingsSourceKey.value])) return
   const result = await window.ecvc?.notes?.list?.()
   const rows = Array.isArray(result?.notes) ? result.notes.slice(0, 5) : []
   latestNotesBySource.value = {
@@ -685,6 +738,14 @@ function toggleSettingsItem(itemKey, value) {
   }
 }
 
+function buildDefaultCheckedItems(groups = []) {
+  return Object.fromEntries(
+    groups.flatMap((group) =>
+      (Array.isArray(group?.items) ? group.items : []).map((item) => [item.key, false]),
+    ),
+  )
+}
+
 function getDefaultRequiredFieldKeysForSource(sourceKey) {
   const titleToken = getRegistryTitleTokenForSource(sourceKey)
   const normalizedKey = String(titleToken?.key || '').trim()
@@ -755,9 +816,16 @@ watch(
 )
 
 watch(
-  baseSettingsGroups,
-  (groups) => {
-    const sourceKey = activeSettingsSourceKey.value
+  () => props.shellSelectorValue,
+  (value) => {
+    pendingShellSelectorValue.value = String(value || '').trim()
+  },
+  { immediate: true },
+)
+
+watch(
+  [activeSettingsSourceKey, baseSettingsGroups],
+  ([sourceKey, groups]) => {
     const groupKeys = groups.map((group) => group.key)
     const existingExpanded = Array.isArray(expandedSettingsGroupsBySource.value[sourceKey])
       ? expandedSettingsGroupsBySource.value[sourceKey].filter((key) => groupKeys.includes(key))
@@ -771,16 +839,19 @@ watch(
 
     const existingChecked = checkedSettingsItemsBySource.value[sourceKey] || {}
     const allowedItemKeys = new Set(groups.flatMap((group) => group.items.map((item) => item.key)))
-    const nextChecked = Object.fromEntries(
+    const preservedChecked = Object.fromEntries(
       Object.entries(existingChecked).filter(([itemKey]) => allowedItemKeys.has(itemKey)),
     )
+    const nextChecked = Object.keys(preservedChecked).length
+      ? preservedChecked
+      : buildDefaultCheckedItems(groups)
 
     checkedSettingsItemsBySource.value = {
       ...checkedSettingsItemsBySource.value,
       [sourceKey]: nextChecked,
     }
 
-    const allowedRequiredKeys = new Set(level3Tokens.value.map((token) => token.key))
+    const allowedRequiredKeys = new Set(payloadTokens.value.map((token) => token.key))
     const existingRequired = Array.isArray(requiredFieldKeysBySource.value[sourceKey])
       ? requiredFieldKeysBySource.value[sourceKey].filter((itemKey) => allowedRequiredKeys.has(itemKey))
       : []
@@ -1235,6 +1306,17 @@ watch(activeSettingsSourceKey, () => {
   line-height: 1.25;
   width: 1%;
   white-space: nowrap;
+}
+
+.file-structure-shell__cell--control {
+  color: rgba(15, 23, 42, 0.62);
+  text-align: center;
+  width: 1%;
+  white-space: nowrap;
+}
+
+.file-structure-shell__eye-icon {
+  opacity: 0.72;
 }
 
 .file-structure-shell__cell--l3-key {

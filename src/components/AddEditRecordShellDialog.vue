@@ -1729,7 +1729,7 @@ const miniToolbarItems = computed(() =>
     ],
     isRelationshipSectionLabel: (label) => {
       const normalized = String(label || '').trim().toLowerCase()
-      return normalized === 'kdb' || normalized === 'ldb'
+      return normalized === 'ldb'
     },
   }),
 )

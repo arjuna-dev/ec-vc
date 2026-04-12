@@ -601,7 +601,7 @@ const selectedTokenKeys = computed({
 const selectedTokenKeySet = computed(() => new Set(selectedTokenKeys.value))
 function isRelationshipSectionLabel(value = '') {
   const normalized = String(value || '').trim().toLowerCase()
-  return normalized === 'kdb' || normalized === 'ldb'
+  return normalized === 'ldb'
 }
 const heroSourceGroups = computed(() =>
   groupedLevel2Sections.value.filter((group) =>
