@@ -729,7 +729,6 @@ import { buildStructureToolbarItems } from 'src/utils/structureToolbarContract'
 import EyeIconButton from 'components/buttons/EyeIconButton.vue'
 import SelectionActionBar from 'components/SelectionActionBar.vue'
 import {
-  buildCardRelationshipItems,
   buildCardRelationshipOptions,
   getCardRelationshipLabel,
   resolveCardRelationshipPanel,
@@ -1007,10 +1006,6 @@ const activeGovernanceTitle = computed(() => {
   if (activeGovernanceToolbarKey.value === 'tokens') return 'Tokens'
   if (activeGovernanceToolbarKey.value === 'views') return 'Views'
   return ''
-})
-const relationshipSourcePrefixes = computed(() => {
-  const singular = String(activeRegistryEntry.value?.singularLabel || '').trim()
-  return singular ? [singular] : []
 })
 const isLdbViewActive = computed(() => isRelationshipSectionLabel(activeView.value?.label))
 const isSystemViewActive = computed(() => String(activeView.value?.label || '').trim().toLowerCase() === 'system')
@@ -2497,11 +2492,7 @@ function buildShellRow(row, index) {
     titleValue,
     subtitleValue: '',
     cardDetailRows,
-    relationshipItemsByType: buildCardRelationshipItems(
-      row,
-      relationshipSourcePrefixes.value,
-      buildExplicitCardRelationshipOverrides(row),
-    ),
+    relationshipItemsByType: buildSharedLdbRelationshipItemsByType(row),
     viewPresence,
     tokenPresence,
     viewTokenRows: tokenRows,
@@ -2592,47 +2583,44 @@ function getRelationshipPanelKeyForSource(sourceKey = '') {
   return ''
 }
 
-function buildExplicitCardRelationshipOverrides(row) {
-  const entityName = String(activeRegistryEntry.value?.entityName || '').trim()
-  if (!entityName || !row || typeof row !== 'object') return {}
+function buildSharedLdbRelationshipItemsByType(row) {
+  if (!row || typeof row !== 'object') return {}
+  const recordIdField = String(activeLoader.value?.recordIdField || 'id').trim() || 'id'
+  const recordId = String(row?.[recordIdField] || '').trim()
+  if (!recordId) return {}
 
   const itemsByPanel = {}
-
-  fileTokens.value.forEach((token) => {
-    const relationshipContract = getLdbRelationshipContractForToken(entityName, token)
-    if (!relationshipContract) return
-
-    const targetEntry = getFilePageRegistryEntryByEntityReference(relationshipContract.targetEntity)
-    const targetSourceKey = String(targetEntry?.key || '').trim().toLowerCase()
+  const tokens = Array.isArray(sharedLdbViewTokens.value) ? sharedLdbViewTokens.value : []
+  tokens.forEach((token) => {
+    const targetEntity = String(token?.targetEntity || '').trim()
+    const targetSourceKey = String(token?.targetSourceKey || '').trim().toLowerCase()
     const panelKey = getRelationshipPanelKeyForSource(targetSourceKey)
-    if (!panelKey) return
+    if (!panelKey || !targetEntity) return
 
-    const rawValue = getCanonicalTokenValue(row, token)
-    const rawIds = Array.isArray(rawValue)
-      ? rawValue.map((value) => String(value || '').trim()).filter(Boolean)
-      : stringifyValue(rawValue)
-          .split(',')
-          .map((value) => value.trim())
-          .filter(Boolean)
-    if (!rawIds.length) return
+    const lookupKey = buildSharedLdbLookupKey(recordId, targetEntity)
+    const targetIds = Array.isArray(sharedLdbLinksByRecordId.value[lookupKey])
+      ? sharedLdbLinksByRecordId.value[lookupKey]
+      : []
+    if (!targetIds.length) return
 
     const targetTitleToken = targetSourceKey ? getRegistryTitleTokenForSource(targetSourceKey) : null
     const targetRows = targetSourceKey ? getOptionRowsForSource(targetSourceKey) : []
-    const labels = rawIds.map((recordId) => {
-      const matchingRow = targetRows.find((entry) => String(entry?.id || '').trim() === recordId)
+    const labels = targetIds.map((targetId) => {
+      const matchingRow = targetRows.find((entry) => String(entry?.id || '').trim() === String(targetId || '').trim())
       if (matchingRow && targetTitleToken) {
-        return stringifyValue(getCanonicalTokenValue(matchingRow, targetTitleToken)) || recordId
+        return stringifyValue(getCanonicalTokenValue(matchingRow, targetTitleToken)) || String(targetId || '').trim()
       }
-      return recordId
-    })
+      return String(targetId || '').trim()
+    }).filter(Boolean)
 
+    if (!labels.length) return
     itemsByPanel[panelKey] = [...(itemsByPanel[panelKey] || []), ...labels]
   })
 
   return Object.fromEntries(
     Object.entries(itemsByPanel).map(([panelKey, values]) => [
       panelKey,
-      () => Array.from(new Set((Array.isArray(values) ? values : []).filter(Boolean))).slice(0, 4),
+      Array.from(new Set((Array.isArray(values) ? values : []).filter(Boolean))).slice(0, 4),
     ]),
   )
 }

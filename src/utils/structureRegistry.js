@@ -217,7 +217,6 @@ const FILE_PAGE_ROUTE_META = Object.freeze({
     icon: 'work',
     showInWorkspaceNav: true,
     workspaceNavGroup: 'files',
-    relationshipSourcePrefixes: ['Opportunity', 'Fund', 'Round'],
     shellGroup: 'first_order',
     fileGuidePath: 'docs/100/Draft/100-Opportunities.md',
     createBranches: [
@@ -570,7 +569,6 @@ export const FILE_SOURCE_REGISTRY = Object.freeze(
     routeName: entry.routeName,
     path: entry.path,
     icon: entry.icon,
-    relationshipSourcePrefixes: Array.isArray(entry.relationshipSourcePrefixes) ? entry.relationshipSourcePrefixes : [],
     shellGroup: String(entry.shellGroup || '').trim(),
   })),
 )
