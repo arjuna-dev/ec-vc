@@ -59,7 +59,7 @@
       <MiniToolbar
         v-if="recordShellNavItems.length"
         v-model="activeViewGroupKey"
-        aria-label="Record sections"
+        aria-label="Record views"
         :items="recordShellNavItems"
         :view-mode="recordShellTopNavViewMode"
         :view-options="CONTACT_LDB_VIEW_OPTIONS"
@@ -69,7 +69,7 @@
 
       <section class="record-shell__panel">
         <div class="record-shell__panel-head">
-        <div class="record-shell__panel-title">{{ activeGovernanceTitle || activeViewGroup?.title || activeView?.label || 'Section' }}</div>
+        <div class="record-shell__panel-title">{{ activeGovernanceTitle || activeViewGroup?.title || activeView?.label || 'View' }}</div>
           <div class="record-shell__panel-meta">
             {{ activeGovernanceToolbarKey ? 'Structure governance' : `${activeViewTokens.length} fields` }}
           </div>
@@ -598,7 +598,7 @@ const selectedTokenKeys = computed({
 })
 
 const selectedTokenKeySet = computed(() => new Set(selectedTokenKeys.value))
-function isRelationshipSectionLabel(value = '') {
+function isRelationshipViewLabel(value = '') {
   const normalized = String(value || '').trim().toLowerCase()
   return normalized === 'ldb'
 }
@@ -607,7 +607,7 @@ const heroSourceGroups = computed(() =>
     Array.isArray(group.views) &&
     group.views.some((section) => {
       const label = String(section.label || '').trim().toLowerCase()
-      return label !== 'general' && label !== 'system' && !isRelationshipSectionLabel(label)
+      return label !== 'general' && label !== 'system' && !isRelationshipViewLabel(label)
     }),
   ),
 )
@@ -663,7 +663,7 @@ const createViewGroups = computed(() =>
   buildDialogViews({
     groupedViews: groupedViews.value,
     tokenFilter: (section) => (
-      isRelationshipSectionLabel(section?.label)
+      isRelationshipViewLabel(section?.label)
         ? sharedLdbSectionTokens.value
         : normalizedSelectableTokens.value.filter(
             (token) => token.parentKey === section.key && (isRecordRoute.value || selectedTokenKeySet.value.has(token.key)),
@@ -691,7 +691,7 @@ const activeViewTokens = computed(() => {
   return sectionDisplayTokens.value.filter((token) => activeViewEntries.value.some((section) => section.key === token.parentKey))
 })
 const isLdbSectionActive = computed(() =>
-  activeViewEntries.value.some((section) => isRelationshipSectionLabel(section.label)),
+  activeViewEntries.value.some((section) => isRelationshipViewLabel(section.label)),
 )
 const isSystemSectionActive = computed(() => activeViewEntries.value.some((section) => String(section.label || '').trim().toLowerCase() === 'system'))
 const systemSectionTokens = computed(() => activeViewTokens.value.filter((token) => !isHistoryDerivedSystemToken(token)))
@@ -707,12 +707,12 @@ const activeViewTokenGroups = computed(() =>
 )
 const toolbarLeftSections = computed(() =>
   groupedViews.value.filter(
-    (group) => !group.views.some((section) => isRelationshipSectionLabel(section.label) || String(section.label || '').trim().toLowerCase() === 'system'),
+    (group) => !group.views.some((section) => isRelationshipViewLabel(section.label) || String(section.label || '').trim().toLowerCase() === 'system'),
   ),
 )
 const toolbarRightSections = computed(() =>
   groupedViews.value.filter(
-    (group) => group.views.some((section) => isRelationshipSectionLabel(section.label) || String(section.label || '').trim().toLowerCase() === 'system'),
+    (group) => group.views.some((section) => isRelationshipViewLabel(section.label) || String(section.label || '').trim().toLowerCase() === 'system'),
   ),
 )
 
@@ -832,7 +832,7 @@ const recordShellNavItems = computed(() =>
       { value: 'governance:tokens', title: 'Tokens' },
       { value: 'governance:views', title: 'Views' },
     ],
-    isRelationshipSectionLabel,
+    isRelationshipViewLabel,
   }),
 )
 const createDialogMode = computed(() => (isRecordRoute.value ? 'edit' : 'create'))
