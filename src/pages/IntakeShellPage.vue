@@ -92,7 +92,6 @@ const fileViews = computed(() =>
     level_2: subsection.level_2,
     address: subsection.address,
     label: subsection.label,
-    rawLabel: subsection.rawLabel,
     structureToken: subsection.structureToken,
     subgroupKey: subsection.subgroupKey,
     subgroupLabel: subsection.subgroupLabel,
@@ -158,7 +157,7 @@ function isRelationshipSectionLabel(value = '') {
   return normalized === 'ldb'
 }
 const dialogLdbSectionKey = computed(
-  () => createSectionGroups.value.find((section) => isRelationshipSectionLabel(section?.label || section?.rawLabel))?.key || 'general',
+  () => createSectionGroups.value.find((section) => isRelationshipSectionLabel(section?.label))?.key || 'general',
 )
 
 watch(
