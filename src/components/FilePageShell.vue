@@ -20,56 +20,6 @@
     </div>
 
     <div v-else class="test-shell-body">
-      <q-banner
-        v-if="debugEnabled"
-        class="bg-grey-2 text-black q-mb-md"
-        rounded
-      >
-        <div><strong>Shell Debug</strong></div>
-        <div>route: {{ route.name }}</div>
-        <div>sourceKey: {{ activeSourceKey }}</div>
-        <div>contentSourceKey: {{ activeContentSourceKey }}</div>
-        <div>loader: {{ activeLoader ? activeContentSourceKey : 'none' }}</div>
-        <div>loading: {{ loading }}</div>
-        <div>rawRows: {{ rawRows.length }}</div>
-        <div>denseRows: {{ denseRowCount }}</div>
-        <div>displayRows: {{ displayRows.length }}</div>
-        <div>activeView: {{ activeView?.label || activeViewKey || 'none' }}</div>
-        <div>canonicalTitleToken: {{ canonicalTitleToken?.tokenName || 'none' }}</div>
-        <div>firstTitle: {{ debugFirstTitle || 'none' }}</div>
-        <div>firstCardId: {{ debugFirstCardId || 'none' }}</div>
-        <div>filterView: {{ activeFilterViewKey || 'none' }}</div>
-        <div>filterToken: {{ activeFilterTokenKey || 'none' }}</div>
-        <div>search: {{ searchQuery || 'none' }}</div>
-        <div>error: {{ error || 'none' }}</div>
-        <div class="q-mt-sm">
-          <div>mergeCount: {{ debugRowStats.mergeCount }}</div>
-          <div>builtCount: {{ debugRowStats.builtCount }}</div>
-          <div>bbFilteredCount: {{ debugRowStats.bbFilteredCount }}</div>
-          <div>viewFilteredCount: {{ debugRowStats.viewFilteredCount }}</div>
-          <div>tokenFilteredCount: {{ debugRowStats.tokenFilteredCount }}</div>
-          <div>queryFilteredCount: {{ debugRowStats.queryFilteredCount }}</div>
-          <div v-if="debugRowStats.error">rowStatsError: {{ debugRowStats.error }}</div>
-        </div>
-        <div v-if="debugDbSummary" class="q-mt-sm">
-          <div>db: {{ debugDbSummary.path || 'unknown' }}</div>
-          <div>files: {{ debugDbSummary.files }}</div>
-          <div>notes: {{ debugDbSummary.notes }}</div>
-          <div>companies: {{ debugDbSummary.companies }}</div>
-          <div>users: {{ debugDbSummary.users }}</div>
-        </div>
-        <div class="q-mt-sm">
-          <q-btn
-            dense
-            flat
-            no-caps
-            icon="search"
-            label="Probe DB"
-            :loading="debugDbLoading"
-            @click="probeDb"
-          />
-        </div>
-      </q-banner>
       <FileHero
         :text="heroText"
         :stats="heroStats"
@@ -831,78 +781,6 @@ const $q = useQuasar()
 
 const bridge = computed(() => (typeof window !== 'undefined' ? window.ecvc : null))
 const isElectronRuntime = computed(() => typeof window !== 'undefined')
-const debugEnabled = computed(() => process.env.DEV || String(route.query.debug || '').trim() === '1')
-const debugDbSummary = ref(null)
-const debugDbLoading = ref(false)
-const denseRowCount = computed(() => rawRows.value.filter((row) => row && typeof row === 'object').length)
-const debugFirstTitle = computed(() => {
-  const row = rawRows.value[0]
-  if (!row || !canonicalTitleToken.value) return ''
-  return stringifyValue(getCanonicalTokenValue(row, canonicalTitleToken.value))
-})
-const debugFirstCardId = computed(() => displayRows.value[0]?.cardId || '')
-const debugRowStats = computed(() => {
-  try {
-    const merged = [
-      ...(createDialogOpen.value &&
-      createDialogMode.value === 'create' &&
-      String(createDialogDraftSourceKey.value || '').trim().toLowerCase() === activeContentSourceKey.value
-        ? (Array.isArray(localDraftRowsBySource.value[activeContentSourceKey.value])
-            ? localDraftRowsBySource.value[activeContentSourceKey.value].filter(
-                (row) => String(row?.id || '').trim() === String(createDialogDraftRecordId.value || '').trim(),
-              )
-            : [])
-        : []),
-      ...rawRows.value,
-    ]
-    const built = merged.map((row, index) => buildShellRow(row, index))
-    const bbFiltered = isBbFileSource.value
-      ? built.filter((row) => {
-          const blockKey = getBbTileBlockKey(row)
-          const categoryKey = String(row?.raw?.Category || '').trim().toLowerCase()
-          if (activeBbCategoryKey.value && categoryKey !== activeBbCategoryKey.value) return false
-          if (activeBbBlockKey.value && blockKey !== activeBbBlockKey.value) return false
-          return true
-        })
-      : built
-    const viewFiltered = activeFilterViewKey.value
-      ? bbFiltered.filter((row) => row.viewPresence[activeFilterViewKey.value])
-      : bbFiltered
-    const tokenFiltered = activeFilterTokenKey.value
-      ? viewFiltered.filter((row) => row.tokenPresence[activeFilterTokenKey.value])
-      : viewFiltered
-    const query = String(searchQuery.value || '').trim().toLowerCase()
-    const queryFiltered = query
-      ? tokenFiltered.filter((row) => {
-          const haystack = [
-            row.recordId,
-            ...row.viewTokenRows.map((tokenRow) => tokenRow.tokenName),
-            ...row.viewTokenRows.map((tokenRow) => tokenRow.value),
-          ]
-          return haystack.some((value) => String(value || '').toLowerCase().includes(query))
-        })
-      : tokenFiltered
-    return {
-      mergeCount: merged.length,
-      builtCount: built.length,
-      bbFilteredCount: bbFiltered.length,
-      viewFilteredCount: viewFiltered.length,
-      tokenFilteredCount: tokenFiltered.length,
-      queryFilteredCount: queryFiltered.length,
-      error: '',
-    }
-  } catch (error) {
-    return {
-      mergeCount: 0,
-      builtCount: 0,
-      bbFilteredCount: 0,
-      viewFilteredCount: 0,
-      tokenFilteredCount: 0,
-      queryFilteredCount: 0,
-      error: error?.message || String(error || 'unknown error'),
-    }
-  }
-})
 const loading = ref(false)
 const error = ref('')
 const searchQuery = ref('')
@@ -2491,35 +2369,6 @@ async function loadRows() {
     error.value = loadError?.message || `Could not load ${activeRegistryEntry.value?.label || 'records'}.`
   } finally {
     loading.value = false
-  }
-}
-
-async function probeDb() {
-  if (!bridge.value?.db?.query) return
-  debugDbLoading.value = true
-  try {
-    const [files, notes, companies, users, info] = await Promise.all([
-      bridge.value.db.query('SELECT COUNT(*) AS count FROM Files'),
-      bridge.value.db.query('SELECT COUNT(*) AS count FROM Notes'),
-      bridge.value.db.query('SELECT COUNT(*) AS count FROM Companies'),
-      bridge.value.db.query('SELECT COUNT(*) AS count FROM Users'),
-      bridge.value.db.info(),
-    ])
-    const filesCount = Array.isArray(files) ? files[0]?.count : files?.rows?.[0]?.count
-    const notesCount = Array.isArray(notes) ? notes[0]?.count : notes?.rows?.[0]?.count
-    const companiesCount = Array.isArray(companies) ? companies[0]?.count : companies?.rows?.[0]?.count
-    const usersCount = Array.isArray(users) ? users[0]?.count : users?.rows?.[0]?.count
-    debugDbSummary.value = {
-      path: info?.path || '',
-      files: filesCount ?? 0,
-      notes: notesCount ?? 0,
-      companies: companiesCount ?? 0,
-      users: usersCount ?? 0,
-    }
-  } catch {
-    debugDbSummary.value = { path: '', files: 'err', notes: 'err', companies: 'err', users: 'err' }
-  } finally {
-    debugDbLoading.value = false
   }
 }
 
