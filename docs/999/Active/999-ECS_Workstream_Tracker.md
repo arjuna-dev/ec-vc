@@ -23,10 +23,10 @@ This tracker should stay aligned with:
 - run `Building Blocks to Shell Contract Migration` as the active shared-UI architecture project
 - keep the underlying structure, ownership, and runtime relationship paths converging cleanly
 - use the `Companion` and the first-pass game layer to surface issues without weakening the contract
-- keep the shared shell, edit dialog, and KDB relationship behavior aligned to canon
-- keep KDB linking, unlinking, and selector labels working through shared shell contracts instead of per-entity fixes
+- keep the shared shell, edit dialog, and LDB relationship behavior aligned to canon
+- keep LDB linking, unlinking, and selector labels working through shared shell contracts instead of per-entity fixes
 - start applying birth-governance derivation in the shared create flow, beginning with the simplest visible defaults
-- document and begin the naming direction from `KDB` toward `LDB` while avoiding piecemeal runtime renames
+- document and maintain the naming direction from legacy `KDB` toward `LDB` while avoiding piecemeal runtime renames
 - keep pushing bootstrap/setup flows to follow the same `System Files` + `LDB` contract path as normal runtime behavior so bugs surface earlier and more honestly
 - adopt `Record Shell` as the shared `Record View` direction
 - turn the `Contact/User` lesson into a generalized `L1/L2/L3` field-class rule instead of a remembered exception
@@ -46,11 +46,11 @@ This tracker should stay aligned with:
    - shared component extraction
    - shell placeholder migration
    - end-to-end rendering validation
-3. Convert the declared-but-not-yet-backed KDB set into real runtime-backed relationship paths.
+3. Convert the declared-but-not-yet-backed LDB set into real runtime-backed relationship paths.
 4. Define the first generalized field-class layer for `L3` tokens:
    - `owned_field`
    - `directional_link`
-   - `kdb_relationship`
+   - `ldb_relationship`
    - then extend that layer with governable field-definition metadata:
      - field type
      - always-required vs conditional-required
@@ -61,11 +61,11 @@ This tracker should stay aligned with:
 
 - canonical `L1` bootstrap consolidation and strict validation
 - `Building Blocks to Shell Contract Migration`
-- runtime-backed completion of the declared KDB relationship set
+- runtime-backed completion of the declared LDB relationship set
 - field-class normalization:
   - `owned_field`
   - `directional_link`
-  - `kdb_relationship`
+  - `ldb_relationship`
   - future `L3` governance metadata:
     - field type
     - always-required vs conditional-required
@@ -151,9 +151,9 @@ This tracker should stay aligned with:
 - Milestone: `New L1 Bootstrap Automation Prep`
   - Step 1: turn the approved `L1` birth sequence into an implementation checklist against the current codebase
   - Step 2: define the canonical input contract for new normal `L1` birth
-  - Step 3: define the active `L1` set used for reciprocal KDB generation
+  - Step 3: define the active `L1` set used for reciprocal LDB generation
   - Step 4: define the default relationship owner-path rule:
-    - `KDB_Relationships` by default
+    - `LDB_Relationships` by default
     - dedicated join table only when promoted
   - Step 5: build the first strict bootstrap helper from one source
   - Step 6: open a test branch only after the bootstrap contract is fully defined
@@ -241,9 +241,9 @@ This tracker should stay aligned with:
 - define the first relevance maps for major boards so points can reflect what matters most at each stage
 - decide which directional links should be visible as explicit field-class context in field surfaces
 - Fix workbook wrapper-token drift so the JSON companion validates cleanly for `Company`, `Funds`, `Markets`, and `Terms`
-- Convert the declared-but-not-yet-backed KDB set into real runtime-backed relationship paths
+- Convert the declared-but-not-yet-backed LDB set into real runtime-backed relationship paths
 - Define the missing runtime owner paths for canon-declared `User_*`, `Artifact_*`, and `Note_*` relationships
-- Add reverse-read behavior for every newly-backed KDB relationship so both linked `L1`s reflect the same connection
+- Add reverse-read behavior for every newly-backed LDB relationship so both linked `L1`s reflect the same connection
 - Rework `Record View` table behavior so tabs switch locally and instantly
 - Align company `Record View` tabs with workbook structural nodes
 - Decide which workbook labels stay technical and which get friendlier UI labels
@@ -271,7 +271,7 @@ This tracker should stay aligned with:
   - `010-intake-architecture-plan.md`
 - canonical structure now lives in JSON, with workbook as validation/reference
 - the shared record direction is now `Record Shell`
-- KDB relationships are now treated as strict contract paths:
+- LDB relationships are now treated as strict contract paths:
   - declared in canon
   - runtime-backed underneath
   - bidirectionally visible
@@ -313,7 +313,7 @@ This tracker should stay aligned with:
   - `ViewSettingsMenu` is now the shared settings menu name (retired `L2SettingsMenu`)
   - live shell ordering now uses explicit token/section order (array order or `token_order` / `subsection_order`), not `level_2` / `level_3`
   - LDB relationship contracts now derive from the System Files universe (runtime registry), not canonical subsections
-  - canonical LDB/KDB tokens have been cleared to force all relationship UI through shared System Files LDB
+  - canonical LDB tokens have been cleared to force all relationship UI through shared System Files LDB
 - current cleanup rule:
   - if a live runtime name only exists to preserve scaffold vocabulary, rename or delete it
   - keep canonical/workbook structure as reference input only
@@ -384,11 +384,11 @@ Approved rule:
 - let each write create its own audit event id
 - apply this as a shell/action-layer rule, not as an `L1` or record-specific fix
 
-## Shared KDB Direction Correction
+## Shared LDB Direction Correction
 
 Resolved shared-shell correction:
 
-- explicit join-table KDB contracts must swap join columns when the shell is linking from the reverse side of the relationship
+- explicit join-table LDB contracts must swap join columns when the shell is linking from the reverse side of the relationship
 
 Why this matters:
 
