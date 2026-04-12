@@ -747,17 +747,23 @@ export function getFilePageBirthDefaults(sourceKey = '') {
 }
 
 export function getRegistryTitleTokenForSource(sourceKey = '') {
-  const entry = getFilePageRegistryEntry(sourceKey)
-  if (!entry) return null
-  const generalSection = entry.subsections.find((section) => String(section.label || '').trim().toLowerCase() === 'general')
-  return generalSection?.tokens?.find((token) => String(token.level_3 || '').trim() === '1') || null
+  const payload = buildFileShellPayload(sourceKey)
+  if (!payload.registryEntry) return null
+  return payload.tokens.find(
+    (token) =>
+      String(token.parentLabel || '').trim().toLowerCase() === 'general' &&
+      String(token.level_3 || '').trim() === '1',
+  ) || null
 }
 
 export function getRegistrySummaryTokenForSource(sourceKey = '') {
-  const entry = getFilePageRegistryEntry(sourceKey)
-  if (!entry) return null
-  const generalSection = entry.subsections.find((section) => String(section.label || '').trim().toLowerCase() === 'general')
-  return generalSection?.tokens?.find((token) => String(token.level_3 || '').trim() === '2') || null
+  const payload = buildFileShellPayload(sourceKey)
+  if (!payload.registryEntry) return null
+  return payload.tokens.find(
+    (token) =>
+      String(token.parentLabel || '').trim().toLowerCase() === 'general' &&
+      String(token.level_3 || '').trim() === '2',
+  ) || null
 }
 
 export function validateLevel1BootstrapContracts({ bridgeValue = null, sourceKeys = [] } = {}) {
