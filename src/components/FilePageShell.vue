@@ -763,6 +763,7 @@ import { loadShellFieldSelectionMap, persistShellFieldSelectionMap } from 'src/u
 import { getBuildingBlockGraphCounts, getBuildingBlockGraphLinks } from 'src/utils/buildingBlocks'
 import { setPendingAddEditShellRequest } from 'src/utils/addEditShellState'
 import { setPendingIntakeShellRequest } from 'src/utils/intakeShellState'
+import { getTokenMetadataOverride, loadTokenMetadataOverrides, mergeTokenMetadata } from 'src/utils/tokenMetadataOverrides'
 
 const props = defineProps({
   shellMode: {
@@ -830,6 +831,7 @@ const bbTileGroupOpenState = ref({})
 const cardItemKeysBySource = ref(loadShellFieldSelectionMap())
 const liveOptionRowsBySource = ref({})
 const localDraftRowsBySource = ref({})
+const tokenMetaOverridesBySource = ref(loadTokenMetadataOverrides())
 const sharedLdbLinksByRecordId = ref({})
 
 const DEFAULT_COLUMN_MIN_WIDTH = 120
@@ -984,7 +986,11 @@ const hasActiveSourceLdb = computed(() =>
 )
 
 const fileViews = computed(() => activeFileShellPayload.value.sections)
-const fileTokens = computed(() => activeFileShellPayload.value.tokens)
+const rawFileTokens = computed(() => activeFileShellPayload.value.tokens)
+const fileTokens = computed(() => rawFileTokens.value.map((token) => {
+  const override = getTokenMetadataOverride(tokenMetaOverridesBySource.value, activeContentSourceKey.value, token?.key)
+  return mergeTokenMetadata(token, override)
+}))
 const activeViewKey = ref('')
 const activeFilterViewKey = ref('')
 const activeFilterTokenKey = ref('')
@@ -1956,6 +1962,14 @@ watch(
     await loadRows()
     await ensureLiveOptionRowsLoaded('file-system')
     activeViewKey.value = getDefaultActiveViewKey(fileViews.value)
+  },
+  { immediate: true },
+)
+
+watch(
+  activeSourceKey,
+  () => {
+    tokenMetaOverridesBySource.value = loadTokenMetadataOverrides()
   },
   { immediate: true },
 )

@@ -93,7 +93,87 @@
                 :key="token.key"
                 class="record-shell__field-card"
               >
-                <div class="record-shell__field-label">{{ token.label }}</div>
+                <div class="record-shell__field-label-row">
+                  <div class="record-shell__field-label">{{ token.label }}</div>
+                  <q-btn
+                    flat
+                    dense
+                    round
+                    size="sm"
+                    icon="tune"
+                    class="record-shell__field-meta-button"
+                    aria-label="Edit token metadata"
+                    @click.stop="openTokenMetaEditor(token)"
+                  >
+                    <q-menu
+                      :model-value="activeTokenMetaKey === token.key"
+                      anchor="bottom right"
+                      self="top right"
+                      @update:model-value="(value) => { if (!value) closeTokenMetaEditor() }"
+                    >
+                      <div class="record-shell__token-meta-menu">
+                        <div class="record-shell__token-meta-title">Token Meta</div>
+                        <q-select
+                          dense
+                          outlined
+                          emit-value
+                          map-options
+                          label="Token Type"
+                          :options="TOKEN_TYPE_OPTIONS"
+                          :model-value="getTokenMetaDraftValue(token, 'tokenType')"
+                          @update:model-value="updateTokenMetaDraftValue(token, 'tokenType', $event)"
+                        />
+                        <q-select
+                          dense
+                          outlined
+                          emit-value
+                          map-options
+                          label="Option Source"
+                          :options="OPTION_SOURCE_OPTIONS"
+                          :model-value="getTokenMetaDraftValue(token, 'optionSource')"
+                          @update:model-value="updateTokenMetaDraftValue(token, 'optionSource', $event)"
+                        />
+                        <q-input
+                          v-if="tokenMetaUsesOptionList(token)"
+                          dense
+                          outlined
+                          label="Option List"
+                          :model-value="getTokenMetaDraftValue(token, 'optionList')"
+                          @update:model-value="updateTokenMetaDraftValue(token, 'optionList', $event)"
+                        />
+                        <q-input
+                          v-else
+                          dense
+                          outlined
+                          label="Option Entity"
+                          :model-value="getTokenMetaDraftValue(token, 'optionEntity')"
+                          @update:model-value="updateTokenMetaDraftValue(token, 'optionEntity', $event)"
+                        />
+                        <q-input
+                          dense
+                          outlined
+                          label="Write Field"
+                          :model-value="getTokenMetaDraftValue(token, 'dbWriteField')"
+                          @update:model-value="updateTokenMetaDraftValue(token, 'dbWriteField', $event)"
+                        />
+                        <q-select
+                          dense
+                          outlined
+                          emit-value
+                          map-options
+                          label="Field Class"
+                          :options="FIELD_CLASS_OPTIONS"
+                          :model-value="getTokenMetaDraftValue(token, 'fieldClass')"
+                          @update:model-value="updateTokenMetaDraftValue(token, 'fieldClass', $event)"
+                        />
+                        <div class="record-shell__token-meta-actions">
+                          <q-btn flat dense no-caps label="Reset" @click="resetTokenMeta(token)" />
+                          <q-btn flat dense no-caps label="Save" @click="commitTokenMeta(token)" />
+                        </div>
+                      </div>
+                    </q-menu>
+                  </q-btn>
+                </div>
                 <div v-if="isRecordRoute" class="record-shell__field-value-row">
                   <div
                     v-if="isSystemReadOnlyInline(token)"
@@ -235,7 +315,87 @@
             </button>
             <div v-if="isViewSubgroupExpanded(group.key)" class="record-shell__field-grid">
               <div v-for="token in group.tokens" :key="token.key" class="record-shell__field-card">
-                <div class="record-shell__field-label">{{ token.label }}</div>
+                <div class="record-shell__field-label-row">
+                  <div class="record-shell__field-label">{{ token.label }}</div>
+                  <q-btn
+                    flat
+                    dense
+                    round
+                    size="sm"
+                    icon="tune"
+                    class="record-shell__field-meta-button"
+                    aria-label="Edit token metadata"
+                    @click.stop="openTokenMetaEditor(token)"
+                  >
+                    <q-menu
+                      :model-value="activeTokenMetaKey === token.key"
+                      anchor="bottom right"
+                      self="top right"
+                      @update:model-value="(value) => { if (!value) closeTokenMetaEditor() }"
+                    >
+                      <div class="record-shell__token-meta-menu">
+                        <div class="record-shell__token-meta-title">Token Meta</div>
+                        <q-select
+                          dense
+                          outlined
+                          emit-value
+                          map-options
+                          label="Token Type"
+                          :options="TOKEN_TYPE_OPTIONS"
+                          :model-value="getTokenMetaDraftValue(token, 'tokenType')"
+                          @update:model-value="updateTokenMetaDraftValue(token, 'tokenType', $event)"
+                        />
+                        <q-select
+                          dense
+                          outlined
+                          emit-value
+                          map-options
+                          label="Option Source"
+                          :options="OPTION_SOURCE_OPTIONS"
+                          :model-value="getTokenMetaDraftValue(token, 'optionSource')"
+                          @update:model-value="updateTokenMetaDraftValue(token, 'optionSource', $event)"
+                        />
+                        <q-input
+                          v-if="tokenMetaUsesOptionList(token)"
+                          dense
+                          outlined
+                          label="Option List"
+                          :model-value="getTokenMetaDraftValue(token, 'optionList')"
+                          @update:model-value="updateTokenMetaDraftValue(token, 'optionList', $event)"
+                        />
+                        <q-input
+                          v-else
+                          dense
+                          outlined
+                          label="Option Entity"
+                          :model-value="getTokenMetaDraftValue(token, 'optionEntity')"
+                          @update:model-value="updateTokenMetaDraftValue(token, 'optionEntity', $event)"
+                        />
+                        <q-input
+                          dense
+                          outlined
+                          label="Write Field"
+                          :model-value="getTokenMetaDraftValue(token, 'dbWriteField')"
+                          @update:model-value="updateTokenMetaDraftValue(token, 'dbWriteField', $event)"
+                        />
+                        <q-select
+                          dense
+                          outlined
+                          emit-value
+                          map-options
+                          label="Field Class"
+                          :options="FIELD_CLASS_OPTIONS"
+                          :model-value="getTokenMetaDraftValue(token, 'fieldClass')"
+                          @update:model-value="updateTokenMetaDraftValue(token, 'fieldClass', $event)"
+                        />
+                        <div class="record-shell__token-meta-actions">
+                          <q-btn flat dense no-caps label="Reset" @click="resetTokenMeta(token)" />
+                          <q-btn flat dense no-caps label="Save" @click="commitTokenMeta(token)" />
+                        </div>
+                      </div>
+                    </q-menu>
+                  </q-btn>
+                </div>
                 <div v-if="isRecordRoute" class="record-shell__field-value-row">
                   <div
                     v-if="isSystemReadOnlyInline(token)"
@@ -342,7 +502,87 @@
             :key="token.key"
             class="record-shell__field-card"
           >
-            <div class="record-shell__field-label">{{ token.label }}</div>
+            <div class="record-shell__field-label-row">
+              <div class="record-shell__field-label">{{ token.label }}</div>
+              <q-btn
+                flat
+                dense
+                round
+                size="sm"
+                icon="tune"
+                class="record-shell__field-meta-button"
+                aria-label="Edit token metadata"
+                @click.stop="openTokenMetaEditor(token)"
+              >
+                <q-menu
+                  :model-value="activeTokenMetaKey === token.key"
+                  anchor="bottom right"
+                  self="top right"
+                  @update:model-value="(value) => { if (!value) closeTokenMetaEditor() }"
+                >
+                  <div class="record-shell__token-meta-menu">
+                    <div class="record-shell__token-meta-title">Token Meta</div>
+                    <q-select
+                      dense
+                      outlined
+                      emit-value
+                      map-options
+                      label="Token Type"
+                      :options="TOKEN_TYPE_OPTIONS"
+                      :model-value="getTokenMetaDraftValue(token, 'tokenType')"
+                      @update:model-value="updateTokenMetaDraftValue(token, 'tokenType', $event)"
+                    />
+                    <q-select
+                      dense
+                      outlined
+                      emit-value
+                      map-options
+                      label="Option Source"
+                      :options="OPTION_SOURCE_OPTIONS"
+                      :model-value="getTokenMetaDraftValue(token, 'optionSource')"
+                      @update:model-value="updateTokenMetaDraftValue(token, 'optionSource', $event)"
+                    />
+                    <q-input
+                      v-if="tokenMetaUsesOptionList(token)"
+                      dense
+                      outlined
+                      label="Option List"
+                      :model-value="getTokenMetaDraftValue(token, 'optionList')"
+                      @update:model-value="updateTokenMetaDraftValue(token, 'optionList', $event)"
+                    />
+                    <q-input
+                      v-else
+                      dense
+                      outlined
+                      label="Option Entity"
+                      :model-value="getTokenMetaDraftValue(token, 'optionEntity')"
+                      @update:model-value="updateTokenMetaDraftValue(token, 'optionEntity', $event)"
+                    />
+                    <q-input
+                      dense
+                      outlined
+                      label="Write Field"
+                      :model-value="getTokenMetaDraftValue(token, 'dbWriteField')"
+                      @update:model-value="updateTokenMetaDraftValue(token, 'dbWriteField', $event)"
+                    />
+                    <q-select
+                      dense
+                      outlined
+                      emit-value
+                      map-options
+                      label="Field Class"
+                      :options="FIELD_CLASS_OPTIONS"
+                      :model-value="getTokenMetaDraftValue(token, 'fieldClass')"
+                      @update:model-value="updateTokenMetaDraftValue(token, 'fieldClass', $event)"
+                    />
+                    <div class="record-shell__token-meta-actions">
+                      <q-btn flat dense no-caps label="Reset" @click="resetTokenMeta(token)" />
+                      <q-btn flat dense no-caps label="Save" @click="commitTokenMeta(token)" />
+                    </div>
+                  </div>
+                </q-menu>
+              </q-btn>
+            </div>
             <div v-if="isRecordRoute" class="record-shell__field-value-row">
               <div
                 v-if="isSystemReadOnlyInline(token)"
@@ -497,6 +737,7 @@ import { setPendingIntakeShellRequest } from 'src/utils/intakeShellState'
 import { loadShellFieldSelectionMap, persistShellFieldSelectionMap } from 'src/utils/shellFieldSelection'
 import { buildStructureToolbarItems } from 'src/utils/structureToolbarContract'
 import { buildTokenUpdateChanges, tokenSupportsRecordUpdate } from 'src/utils/tokenWriteChanges'
+import { getTokenMetadataOverride, loadTokenMetadataOverrides, mergeTokenMetadata, persistTokenMetadataOverrides } from 'src/utils/tokenMetadataOverrides'
 
 const route = useRoute()
 const router = useRouter()
@@ -529,6 +770,9 @@ const auditEvents = ref([])
 const fieldVerificationStates = ref({})
 const inlineFieldValues = ref({})
 const heroFieldKeysBySource = ref(loadShellFieldSelectionMap())
+const tokenMetaOverridesBySource = ref(loadTokenMetadataOverrides())
+const activeTokenMetaKey = ref('')
+const tokenMetaDrafts = ref({})
 const tableNameParam = computed(() => String(route.params.tableName || '').trim())
 const recordIdParam = computed(() => String(route.params.recordId || '').trim())
 const isRecordRoute = computed(() => Boolean(tableNameParam.value && recordIdParam.value))
@@ -542,7 +786,11 @@ const hasResolvedSourceKey = computed(() => Boolean(activeSourceKey.value))
 const activeRegistryEntry = computed(() => getFilePageRegistryEntry(activeSourceKey.value) || null)
 const fileShellPayload = computed(() => buildFileShellPayload(activeSourceKey.value))
 const fileViews = computed(() => fileShellPayload.value.sections)
-const fileTokens = computed(() => fileShellPayload.value.tokens)
+const rawFileTokens = computed(() => fileShellPayload.value.tokens)
+const fileTokens = computed(() => rawFileTokens.value.map((token) => {
+  const override = getTokenMetadataOverride(tokenMetaOverridesBySource.value, activeSourceKey.value, token?.key)
+  return mergeTokenMetadata(token, override)
+}))
 const fieldByName = computed(() =>
   Object.fromEntries((fields.value || []).map((field) => [String(field?.field_name || '').trim(), field])),
 )
@@ -578,6 +826,130 @@ const selectedTokenKeys = computed({
 })
 
 const selectedTokenKeySet = computed(() => new Set(selectedTokenKeys.value))
+
+const TOKEN_TYPE_OPTIONS = [
+  { label: 'Text', value: 'text' },
+  { label: 'Long Text', value: 'long_text' },
+  { label: 'Number', value: 'number' },
+  { label: 'Date', value: 'date' },
+  { label: 'Datetime', value: 'datetime' },
+  { label: 'Boolean', value: 'boolean' },
+  { label: 'Select Single', value: 'select_single' },
+  { label: 'Select Multi', value: 'select_multi' },
+]
+const OPTION_SOURCE_OPTIONS = [
+  { label: 'None', value: '' },
+  { label: 'Canonical List', value: 'canonical_list' },
+  { label: 'Live Entity', value: 'live_entity' },
+  { label: 'Live Entity Set', value: 'live_entity_set' },
+  { label: 'Shared File Universe', value: 'shared_file_universe' },
+]
+const FIELD_CLASS_OPTIONS = [
+  { label: 'Owned Field', value: 'owned_field' },
+  { label: 'Directional Link', value: 'directional_link' },
+  { label: 'LDB Relationship', value: 'ldb_relationship' },
+]
+
+watch(
+  tokenMetaOverridesBySource,
+  (value) => {
+    persistTokenMetadataOverrides(value)
+  },
+  { deep: true },
+)
+
+function buildTokenMetaDraft(token) {
+  return {
+    tokenType: String(token?.tokenType || '').trim(),
+    optionSource: String(token?.optionSource || '').trim(),
+    optionEntity: String(token?.optionEntity || '').trim(),
+    optionList: String(token?.optionList || '').trim(),
+    dbWriteField: String(token?.dbWriteField || '').trim(),
+    fieldClass: String(token?.fieldClass || '').trim(),
+  }
+}
+
+function openTokenMetaEditor(token) {
+  const key = String(token?.key || '').trim()
+  if (!key) return
+  if (!tokenMetaDrafts.value[key]) {
+    tokenMetaDrafts.value = {
+      ...tokenMetaDrafts.value,
+      [key]: buildTokenMetaDraft(token),
+    }
+  }
+  activeTokenMetaKey.value = key
+}
+
+function closeTokenMetaEditor() {
+  activeTokenMetaKey.value = ''
+}
+
+function getTokenMetaDraftValue(token, field) {
+  const key = String(token?.key || '').trim()
+  if (!key) return ''
+  const draft = tokenMetaDrafts.value[key]
+  if (!draft) return ''
+  return draft?.[field] ?? ''
+}
+
+function updateTokenMetaDraftValue(token, field, value) {
+  const key = String(token?.key || '').trim()
+  if (!key) return
+  const current = tokenMetaDrafts.value[key] || buildTokenMetaDraft(token)
+  tokenMetaDrafts.value = {
+    ...tokenMetaDrafts.value,
+    [key]: {
+      ...current,
+      [field]: value,
+    },
+  }
+}
+
+function commitTokenMeta(token) {
+  const key = String(token?.key || '').trim()
+  const sourceKey = String(activeSourceKey.value || '').trim()
+  if (!key || !sourceKey) return
+  const draft = tokenMetaDrafts.value[key] || {}
+  const nextOverride = {}
+  ;['tokenType', 'optionSource', 'optionEntity', 'optionList', 'dbWriteField', 'fieldClass'].forEach((field) => {
+    const value = String(draft?.[field] ?? '').trim()
+    if (value) nextOverride[field] = value
+  })
+  const currentBySource = tokenMetaOverridesBySource.value[sourceKey] || {}
+  const nextBySource = { ...currentBySource }
+  if (Object.keys(nextOverride).length) {
+    nextBySource[key] = nextOverride
+  } else {
+    delete nextBySource[key]
+  }
+  tokenMetaOverridesBySource.value = {
+    ...tokenMetaOverridesBySource.value,
+    [sourceKey]: nextBySource,
+  }
+  closeTokenMetaEditor()
+}
+
+function resetTokenMeta(token) {
+  const key = String(token?.key || '').trim()
+  const sourceKey = String(activeSourceKey.value || '').trim()
+  if (!key || !sourceKey) return
+  const currentBySource = tokenMetaOverridesBySource.value[sourceKey] || {}
+  if (!currentBySource[key]) return
+  const nextBySource = { ...currentBySource }
+  delete nextBySource[key]
+  tokenMetaOverridesBySource.value = {
+    ...tokenMetaOverridesBySource.value,
+    [sourceKey]: nextBySource,
+  }
+  closeTokenMetaEditor()
+}
+
+function tokenMetaUsesOptionList(token) {
+  const overrideSource = String(getTokenMetaDraftValue(token, 'optionSource') || '').trim()
+  const source = overrideSource || String(token?.optionSource || '').trim()
+  return source === 'canonical_list'
+}
 function isRelationshipViewLabel(value = '') {
   const normalized = String(value || '').trim().toLowerCase()
   return normalized === 'ldb'
@@ -2358,7 +2730,13 @@ function onContactHeroPointerLeave() {
 .record-shell__kdb-group-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:10px; }
 .record-shell__field-card { padding:10px 12px; border:1px solid rgba(17,17,17,.08); border-radius:6px; background:rgba(17,17,17,.02); }
 .record-shell__field-card--selected { border-color:rgba(38,71,255,.3); background:rgba(38,71,255,.05); }
+.record-shell__field-label-row { display:flex; align-items:center; justify-content:space-between; gap:6px; }
 .record-shell__field-label { color:#111; font-size:.8rem; font-weight:600; line-height:1.3; }
+.record-shell__field-meta-button { color:rgba(17,17,17,.6); }
+.record-shell__field-meta-button:hover { color:#111; }
+.record-shell__token-meta-menu { display:grid; gap:8px; padding:10px; min-width:220px; }
+.record-shell__token-meta-title { color:#111; font-size:.78rem; font-weight:600; }
+.record-shell__token-meta-actions { display:flex; justify-content:space-between; gap:8px; }
 .record-shell__field-value { margin-top:4px; color:rgba(17,17,17,.58); font-size:.72rem; line-height:1.4; }
 .record-shell__field-value-row { display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:center; gap:8px; margin-top:6px; }
 .record-shell__field-input { min-width:0; }
