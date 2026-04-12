@@ -85,127 +85,6 @@
           />
         </div>
 
-        <div v-else-if="isKdbSectionActive" class="record-shell__kdb-grid">
-          <div
-            v-for="group in activeKdbTokenGroups"
-            :key="group.key"
-            class="record-shell__kdb-group"
-          >
-            <button
-              type="button"
-              class="record-shell__kdb-group-toggle"
-              @click="toggleKdbGroup(group.key)"
-            >
-              <q-icon
-                :name="isKdbGroupExpanded(group.key) ? 'expand_more' : 'chevron_right'"
-                size="14px"
-                class="record-shell__kdb-group-toggle-icon"
-              />
-              <span class="record-shell__kdb-group-title">{{ group.label }}</span>
-            </button>
-            <div v-if="isKdbGroupExpanded(group.key)" class="record-shell__kdb-group-grid">
-              <div v-for="token in group.tokens" :key="token.key" class="record-shell__field-card">
-                <div class="record-shell__field-label">{{ token.label }}</div>
-                <div v-if="isRecordRoute" class="record-shell__field-value-row">
-                  <div
-                    v-if="isSystemReadOnlyInline(token)"
-                    class="record-shell__field-static-box"
-                  >
-                    {{ getTokenDisplayValue(token) }}
-                  </div>
-                  <q-select
-                    v-else-if="token.tokenType === 'select_multi'"
-                    :model-value="inlineMultiValue(token)"
-                    dense
-                    outlined
-                    use-chips
-                    multiple
-                    emit-value
-                    map-options
-                    :options="token.inputOptions || []"
-                    :disable="loading || !isInlineFieldEditable(token)"
-                    class="record-shell__field-input"
-                    @update:model-value="updateInlineFieldValue(token, $event)"
-                    @blur="commitInlineFieldValue(token)"
-                  />
-                  <q-select
-                    v-else-if="token.tokenType === 'select_single'"
-                    :model-value="inlineSingleValue(token)"
-                    dense
-                    outlined
-                    use-chips
-                    emit-value
-                    map-options
-                    :options="token.inputOptions || []"
-                    :disable="loading || !isInlineFieldEditable(token)"
-                    class="record-shell__field-input"
-                    @update:model-value="commitInlineFieldValue(token, $event)"
-                  />
-                  <q-input
-                    v-else
-                    :model-value="inlineStringValue(token)"
-                    dense
-                    outlined
-                    :disable="loading || !isInlineFieldEditable(token)"
-                    :type="inlineInputType(token)"
-                    class="record-shell__field-input"
-                    @update:model-value="updateInlineFieldValue(token, $event)"
-                    @blur="commitInlineFieldValue(token)"
-                    @keydown.enter.stop.prevent="commitInlineFieldValue(token)"
-                  />
-                  <q-btn
-                    v-if="showInlineFieldVerificationAction(token)"
-                    flat
-                    dense
-                    size="sm"
-                    :disable="loading"
-                    class="record-shell__field-action"
-                  >
-                    <q-icon
-                      :name="inlineFieldVerificationIcon(token)"
-                      :class="inlineFieldVerificationIconClass(token)"
-                      :style="inlineFieldVerificationIconStyle(token)"
-                      size="14px"
-                    />
-                    <q-menu anchor="bottom right" self="top left">
-                      <q-list dense class="record-shell__verification-menu">
-                        <q-item
-                          v-for="option in fieldVerificationActionOptions"
-                          :key="option.value"
-                          clickable
-                          v-close-popup
-                          class="record-shell__verification-menu-item"
-                          @click="updateInlineFieldVerificationState(token, option.value)"
-                        >
-                          <q-item-section avatar>
-                            <q-icon :name="option.icon" :style="{ color: option.color }" size="14px" />
-                          </q-item-section>
-                          <q-item-section>
-                            <q-item-label class="record-shell__verification-menu-label">{{ option.label }}</q-item-label>
-                          </q-item-section>
-                        </q-item>
-                      </q-list>
-                    </q-menu>
-                  </q-btn>
-                  <q-btn
-                    v-if="showInlineFieldCopyAction(token)"
-                    flat
-                    dense
-                    size="sm"
-                    :disable="loading"
-                    class="record-shell__field-action"
-                    aria-label="Copy field value"
-                    @click="copyInlineFieldValue(token)"
-                  >
-                    <q-icon name="content_copy" size="14px" />
-                  </q-btn>
-                </div>
-                <div v-else class="record-shell__field-value">{{ getTokenDisplayValue(token) }}</div>
-              </div>
-            </div>
-          </div>
-        </div>
-
         <div v-else-if="isSystemSectionActive" class="record-shell__system-grid">
           <div class="record-shell__system-column">
             <div class="record-shell__field-grid">
@@ -598,6 +477,7 @@ import MiniToolbar from 'src/components/MiniToolbar.vue'
 import RecordHistoryBox from 'src/components/RecordHistoryBox.vue'
 import RecordHero from 'src/components/RecordHero.vue'
 import StructureGovernancePanel from 'src/components/StructureGovernancePanel.vue'
+import { getLdbRelationshipContractsForEntity } from 'src/shared/ldbRelationshipContracts'
 import { setPendingAddEditShellRequest } from 'src/utils/addEditShellState'
 import {
   CANONICAL_OPTION_LISTS,
@@ -608,8 +488,6 @@ import {
   getRegistryTitleTokenForSource,
   getRuntimeTableNameForEntityName,
   LEVEL_1_FILE_REGISTRY,
-  LEVEL_2_FILE_REGISTRY_BY_KEY,
-  LEVEL_3_FILE_REGISTRY_BY_KEY,
   resolveApprovedFileSectionKey,
 } from 'src/utils/structureRegistry'
 import { buildDialogSectionGroups, groupDialogLevel2Sections, splitDialogSections } from 'src/utils/dialogShellPayload'
@@ -632,7 +510,6 @@ const createDialogLoading = ref(false)
 const liveOptionRowsBySource = ref({})
 const expandedSectionKeys = ref([])
 const expandedHeroGroupKeys = ref([])
-const expandedKdbGroupKeys = ref(['first_order', 'knowledge_db', 'other'])
 const expandedSectionSubgroupKeys = ref([])
 const activeSectionKey = ref('')
 const contactHeroRef = ref(null)
@@ -662,8 +539,30 @@ const activeSourceKey = computed(() => {
 })
 const hasResolvedSourceKey = computed(() => Boolean(activeSourceKey.value))
 const activeRegistryEntry = computed(() => getFilePageRegistryEntry(activeSourceKey.value) || null)
-const level2Sections = computed(() => LEVEL_2_FILE_REGISTRY_BY_KEY[activeSourceKey.value] || [])
-const level3Tokens = computed(() => LEVEL_3_FILE_REGISTRY_BY_KEY[activeSourceKey.value] || [])
+const level2Sections = computed(() =>
+  (Array.isArray(activeRegistryEntry.value?.subsections) ? activeRegistryEntry.value.subsections : []).map((subsection) => ({
+    key: subsection.key,
+    level_2: subsection.level_2,
+    address: subsection.address,
+    label: subsection.label,
+    rawLabel: subsection.rawLabel,
+    structureToken: subsection.structureToken,
+    subgroupKey: subsection.subgroupKey,
+    subgroupLabel: subsection.subgroupLabel,
+    subgroupAddress: subsection.subgroupAddress,
+    displayGroup: subsection.displayGroup,
+  })),
+)
+const level3Tokens = computed(() =>
+  (Array.isArray(activeRegistryEntry.value?.subsections) ? activeRegistryEntry.value.subsections : []).flatMap((subsection) =>
+    (Array.isArray(subsection.tokens) ? subsection.tokens : []).map((token) => ({
+      ...token,
+      parentKey: subsection.key,
+      parentLabel: subsection.label,
+      parentLevel_2: subsection.level_2,
+    })),
+  ),
+)
 const fieldByName = computed(() =>
   Object.fromEntries((fields.value || []).map((field) => [String(field?.field_name || '').trim(), field])),
 )
@@ -725,13 +624,55 @@ const selectedHeroTokens = computed(() =>
 )
 const createKeyFieldTokens = computed(() => [canonicalNameToken.value, canonicalSummaryToken.value].filter(Boolean).map(normalizeCreateDialogToken))
 const groupedLevel2Sections = computed(() => groupDialogLevel2Sections(level2Sections.value))
+const sharedLdbSectionTokens = computed(() => {
+  if (!activeRegistryEntry.value?.entityName) return []
+
+  const systemFileTitleToken = getRegistryTitleTokenForSource('file-system')
+  const seenSourceKeys = new Set()
+  const rows = Array.isArray(liveOptionRowsBySource.value['file-system']) ? liveOptionRowsBySource.value['file-system'] : []
+
+  return rows
+    .map((row, index) => {
+      const sourceKey = resolveApprovedFileSectionKey(
+        row?.File_Source_Key || row?.File_Route_Name || row?.File_Runtime_Entity || row?.File_Canonical_Entity,
+      )
+      if (!sourceKey || sourceKey === 'bb-file' || seenSourceKeys.has(sourceKey)) return null
+
+      const targetEntry = getFilePageRegistryEntry(sourceKey)
+      if (!targetEntry?.entityName) return null
+
+      seenSourceKeys.add(sourceKey)
+      return normalizeCreateDialogToken({
+        key: `__shared_ldb__:${sourceKey}`,
+        tokenName: `__shared_ldb__:${sourceKey}`,
+        label:
+          String(systemFileTitleToken ? getCanonicalTokenValue(row, systemFileTitleToken) : '').trim()
+          || targetEntry.label
+          || `File ${index + 1}`,
+        tokenType: 'select_multi',
+        inputOptions: buildLiveEntityOptions(sourceKey),
+        parentKey: activeSectionEntries.value[0]?.key || '',
+        parentLabel: activeSectionEntries.value[0]?.label || 'LDB',
+        parentLevel_2: activeSectionEntries.value[0]?.level_2 || '',
+        isSharedLdbToken: true,
+        targetSourceKey: sourceKey,
+        targetEntity: String(targetEntry.entityName || '').trim(),
+      })
+    })
+    .filter(Boolean)
+})
 const createSectionGroups = computed(() =>
   buildDialogSectionGroups({
     groupedSections: groupedLevel2Sections.value,
-    tokenFilter: (section) => normalizedSelectableTokens.value.filter(
-      (token) => token.parentKey === section.key && (isRecordRoute.value || selectedTokenKeySet.value.has(token.key)),
+    tokenFilter: (section) => (
+      isRelationshipSectionLabel(section?.rawLabel || section?.label)
+        ? sharedLdbSectionTokens.value
+        : normalizedSelectableTokens.value.filter(
+            (token) => token.parentKey === section.key && (isRecordRoute.value || selectedTokenKeySet.value.has(token.key)),
+          )
     ),
     mapToken: normalizeCreateDialogToken,
+    keepEmptySections: true,
   }),
 )
 const createDialogSectionSplit = computed(() => splitDialogSections(createSectionGroups.value))
@@ -747,7 +688,10 @@ const activeSectionGroup = computed(() => {
 })
 const activeSection = computed(() => activeSectionGroup.value?.sections?.[0] || null)
 const activeSectionEntries = computed(() => activeSectionGroup.value?.sections || [])
-const activeSectionTokens = computed(() => sectionDisplayTokens.value.filter((token) => activeSectionEntries.value.some((section) => section.key === token.parentKey)))
+const activeSectionTokens = computed(() => {
+  if (isKdbSectionActive.value) return sharedLdbSectionTokens.value
+  return sectionDisplayTokens.value.filter((token) => activeSectionEntries.value.some((section) => section.key === token.parentKey))
+})
 const isKdbSectionActive = computed(() =>
   activeSectionEntries.value.some((section) => isRelationshipSectionLabel(section.rawLabel || section.label)),
 )
@@ -763,23 +707,6 @@ const activeSectionTokenGroups = computed(() =>
     }))
     .filter((group) => group.tokens.length),
 )
-const activeKdbTokenGroups = computed(() => {
-  if (!isKdbSectionActive.value) return []
-  const grouped = [
-    { key: 'first_order', label: 'First-Order', tokens: [] },
-    { key: 'knowledge_db', label: 'Local DB', tokens: [] },
-    { key: 'other', label: 'Other', tokens: [] },
-  ]
-  for (const token of activeSectionTokens.value) {
-    const explicitGroup = String(token.relationshipGroup || '').trim().toLowerCase()
-    const targetEntry = LEVEL_1_FILE_REGISTRY.find((entry) => entry.entityName === token.optionEntity)
-    const fallbackGroup = String(targetEntry?.shellGroup || '').trim().toLowerCase()
-    const groupKey = explicitGroup || fallbackGroup || 'other'
-    const targetGroup = grouped.find((group) => group.key === groupKey) || grouped[2]
-    targetGroup.tokens.push(token)
-  }
-  return grouped.filter((group) => group.tokens.length)
-})
 const toolbarLeftSections = computed(() =>
   groupedLevel2Sections.value.filter(
     (group) => !group.sections.some((section) => isRelationshipSectionLabel(section.rawLabel || section.label) || String(section.rawLabel || section.label || '').trim().toLowerCase() === 'system'),
@@ -1015,17 +942,11 @@ onBeforeUnmount(() => {
 })
 
 function isHeroGroupExpanded(groupKey) { return expandedHeroGroupKeys.value.includes(groupKey) }
-function isKdbGroupExpanded(groupKey) { return expandedKdbGroupKeys.value.includes(groupKey) }
 function isSectionSubgroupExpanded(groupKey) { return expandedSectionSubgroupKeys.value.includes(groupKey) }
 function toggleHeroGroup(groupKey) {
   expandedHeroGroupKeys.value = isHeroGroupExpanded(groupKey)
     ? expandedHeroGroupKeys.value.filter((key) => key !== groupKey)
     : [...expandedHeroGroupKeys.value, groupKey]
-}
-function toggleKdbGroup(groupKey) {
-  expandedKdbGroupKeys.value = isKdbGroupExpanded(groupKey)
-    ? expandedKdbGroupKeys.value.filter((key) => key !== groupKey)
-    : [...expandedKdbGroupKeys.value, groupKey]
 }
 function toggleSectionSubgroup(groupKey) {
   expandedSectionSubgroupKeys.value = isSectionSubgroupExpanded(groupKey)
@@ -1262,6 +1183,29 @@ async function ensureLiveOptionsLoaded() {
       liveOptionRowsBySource.value = { ...liveOptionRowsBySource.value, [sourceKey]: [] }
     }
   }
+
+  if (!liveOptionRowsBySource.value['file-system']) {
+    try {
+      const result = await bridge.value?.['file-system']?.list?.()
+      liveOptionRowsBySource.value = { ...liveOptionRowsBySource.value, ['file-system']: normalizeListResult(result) }
+    } catch {
+      liveOptionRowsBySource.value = { ...liveOptionRowsBySource.value, ['file-system']: [] }
+    }
+  }
+
+  const systemRows = Array.isArray(liveOptionRowsBySource.value['file-system']) ? liveOptionRowsBySource.value['file-system'] : []
+  for (const row of systemRows) {
+    const sourceKey = resolveApprovedFileSectionKey(
+      row?.File_Source_Key || row?.File_Route_Name || row?.File_Runtime_Entity || row?.File_Canonical_Entity,
+    )
+    if (!sourceKey || sourceKey === 'bb-file' || liveOptionRowsBySource.value[sourceKey]) continue
+    try {
+      const result = await bridge.value?.[sourceKey]?.list?.()
+      liveOptionRowsBySource.value = { ...liveOptionRowsBySource.value, [sourceKey]: normalizeListResult(result) }
+    } catch {
+      liveOptionRowsBySource.value = { ...liveOptionRowsBySource.value, [sourceKey]: [] }
+    }
+  }
 }
 
 function normalizeListResult(result) {
@@ -1289,6 +1233,7 @@ function resolveExistingFieldForToken(token) {
 
 function getTokenRawValue(token) {
   if (!token) return ''
+  if (token?.isSharedLdbToken) return getSharedLdbTokenRawValue(token)
   const aliases = getCanonicalTokenFieldNames(token)
   for (const alias of aliases) {
     const field = fieldByName.value[alias]
@@ -1299,8 +1244,43 @@ function getTokenRawValue(token) {
   return ''
 }
 
+function getSharedLdbTokenRawValue(token) {
+  const entityName = String(activeRegistryEntry.value?.entityName || '').trim()
+  const targetEntity = String(token?.targetEntity || '').trim()
+  if (!entityName || !targetEntity) return []
+
+  const contracts = getLdbRelationshipContractsForEntity(entityName).filter(
+    (contract) => String(contract?.targetEntity || '').trim() === targetEntity,
+  )
+  if (!contracts.length) return []
+
+  const values = contracts.flatMap((contract) => {
+    const sourceToken = level3Tokens.value.find(
+      (entry) => String(entry?.tokenName || '').trim() === String(contract?.sourceToken || '').trim(),
+    )
+    if (!sourceToken) return []
+    const rawValue = getTokenRawValue(sourceToken)
+    if (Array.isArray(rawValue)) return rawValue.map((value) => String(value || '').trim()).filter(Boolean)
+    return String(rawValue || '')
+      .split(',')
+      .map((value) => value.trim())
+      .filter(Boolean)
+  })
+
+  return Array.from(new Set(values))
+}
+
 function getTokenDisplayValue(token) {
   const rawValue = getTokenRawValue(token)
+  if (token?.isSharedLdbToken) {
+    const values = Array.isArray(rawValue) ? rawValue : []
+    if (!values.length) return 'Missing value'
+    const options = Array.isArray(token?.inputOptions) ? token.inputOptions : []
+    return values
+      .map((value) => options.find((option) => String(option?.value || '').trim() === String(value || '').trim())?.label || String(value || '').trim())
+      .filter(Boolean)
+      .join(', ') || 'Missing value'
+  }
   if (Array.isArray(rawValue)) return rawValue.length ? rawValue.join(', ') : 'Missing value'
   const normalized = String(rawValue ?? '').trim()
   return normalized || 'Missing value'

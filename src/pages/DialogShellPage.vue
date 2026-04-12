@@ -14,7 +14,6 @@
     </div>
 
     <AddEditRecordShellDialog
-      :key="dialogRenderKey"
       v-else
       v-model="dialogOpen"
       :mode="dialogMode"
@@ -58,7 +57,7 @@ import { useQuasar } from 'quasar'
 import { useRoute } from 'vue-router'
 import AddEditRecordShellDialog from 'src/components/AddEditRecordShellDialog.vue'
 import { consumePendingAddEditShellRequest } from 'src/utils/addEditShellState'
-import { getLdbRelationshipContractForToken } from 'src/shared/ldbRelationshipContracts'
+import { getLdbRelationshipContractForToken, getLdbRelationshipContractsForEntity } from 'src/shared/ldbRelationshipContracts'
 import { loadShellFieldSelectionMap, persistShellFieldSelectionMap } from 'src/utils/shellFieldSelection'
 import {
   CANONICAL_OPTION_LISTS,
@@ -69,9 +68,8 @@ import {
   getCanonicalTokenValue,
   getFilePageRegistryEntry,
   getFilePageRegistryEntryByEntityReference,
+  getRegistryTitleTokenForSource,
   getRuntimeTableNameForEntityName,
-  LEVEL_2_FILE_REGISTRY_BY_KEY,
-  LEVEL_3_FILE_REGISTRY_BY_KEY,
   resolveApprovedFileSectionKey,
   TEST_SHELL_SECTION_OPTIONS,
 } from 'src/utils/structureRegistry'
@@ -96,7 +94,6 @@ const isElectronRuntime = computed(() => typeof window !== 'undefined')
 const dialogOpen = ref(false)
 const dialogLoading = ref(false)
 const liveOptionRowsBySource = ref({})
-const dialogRenderKey = ref(0)
 const dialogMode = ref('create')
 const dialogInitialValues = ref({})
 const dialogInitialFieldMeta = ref({})
@@ -113,8 +110,30 @@ const dialogShellSourceKey = ref(resolveValidShellSection(route.query.section, r
 const activeSourceKey = computed(() => dialogShellSourceKey.value)
 const hasResolvedSourceKey = computed(() => Boolean(activeSourceKey.value))
 const activeRegistryEntry = computed(() => getFilePageRegistryEntry(activeSourceKey.value) || null)
-const level2Sections = computed(() => LEVEL_2_FILE_REGISTRY_BY_KEY[activeSourceKey.value] || [])
-const level3Tokens = computed(() => LEVEL_3_FILE_REGISTRY_BY_KEY[activeSourceKey.value] || [])
+const level2Sections = computed(() =>
+  (Array.isArray(activeRegistryEntry.value?.subsections) ? activeRegistryEntry.value.subsections : []).map((subsection) => ({
+    key: subsection.key,
+    level_2: subsection.level_2,
+    address: subsection.address,
+    label: subsection.label,
+    rawLabel: subsection.rawLabel,
+    structureToken: subsection.structureToken,
+    subgroupKey: subsection.subgroupKey,
+    subgroupLabel: subsection.subgroupLabel,
+    subgroupAddress: subsection.subgroupAddress,
+    displayGroup: subsection.displayGroup,
+  })),
+)
+const level3Tokens = computed(() =>
+  (Array.isArray(activeRegistryEntry.value?.subsections) ? activeRegistryEntry.value.subsections : []).flatMap((subsection) =>
+    (Array.isArray(subsection.tokens) ? subsection.tokens : []).map((token) => ({
+      ...token,
+      parentKey: subsection.key,
+      parentLabel: subsection.label,
+      parentLevel_2: subsection.level_2,
+    })),
+  ),
+)
 const groupedLevel2Sections = computed(() => groupDialogLevel2Sections(level2Sections.value))
 const canonicalNameToken = computed(() => level3Tokens.value.find((token) => String(token.level_3) === '1') || null)
 const canonicalSummaryToken = computed(() =>
@@ -209,14 +228,54 @@ const branchSelectorTokenKey = computed(() => {
   if (!branchTokenName) return ''
   return createPrimaryTokens.value.find((token) => String(token?.tokenName || '').trim() === branchTokenName)?.key || ''
 })
+const sharedLdbSectionTokens = computed(() => {
+  if (!activeRegistryEntry.value?.entityName) return []
+
+  const systemFileTitleToken = getRegistryTitleTokenForSource('file-system')
+  const seenSourceKeys = new Set()
+  const rows = Array.isArray(liveOptionRowsBySource.value['file-system']) ? liveOptionRowsBySource.value['file-system'] : []
+
+  return rows
+    .map((row, index) => {
+      const sourceKey = resolveApprovedFileSectionKey(
+        row?.File_Source_Key || row?.File_Route_Name || row?.File_Runtime_Entity || row?.File_Canonical_Entity,
+      )
+      if (!sourceKey || sourceKey === 'bb-file' || seenSourceKeys.has(sourceKey)) return null
+
+      const targetEntry = getFilePageRegistryEntry(sourceKey)
+      if (!targetEntry?.entityName) return null
+
+      seenSourceKeys.add(sourceKey)
+      return normalizeCreateDialogToken({
+        key: `__shared_ldb__:${sourceKey}`,
+        tokenName: `__shared_ldb__:${sourceKey}`,
+        label:
+          String(systemFileTitleToken ? getCanonicalTokenValue(row, systemFileTitleToken) : '').trim()
+          || targetEntry.label
+          || `File ${index + 1}`,
+        tokenType: 'select_multi',
+        inputOptions: buildLiveEntityOptions(sourceKey),
+        parentKey: dialogKdbSectionKey.value,
+        parentLabel: 'LDB',
+        isSharedLdbToken: true,
+        targetSourceKey: sourceKey,
+        targetEntity: String(targetEntry.entityName || '').trim(),
+      })
+    })
+    .filter(Boolean)
+})
 const createSectionGroups = computed(() =>
   buildDialogSectionGroups({
     groupedSections: groupedLevel2Sections.value,
-    tokenFilter: (section) =>
-      level3Tokens.value.filter(
-        (token) => token.parentKey === section.key && !primaryTokenKeys.value.has(token.key),
-      ),
+    tokenFilter: (section) => (
+      isRelationshipSection(section)
+        ? sharedLdbSectionTokens.value
+        : level3Tokens.value.filter(
+            (token) => token.parentKey === section.key && !primaryTokenKeys.value.has(token.key),
+          )
+    ),
     mapToken: normalizeCreateDialogToken,
+    keepEmptySections: true,
   }),
 )
 const dialogSectionSplit = computed(() => splitDialogSections(createSectionGroups.value))
@@ -306,7 +365,7 @@ watch(
       dialogInitialValues.value = buildCreateDialogInitialValues(pending)
       dialogInitialFieldMeta.value = buildCreateDialogInitialFieldMeta(pending)
       dialogInitialSectionKey.value = 'general'
-      dialogRenderKey.value += 1
+      dialogOpen.value = true
       return
     }
 
@@ -326,7 +385,6 @@ watch(
 
     dialogInitialValues.value = buildEditDialogInitialValuesFromPayload(payload)
     await loadDialogHistory()
-    dialogRenderKey.value += 1
     dialogOpen.value = true
   },
   { immediate: true },
@@ -473,7 +531,7 @@ function getLiveEntitySetOptionsForToken(token) {
 
 function buildLiveEntityOptions(sourceKey) {
   const rows = Array.isArray(liveOptionRowsBySource.value[sourceKey]) ? liveOptionRowsBySource.value[sourceKey] : []
-  const titleToken = (LEVEL_3_FILE_REGISTRY_BY_KEY[sourceKey] || []).find((token) => String(token.level_3) === '1') || null
+  const titleToken = getRegistryTitleTokenForSource(sourceKey)
   return rows.map((row) => {
     const value = String(row?.id || row?.artifact_id || '').trim()
     const label = String(titleToken ? getCanonicalTokenValue(row, titleToken) : '').trim()
@@ -549,6 +607,7 @@ function normalizeCreateDialogInitialValue(token, value) {
 
 function getEditDialogTokenValueFromPayload(payload, token) {
   if (!payload) return ''
+  if (token?.isSharedLdbToken) return getSharedLdbTokenRawValueFromPayload(payload, token)
 
   const fieldNames = getCanonicalTokenFieldNames(token)
   const payloadFields = Array.isArray(payload.fields) ? payload.fields : []
@@ -575,6 +634,32 @@ function getEditDialogTokenValueFromPayload(payload, token) {
   }
 
   return ''
+}
+
+function getSharedLdbTokenRawValueFromPayload(payload, token) {
+  const entityName = String(activeRegistryEntry.value?.entityName || '').trim()
+  const targetEntity = String(token?.targetEntity || '').trim()
+  if (!entityName || !targetEntity) return []
+
+  const contracts = getLdbRelationshipContractsForEntity(entityName).filter(
+    (contract) => String(contract?.targetEntity || '').trim() === targetEntity,
+  )
+  if (!contracts.length) return []
+
+  const values = contracts.flatMap((contract) => {
+    const sourceToken = level3Tokens.value.find(
+      (entry) => String(entry?.tokenName || '').trim() === String(contract?.sourceToken || '').trim(),
+    )
+    if (!sourceToken) return []
+    const rawValue = getEditDialogTokenValueFromPayload(payload, sourceToken)
+    if (Array.isArray(rawValue)) return rawValue.map((value) => String(value || '').trim()).filter(Boolean)
+    return String(rawValue || '')
+      .split(',')
+      .map((value) => value.trim())
+      .filter(Boolean)
+  })
+
+  return Array.from(new Set(values))
 }
 
 async function loadEditDialogRecordPayload(entityName, recordId) {
@@ -654,6 +739,19 @@ async function ensureLiveOptionsLoaded() {
     ...createPrimaryTokens.value,
     ...createSectionGroups.value.flatMap((section) => section.tokens),
   ])
+
+  if (!liveOptionRowsBySource.value['file-system']) {
+    await loadLiveOptionRowsForSource('file-system')
+  }
+
+  const systemRows = Array.isArray(liveOptionRowsBySource.value['file-system']) ? liveOptionRowsBySource.value['file-system'] : []
+  for (const row of systemRows) {
+    const sourceKey = resolveApprovedFileSectionKey(
+      row?.File_Source_Key || row?.File_Route_Name || row?.File_Runtime_Entity || row?.File_Canonical_Entity,
+    )
+    if (!sourceKey || sourceKey === 'bb-file' || liveOptionRowsBySource.value[sourceKey]) continue
+    await loadLiveOptionRowsForSource(sourceKey)
+  }
 }
 
 async function submitDialogRecord({ values } = {}) {

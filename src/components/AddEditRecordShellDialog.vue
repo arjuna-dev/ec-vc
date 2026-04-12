@@ -1621,6 +1621,19 @@ const open = computed({
   },
 })
 
+const dialogPayloadResetSignature = computed(() => JSON.stringify({
+  mode: String(props.mode || '').trim(),
+  shellSelectorValue: String(props.shellSelectorValue || '').trim(),
+  sourceLabel: String(props.sourceLabel || '').trim(),
+  singularLabel: String(props.singularLabel || '').trim(),
+  initialSectionKey: String(props.initialSectionKey || '').trim(),
+  historyRecordId: String(props.historyRecordId || '').trim(),
+  leftSectionKeys: (Array.isArray(props.leftSections) ? props.leftSections : []).map((section) => String(section?.key || '').trim()),
+  rightSectionKeys: (Array.isArray(props.rightSections) ? props.rightSections : []).map((section) => String(section?.key || '').trim()),
+  initialValueKeys: Object.keys(props.initialValues || {}).sort(),
+  initialFieldMetaKeys: Object.keys(props.initialFieldMeta || {}).sort(),
+}))
+
 const activeSectionKey = ref('')
 const formValues = ref({})
 const stagedFieldValues = ref({})
@@ -2074,6 +2087,15 @@ watch(
     initializeDialogState()
   },
   { immediate: true },
+)
+
+watch(
+  [() => open.value, dialogPayloadResetSignature],
+  ([isOpen], [, previousSignature]) => {
+    if (!isOpen) return
+    if (!previousSignature) return
+    initializeDialogState()
+  },
 )
 
 watch(
