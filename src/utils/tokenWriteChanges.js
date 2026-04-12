@@ -63,13 +63,16 @@ export function buildTokenUpdateChanges(token, {
       : normalizedValue == null
         ? []
         : [String(normalizedValue || '').trim()].filter(Boolean)
+    const contractTokenName = String(relationshipContract?.sourceToken || '').trim()
+    const fallbackTokenName = String(token?.tokenName || '').trim()
+    const relationshipTokenName = contractTokenName || fallbackTokenName
     return [
       {
         change_kind: 'relationship',
         table_name: resolvedTableName,
         record_id: recordId,
-        field_name: String(token?.tokenName || '').trim(),
-        relationship_token: String(token?.tokenName || '').trim(),
+        field_name: relationshipTokenName,
+        relationship_token: relationshipTokenName,
         new_value: JSON.stringify(relationshipIds),
       },
     ]

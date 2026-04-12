@@ -1050,6 +1050,8 @@ const sharedLdbViewTokens = computed(() => {
         isSharedLdbToken: true,
         targetSourceKey: sourceKey,
         targetEntity: String(targetEntry.entityName || '').trim(),
+        optionSource: 'shared_file_universe',
+        optionEntity: String(targetEntry.entityName || '').trim(),
       }
     })
     .filter(Boolean)
@@ -1469,6 +1471,11 @@ function getInputOptionsForToken(token) {
   }
 
   if (optionSource === 'record_subset') return []
+  if (optionSource === 'shared_file_universe' || token?.isSharedLdbToken) {
+    const targetSourceKey = String(token?.targetSourceKey || '').trim()
+    const sourceKey = targetSourceKey || normalizeEntitySourceKey(token?.optionEntity)
+    return sourceKey ? buildOptionsFromSourceRows(sourceKey, token) : []
+  }
 
   const values = Array.from(
     new Set(
@@ -2020,6 +2027,17 @@ watch(
     if (!sections.some((section) => section.key === activeViewKey.value)) {
       activeViewKey.value = getDefaultActiveViewKey(sections)
     }
+  },
+  { immediate: true },
+)
+
+watch(
+  sharedLdbViewTokens,
+  async (tokens) => {
+    const sourceKeys = (Array.isArray(tokens) ? tokens : [])
+      .map((token) => String(token?.targetSourceKey || '').trim())
+      .filter(Boolean)
+    await Promise.all(sourceKeys.map((sourceKey) => ensureLiveOptionRowsLoaded(sourceKey)))
   },
   { immediate: true },
 )

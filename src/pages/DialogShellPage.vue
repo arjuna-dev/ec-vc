@@ -451,6 +451,10 @@ function getInputOptionsForToken(token) {
   if (optionSource === 'canonical_list' && optionList) return CANONICAL_OPTION_LISTS[optionList] || []
   if (optionSource === 'live_entity') return getLiveEntityOptionsForToken(token)
   if (optionSource === 'live_entity_set') return getLiveEntitySetOptionsForToken(token)
+  if (optionSource === 'shared_file_universe' || token?.isSharedLdbToken) {
+    const sourceKey = String(token?.targetSourceKey || '').trim() || resolveSourceKeyFromEntityName(token?.optionEntity)
+    return sourceKey ? buildLiveEntityOptions(sourceKey) : []
+  }
   return Array.isArray(token?.inputOptions) ? token.inputOptions : []
 }
 
