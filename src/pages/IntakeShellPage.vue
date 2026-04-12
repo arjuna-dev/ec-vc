@@ -135,9 +135,9 @@ const branchSelectorTokenKey = computed(() => {
 const createViewGroups = computed(() =>
   buildDialogViews({
     groupedViews: groupedViews.value,
-    tokenFilter: (section) =>
+    tokenFilter: (view) =>
       fileTokens.value.filter(
-        (token) => token.parentKey === section.key && !primaryTokenKeys.value.has(token.key),
+        (token) => token.parentKey === view.key && !primaryTokenKeys.value.has(token.key),
       ),
     mapToken: normalizeCreateDialogToken,
     keepEmptySections: true,

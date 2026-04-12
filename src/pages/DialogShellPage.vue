@@ -161,11 +161,11 @@ const promotedGeneralTokens = computed(() => {
   const nonCoreSectionKeys = new Set(
     groupedViews.value
       .flatMap((group) => (Array.isArray(group.views) ? group.views : []))
-      .filter((section) => {
-        const label = String(section?.label || '').trim().toLowerCase()
+      .filter((view) => {
+        const label = String(view?.label || '').trim().toLowerCase()
         return label !== 'general' && label !== 'system' && !isRelationshipView(label)
       })
-      .map((section) => section.key),
+      .map((view) => view.key),
   )
 
   return fileTokens.value
@@ -175,15 +175,15 @@ const promotedGeneralTokens = computed(() => {
 const generalSourceGroups = computed(() =>
   groupedViews.value.filter((group) =>
     Array.isArray(group.views) &&
-    group.views.some((section) => {
-      const label = String(section.label || '').trim().toLowerCase()
+    group.views.some((view) => {
+      const label = String(view.label || '').trim().toLowerCase()
       return label !== 'general' && label !== 'system' && !isRelationshipView(label)
     }),
   ),
 )
 const generalSelectableTokens = computed(() => {
   const allowedViewKeys = new Set(
-    generalSourceGroups.value.flatMap((group) => (Array.isArray(group.views) ? group.views : []).map((section) => section.key)),
+    generalSourceGroups.value.flatMap((group) => (Array.isArray(group.views) ? group.views : []).map((view) => view.key)),
   )
   return fileTokens.value
     .filter((token) => allowedViewKeys.has(token.parentKey))
@@ -209,9 +209,9 @@ const generalSettingsGroups = computed(() => generalSourceGroups.value.map((grou
   label: group.title,
   expanded: expandedGeneralSettingsGroupKeys.value.includes(group.value),
   items: (Array.isArray(group.views) ? group.views : [])
-    .flatMap((section) =>
+    .flatMap((view) =>
       fileTokens.value
-        .filter((token) => token.parentKey === section.key)
+        .filter((token) => token.parentKey === view.key)
         .map(normalizeCreateDialogToken),
     )
     .map((token) => ({
@@ -266,11 +266,11 @@ const sharedLdbSectionTokens = computed(() => {
 const createViewGroups = computed(() =>
   buildDialogViews({
     groupedViews: groupedViews.value,
-    tokenFilter: (section) => (
-      isRelationshipView(section)
+    tokenFilter: (view) => (
+      isRelationshipView(view)
         ? sharedLdbSectionTokens.value
         : fileTokens.value.filter(
-            (token) => token.parentKey === section.key && !primaryTokenKeys.value.has(token.key),
+            (token) => token.parentKey === view.key && !primaryTokenKeys.value.has(token.key),
           )
     ),
     mapToken: normalizeCreateDialogToken,
