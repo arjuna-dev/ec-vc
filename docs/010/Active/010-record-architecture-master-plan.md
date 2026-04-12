@@ -172,8 +172,8 @@ The reasoning matters more than the order alone:
 - once they exist, a new file should be creatable by first creating a new `Files` record and declaring what that file is
 - that record should tell the system whether the new thing is:
   - a true `L1`
-  - an `L2`
-  - an `L2.a`
+  - a `View Fork`
+  - a `Subgroup`
   - or another approved structure layer
 - that classification should help determine:
   - whether shared `System` applies
@@ -268,7 +268,7 @@ The canonical `L1` contract should carry:
 - shared `LDB` linkage-section requirement
 - shared base `General` parameter set
 - optional branch metadata when the `L1` supports subtype routing
-- optional explicit `L2.a-b-c-d` subgroup metadata when one subsection needs structured internal grouping
+- optional explicit subgroup metadata (A/B/C/D) when one subsection needs structured internal grouping
 
 ### Shared L1 Base Rule
 
@@ -298,7 +298,7 @@ It should not be treated as one universal fixed list of relationship leaf tokens
 Working rule:
 
 - do not create a new normal `L1` by inventing entity-prefixed copies of shared base fields
-- after the shared base is in place, the entity may add its own `L2`s and explicit `L2.a-b-c-d` subgrouping
+- after the shared base is in place, the entity may add its own view forks and explicit subgrouping
 - this keeps activation, linking, and shell behavior aligned across the file system
 
 The validator should fail if an `L1` is missing:
@@ -478,7 +478,7 @@ Working rule:
 - this exception is intentional because `BB File` governs UI-building canon rather than operational record relationships
 - do not use this exception to weaken the standard contract for operational `L1`s
 
-Approved first-pass `L2` structure for `BB File`:
+Approved first-pass view-fork structure for `BB File`:
 
 - `General`
 - `Usage`
@@ -640,10 +640,10 @@ The currently approved middle hero contract is:
 
 - `Name` is the top anchor row
 - icon-only `settings` and `add record` controls sit beside `Name`
-- below `Name`, selected `L3` rows begin in the left column
+- below `Name`, selected token rows begin in the left column
 - `Summary` is the first row in the right column
-- each selected `L3` row renders as:
-  - top row: label + `L2` description
+- each selected token row renders as:
+  - top row: label + view fork description
   - bottom row: current value + status icon
 
 Shared selection rule:
@@ -764,7 +764,7 @@ Working rule:
 Universal shell rule:
 
 - this is not an `id`-only exception
-- alias declaration belongs to the `L3` token contract for any token whose runtime payload name differs from its canonical token name
+- alias declaration belongs to the token contract for any token whose runtime payload name differs from its canonical token name
 - the same rule must hold across `File Shell` and `Record Shell`
 - do not solve these gaps with page-level or record-level one-offs
 - if a token needs runtime mapping, declare it in canon and workbook companion so every shell reads the same contract
@@ -772,7 +772,7 @@ Universal shell rule:
 Shared dialog shell rule:
 
 - the shared create / edit dialog is only a true shell if every launching surface passes the same canonical payload contract
-- `File Shell`, `Record Shell`, and any future shared shell surface must not pre-interpret grouped `L2` structure differently before opening the dialog
+- `File Shell`, `Record Shell`, and any future shared shell surface must not pre-interpret grouped view-fork structure differently before opening the dialog
 - if one surface sends grouped subsection payloads and another sends flat section payloads, that is shell drift, not an acceptable variation
 - page-level payload shaping for the shared dialog should be treated as architectural debt unless it is identical across shell surfaces
 - do not solve drift page by page
@@ -810,7 +810,7 @@ Correct evidence statement:
 
 Payload builder relevance:
 
-- a shared payload builder matters because canonical `L1-L2-L3` structure alone does not automatically guarantee one shell-ready render shape
+- a shared payload builder matters because canonical `L1 / View Fork / Token` structure alone does not automatically guarantee one shell-ready render shape
 - the builder is the last-mile translation from canon into the exact shell payload
 - long-term, that improves:
   - consistency
@@ -994,7 +994,7 @@ The intended birth sequence for a new normal `L1` is:
    - `General`
      - `Name`
      - `Summary`
-5. create the entity-specific `L2` extensions and any approved `L2.a-b-c-d` subgrouping
+5. create the entity-specific view-fork extensions and any approved subgrouping
 6. create the reciprocal LDB declarations against the approved active `L1` set
 7. decide the owner path for each approved relationship:
    - dedicated join table
@@ -1340,7 +1340,7 @@ Fields to consider:
 
 Open architecture decision:
 
-- define the canonical `L1/L2/L3` structure for `Access_Assignments`
+- define the canonical `L1 / View Fork / Token` structure for `Access_Assignments`
 - decide its exact `System`, `General`, `LDB`, and file-specific fields
 - decide whether `Users_Roles` remains a lower-level runtime helper, is absorbed, or becomes legacy
 - decide how `Access_Assignments` reads from and writes to `Users`, `Contacts`, `Projects`, and `Roles`
@@ -1354,20 +1354,20 @@ This should be documented before runtime work because it affects auth, LDB bound
 
 The lasting architecture should not depend on remembered exceptions.
 
-It should depend on explicit token behavior declared at the `L1/L2/L3` structure layer.
+It should depend on explicit token behavior declared at the `L1 / View Fork / Token` structure layer.
 
 That means:
 
 - `L1`
   - defines entity identity and root contract
 
-- `L2`
+- `View Fork`
   - defines section purpose such as:
     - `System`
     - `General`
     - `LDB`
 
-- `L3`
+- `Token`
   - defines token behavior
 
 The intended token behavior layer should explicitly declare concepts like:
@@ -1375,7 +1375,7 @@ The intended token behavior layer should explicitly declare concepts like:
 - `field_class`
   - `owned_field`
   - `directional_link`
-  - `kdb_relationship`
+  - `ldb_relationship`
 
 - `ownership_mode`
   - `local`
@@ -1409,7 +1409,7 @@ Working rule:
 | --- | --- | --- | --- | --- | --- |
 | `owned_field` | ordinary field value on the current record | local | current record | usually no | current record |
 | `directional_link` | root-established or rule-bearing path such as identity, authority, provenance, or parentage | one-directional | explicit owner path | sometimes, depending on rule | owner side only |
-| `kdb_relationship` | mutual relationship between records | usually bidirectional | relationship owner path | yes | through approved relationship owner path |
+| `ldb_relationship` | mutual relationship between records | usually bidirectional | relationship owner path | yes | through approved relationship owner path |
 
 ### Root-Established Directional Links
 
@@ -1516,7 +1516,7 @@ Working rule:
 
 The shared create/edit record dialog should read field meaning from canonical structure, not from page-local UI logic.
 
-That means each `L3` token should declare:
+That means each token should declare:
 
 - its `token_type`
 - whether it is a fixed list, a live entity pick, a live entity set, a system stamp, or a direct input
@@ -1740,7 +1740,7 @@ That baseline is:
 
 - a real sqlite table
 - a preload/main bridge with at least `list`, `create`, and `delete`
-- canonical `L2` sections:
+- canonical view forks:
   - `System`
   - `LDB`
   - `General`
@@ -1760,8 +1760,8 @@ If a new DB needs more than that, add it on top of this baseline instead of inve
 
 Working rule:
 
-- when a controlled field should evolve as a reusable reference set, prefer a `Knowledge DB` file over a page-local hardcoded list
-- shells may still render those sources as selects or pickers, but the meaning should come from the `Knowledge DB` file contract
+- when a controlled field should evolve as a reusable reference set, prefer a dedicated file over a page-local hardcoded list
+- shells may still render those sources as selects or pickers, but the meaning should come from the dedicated file contract
 
 Relationship inheritance rule:
 
@@ -2281,7 +2281,7 @@ Working guidance:
 
 Grouped subsection rendering rule:
 
-- a grouped `L2` may collapse multiple canonical subsections into one toolbar item
+- a grouped view fork may collapse multiple canonical subsections into one toolbar item
 - that grouped toolbar item must not flatten those canonical subsection identities in the panel
 - when grouped subsection blocks render in the panel, each subgroup must have its own collapse / expand control
 - the same grouped subsection rule should hold in the shared create / edit dialog, not only in `Record View`
@@ -2294,9 +2294,9 @@ Grouped subsection rendering rule:
 
 Canonical subgroup rule:
 
-- when subgrouping is structurally necessary, it should be declared explicitly as `L2.a`, `L2.b`, `L2.c`, and so on
+- when subgrouping is structurally necessary, it should be declared explicitly as subgroup A/B/C (or similar explicit labels)
 - this is not a hidden `L4`
-- `L3` remains the leaf layer
+- tokens remain the leaf layer
 - shells should not invent subgrouping that canon does not declare
 
 ## Execution Plan

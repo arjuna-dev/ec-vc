@@ -230,7 +230,7 @@ This should be treated as a universal shell rule:
 - not an `id` rule
 - not a `Record View`-only rule
 
-If an `L3` token needs runtime mapping, that mapping should be declared once in canon and then shared by:
+If a `Token` needs runtime mapping, that mapping should be declared once in canon and then shared by:
 
 - `File Shell`
 - `Record Shell`
@@ -246,7 +246,7 @@ Shared dialog rule:
 
 - opening `Add Record` or `Edit Record` from any `L1` should resolve into the same shared dialog shell behavior
 - the launching surface may choose the source `L1` or selected record
-- it should not reinterpret grouped `L2` structure before handing payload into the dialog
+- it should not reinterpret grouped view-fork structure before handing payload into the dialog
 - if the dialog behaves differently between `L1`s because of different shell-side payload shaping, that is a contract bug
 - when the shared dialog is exposed through its own shell route, that route should use the same shared top shell header and `L1` select as the other shell routes
 - the dialog shell route should not add a second page-level selector, launchpad, or top-row control if the shared shell header already provides that contract
@@ -352,8 +352,8 @@ Observed evidence rule:
 
 Why a shared payload builder matters:
 
-- the app already has canonical `L1-L2-L3` structure, but shells still need one shared translation layer that turns that structure into the exact payload consumed by the shell
-- when a subsection needs internal grouping for readability, canon may explicitly declare subgrouping as `L2.a`, `L2.b`, `L2.c`, and so on without replacing `L3` as the leaf layer
+- the app already has canonical `L1 / View Fork / Token` structure, but shells still need one shared translation layer that turns that structure into the exact payload consumed by the shell
+- when a section needs internal grouping for readability, canon may explicitly declare subgrouping (A/B/C) without replacing tokens as the leaf layer
 - centralizing that translation improves:
   - consistency
   - speed of change
@@ -367,7 +367,7 @@ Why a shared payload builder matters:
 
 ## Token Behavior Language
 
-Canonical structure should keep moving toward explicit token behavior at the `L3` level.
+Canonical structure should keep moving toward explicit token behavior at the token level.
 
 The intended language is:
 
@@ -589,7 +589,7 @@ Shared base rule:
 - shared `System` parameters should be `ID`, `Creator`, `Datetime`, and `EventLog`
 - shared `General` parameters should be `Name` and `Summary`
 - shared `LDB` means every normal `L1` owns the linkage section, not that every `L1` uses one identical relationship leaf list
-- only after that shared base should an `L1` add its own independent `L2`s or explicit `L2.a-b-c-d` subgrouping
+- only after that shared base should an `L1` add its own independent view forks or explicit subgrouping
 
 Why:
 
@@ -601,7 +601,7 @@ Controlled exception:
 
 - `BB File` is not part of this standard baseline
 - `BB File` is a `System-Level File`, not a normal app-data `L1`
-- instead of `System` / `LDB`, its approved first-pass `L2` structure is:
+- instead of `System` / `LDB`, its approved first-pass view-fork structure is:
   - `General`
   - `Usage`
   - `Anatomy`
@@ -680,10 +680,10 @@ Current approved shell pattern:
 
 - base it on the current `User Record View` hero/dashboard
 - keep icon-only `settings` and `add record` controls beside `Name`
-- render selected `L3` rows in the left middle column
+- render selected token rows in the left middle column
 - render `Summary` as the first row in the right middle column
-- render each selected `L3` row as:
-  - top row: label + `L2` description
+- render each selected token row as:
+  - top row: label + view fork description
   - bottom row: value + status icon
 
 Interaction direction:
@@ -926,7 +926,7 @@ Interpretation rule:
 
 - shared `LDB_Relationships` is the default place where a relationship can exist and make linked records callable by row
 - dedicated join tables are the promoted path when the relationship itself needs its own governed fields or access rules
-- do not require a dedicated join table just to let one `L1` call another linked record's `L3`s
+- do not require a dedicated join table just to let one `L1` call another linked record's tokens
 - promote to a dedicated join table when the relationship itself becomes a first-class managed object
 
 Birth rule for new normal `L1`s:
@@ -954,7 +954,7 @@ Practical birth sequence:
    - `EventLog`
    - `Name`
    - `Summary`
-5. add entity-specific `L2` structure
+5. add entity-specific view-fork structure
 6. load reciprocal LDB declarations against the approved active `L1` set
 7. decide relationship ownership:
    - dedicated join table

@@ -276,8 +276,6 @@ This section should declare:
 - file name
 - file class:
   - `L1`
-  - `L2`
-  - `L2.a`
 - short purpose
 - canonical owner identity
 
@@ -301,9 +299,9 @@ It should define the key terms a person or companion needs before reading the re
 The glossary should include:
 
 - file-specific terms
-- important `L2` names
-- important `L2.a` subgroup names
-- important `L3` names when they are not obvious
+- important `View Fork` names
+- important `Subgroup` names
+- important `Token` names when they are not obvious
 - relationship terms
 - ownership terms
 
@@ -415,9 +413,9 @@ This section should declare:
 - what provenance should be preserved
 - how genesis or file creation should later be reconstructable
 
-### 12. L2 File System
+### 12. View Fork System
 
-This section should declare the file's actual L2 architecture.
+This section should declare the file's actual view-fork architecture.
 
 It should always describe these base sections when they apply:
 
@@ -426,7 +424,7 @@ It should always describe these base sections when they apply:
 - `LDB`
 - `File Specific`
 
-`File Specific` means any file-specific L2s, L2 subsections, and L3 leaf groups that exist beyond the shared base.
+`File Specific` means any file-specific view forks, subgroups, and tokens that exist beyond the shared base.
 
 ### 13. Open Questions
 
@@ -434,9 +432,9 @@ This section should list unresolved items that are not yet settled truth.
 
 This is where the file guide should preserve uncertainty instead of letting it become drift.
 
-## Shared L2 Section Rules
+## Shared View Fork Rules
 
-These rules explain how the shared L2 sections work for every file guide.
+These rules explain how the shared view forks work for every file guide.
 
 ### System
 
@@ -496,7 +494,7 @@ The rename should happen as a staged architecture pass so docs, canonical struct
 
 The `System Files` file/page should expose these file-definition properties for each file:
 
-- is it `L1`, `L2`, or `L2.a`
+- file class (`L1`)
 - does it require `System`
 - does it require `LDB`
 - what ownership mode applies
@@ -618,26 +616,26 @@ If yes, the structure should be created as `L1`.
 
 If no, the user should be guided toward:
 
-- `L2` when the concept is a major section inside an existing file
-- `L2.a` when the concept is a subgroup inside an existing section
+- `View Fork` when the concept is a major section inside an existing file
+- `Subgroup` when the concept is a subgroup inside an existing section
 
 The default rule is:
 
 - when uncertain, begin as `L1`
-- demote to `L2` only when the concept is clearly a section inside an existing file
-- demote to `L2.a` only when the concept is clearly a subgroup inside an existing section
+- demote to `View Fork` only when the concept is clearly a section inside an existing file
+- demote to `Subgroup` only when the concept is clearly a subgroup inside an existing section
 
 The `UX Steward` should define:
 
 - the plain-language question shown to the user
 - the canonical value created by each answer
 - the safe default
-- the parent selection required for `L2` and `L2.a`
+- the parent selection required for `View Fork` and `Subgroup`
 - the stop condition when the user does not have enough context
 
-`File Specific` should not replace explicit named `L2` sections.
+`File Specific` should not replace explicit named view forks.
 
-It should document the file's unique structure metadata while real user-facing sections remain explicit `L2`s.
+It should document the file's unique structure metadata while real user-facing sections remain explicit view forks.
 
 ## Canonical Loader Rule
 
@@ -681,7 +679,7 @@ Each file-specific guide can begin from this compact template:
 9. `UX Steward`
 10. `Governance`
 11. `Provenance / Events`
-12. `L2 File System`
+12. `View Fork System`
 13. `Open Questions`
 
 System file guides should live in `docs/100`.

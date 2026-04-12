@@ -341,7 +341,7 @@ More concretely:
 
 1. Less drift as the app grows
 
-- if many `L1`s, many `L2`s, and many actions all use one payload builder:
+- if many `L1`s, many view forks, and many actions all use one payload builder:
   - new entities behave predictably
   - grouped sections behave the same everywhere
   - the app does not keep re-solving the same rendering problem
