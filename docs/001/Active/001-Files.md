@@ -424,7 +424,13 @@ It should always describe these base sections when they apply:
 - `LDB`
 - `File Specific`
 
+Definition note:
+
+- view forks and subgroups are internal to a file, not separate file rows, unless `System Files` explicitly tracks them as such
+
 `File Specific` means any file-specific view forks, subgroups, and tokens that exist beyond the shared base.
+
+`File Specific` is governance metadata, not a user-facing fork, unless the file explicitly declares it as a visible fork.
 
 ### 13. Open Questions
 
@@ -494,7 +500,7 @@ The rename should happen as a staged architecture pass so docs, canonical struct
 
 The `System Files` file/page should expose these file-definition properties for each file:
 
-- file class (`L1`)
+- file class (`L1` for files, `View Fork` / `Subgroup` only when explicitly tracked)
 - does it require `System`
 - does it require `LDB`
 - what ownership mode applies

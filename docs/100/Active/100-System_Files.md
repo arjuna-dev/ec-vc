@@ -38,7 +38,7 @@ It is the file-definition layer that helps the system know:
 | `System Files` | The app-facing file-definition surface. |
 | `Files` | The canonical entity behind the `System Files` surface. |
 | `File Guide` | The `.md` guide that explains and governs a specific file. |
-| `File Class` | Whether a file is an `L1`, `View Fork`, or `Subgroup`. |
+| `File Class` | Whether a file is an `L1`. `View Fork` / `Subgroup` only when internal structure is explicitly tracked in `System Files`. |
 | `Ownership Mode` | The declared ownership rule for a file or field. |
 | `Steward` | The companion or role responsible for keeping a file correct. |
 | `System` | The shared provenance and runtime-control view fork. |
@@ -229,6 +229,10 @@ should all connect into one event backbone, even if some runtime paths still use
 `Creator` and `Datetime` should be treated as quick visible summaries of that event trail, not as a second competing source of truth.
 
 ## View Fork System
+
+Definition note:
+
+- view forks and subgroups are internal to a file, not separate file rows, unless `System Files` explicitly tracks them as such
 
 ### System
 

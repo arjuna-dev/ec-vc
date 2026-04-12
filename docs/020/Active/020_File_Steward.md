@@ -62,6 +62,8 @@ After that shared base is declared, the `L1` may add:
 - its own independent view forks
 - its own explicit subgrouping
 
+These are internal to the file, not separate file rows, unless the file-definition contract explicitly promotes them.
+
 This keeps every file compatible with the same shell activation paths while still allowing entity-specific structure.
 
 ## Authority
