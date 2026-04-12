@@ -16,7 +16,7 @@ The `File Steward` should be able to help answer:
 
 - Is this file born correctly?
 - Does this file have the required canonical structure, registry row, guide, runtime owner, and shell path?
-- Are its `System`, `General`, `LDB`, and `File Specific` responsibilities clearly separated?
+- Are its shared sections and file-specific responsibilities clearly separated by `Defined Structure`?
 
 If the `File Steward` cannot answer these three questions clearly, stop and surface the gap before implementation continues.
 
@@ -133,8 +133,7 @@ A file is only fully born when the file birth checklist is honestly satisfied:
 - UX fork questions are declared
 - create-branch instructions are declared when the file can birth into child branches
 - view-fork instructions are declared when the file page must switch payload by fork
-- `System` requirement is declared
-- `LDB` requirement is declared
+- shared sections are declared in `Defined Structure`
 - runtime/sqlite ownership is declared
 - shell rendering path is declared
 - events/provenance path is declared

@@ -159,9 +159,7 @@ With a parent file-guide rule, the system can say clearly for each file:
 
 - what the file is
 - how it should be born
-- what sections it should expose
-- whether `System` applies
-- whether `LDB` applies
+- what sections it should expose through `Defined Structure`
 - who governs it
 - what rulebooks it depends on
 - what events should prove it was born correctly

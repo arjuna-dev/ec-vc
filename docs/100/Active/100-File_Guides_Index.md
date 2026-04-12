@@ -71,8 +71,7 @@ The `File Steward` should confirm:
 - owner is declared
 - steward is declared
 - UX fork questions are declared
-- `System` requirement is declared
-- `KDB` requirement is declared
+- shared sections are declared in `Defined Structure`
 - runtime/sqlite ownership is declared
 - shell rendering path is declared
 - events/provenance path is declared
