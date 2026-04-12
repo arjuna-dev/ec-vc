@@ -37,24 +37,30 @@ This means:
 
 ## File Birth Chain
 
-Every file should be born from the canonical JSON structure.
+Every file should be born from the System Files registry and the file-owned token/view contract.
 
 The intended birth chain is:
 
-1. `docs/000-canonical-structure.json`
-2. `System Files` registry row
-3. file guide `.md`
+1. `System Files` registry row (file universe + ownership + guide)
+2. file guide `.md`
+3. file-owned tokens/views (live shell payload contract)
 4. runtime/sqlite table and shell rendering
+
+Reference inputs:
+
+- `docs/000-canonical-structure.json`
+- `docs/000-workbook-schema-companion.json`
+
+These references must not act as live shell payload truth.
 
 That means:
 
-- canonical JSON defines the `L1/L2/L3` structure
 - `System Files` registers the file, class, guide, owner, steward, and required `System` or `LDB` status
+- file-owned tokens/views are the runtime payload source for shells
 - the file guide explains the human and steward rules for that file
-- the file guide includes UX parameters for structural forks and user guidance
-- runtime/sqlite and shell rendering should follow the canonical definition and registry row
+- runtime/sqlite and shell rendering follow the System Files + token/view contract
 
-If a runtime file/table/shell exists without the matching canonical JSON structure and `System Files` row, the file is not fully born.
+If a runtime file/table/shell exists without the matching System Files row, the file is not fully born.
 
 ## File Birth Checklist
 
@@ -156,7 +162,7 @@ With a parent file-guide rule, the system can say clearly for each file:
 - how it should be born
 - what sections it should expose
 - whether `System` applies
-- whether `KDB` applies
+- whether `LDB` applies
 - who governs it
 - what rulebooks it depends on
 - what events should prove it was born correctly
@@ -374,7 +380,7 @@ This section should explain to the `File Steward`:
 - what structural requirements it has
 - what shared base rules apply
 - whether `System` is required
-- whether `KDB` is required
+- whether `LDB` is required
 - what relationships must be born with it
 - what reverse-read expectations exist
 - what validation proves the file is correctly born
@@ -420,7 +426,7 @@ It should always describe these base sections when they apply:
 
 - `System`
 - `General`
-- `KDB`
+- `LDB`
 - `File Specific`
 
 `File Specific` means any file-specific L2s, L2 subsections, and L3 leaf groups that exist beyond the shared base.
@@ -458,9 +464,9 @@ It should describe:
 - any approved general fields that are shared or file-specific
 - how humans and companions should quickly understand the record
 
-### KDB
+### LDB
 
-`KDB` is the file's declared relationship layer.
+`LDB` is the file's declared relationship layer.
 
 It should describe:
 
@@ -468,7 +474,7 @@ It should describe:
 - file-to-file relationship targets
 - record-to-record relationship targets
 - whether each relationship is born at file creation
-- whether each relationship uses shared `KDB_Relationships` or a promoted dedicated owner
+- whether each relationship uses shared `LDB_Relationships` or a promoted dedicated owner
 - whether reverse-read exists
 
 ### LDB Naming Direction
@@ -483,7 +489,7 @@ This name better describes the local relationship layer between:
 - records inside those files
 - local system files and their relationship paths
 
-Current implementation may still use `KDB` names in canon, docs, sqlite tables, functions, and UI labels.
+Current implementation should avoid introducing new `KDB` names in live contracts, docs, or UI labels.
 
 Do not rename those pieces one by one.
 
@@ -495,7 +501,7 @@ The `System Files` file/page should expose these file-definition properties for 
 
 - is it `L1`, `L2`, or `L2.a`
 - does it require `System`
-- does it require `KDB`
+- does it require `LDB`
 - what ownership mode applies
 - who owns it
 - which steward governs it
@@ -589,19 +595,19 @@ So the guide remains:
 - visible
 - easy to open while editing the file definition
 
-## KDB Stewardship Rule
+## LDB Stewardship Rule
 
-The `File Steward` is also the effective KDB orchestrator for file birth and upkeep.
+The `File Steward` is also the effective LDB orchestrator for file birth and upkeep.
 
 That means the `File Steward` should make sure:
 
 - files are born correctly
-- `KDB` is born with them
+- `LDB` is born with them
 - the right relationships exist
 - relationship direction, owner-path, and reverse-read are correct
 - file order and creation sequence support those connections
 
-So child file guides should treat KDB governance as part of `File Steward` responsibility, not as a detached separate guide layer.
+So child file guides should treat LDB governance as part of `File Steward` responsibility, not as a detached separate guide layer.
 
 ## UX Stewardship Rule
 
@@ -638,7 +644,8 @@ It should document the file's unique structure metadata while real user-facing s
 
 ## Canonical Loader Rule
 
-`docs/000-canonical-structure.json` is the machine-readable structure source of truth.
+`docs/000-canonical-structure.json` is the machine-readable structure reference.
+It must not be treated as live shell payload truth.
 
 Code should not import that JSON file casually from many places.
 
@@ -649,7 +656,7 @@ The approved app-side doorway is:
 That doorway exists so canonical structure has one visible loading point before it feeds:
 
 - file registry
-- KDB relationship contracts
+- LDB relationship contracts
 - shell rendering
 - bootstrap validation
 - future File Steward tooling

@@ -21,6 +21,15 @@ The goal is to make it easier to understand:
 
 This is the core runtime and shared-shell chain behind the app's local data behavior.
 
+## Current Contract Override
+
+This section is the current source of truth. If anything below conflicts, this section wins.
+
+- `System Files` defines the file universe.
+- file-owned tokens and view forks are the live shell payload source.
+- shared relationships are stored and read through `LDB_Relationships`.
+- workbook and canonical JSON are reference inputs only; they do not drive live shell payload truth.
+
 ## The Simple Mental Model
 
 The first four files form the deepest runtime path:

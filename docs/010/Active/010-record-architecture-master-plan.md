@@ -38,22 +38,25 @@ When decisions change:
 - do not create parallel architecture docs unless there is a strong reason
 - use the progress tracker here to reflect what is approved, in progress, and complete
 
-For the current first-pass architecture work, the active workbook schema reference is:
+## Current Contract Override
 
-- `docs/B10_DOS v260400 vrev.xlsx`
-- `docs/000-workbook-schema-companion.json`
-- `docs/000-canonical-structure.json`
+This section is the current source of truth. If anything below conflicts, this section wins.
 
-That workbook should be treated as the active structural reference used to validate and refine the first approved architecture pass.
+- `System Files` defines the file universe.
+- file-owned tokens and view forks are the live shell payload source.
+- shared relationships are stored and read through `LDB_Relationships`.
+- workbook and canonical JSON are reference inputs only; they do not drive live shell payload truth.
 
-The JSON companion should be treated as a workbook-derived reference layer, not the app-owned canonical registry.
+Reference inputs remain useful for:
 
-During this phase, the intended direction is:
+- migration checks
+- structural audits
+- explicit token alias declarations
 
-- `Workbook` helps define and validate the structure
-- `docs/000-canonical-structure.json` is the canonical machine-readable structure layer used by the app
-- the app should edit that canonical JSON structure directly
-- exporters and importers should remain available as adapters for migration and outside data sources
+Legacy note:
+
+- remaining `KDB` references below should be read as `LDB`
+- do not introduce new `KDB` language in active contracts
 
 ## Objective
 
@@ -64,15 +67,15 @@ That means:
 - every workbook-backed entity should follow one clear structure
 - file views should stay lightweight and fast
 - record views should be richer and more correct
-- KDB should behave consistently
+- LDB should behave consistently
 - addresses, sections, payloads, and UI should all refer to the same underlying structure
 
 The goal is not just visual consistency.
 
 The goal is operational consistency:
 
-- the same entity should mean the same thing in workbook structure
-- the same entity should expose the same section logic in payloads
+- the same entity should mean the same thing in System Files
+- the same entity should expose the same section logic in file-owned tokens/views
 - the same entity should render predictably in file view and record view
 
 ## Highest Priority
