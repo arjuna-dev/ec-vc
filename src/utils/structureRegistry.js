@@ -440,9 +440,9 @@ function stripTokenEntityPrefix(tokenName = '', prefixes = []) {
 }
 
 function getSubsectionDisplayRank(subsection) {
-  const rawLabel = String(subsection?.rawLabel || subsection?.label || '').trim().toLowerCase()
-  if (rawLabel === 'ldb') return 998
-  if (rawLabel === 'system') return 999
+  const label = String(subsection?.label || '').trim().toLowerCase()
+  if (label === 'ldb') return 998
+  if (label === 'system') return 999
   return Number(subsection?.level_2 || 0)
 }
 
@@ -757,14 +757,14 @@ export function getFilePageBirthDefaults(sourceKey = '') {
 export function getRegistryTitleTokenForSource(sourceKey = '') {
   const entry = getFilePageRegistryEntry(sourceKey)
   if (!entry) return null
-  const generalSection = entry.subsections.find((section) => String(section.rawLabel || '').trim().toLowerCase() === 'general')
+  const generalSection = entry.subsections.find((section) => String(section.label || '').trim().toLowerCase() === 'general')
   return generalSection?.tokens?.find((token) => String(token.level_3 || '').trim() === '1') || null
 }
 
 export function getRegistrySummaryTokenForSource(sourceKey = '') {
   const entry = getFilePageRegistryEntry(sourceKey)
   if (!entry) return null
-  const generalSection = entry.subsections.find((section) => String(section.rawLabel || '').trim().toLowerCase() === 'general')
+  const generalSection = entry.subsections.find((section) => String(section.label || '').trim().toLowerCase() === 'general')
   return generalSection?.tokens?.find((token) => String(token.level_3 || '').trim() === '2') || null
 }
 
@@ -780,7 +780,7 @@ export function validateLevel1BootstrapContracts({ bridgeValue = null, sourceKey
     const issues = []
     const subsectionLabels = new Set(
       (Array.isArray(entry?.subsections) ? entry.subsections : [])
-        .map((section) => String(section?.label || section?.rawLabel || '').trim().toLowerCase())
+        .map((section) => String(section?.label || '').trim().toLowerCase())
         .filter(Boolean),
     )
 
@@ -918,19 +918,18 @@ function buildAutoFileSpecificViewForks(entry) {
   const coreLabels = new Set(['general', 'system', 'ldb'])
   const fileSpecificSections = (Array.isArray(entry.subsections) ? entry.subsections : [])
     .map((section) => ({
-      rawLabel: String(section?.rawLabel || '').trim(),
       label: String(section?.label || '').trim(),
     }))
-    .filter((section) => section.rawLabel && !coreLabels.has(section.rawLabel.toLowerCase()))
+    .filter((section) => section.label && !coreLabels.has(section.label.toLowerCase()))
 
   return fileSpecificSections.map((section) => ({
-    value: String(section.rawLabel || '')
+    value: String(section.label || '')
       .trim()
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/^-+|-+$/g, ''),
-    label: section.label || section.rawLabel,
-    sectionRawLabels: [section.rawLabel],
+    label: section.label,
+    sectionRawLabels: [section.label],
     forkGroup: 'file-specific',
   }))
 }
