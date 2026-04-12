@@ -795,7 +795,7 @@ const $q = useQuasar()
 
 const bridge = computed(() => (typeof window !== 'undefined' ? window.ecvc : null))
 const isElectronRuntime = computed(() => typeof window !== 'undefined')
-const debugEnabled = computed(() => String(route.query.debug || '').trim() === '1')
+const debugEnabled = computed(() => process.env.DEV || String(route.query.debug || '').trim() === '1')
 const loading = ref(false)
 const error = ref('')
 const searchQuery = ref('')
