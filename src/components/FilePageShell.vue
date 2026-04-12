@@ -32,6 +32,7 @@
         <div>loader: {{ activeLoader ? activeContentSourceKey : 'none' }}</div>
         <div>loading: {{ loading }}</div>
         <div>rawRows: {{ rawRows.length }}</div>
+        <div>denseRows: {{ denseRowCount }}</div>
         <div>displayRows: {{ displayRows.length }}</div>
         <div>activeView: {{ activeView?.label || activeViewKey || 'none' }}</div>
         <div>filterView: {{ activeFilterViewKey || 'none' }}</div>
@@ -821,6 +822,7 @@ const isElectronRuntime = computed(() => typeof window !== 'undefined')
 const debugEnabled = computed(() => process.env.DEV || String(route.query.debug || '').trim() === '1')
 const debugDbSummary = ref(null)
 const debugDbLoading = ref(false)
+const denseRowCount = computed(() => rawRows.value.filter((row) => row && typeof row === 'object').length)
 const loading = ref(false)
 const error = ref('')
 const searchQuery = ref('')
@@ -2393,7 +2395,8 @@ async function loadRows() {
   loading.value = true
   try {
     const result = await withTimeout(loader.listFn(bridgeValue), 8000, 'Loader timeout')
-    rawRows.value = Array.isArray(result?.[loader.resultKey]) ? result[loader.resultKey] : []
+    const rows = Array.isArray(result?.[loader.resultKey]) ? result[loader.resultKey] : []
+    rawRows.value = rows.filter((row) => row && typeof row === 'object')
     loaderDiagnostics.value = result && typeof result === 'object' ? result : {}
   } catch (loadError) {
     error.value = loadError?.message || `Could not load ${activeRegistryEntry.value?.label || 'records'}.`
