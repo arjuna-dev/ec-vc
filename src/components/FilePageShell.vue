@@ -34,7 +34,7 @@
       <div class="file-shell__toolbar-slot-debug">
         <MiniToolbar
           v-if="eventShellNavItems.length"
-          v-model="activeSectionKeyForCards"
+        v-model="activeViewKey"
           aria-label="File shell mini toolbar"
           :items="eventShellNavItems"
           :view-mode="viewMode"
@@ -423,7 +423,7 @@
                   </div>
                 </th>
                 <th
-                  v-for="token in tableSectionTokens"
+                  v-for="token in tableViewTokens"
                   :key="token.key"
                   class="test-shell-table__head"
                   :style="getTableColumnStyle(token.key, DEFAULT_COLUMN_MIN_WIDTH)"
@@ -1012,7 +1012,7 @@ const hasActiveSourceLdb = computed(() =>
 
 const fileViews = computed(() => activeFileShellPayload.value.sections)
 const fileTokens = computed(() => activeFileShellPayload.value.tokens)
-const activeSectionKeyForCards = ref('')
+const activeViewKey = ref('')
 const activeFilterViewKey = ref('')
 const activeFilterTokenKey = ref('')
 const expandedFilterViewKey = ref('')
@@ -1022,10 +1022,10 @@ const expandedBbFilterCategoryKey = ref('')
 const expandedCardSettingsGroupsBySource = ref({})
 
 const activeView = computed(() => {
-  return fileViews.value.find((section) => section.key === activeSectionKeyForCards.value) || fileViews.value[0] || null
+  return fileViews.value.find((section) => section.key === activeViewKey.value) || fileViews.value[0] || null
 })
 const activeGovernanceToolbarKey = computed(() => {
-  const normalized = String(activeSectionKeyForCards.value || '').trim().toLowerCase()
+  const normalized = String(activeViewKey.value || '').trim().toLowerCase()
   if (normalized === 'tokens' || normalized === 'views') return normalized
   return ''
 })
@@ -1403,7 +1403,7 @@ const bbGraphRowColumns = computed(() => {
     { key: '__bb_children__', tokenName: '__bb_children__', label: 'Children' },
   ]
 })
-const tableSectionTokens = computed(() => {
+const tableViewTokens = computed(() => {
   const baseTokens = (
     isLdbSectionActive.value
       ? sharedLdbSectionTokens.value
@@ -1971,7 +1971,7 @@ watch(
     rowHistoryLoadingByRecordId.value = {}
     await loadRows()
     await ensureLiveOptionRowsLoaded('file-system')
-    activeSectionKeyForCards.value = getDefaultActiveSectionKey(fileViews.value)
+    activeViewKey.value = getDefaultActiveSectionKey(fileViews.value)
   },
   { immediate: true },
 )
@@ -2025,8 +2025,8 @@ watch(
 watch(
   fileViews,
   (sections) => {
-    if (!sections.some((section) => section.key === activeSectionKeyForCards.value)) {
-      activeSectionKeyForCards.value = getDefaultActiveSectionKey(sections)
+    if (!sections.some((section) => section.key === activeViewKey.value)) {
+      activeViewKey.value = getDefaultActiveSectionKey(sections)
     }
   },
   { immediate: true },
@@ -2170,7 +2170,7 @@ watch(
 watch(
   [
     () => activeContentSourceKey.value,
-    () => activeSectionKeyForCards.value,
+    () => activeViewKey.value,
   ],
   () => {
     tableColumnWidths.value = {}
@@ -2181,8 +2181,8 @@ watch(
   [
     () => viewMode.value,
     () => activeContentSourceKey.value,
-    () => activeSectionKeyForCards.value,
-    () => tableSectionTokens.value.map((token) => token.key).join('|'),
+    () => activeViewKey.value,
+    () => tableViewTokens.value.map((token) => token.key).join('|'),
     () => displayRows.value.length,
   ],
   async () => {
@@ -2213,7 +2213,7 @@ function getInitialTableColumns() {
   const getColumnLabelWidth = (label = '') => Math.max(72, (String(label || '').trim().length * 7) + 28)
   return [
     { key: 'name', defaultWidth: Math.max(NAME_COLUMN_DEFAULT_WIDTH, getColumnLabelWidth('Name')) },
-    ...tableSectionTokens.value.map((token) => ({
+    ...tableViewTokens.value.map((token) => ({
       key: token.key,
       defaultWidth: Math.max(
         isLdbSectionActive.value ? LDB_COLUMN_DEFAULT_WIDTH : DEFAULT_COLUMN_MIN_WIDTH,
@@ -2371,7 +2371,7 @@ function buildShellRow(row, index) {
         .some((token) => tokenPresence[token.key]),
     ]),
   )
-  const tokenRows = tableSectionTokens.value.map((token) => {
+  const tokenRows = tableViewTokens.value.map((token) => {
     if (isBbFileSource.value && String(token.tokenName || '').startsWith('__bb_')) {
       const { value, links } = getBbRowColumnValue(token.tokenName, row, bbGraphCounts, bbGraphLinks)
       return {
