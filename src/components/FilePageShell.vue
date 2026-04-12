@@ -1976,9 +1976,9 @@ watch(
   { immediate: true },
 )
 
-watch(
-  [rawRows, isSystemViewActive, viewMode, activeSourceKey],
-  async ([rows, isSystem, currentViewMode]) => {
+  watch(
+    [rawRows, isSystemViewActive, viewMode, activeSourceKey],
+    async ([rows, isSystem, currentViewMode]) => {
     const shouldLoadRowHistory = isSystem || currentViewMode === 'card'
     if (!shouldLoadRowHistory || !bridge.value?.audit?.events || !activeRegistryEntry.value?.entityName) {
       rowHistoryByRecordId.value = {}
@@ -2018,9 +2018,20 @@ watch(
 
     rowHistoryByRecordId.value = nextHistoryEntries
     rowHistoryLoadingByRecordId.value = Object.fromEntries(recordIds.map((recordId) => [recordId, false]))
-  },
-  { immediate: true },
-)
+    },
+    { immediate: true },
+  )
+
+  watch(
+    [activeLoader, bridge],
+    async ([loader, bridgeValue], [prevLoader, prevBridge]) => {
+      if (!loader || !bridgeValue) return
+      if (loader === prevLoader && bridgeValue === prevBridge) return
+      if (rawRows.value.length) return
+      await loadRows()
+    },
+    { immediate: false },
+  )
 
 watch(
   fileViews,
