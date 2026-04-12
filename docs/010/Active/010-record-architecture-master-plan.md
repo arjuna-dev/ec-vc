@@ -55,8 +55,8 @@ Reference inputs remain useful for:
 
 Legacy note:
 
-- remaining `KDB` references below should be read as `LDB`
-- do not introduce new `KDB` language in active contracts
+- keep `KDB` only when referring to legacy runtime names
+- use `LDB` everywhere else in active contracts
 
 ## Objective
 
@@ -177,7 +177,7 @@ The reasoning matters more than the order alone:
   - or another approved structure layer
 - that classification should help determine:
   - whether shared `System` applies
-  - whether shared `KDB` applies
+  - whether shared `LDB` applies
   - who owns the file
   - whether the file is owner-only
   - which shell and runtime rules should apply
@@ -248,7 +248,7 @@ The consolidation map should be:
 1. one canonical `L1` contract definition
 2. derived route/registry/navigation/shell labeling
 3. shared runtime owner registration for `list/create/update/delete`
-4. KDB declarations that are runtime-checked against canon
+4. LDB declarations that are runtime-checked against canon
 5. a validator that rejects incomplete `L1` bootstrap
 6. proof-case implementation through one real `L1`
 
@@ -262,10 +262,10 @@ The canonical `L1` contract should carry:
 - shell eligibility
 - required subsections
 - runtime capabilities
-- KDB declarations
+- LDB declarations
 - bootstrap defaults
 - shared base `System` parameter set
-- shared `KDB` linkage-section requirement
+- shared `LDB` linkage-section requirement
 - shared base `General` parameter set
 - optional branch metadata when the `L1` supports subtype routing
 - optional explicit `L2.a-b-c-d` subgroup metadata when one subsection needs structured internal grouping
@@ -277,7 +277,7 @@ Every normal `L1` should begin from one shared canonical base before any entity-
 That shared base should include:
 
 - shared `System`
-- shared `KDB`
+- shared `LDB`
 - shared `General`
 
 And the fixed shared parameter sets inside that base should be:
@@ -291,7 +291,7 @@ And the fixed shared parameter sets inside that base should be:
   - `Name`
   - `Summary`
 
-`KDB` should also always exist in the shared base, but as the linkage section.
+`LDB` should also always exist in the shared base, but as the linkage section.
 
 It should not be treated as one universal fixed list of relationship leaf tokens.
 
@@ -311,7 +311,7 @@ The validator should fail if an `L1` is missing:
 - ipc/runtime handlers
 - create/edit shell support
 - required subsections
-- KDB relationship contract
+- LDB relationship contract
 - reciprocal read behavior
 
 ### Genesis Schema Baseline Rule
@@ -324,7 +324,7 @@ That means the app should create and own the current baseline table set as part 
 - current first-order `L1` tables such as `Companies`, `Funds`, `Rounds`, `Users`, `Contacts`, `Projects`, `Tasks`, `Notes`, `Roles`, `Artifacts`, and related current working record tables
 - current knowledge/reference tables such as `Markets`, `Securities`, `Regions`, `BusinessModels`, `SectorGroups`, `VerticalIndustries`, `VC_Terms_Glossary`, and related current supporting tables
 - current owned subtables and current relationship/join tables exactly as they are presently declared
-- current linkage/runtime tables such as `Users_Roles`, `Intake`, and `KDB_Relationships`
+- current linkage/runtime tables such as `Users_Roles`, `Intake`, and `LDB_Relationships`
 
 Working rule:
 
@@ -409,7 +409,7 @@ Current approved first-pass genesis file order:
 21. `Rounds`
 22. `Markets`
 23. `Securities`
-24. remaining current supporting `KDB` / reference files
+24. remaining current supporting `LDB` / reference files
 
 First-pass L1 micro-summary:
 
@@ -474,7 +474,7 @@ Role:
 Working rule:
 
 - `BB File` is not a standard app-data `L1`
-- it should not inherit the normal `System` / `KDB` subsection baseline used by standard files
+- it should not inherit the normal `System` / `LDB` subsection baseline used by standard files
 - this exception is intentional because `BB File` governs UI-building canon rather than operational record relationships
 - do not use this exception to weaken the standard contract for operational `L1`s
 
@@ -603,13 +603,13 @@ That means:
 - we should also be able to send/install new `L1` tables that complement existing infrastructure
 - marketplace `L1`s must still pass the same canonical bootstrap contract as local owner-created `L1`s
 - marketplace delivery is an extension path, not an exemption path
-- imported `L1`s must declare canon, runtime ownership, shell behavior, KDB behavior, and validation scope before they are treated as live
+- imported `L1`s must declare canon, runtime ownership, shell behavior, LDB behavior, and validation scope before they are treated as live
 
 Proof rule:
 
 - `Companion Roles` should be treated as the first proof-case for this consolidated bootstrap direction
 - do not just patch `Companion Roles`
-- use it to prove the bootstrap contract, runtime owner path, and KDB validation path
+- use it to prove the bootstrap contract, runtime owner path, and LDB validation path
 
 ## Record Shell Direction
 
@@ -837,13 +837,12 @@ Shell styling rule:
   - declared capabilities, when explicitly approved
 - `L1` should not silently restyle the shell
 
-## KDB Relationship Contract
+## LDB Relationship Contract
 
-KDB relationships must now be treated as real system paths, not as optional UI affordances.
+LDB relationships must now be treated as real system paths, not as optional UI affordances.
 
 Naming direction:
 
-- the intended future label for `KDB` is `LDB`
 - `LDB` means `Local DataBase`
 - the meaning is the local file-to-file and record-to-record relationship layer inside the owner's local system
 - current runtime names may still say `KDB` until a deliberate staged rename is performed
@@ -854,11 +853,11 @@ Current shared-shell launch rule:
 
 - card-view `Add Relation` should route into `dialog-shell`
 - that launch should carry the source `L1`, clicked record id, and canonical entity name
-- the shared `Add/Edit Record Shell` should open directly in `KDB`
+- the shared `Add/Edit Record Shell` should open directly in `LDB`
 
-If a KDB relationship token is declared in canonical structure, the system should assume that relationship is intended to be real and operational.
+If an LDB relationship token is declared in canonical structure, the system should assume that relationship is intended to be real and operational.
 
-That means every declared KDB relationship must eventually have:
+That means every declared LDB relationship must eventually have:
 
 - one real owner path
 - one reverse-read path
@@ -906,7 +905,7 @@ Working rule:
 
 ### Mandatory Relationship Standard
 
-For the current architecture pass, KDB relationships should be understood in three states:
+For the current architecture pass, LDB relationships should be understood in three states:
 
 1. `Declared`
 - the relationship exists in canonical structure
@@ -915,7 +914,7 @@ For the current architecture pass, KDB relationships should be understood in thr
 - the relationship has a real owner path underneath it, such as a join table or owned subset path
 
 3. `Bidirectionally rendered`
-- both linked `L1`s can read that same relationship back through their KDB surfaces
+- both linked `L1`s can read that same relationship back through their LDB surfaces
 
 The intended steady state is:
 
@@ -950,30 +949,30 @@ That means:
 
 Relationship bootstrap is part of the same rule:
 
-- new normal `L1` creation should also create the reciprocal KDB bridge layer with the rest of the bootstrap
+- new normal `L1` creation should also create the reciprocal LDB bridge layer with the rest of the bootstrap
 - relationship bridge work should not be treated as an optional later pass after the file/table/runtime owner already exists
-- if a new `L1` is born without its reciprocal KDB bridge layer, that bootstrap is incomplete
+- if a new `L1` is born without its reciprocal LDB bridge layer, that bootstrap is incomplete
 
 Default subsection baseline:
 
 - every new `L1` should at minimum expose:
   - `System`
-  - `KDB`
+  - `LDB`
 - `General` should also be created when that is part of the current standard
 
-KDB propagation rule:
+LDB propagation rule:
 
-- the new `L1`'s KDB relationship contract should be created with it
+- the new `L1`'s LDB relationship contract should be created with it
 - the new `L1` should not declare relationship tokens casually
 - each declared relationship should have an approved owner path
 - each declared relationship should have an approved reverse-read path
 - new connections should follow the same relationship contract as existing ones
 - do not create one-off relationship behavior for a single page, dialog, or record surface
-- reciprocal KDB updates across the other relevant `L1`s are part of the initial implementation, not a later polish pass
+- reciprocal LDB updates across the other relevant `L1`s are part of the initial implementation, not a later polish pass
 - if the intended product rule is that records should be linkable across the DB set, that propagation must happen during the `L1` bootstrap itself
-- reciprocal KDB declarations should be born with the `L1`, not manually discovered later
+- reciprocal LDB declarations should be born with the `L1`, not manually discovered later
 - the bridge contract should also be born with the `L1`, not hand-added only after drift is noticed
-- bootstrap should decide whether each approved relationship uses a dedicated join table or the shared `KDB_Relationships` owner path
+- bootstrap should decide whether each approved relationship uses a dedicated join table or the shared `LDB_Relationships` owner path
 - manual back-wiring after file birth should be treated as a temporary repair, not as the intended architecture rule
 
 ### New L1 Bootstrap Algorithm
@@ -984,7 +983,7 @@ The intended birth sequence for a new normal `L1` is:
 2. create the real table/runtime owner for that `L1`
 3. create the shared base subsections:
    - `System`
-   - `KDB`
+   - `LDB`
    - `General`
 4. create the shared base parameters:
    - `System`
@@ -996,10 +995,10 @@ The intended birth sequence for a new normal `L1` is:
      - `Name`
      - `Summary`
 5. create the entity-specific `L2` extensions and any approved `L2.a-b-c-d` subgrouping
-6. create the reciprocal KDB declarations against the approved active `L1` set
+6. create the reciprocal LDB declarations against the approved active `L1` set
 7. decide the owner path for each approved relationship:
    - dedicated join table
-   - shared `KDB_Relationships`
+   - shared `LDB_Relationships`
 8. create the bridge contract and reverse-read path for each approved relationship
 9. add route, registry, shell, and navigation ownership
 10. confirm list/create/edit/delete and shell launch behavior are working
@@ -1007,7 +1006,7 @@ The intended birth sequence for a new normal `L1` is:
 Validation rule:
 
 - a new `L1` should not be treated as born correctly until all ten steps are complete
-- if the table exists but reciprocal KDB bridge work does not, the `L1` birth is still incomplete
+- if the table exists but reciprocal LDB bridge work does not, the `L1` birth is still incomplete
 - if the shell exists but the runtime owner path does not, the `L1` birth is still incomplete
 
 ### Bootstrap Priority Set
@@ -1036,22 +1035,22 @@ Current game-pack direction:
   - `Advisor Game Pack`
   - `Company Game Pack`
 
-### Current Mandatory KDB Set
+### Current Mandatory LDB Set
 
-The currently approved KDB direction is:
+The currently approved LDB direction is:
 
-- every first-level working `L1` should be able to relate through KDB to the other first-level working `L1`s where that connection is canonically declared
+- every first-level working `L1` should be able to relate through LDB to the other first-level working `L1`s where that connection is canonically declared
 - those relationships should be visible from either side once they are truly backed
 
 Current parent-shell exception:
 
 - `Opportunities` is still the parent shell concept over `Funds` and `Rounds`
-- until it has a true runtime-backed record table/view contract, it should not be treated as a direct live KDB target
-- use `Funds` and `Rounds` as the concrete opportunity-side KDB targets for now
+- until it has a true runtime-backed record table/view contract, it should not be treated as a direct live LDB target
+- use `Funds` and `Rounds` as the concrete opportunity-side LDB targets for now
 
-KDB display grouping rule:
+LDB display grouping rule:
 
-- KDB should now support two display families inside the shared shell:
+- LDB should now support two display families inside the shared shell:
   - `First-Order`
   - `Knowledge DB`
 - these are grouping contracts for browsing clarity
@@ -1061,19 +1060,19 @@ Basic `L1` structure rule:
 
 - every `L1` should at minimum expose:
   - `System`
-  - `KDB`
+  - `LDB`
 
-### Current Canon KDB Baseline
+### Current Canon LDB Baseline
 
-The current canon-level KDB baseline for shared shells should be treated as follows.
+The current canon-level LDB baseline for shared shells should be treated as follows.
 
 Approved rule:
 
-- all first-order `L1`s should be inter-related through declared KDB tokens
-- visible knowledge-db `L1`s should also participate in the same shared KDB contract
+- all first-order `L1`s should be inter-related through declared LDB tokens
+- visible knowledge-db `L1`s should also participate in the same shared LDB contract
 - every `L1` should at minimum expose:
   - `System`
-  - `KDB`
+  - `LDB`
 
 Current visible shared interlinked set:
 
@@ -1094,17 +1093,17 @@ Current visible shared interlinked set:
 Current canon status:
 
 - all of the above now have `System`
-- all of the above now have `KDB`
-- all of the above now declare KDB links to the full visible shared interlinked set
+- all of the above now have `LDB`
+- all of the above now declare LDB links to the full visible shared interlinked set
 
 Current exception:
 
 - `Opportunities` remains a parent shell concept over `Funds` and `Rounds`
-- it should not currently be treated as a direct live KDB target until it has a true runtime-backed table/view contract in record snapshots
+- it should not currently be treated as a direct live LDB target until it has a true runtime-backed table/view contract in record snapshots
 
 Additional baseline correction:
 
-- the following canonical `L1`s previously lacked `KDB` and now have the basic `System + KDB` structure baseline:
+- the following canonical `L1`s previously lacked `LDB` and now have the basic `System + LDB` structure baseline:
   - `Markets`
   - `Locations`
   - `Terms`
@@ -1136,7 +1135,7 @@ Current app emphasis:
 Workbook/canonical direction:
 
 - `Metadata`
-- `KDB`
+- `LDB`
 - `Incorporation`
 - `Documents`
 - `Operations`
@@ -1149,7 +1148,7 @@ Workbook/canonical direction:
 Working implication:
 
 - relationship-specific lists such as contacts, rounds, funds, artifacts, and notes should not act as the full company model by themselves
-- those lists should eventually live inside `KDB` or inside clearly related structural sections
+- those lists should eventually live inside `LDB` or inside clearly related structural sections
 - future `Company Record View` work should move toward workbook-aligned top-level groups instead of staying mostly relationship-first
 
 ## Owner Spine Rule
@@ -1198,24 +1197,24 @@ Working rule:
 - document and expose that gap clearly
 - close the runtime gap underneath the canonical relationship rather than adding shell-side interpretation
 
-### Generic KDB Owner Path
+### Generic LDB Owner Path
 
-For canon-declared KDB relationships that do not already have an approved domain-specific join table, the standard owner path is now:
+For canon-declared LDB relationships that do not already have an approved domain-specific join table, the standard owner path is now:
 
-- `KDB_Relationships`
+- `LDB_Relationships`
 
 This table exists to keep the missing relationship set on one shared contract instead of multiplying one-off pair tables.
 
 Working rule:
 
 - existing domain-specific relationship tables may continue where they are already meaningful and approved
-- canon-declared KDB links without that special owner path should use the shared `KDB_Relationships` contract
+- canon-declared LDB links without that special owner path should use the shared `LDB_Relationships` contract
 - reverse appearance should be maintained through the same shared contract
-- the choice between domain-specific join table and shared `KDB_Relationships` should be made during `L1` bootstrap, not improvised later per page or per file
+- the choice between domain-specific join table and shared `LDB_Relationships` should be made during `L1` bootstrap, not improvised later per page or per file
 
 Promotion rule:
 
-- shared `KDB_Relationships` should be treated as the default relationship-existence layer
+- shared `LDB_Relationships` should be treated as the default relationship-existence layer
 - a dedicated join table should be used when the relationship itself becomes a governed object
 - that promotion is appropriate when the relationship needs:
   - its own relationship metadata
@@ -1242,7 +1241,7 @@ It has three distinct layers:
   - node creation should immediately produce a first `User` with role `Owner`
 
 - `Contact`
-  - person record inside the CRM/KDB layer
+  - person record inside the CRM/LDB layer
   - may correspond to a `User`
   - but not every `Contact` is a `User`
 
@@ -1250,7 +1249,7 @@ Working rule:
 
 - `Owner -> User` is a root-established authority path
 - `User <-> Contact` should be treated as an identity-link path when it represents the same human
-- this identity-link path should not be treated like a loose generic KDB relationship
+- this identity-link path should not be treated like a loose generic LDB relationship
 
 ### Human Spine Runtime Paths
 
@@ -1342,7 +1341,7 @@ Fields to consider:
 Open architecture decision:
 
 - define the canonical `L1/L2/L3` structure for `Access_Assignments`
-- decide its exact `System`, `General`, `KDB`, and file-specific fields
+- decide its exact `System`, `General`, `LDB`, and file-specific fields
 - decide whether `Users_Roles` remains a lower-level runtime helper, is absorbed, or becomes legacy
 - decide how `Access_Assignments` reads from and writes to `Users`, `Contacts`, `Projects`, and `Roles`
 - decide what events prove an access assignment was granted, changed, revoked, or expired
@@ -1366,7 +1365,7 @@ That means:
   - defines section purpose such as:
     - `System`
     - `General`
-    - `KDB`
+    - `LDB`
 
 - `L3`
   - defines token behavior
@@ -1396,7 +1395,7 @@ The intended token behavior layer should explicitly declare concepts like:
 - `write_path`
   - direct owner field
   - join-owner contract
-  - generic KDB owner path
+  - generic LDB owner path
 
 Working rule:
 
@@ -1414,7 +1413,7 @@ Working rule:
 
 ### Root-Established Directional Links
 
-Some fields should be treated as a distinct class from generic KDB.
+Some fields should be treated as a distinct class from generic LDB.
 
 These are:
 
@@ -1467,7 +1466,7 @@ But heuristics must not:
 This is especially relevant for:
 
 - linked human-system fields such as `Contact_User`
-- high-context KDB selectors
+- high-context LDB selectors
 - stage-sensitive board work where the point system can rank what matters most now
 
 ## Field Visibility Rule
@@ -1556,7 +1555,7 @@ Expected token return shape:
   - options still come from the token's declared option source
 - `select_multi`
   - one array of selected values
-- KDB relationship token
+- LDB relationship token
   - one explicit relationship list in the token's expected shape
   - structured record-owned subsets
   - example: `Contact_Employment`
@@ -1628,7 +1627,7 @@ Canonical loading rule:
 - app/shared code should load canonical structure through `src/shared/canonicalStructure.js`
 - runtime scripts and validators should use the same loader concept or an approved Node-safe sibling loader
 - direct imports of `docs/000-canonical-structure.json` should not be scattered across unrelated modules
-- KDB contract building, file registry building, shell rendering, and bootstrap validation should all receive canon through an explicit loading boundary
+- LDB contract building, file registry building, shell rendering, and bootstrap validation should all receive canon through an explicit loading boundary
 
 ## Opportunity Structure Rule
 
@@ -1652,7 +1651,7 @@ Current approved interpretation:
 
 - shared `Opportunity` sections:
   - `System`
-  - `KDB`
+  - `LDB`
   - `General`
   - `Business Overview`
 - subtype-owned deeper sections:
@@ -1743,7 +1742,7 @@ That baseline is:
 - a preload/main bridge with at least `list`, `create`, and `delete`
 - canonical `L2` sections:
   - `System`
-  - `KDB`
+  - `LDB`
   - `General`
 - canonical `General` tokens:
   - `Name`
@@ -1766,7 +1765,7 @@ Working rule:
 
 Relationship inheritance rule:
 
-- when a new `Knowledge DB` or first-level `L1` is introduced, its KDB relationship expectations should be documented immediately
+- when a new `Knowledge DB` or first-level `L1` is introduced, its LDB relationship expectations should be documented immediately
 - if the relationship is declared in canon, the owner path and reverse-read path should be planned at the same time
 - do not allow canon to drift far ahead of runtime relationship ownership without documenting that gap
 
@@ -1931,7 +1930,7 @@ It is split into two parts:
 
 This row should contain:
 
-- the KDBhip icon strip on the left
+- the LDB icon strip on the left
 - the mini grid/row toggle on the right
 
 Rules:
@@ -1958,7 +1957,7 @@ Rules:
 - `Add Relation` lives inside the box, not beside the icon strip
 - it sits at the top-left of the panel
 - it uses the title font treatment
-- clicking it should route to the shared `Add/Edit Record Shell` for that source record and open in `KDB`
+- clicking it should route to the shared `Add/Edit Record Shell` for that source record and open in `LDB`
 - the panel body below it renders the active relationship content or the empty state
 
 ### File Card Naming Convention
@@ -2033,12 +2032,12 @@ Every workbook-backed record should expose:
 
 - `System` first on the left
 - file-specific middle sections next
-- `KDB` last on the right
+- `LDB` last on the right
 
 Section behavior:
 
 - normal sections render their leaf tokens
-- `KDB` renders the relationship browser
+- `LDB` renders the relationship browser
 
 ### Payload Rule
 
@@ -2050,7 +2049,7 @@ The long-term contract must come from:
 
 - workbook section order
 - workbook leaf-token membership
-- explicit KDB grouping
+- explicit LDB grouping
 
 ### Token Naming Rule
 
@@ -2165,7 +2164,7 @@ That remaining internal naming still needs to finish migrating to `File`, `Recor
 
 ### 4. Relationship Drift
 
-KDB are now more consistent visually, but not yet fully backed by the same data contract everywhere.
+LDB is now more consistent visually, but not yet fully backed by the same data contract everywhere.
 
 That means:
 
@@ -2214,7 +2213,7 @@ Defines:
 Used by:
 
 - record view
-- KDBhip browser
+- LDB browser
 - future review and audit experiences
 
 Defines:
@@ -2242,7 +2241,7 @@ Defines:
     },
     {
       "id": "kdb-relationships",
-      "label": "KDB",
+      "label": "LDB",
       "kind": "relationships",
       "items": []
     }
@@ -2269,16 +2268,16 @@ Working guidance:
 
 ## Canonical Section Order By File
 
-- `Users`: `System`, `KDB`
-- `Artifacts`: `System`, `KDB`
-- `Contacts`: `System`, `Employment`, `Studies`, `KDB`
-- `Companies`: `System`, `Incorporation`, `Documents`, `Operations`, `Business`, `Market`, `Results`, `Business Plan`, `Fund Raising`, `KDB`
-- `Funds`: `System`, `Overview`, `Economics`, `Controls`, `KDB`
-- `Rounds`: `System`, `Overview`, `Economics`, `Controls`, `KDB`
-- `Projects`: `System`, `Overview`, `Team`, `KDB`
-- `Tasks`: `System`, `Overview`, `Team`, `KDB`
-  - `Notes`: `System`, `KDB`
-  - `Roles`: `System`, `KDB`
+- `Users`: `System`, `LDB`
+- `Artifacts`: `System`, `LDB`
+- `Contacts`: `System`, `Employment`, `Studies`, `LDB`
+- `Companies`: `System`, `Incorporation`, `Documents`, `Operations`, `Business`, `Market`, `Results`, `Business Plan`, `Fund Raising`, `LDB`
+- `Funds`: `System`, `Overview`, `Economics`, `Controls`, `LDB`
+- `Rounds`: `System`, `Overview`, `Economics`, `Controls`, `LDB`
+- `Projects`: `System`, `Overview`, `Team`, `LDB`
+- `Tasks`: `System`, `Overview`, `Team`, `LDB`
+  - `Notes`: `System`, `LDB`
+  - `Roles`: `System`, `LDB`
 
 Grouped subsection rendering rule:
 
@@ -2309,7 +2308,7 @@ For each entity define:
 - section order
 - section ids
 - schema-group ownership
-- KDBhip categories
+- LDB categories
 - item-address ranges
 - final token naming
 
@@ -2365,9 +2364,9 @@ Deliver:
 - canonical JSON subsection structure
 - light payload for file/cards
 - rich payload for record view
-- KDBhip groups
+- LDB groups
 
-### Phase 6. Standardize KDBhip Contracts
+### Phase 6. Standardize LDB Contracts
 
 For each entity define:
 
@@ -2413,7 +2412,7 @@ Recommended order:
 - [x] Shared `record-view` route now resolves into `RecordShellPage.vue`
 - [x] Remove legacy `RecordPage.vue` after route ownership moved to `RecordShellPage.vue`
 - [x] File/card shell consistency improved across core pages
-- [x] KDB icon strip unified across file cards
+- [x] LDB icon strip unified across file cards
 - [x] Card relationship icon affordance added
 - [x] Excel + JSON companion workflow introduced
 - [x] Canonical direction decided: `JSON + app editing`
@@ -2456,7 +2455,7 @@ The following are now explicitly legacy and should be cleaned deliberately inste
 - [ ] final token naming approved
 - [ ] light file/card payload defined
 - [ ] rich record payload defined
-- [ ] KDBhip contract defined
+- [ ] LDB contract defined
 - [ ] grouped table tabs aligned
 - [ ] record view aligned to final payload
 
@@ -2529,9 +2528,9 @@ So the approved shell rule is:
 - let each write create its own audit event id
 - do not treat shell session ids as reusable write ids
 
-## Directional KDB Join Rule
+## Directional LDB Join Rule
 
-Explicit join-table KDB contracts must preserve join direction.
+Explicit join-table LDB contracts must preserve join direction.
 
 That means:
 

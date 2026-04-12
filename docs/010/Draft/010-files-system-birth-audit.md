@@ -43,7 +43,7 @@ Reviewed surfaces:
 
 | Layer | Expected Truth | Current Truth | Status | Steward Concern |
 | --- | --- | --- | --- | --- |
-| Canonical JSON | `Files` exists as the canonical entity with `System`, `KDB`, `General`, and `File Specific` structure. | `Files` exists as entity `23` with those sections and file-definition tokens. | `yes` | Architect/File Steward: canonical structure exists and is explicit. |
+| Canonical JSON | `Files` exists as the canonical entity with `System`, `LDB`, `General`, and `File Specific` structure. | `Files` exists as entity `23` with those sections and file-definition tokens. | `yes` | Architect/File Steward: canonical structure exists and is explicit. |
 | Canonical field aliases | Canon aliases should match runtime fields for the file registry. | `File_Name`, `File_Summary`, `File_Status`, `File_Guide_Path`, `File_Source_Key`, `File_Canonical_Entity`, `File_Runtime_Entity`, `File_Route_Name`, `File_Path`, `File_Order`, `File_Class`, `Ownership_Mode`, `File_Steward`, `Rulebook_Dependencies`, `Defined_Structure`, and `Glossary_Terms` map to runtime columns. | `yes` | Runtime Steward: aliases are mostly aligned. |
 | Canonical provenance tokens | `System` should expose ID, creator, datetime, and event linkage. | Canon exposes `id`, `created_by`, `created_at`, and `File_EventLog`. | `partial` | Provenance Steward: fields exist, but no proven genesis reconstruction path yet. |
 | System Files guide | The app-facing System Files surface should have its own guide. | `docs/100/Active/100-System_Files.md` exists and describes the app-facing surface backed by `Files`. | `yes` | File Steward: guide exists and matches current naming split. |
@@ -62,7 +62,7 @@ Reviewed surfaces:
 | Add/Edit File Shell | Add/Edit File Shell should guide file structure and link the correct guide. | `AddEditFileShellDialog` uses registry L2/L3 data and local structure-selection state. It is not the proven row-edit persistence path. The guide icon currently points to parent guide `docs/001/Active/001-Files.md`, not the selected file's `File_Guide_Path`. | `partial` | UX/File Steward: parent guide is useful, but selected file guide linking is not yet dynamic and this shell should not be assumed to persist registry row edits. |
 | Navigation acceptance | Visible file nav should mean accepted file truth. | `WORKSPACE_FILE_NAV_ITEMS` now carries the visible drawer file list and explicit `workspace` / `knowledge-dbs` grouping from `structureRegistry`; `MainLayout` consumes that export instead of manually injecting file nav rows. | `partial` | Architect Steward: layout injection is consolidated, but route meta still owns acceptance before `System Files` records become the source. |
 | Events/provenance | File birth should be reconstructable from events. | `events` table and `writeAuditEvent()` exist. `Files` has `File_EventLog`, `created_by`, and timestamps. `createFile()` sets `created_by`, but does not visibly write a file-birth audit event in this path. | `partial` | Provenance Steward: event infrastructure exists, but genesis/file-birth reconstruction is not proven. |
-| KDB/LDB relationships | File relationships should be declared and reverse-readable where required. | Canon declares KDB relationship tokens for Owner, Users, Contacts, Companion Roles, Events, and Rulebooks. Runtime has generic `KDB_Relationships`, but this audit did not prove Files-specific bridge writing or reverse-read behavior. | `partial` | File/Provenance Steward: relationship intent exists; runtime bridge proof is still needed. |
+| LDB relationships | File relationships should be declared and reverse-readable where required. | Canon declares LDB relationship tokens for Owner, Users, Contacts, Companion Roles, Events, and Rulebooks. Runtime has generic `LDB_Relationships`, but this audit did not prove Files-specific bridge writing or reverse-read behavior. | `partial` | File/Provenance Steward: relationship intent exists; runtime bridge proof is still needed. |
 | UX fork | User should be guided between `L1`, `L2`, and `L2.a`. | File guides and Add/Edit File Shell describe/show structure-level data, but this audit did not prove a full guided create flow that writes new canonical structure. | `partial` | UX Steward: guidance exists, but file-birth UX is not yet a full creation wizard. |
 
 ## Main Findings
@@ -421,11 +421,11 @@ Why fourth:
 
 - the delete bridge exists, but governance for deleting accepted files is not proven
 
-### 5. KDB/LDB bridge proof pass
+### 5. LDB bridge proof pass
 
 Goal:
 
-- prove whether Files KDB tokens write through generic `KDB_Relationships`, promoted fields, or both
+- prove whether Files LDB tokens write through generic `LDB_Relationships`, promoted fields, or both
 - define reverse-read expectations for file-to-owner, file-to-steward, file-to-event, and file-to-rulebook relationships
 
 Why fifth:
