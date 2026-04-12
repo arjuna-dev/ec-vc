@@ -93,6 +93,10 @@ This tracker should stay aligned with:
   - move dialog section titles onto one shared title treatment
   - add shared dialog undo controls
   - align `Add/Edit File Shell` middle-row language to the `Record View` pattern
+  - normalize strict row/data surfaces across canonical shells:
+    - start rows with blank-header `Select` and `Eye` control columns when applicable
+    - keep those two columns hugging content
+    - treat the select box as row action control for `Share` / `Delete`, not as edit mode
 - steward event-scope filtering:
   - define steward-level history/event filters by `File` / `Record` / join-table scope
   - define steward-level action filters such as `created`, `edited`, `verified`, `suggested`, and `pre-selected`
@@ -258,6 +262,10 @@ This tracker should stay aligned with:
   - `Summary`
   - `Relevant Items`
   - `General`
+- strict shared row/data surfaces should converge on the same leading-control rule:
+  - blank-header selection box column
+  - blank-header eye/action column
+  - selection used for row actions such as `Share` and `Delete`, not for entering edit mode
 - file birth now derives a default `File_Source_Key` from `File_Name` when no explicit source key is provided at save time, while still rejecting duplicate active file names and duplicate source keys
 - first birth-governance derivation step is underway through registry-owned birth defaults in the shared create flow
 - legacy runtime wording such as `databooks:*` is now treated as an explicit audit target rather than safe language to keep extending blindly

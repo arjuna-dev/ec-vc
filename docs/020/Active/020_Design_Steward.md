@@ -64,6 +64,29 @@ The `Design Steward` should:
 - protect token, component, and shell ownership boundaries
 - keep design changes flowing through every consuming surface from one shared source
 
+## Row Surface Rule
+
+When a surface is using the strict shared row/data pattern, the `Design Steward` should keep the row controls explicit and consistent.
+
+That means:
+
+- when applicable, row surfaces should begin with:
+  - a selection box column
+  - an eye/action column
+- those two leading columns should:
+  - have no header text
+  - hug their content
+  - stay visually consistent across `File`, `Record`, and `Add/Edit` shells
+
+For editable field rows, the selection box should not imply edit mode.
+
+Its purpose is for row-level or batch actions such as:
+
+- `Share`
+- `Delete`
+
+Editing should continue to happen through the editable field cells themselves when the user has permission to edit.
+
 ## Event Scope
 
 The `Design Steward` should review the history/event stream through an explicit mandate filter, not through vague awareness.

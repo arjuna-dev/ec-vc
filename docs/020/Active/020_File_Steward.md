@@ -227,6 +227,27 @@ The `File Steward` should:
   - normal lifecycle actions such as `created`, `modified`, and `deleted`
   - collaboration/review actions such as `pre-selected`, `suggested`, `verified`, and `rejected`
 
+For strict shared row/data surfaces used in file governance and file editing, the `File Steward` should also keep row controls honest and consistent.
+
+That means:
+
+- when applicable, row surfaces should begin with:
+  - a selection box column
+  - an eye/action column
+- those two leading columns should:
+  - have no header text
+  - hug their content
+  - stay aligned with the same shared row pattern used in other canonical shells
+
+For editable field rows, the selection box should not be treated as the way to enter editing.
+
+Its purpose is to support explicit field actions such as:
+
+- `Share`
+- `Delete`
+
+Field editing should continue through the editable row cells when that surface and permission model allow it.
+
 These event families should stay useful not only for audit, but also for owner review and data filtering by record and field.
 
 ## Prohibited Behavior
