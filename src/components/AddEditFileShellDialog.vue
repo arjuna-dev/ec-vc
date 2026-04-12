@@ -176,175 +176,22 @@
       </div>
 
       <div v-if="!isGovernanceToolbarActive" class="file-structure-shell__leaf-table-wrap ds-mini-scrollbar">
-        <table class="file-structure-shell__leaf-table">
-          <colgroup>
-            <col :style="columnStyle('select')">
-            <col :style="columnStyle('view')">
-            <col v-if="!structureColumnsCollapsed" :style="columnStyle('l2Section')">
-            <col v-if="!structureColumnsCollapsed" :style="columnStyle('l2Sub')">
-            <col v-if="!structureColumnsCollapsed" :style="columnStyle('l3Key')">
-            <col v-if="!structureColumnsCollapsed" :style="columnStyle('structureOrder')">
-            <col :style="columnStyle('label')">
-            <col :style="columnStyle('type')">
-            <col :style="columnStyle('visible')">
-            <col :style="columnStyle('required')">
-            <col :style="columnStyle('writeTarget')">
-          </colgroup>
-          <thead>
-            <tr>
-              <th aria-label="Selection"></th>
-              <th aria-label="View"></th>
-              <th v-if="!structureColumnsCollapsed" class="file-structure-shell__colhead--structure">
-                <div class="file-structure-shell__header-cell">
-                  <span>L2 Key</span>
-                  <button
-                    type="button"
-                    class="file-structure-shell__column-resizer"
-                    aria-label="Resize L2 Section column"
-                    @pointerdown.prevent="startColumnResize('l2Section', $event)"
-                  />
-                </div>
-              </th>
-              <th v-if="!structureColumnsCollapsed" class="file-structure-shell__colhead--structure">
-                <div class="file-structure-shell__header-cell">
-                  <span>L2 Sub</span>
-                  <button
-                    type="button"
-                    class="file-structure-shell__column-resizer"
-                    aria-label="Resize L2 Sub column"
-                    @pointerdown.prevent="startColumnResize('l2Sub', $event)"
-                  />
-                </div>
-              </th>
-              <th v-if="!structureColumnsCollapsed" class="file-structure-shell__colhead--structure">
-                <div class="file-structure-shell__header-cell">
-                  <span>L3 Key</span>
-                  <button
-                    type="button"
-                    class="file-structure-shell__column-resizer"
-                    aria-label="Resize L3 Key column"
-                    @pointerdown.prevent="startColumnResize('l3Key', $event)"
-                  />
-                </div>
-              </th>
-              <th v-if="!structureColumnsCollapsed" class="file-structure-shell__colhead--structure">
-                <div class="file-structure-shell__header-cell">
-                  <span>Order</span>
-                  <button
-                    type="button"
-                    class="file-structure-shell__column-resizer"
-                    aria-label="Resize structure order column"
-                    @pointerdown.prevent="startColumnResize('structureOrder', $event)"
-                  />
-                </div>
-              </th>
-              <th>
-                <div class="file-structure-shell__label-header">
-                  <button
-                    type="button"
-                    class="file-structure-shell__column-collapse-button"
-                    :aria-label="structureColumnsCollapsed ? 'Expand structure columns' : 'Collapse structure columns'"
-                    @click="structureColumnsCollapsed = !structureColumnsCollapsed"
-                  >
-                    <svg viewBox="0 0 24 24" aria-hidden="true" class="file-structure-shell__column-collapse-icon">
-                      <path :d="structureColumnsCollapsed ? 'M14 7L9 12L14 17' : 'M10 7L15 12L10 17'" />
-                    </svg>
-                  </button>
-                  <span>Label</span>
-                </div>
-                <button
-                  type="button"
-                  class="file-structure-shell__column-resizer"
-                  aria-label="Resize label column"
-                  @pointerdown.prevent="startColumnResize('label', $event)"
-                />
-              </th>
-              <th class="file-structure-shell__colhead--data">
-                <div class="file-structure-shell__header-cell">
-                  <span>Type</span>
-                  <button
-                    type="button"
-                    class="file-structure-shell__column-resizer"
-                    aria-label="Resize type column"
-                    @pointerdown.prevent="startColumnResize('type', $event)"
-                  />
-                </div>
-              </th>
-              <th class="file-structure-shell__colhead--data">
-                <div class="file-structure-shell__header-cell">
-                  <span>Visible</span>
-                  <button
-                    type="button"
-                    class="file-structure-shell__column-resizer"
-                    aria-label="Resize visible column"
-                    @pointerdown.prevent="startColumnResize('visible', $event)"
-                  />
-                </div>
-              </th>
-              <th class="file-structure-shell__colhead--data">
-                <div class="file-structure-shell__header-cell">
-                  <span>Required</span>
-                  <button
-                    type="button"
-                    class="file-structure-shell__column-resizer"
-                    aria-label="Resize required column"
-                    @pointerdown.prevent="startColumnResize('required', $event)"
-                  />
-                </div>
-              </th>
-              <th class="file-structure-shell__colhead--data">
-                <div class="file-structure-shell__header-cell">
-                  <span>Write Target / Alias</span>
-                  <button
-                    type="button"
-                    class="file-structure-shell__column-resizer"
-                    aria-label="Resize write target column"
-                    @pointerdown.prevent="startColumnResize('writeTarget', $event)"
-                  />
-                </div>
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="token in activeLeafTokens" :key="token.key">
-              <td>
-                <SettingsCheckbox
-                  :model-value="selectedLeafKeys.includes(token.key)"
-                  tone="light"
-                  @update:model-value="toggleLeafSelection(token.key)"
-                />
-              </td>
-              <td class="file-structure-shell__cell--control">
-                <q-icon name="visibility" size="14px" class="file-structure-shell__eye-icon" />
-              </td>
-              <td v-if="!structureColumnsCollapsed" class="file-structure-shell__cell--structure">{{ token.parentL2 }}</td>
-              <td v-if="!structureColumnsCollapsed" class="file-structure-shell__cell--structure">{{ token.parentSubgroup }}</td>
-              <td v-if="!structureColumnsCollapsed" class="file-structure-shell__cell--l3-key">{{ token.key }}</td>
-              <td v-if="!structureColumnsCollapsed" class="file-structure-shell__cell--structure">{{ token.order }}</td>
-              <td class="file-structure-shell__cell--label">{{ token.label }}</td>
-              <td class="file-structure-shell__cell--data">{{ token.type }}</td>
-              <td class="file-structure-shell__cell--data">{{ token.visible }}</td>
-              <td class="file-structure-shell__cell--data">
-                <SettingsCheckbox
-                  :model-value="token.required"
-                  tone="light"
-                  @update:model-value="toggleRequiredField(token.key, $event)"
-                />
-              </td>
-              <td class="file-structure-shell__cell--data">{{ token.writeTarget }}</td>
-            </tr>
-            <tr v-if="!activeLeafTokens.length">
-              <td :colspan="structureColumnsCollapsed ? 6 : 10" class="file-structure-shell__leaf-empty">No leaf items declared for this selection.</td>
-            </tr>
-          </tbody>
-        </table>
+        <StructureGovernancePanel
+          mode="data"
+          :data-columns="leafDataColumns"
+          :data-rows="displayLeafTokens"
+          :selected-row-keys="selectedLeafKeys"
+          empty-data-label="No leaf items declared for this selection."
+          @toggle-data-select="toggleLeafSelection"
+          @update-data-cell="updateLeafCell"
+        />
       </div>
     </div>
   </DialogShellFrame>
 </template>
 
 <script setup>
-import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import DialogShellFrame from 'src/components/DialogShellFrame.vue'
 import RecordFieldsBox from 'src/components/RecordFieldsBox.vue'
 import DialogShellTitleRow from 'src/components/DialogShellTitleRow.vue'
@@ -375,29 +222,41 @@ const activeL2Toolbar = ref('')
 const latestNotesBySource = ref({})
 const boxesCollapsed = ref(false)
 const leafItemsCollapsed = ref(false)
-const structureColumnsCollapsed = ref(false)
 const activeSubgroupKey = ref('')
 const draftLeafRowsBySource = ref({})
+const leafFieldOverridesBySource = ref({})
 const selectedLeafKeysBySource = ref({})
 const requiredFieldKeysBySource = ref({})
-const columnWidths = reactive({
-  select: 42,
-  view: 30,
-  l2Section: 92,
-  l2Sub: 78,
-  l3Key: 108,
-  structureOrder: 54,
-  label: 180,
-  type: 76,
-  visible: 72,
-  required: 84,
-  writeTarget: 220,
-})
-const activeColumnResize = ref(null)
 const viewOptions = [
   { label: '', value: 'card', icon: 'grid_view' },
   { label: '', value: 'table', icon: 'table_rows' },
 ]
+const tokenTypeOptions = [
+  { value: 'text', label: 'Text' },
+  { value: 'long_text', label: 'Long Text' },
+  { value: 'textarea', label: 'Textarea' },
+  { value: 'rich_text', label: 'Rich Text' },
+  { value: 'number', label: 'Number' },
+  { value: 'date', label: 'Date' },
+  { value: 'datetime', label: 'Datetime' },
+  { value: 'email', label: 'Email' },
+  { value: 'phone', label: 'Phone' },
+  { value: 'url', label: 'URL' },
+  { value: 'select_single', label: 'Select Single' },
+  { value: 'select_multi', label: 'Select Multi' },
+  { value: 'creator', label: 'Creator' },
+]
+const leafDataColumns = computed(() => [
+  { key: 'parentL2', label: 'L2 Key', width: 92, headerClass: 'file-structure-shell__colhead--structure', cellClass: 'file-structure-shell__cell--structure' },
+  { key: 'parentSubgroup', label: 'L2 Sub', width: 78, headerClass: 'file-structure-shell__colhead--structure', cellClass: 'file-structure-shell__cell--structure' },
+  { key: 'key', label: 'L3 Key', width: 108, headerClass: 'file-structure-shell__colhead--structure', cellClass: 'file-structure-shell__cell--l3-key' },
+  { key: 'order', label: 'Order', width: 54, headerClass: 'file-structure-shell__colhead--structure', cellClass: 'file-structure-shell__cell--structure' },
+  { key: 'label', label: 'Label', width: 180, cellClass: 'file-structure-shell__cell--label', editable: true, kind: 'text' },
+  { key: 'type', label: 'Type', width: 112, headerClass: 'file-structure-shell__colhead--data', cellClass: 'file-structure-shell__cell--data', editable: true, kind: 'select', options: tokenTypeOptions },
+  { key: 'visible', label: 'Visible', width: 72, headerClass: 'file-structure-shell__colhead--data', cellClass: 'file-structure-shell__cell--data', editable: true, kind: 'select', options: [{ value: 'Yes', label: 'Yes' }, { value: 'No', label: 'No' }] },
+  { key: 'required', label: 'Required', width: 84, headerClass: 'file-structure-shell__colhead--data', cellClass: 'file-structure-shell__cell--data', kind: 'checkbox' },
+  { key: 'writeTarget', label: 'Write Target / Alias', width: 220, headerClass: 'file-structure-shell__colhead--data', cellClass: 'file-structure-shell__cell--data', editable: true, kind: 'text' },
+])
 const activeShellSelectorOption = computed(() =>
   props.shellSelectorOptions.find((option) => option.value === (pendingShellSelectorValue.value || props.shellSelectorValue))
   || props.shellSelectorOptions[0]
@@ -563,12 +422,19 @@ const tokenGroupsByView = computed(() =>
     }
   }),
 )
+const displayLeafTokens = computed(() =>
+  activeLeafTokens.value.map((token) => {
+    const overrides = leafFieldOverridesBySource.value[activeSettingsSourceKey.value]?.[token.key] || {}
+    return {
+      ...token,
+      label: overrides.label ?? token.label,
+      type: overrides.type ?? token.type,
+      visible: overrides.visible ?? token.visible,
+      writeTarget: overrides.writeTarget ?? token.writeTarget,
+    }
+  }),
+)
 const selectedLeafKeys = computed(() => selectedLeafKeysBySource.value[activeSettingsSourceKey.value] || [])
-
-function columnStyle(columnKey) {
-  const width = columnWidths[columnKey]
-  return width ? { width: `${width}px`, minWidth: `${width}px` } : {}
-}
 
 function selectShellSelectorOption(value) {
   pendingShellSelectorValue.value = String(value || '').trim()
@@ -648,6 +514,26 @@ function getDefaultRequiredFieldKeysForSource(sourceKey) {
   return normalizedKey ? [normalizedKey] : []
 }
 
+function updateLeafCell(tokenKey, field, value) {
+  if (field === 'required') {
+    toggleRequiredField(tokenKey, Boolean(value))
+    return
+  }
+  const sourceKey = activeSettingsSourceKey.value
+  const currentBySource = leafFieldOverridesBySource.value[sourceKey] || {}
+  const currentToken = currentBySource[tokenKey] || {}
+  leafFieldOverridesBySource.value = {
+    ...leafFieldOverridesBySource.value,
+    [sourceKey]: {
+      ...currentBySource,
+      [tokenKey]: {
+        ...currentToken,
+        [field]: String(value ?? '').trim() || '—',
+      },
+    },
+  }
+}
+
 function toggleRequiredField(tokenKey, value) {
   const sourceKey = activeSettingsSourceKey.value
   const current = new Set(requiredFieldKeysBySource.value[sourceKey] || [])
@@ -657,25 +543,6 @@ function toggleRequiredField(tokenKey, value) {
     ...requiredFieldKeysBySource.value,
     [sourceKey]: Array.from(current),
   }
-}
-
-function startColumnResize(columnKey, event) {
-  if (event.button !== 0) return
-  activeColumnResize.value = {
-    columnKey,
-    startX: event.clientX,
-    startWidth: columnWidths[columnKey] || 0,
-  }
-}
-
-function handleColumnResize(event) {
-  if (!activeColumnResize.value) return
-  const { columnKey, startX, startWidth } = activeColumnResize.value
-  columnWidths[columnKey] = Math.max(36, startWidth + (event.clientX - startX))
-}
-
-function stopColumnResize() {
-  activeColumnResize.value = null
 }
 
 function handleGlobalPointerDown(event) {
@@ -690,16 +557,12 @@ function handleGlobalPointerDown(event) {
 onMounted(() => {
   if (typeof window === 'undefined' || typeof window.addEventListener !== 'function') return
   window.addEventListener('pointerdown', handleGlobalPointerDown)
-  window.addEventListener('pointermove', handleColumnResize)
-  window.addEventListener('pointerup', stopColumnResize)
   loadLatestNotes()
 })
 
 onBeforeUnmount(() => {
   if (typeof window === 'undefined' || typeof window.removeEventListener !== 'function') return
   window.removeEventListener('pointerdown', handleGlobalPointerDown)
-  window.removeEventListener('pointermove', handleColumnResize)
-  window.removeEventListener('pointerup', stopColumnResize)
 })
 
 watch(
@@ -1066,84 +929,6 @@ watch(activeSettingsSourceKey, () => {
   scrollbar-width: thin;
 }
 
-.file-structure-shell__leaf-table {
-  width: max-content;
-  border-collapse: collapse;
-  min-width: 0;
-}
-
-.file-structure-shell__leaf-table th,
-.file-structure-shell__leaf-table td {
-  padding: 8px 10px;
-  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
-  text-align: left;
-  vertical-align: top;
-}
-
-.file-structure-shell__leaf-table th {
-  position: relative;
-  color: rgba(15, 23, 42, 0.72);
-  background: rgba(248, 250, 252, 0.96);
-  font-family: var(--ds-font-title);
-  font-size: var(--ds-font-size-xs);
-  font-weight: var(--ds-font-weight-bold);
-  line-height: 1.1;
-  white-space: nowrap;
-}
-
-.file-structure-shell__header-cell {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.file-structure-shell__label-header {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.file-structure-shell__column-resizer {
-  position: absolute;
-  top: 0;
-  right: -6px;
-  width: 12px;
-  height: 100%;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  cursor: col-resize;
-}
-
-.file-structure-shell__column-collapse-button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 16px;
-  height: 16px;
-  padding: 0;
-  background: transparent;
-  border: 0;
-  cursor: pointer;
-}
-
-.file-structure-shell__column-collapse-icon {
-  width: 12px;
-  height: 12px;
-  fill: none;
-  stroke: var(--ds-color-brand-black);
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  stroke-width: 1.8;
-}
-
-.file-structure-shell__leaf-table td {
-  color: var(--ds-color-brand-black);
-  font-family: var(--ds-font-body);
-  font-size: var(--ds-font-size-sm);
-  line-height: 1.35;
-}
-
 .file-structure-shell__colhead--structure {
   font-size: var(--ds-font-size-xs);
   width: 1%;
@@ -1198,11 +983,6 @@ watch(activeSettingsSourceKey, () => {
   line-height: 1.25;
   width: 1%;
   white-space: nowrap;
-}
-
-.file-structure-shell__leaf-empty {
-  color: rgba(15, 23, 42, 0.6);
-  text-align: center;
 }
 
 .file-structure-shell__shell-selector {
