@@ -96,6 +96,10 @@ function normalize(value) {
   return String(value || '').trim()
 }
 
+function normalizeEntityName(value) {
+  return normalize(value)
+}
+
 function normalizeTokenSegment(value) {
   return normalize(value)
     .replace(/[^a-z0-9]+/gi, '_')
@@ -167,7 +171,7 @@ function buildLdbTokenName(source, target) {
 }
 
 function buildEntityPairKey(sourceEntity, targetEntity) {
-  return `${normalize(sourceEntity)}::${normalize(targetEntity)}`
+  return `${normalizeEntityName(sourceEntity)}::${normalizeEntityName(targetEntity)}`
 }
 
 const EXPLICIT_ENTITY_PAIR_KEYS = new Set([
@@ -201,12 +205,48 @@ export const LDB_RELATIONSHIP_CONTRACTS = Object.freeze([
   ...GENERIC_LDB_RELATIONSHIP_CONTRACTS,
 ])
 
-export function getLdbRelationshipContractForToken(entityName, tokenName) {
-  const normalizedEntity = normalize(entityName)
-  const normalizedToken = normalize(tokenName)
+function resolveTargetEntityFromToken(token) {
+  if (!token) return ''
+  const explicit = normalizeEntityName(token?.targetEntity || token?.optionEntity || token?.option_entity)
+  if (explicit) return explicit
+  const optionEntities = Array.isArray(token?.optionEntities)
+    ? token.optionEntities
+    : Array.isArray(token?.option_entities)
+      ? token.option_entities
+      : []
+  if (optionEntities.length === 1) return normalizeEntityName(optionEntities[0])
+  return ''
+}
+
+export function getLdbRelationshipContractForEntityPair(sourceEntity, targetEntity) {
+  const normalizedSource = normalizeEntityName(sourceEntity)
+  const normalizedTarget = normalizeEntityName(targetEntity)
+  if (!normalizedSource || !normalizedTarget) return null
   return (
     LDB_RELATIONSHIP_CONTRACTS.find(
-      (contract) => contract.sourceEntity === normalizedEntity && contract.sourceToken === normalizedToken,
+      (contract) =>
+        normalizeEntityName(contract.sourceEntity) === normalizedSource
+        && normalizeEntityName(contract.targetEntity) === normalizedTarget,
+    ) || null
+  )
+}
+
+export function getLdbRelationshipContractForToken(entityName, tokenOrName, targetEntity = '') {
+  const normalizedEntity = normalizeEntityName(entityName)
+  if (!normalizedEntity) return null
+
+  const resolvedTarget = normalizeEntityName(targetEntity) || (typeof tokenOrName === 'object' ? resolveTargetEntityFromToken(tokenOrName) : '')
+  if (resolvedTarget) return getLdbRelationshipContractForEntityPair(normalizedEntity, resolvedTarget)
+
+  const normalizedToken = typeof tokenOrName === 'string'
+    ? normalize(tokenOrName)
+    : normalize(tokenOrName?.tokenName || tokenOrName?.token_name)
+  if (!normalizedToken) return null
+  return (
+    LDB_RELATIONSHIP_CONTRACTS.find(
+      (contract) =>
+        normalizeEntityName(contract.sourceEntity) === normalizedEntity
+        && normalize(contract.sourceToken) === normalizedToken,
     ) || null
   )
 }

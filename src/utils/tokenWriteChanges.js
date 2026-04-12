@@ -22,7 +22,7 @@ export function tokenHasDirectWriteTarget(token) {
 }
 
 export function tokenHasRelationshipWriteContract(token, entityName = '') {
-  return Boolean(getLdbRelationshipContractForToken(entityName, token?.tokenName))
+  return Boolean(getLdbRelationshipContractForToken(entityName, token))
 }
 
 export function tokenSupportsRecordUpdate(token, entityName = '') {
@@ -56,7 +56,7 @@ export function buildTokenUpdateChanges(token, {
   const normalizedValue = normalizeTokenWriteValue(token, nextValue)
   const resolvedTableName = String(tableName || getRuntimeTableNameForEntityName(entityName) || entityName || '').trim()
 
-  const relationshipContract = getLdbRelationshipContractForToken(entityName, token?.tokenName)
+  const relationshipContract = getLdbRelationshipContractForToken(entityName, token)
   if (relationshipContract) {
     const relationshipIds = Array.isArray(normalizedValue)
       ? normalizedValue.map((value) => String(value || '').trim()).filter(Boolean)

@@ -2522,7 +2522,7 @@ function buildExplicitCardRelationshipOverrides(row) {
   const itemsByPanel = {}
 
   fileTokens.value.forEach((token) => {
-    const relationshipContract = getLdbRelationshipContractForToken(entityName, token?.tokenName)
+    const relationshipContract = getLdbRelationshipContractForToken(entityName, token)
     if (!relationshipContract) return
 
     const targetEntry = getFilePageRegistryEntryByEntityReference(relationshipContract.targetEntity)
@@ -2639,7 +2639,7 @@ function buildContextRelationshipPrefillForSource(sourceKey, contextEntity, cont
 
   const sourceTokens = buildFileShellPayload(normalizedSourceKey).tokens
   const matchingTokens = sourceTokens.filter((token) => {
-    const relationshipContract = getLdbRelationshipContractForToken(targetEntityName, token?.tokenName)
+    const relationshipContract = getLdbRelationshipContractForToken(targetEntityName, token)
     return String(relationshipContract?.targetEntity || '').trim() === normalizedContextEntity
   })
 
@@ -2999,7 +2999,7 @@ function cancelInlineTableEdit() {
 function getLdbCellItems(tokenRow) {
   const token = tokenRow?.token
   const entityName = String(activeRegistryEntry.value?.entityName || '').trim()
-  const relationshipContract = token?.isSharedLdbToken ? null : getLdbRelationshipContractForToken(entityName, token?.tokenName)
+  const relationshipContract = token?.isSharedLdbToken ? null : getLdbRelationshipContractForToken(entityName, token)
   const targetEntry = token?.isSharedLdbToken
     ? getFilePageRegistryEntry(String(token?.targetSourceKey || '').trim())
     : relationshipContract
@@ -3070,7 +3070,7 @@ function buildSingleTokenUpdateChanges(token, value, { recordId = '', entityName
   if (!recordId || !entityName || !token) return []
   const resolvedTableName = String(tableName || getRuntimeTableNameForEntityName(entityName) || entityName || '').trim()
   const normalizedValue = normalizeCreateFieldValue(token, value)
-  const relationshipContract = getLdbRelationshipContractForToken(entityName, token?.tokenName)
+  const relationshipContract = getLdbRelationshipContractForToken(entityName, token)
   if (relationshipContract) {
     const relationshipIds = Array.isArray(normalizedValue)
       ? normalizedValue.map((entry) => String(entry || '').trim()).filter(Boolean)
@@ -3973,7 +3973,7 @@ function tokenHasDirectWriteTarget(token) {
 }
 
 function tokenHasRelationshipWriteContract(token, entityName = '') {
-  return Boolean(getLdbRelationshipContractForToken(entityName, token?.tokenName))
+  return Boolean(getLdbRelationshipContractForToken(entityName, token))
 }
 
 function isUnsupportedRelationshipWriteToken(token, entityName = '') {
@@ -4034,7 +4034,7 @@ function buildUpdateChangesFromValues(values = {}, { recordId = '', entityName =
     if (!haveNormalizedDialogValuesChanged(token, rawValue, initialValue)) return []
     const normalizedValue = normalizeCreateFieldValue(token, rawValue)
 
-    const relationshipContract = getLdbRelationshipContractForToken(entityName, token?.tokenName)
+    const relationshipContract = getLdbRelationshipContractForToken(entityName, token)
     if (relationshipContract) {
       const relationshipIds = Array.isArray(normalizedValue)
         ? normalizedValue.map((value) => String(value || '').trim()).filter(Boolean)
