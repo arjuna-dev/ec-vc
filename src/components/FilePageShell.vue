@@ -31,103 +31,32 @@
         @action-item-click="handleHeroActionItemClick"
       />
 
-      <template v-if="false">
-      <ShellSectionToolbar
-        v-if="eventShellNavItems.length"
-        v-model="activeSectionKeyForCards"
-        aria-label="Event sections"
-        :items="eventShellNavItems"
-        :view-mode="viewMode"
-        :view-options="viewOptions"
-        @update:view-mode="viewMode = $event"
-      />
+      <div class="file-shell__toolbar-slot-debug">
+        <MiniToolbar
+          v-if="eventShellNavItems.length"
+          v-model="activeSectionKeyForCards"
+          aria-label="File shell mini toolbar"
+          :items="eventShellNavItems"
+          :view-mode="viewMode"
+          :view-options="viewOptions"
+          :show-view-toggle="false"
+        />
+      </div>
 
-      <q-banner v-if="error" class="bg-red-2 text-black" rounded>
-        {{ error }}
-      </q-banner>
-
-      <q-banner
-        v-if="!loading && displayRows.length === 0"
-        class="test-shell-empty-state bg-grey-1 text-black"
-        rounded
-      >
-        No events yet.
-      </q-banner>
-
-      <section v-else class="event-shell__panel">
+      <section v-if="activeGovernanceToolbarKey" class="event-shell__panel">
         <div class="event-shell__panel-head">
-          <div class="event-shell__panel-title">{{ activeSection?.label || 'General' }}</div>
-          <div class="event-shell__panel-meta">{{ activeSectionTokens.length }} fields</div>
+          <div class="event-shell__panel-title">{{ activeGovernanceTitle }}</div>
+          <div class="event-shell__panel-meta">Structure governance</div>
         </div>
 
-        <div v-if="!activeSectionTokens.length" class="event-shell__empty">
-          No fields declared for this section.
-        </div>
-
-        <div v-else-if="viewMode === 'card'" class="event-shell__grid">
-          <article v-for="row in displayRows" :key="row.cardId" class="event-shell__card">
-            <div class="event-shell__card-top">
-              <div class="event-shell__card-title">{{ row.titleValue || 'Missing event title' }}</div>
-              <button type="button" class="event-shell__card-open" aria-label="Open event" @click="openRecordView(row)">
-                <q-icon name="open_in_new" size="13px" />
-              </button>
-            </div>
-
-            <div class="event-shell__card-meta">{{ row.raw?.edited_at || 'Missing datetime' }}</div>
-
-            <div class="event-shell__field-grid">
-              <div v-for="token in activeSectionTokens" :key="`${row.cardId}:${token.key}`" class="event-shell__field-card">
-                <div class="event-shell__field-label">{{ token.label }}</div>
-                <div v-if="eventTokenItems(row, token).length" class="event-shell__chip-list">
-                  <span
-                    v-for="item in eventTokenItems(row, token)"
-                    :key="`${row.cardId}:${token.key}:${item}`"
-                    class="event-shell__chip"
-                  >
-                    {{ item }}
-                  </span>
-                </div>
-                <div v-else class="event-shell__field-value" :class="{ 'event-shell__field-value--empty': !eventTokenDisplayValue(row, token) }">
-                  {{ eventTokenDisplayValue(row, token) || 'Missing value' }}
-                </div>
-              </div>
-            </div>
-          </article>
-        </div>
-
-        <div v-else class="event-shell__list">
-          <article v-for="row in displayRows" :key="row.cardId" class="event-shell__list-row">
-            <div class="event-shell__list-row-head">
-              <div class="event-shell__card-title">{{ row.titleValue || 'Missing event title' }}</div>
-              <div class="event-shell__list-row-actions">
-                <div class="event-shell__card-meta">{{ row.raw?.edited_at || 'Missing datetime' }}</div>
-                <button type="button" class="event-shell__card-open" aria-label="Open event" @click="openRecordView(row)">
-                  <q-icon name="open_in_new" size="13px" />
-                </button>
-              </div>
-            </div>
-
-            <div class="event-shell__field-grid event-shell__field-grid--list">
-              <div v-for="token in activeSectionTokens" :key="`${row.cardId}:${token.key}`" class="event-shell__field-card">
-                <div class="event-shell__field-label">{{ token.label }}</div>
-                <div v-if="eventTokenItems(row, token).length" class="event-shell__chip-list">
-                  <span
-                    v-for="item in eventTokenItems(row, token)"
-                    :key="`${row.cardId}:${token.key}:${item}`"
-                    class="event-shell__chip"
-                  >
-                    {{ item }}
-                  </span>
-                </div>
-                <div v-else class="event-shell__field-value" :class="{ 'event-shell__field-value--empty': !eventTokenDisplayValue(row, token) }">
-                  {{ eventTokenDisplayValue(row, token) || 'Missing value' }}
-                </div>
-              </div>
-            </div>
-          </article>
-        </div>
+        <StructureGovernancePanel
+          :mode="activeGovernanceToolbarKey"
+          :view-rows="governanceViewRows"
+          :token-groups="tokenGroupsByView"
+          empty-views-label="No views declared for this file."
+          empty-tokens-label="No tokens declared in this view."
+        />
       </section>
-      </template>
 
       <template v-else>
       <FilePageToolbar
@@ -136,8 +65,8 @@
         :disabled="false"
         :loading="loading"
         :add-disabled="!supportsActiveSourceEditing || !canCreateWithShell"
-        :fork-value="activeForkValue"
-        :fork-options="toolbarForkOptions"
+        :fork-value="''"
+        :fork-options="[]"
         :search-query="searchQuery"
         :search-placeholder="searchPlaceholder"
         :view-mode="viewMode"
@@ -145,7 +74,6 @@
         :show-view-toggle="true"
         @toggle-select-all="toggleSelectAllVisible"
         @add="handleToolbarAdd"
-        @update:fork-value="setActiveForkValue"
         @update:search-query="searchQuery = $event"
         @update:view-mode="viewMode = $event"
       >
@@ -229,15 +157,15 @@
         {{ error }}
       </q-banner>
 
-      <q-banner
-        v-if="!loading && displayRows.length === 0"
-        class="test-shell-empty-state bg-grey-1 text-black"
-        rounded
-      >
-        No real rows loaded for {{ activeRegistryEntry?.label || 'this section' }}.
-      </q-banner>
+      <div v-if="viewMode === 'card' && isBbFileSource" class="bb-shell-tiles-surface">
+        <q-banner
+          v-if="!loading && displayRows.length === 0"
+          class="test-shell-empty-state bg-grey-1 text-black"
+          rounded
+        >
+          No real rows loaded for {{ activeRegistryEntry?.label || 'this section' }}.
+        </q-banner>
 
-      <div v-else-if="viewMode === 'card' && isBbFileSource" class="bb-shell-tiles-surface">
         <div class="bb-shell-tiles-toolbar">
           <button type="button" class="bb-shell-tiles-toolbar__btn" @click="setAllBbTilesCollapsed(true)">
             Collapse all
@@ -307,6 +235,15 @@
       </div>
 
       <div v-else-if="viewMode === 'card'" class="row q-col-gutter-md test-shell-cards-grid">
+        <div v-if="!loading && displayRows.length === 0" class="col-12">
+          <q-banner
+            class="test-shell-empty-state bg-grey-1 text-black"
+            rounded
+          >
+            No real rows loaded for {{ activeRegistryEntry?.label || 'this section' }}.
+          </q-banner>
+        </div>
+
         <div v-for="row in displayRows" :key="row.cardId" class="col-12 col-sm-6 col-lg-4">
           <q-card
             flat
@@ -451,33 +388,13 @@
         </div>
       </div>
       <div v-else class="test-shell-table-surface">
-        <div class="test-shell-table-tabs">
-          <div class="test-shell-table-tabs__left">
-            <button
-              v-for="section in tableLeftSections"
-              :key="section.key"
-              type="button"
-              class="test-shell-table-tabs__tab"
-              :class="{ 'test-shell-table-tabs__tab--active': section.key === activeSection?.key }"
-              @click="activeSectionKeyForCards = section.key"
-            >
-              {{ section.label }}
-            </button>
-          </div>
-
-          <div class="test-shell-table-tabs__right">
-            <button
-              v-for="section in tableRightSections"
-              :key="section.key"
-              type="button"
-              class="test-shell-table-tabs__tab"
-              :class="{ 'test-shell-table-tabs__tab--active': section.key === activeSection?.key }"
-              @click="activeSectionKeyForCards = section.key"
-            >
-              {{ section.label }}
-            </button>
-          </div>
-        </div>
+        <q-banner
+          v-if="!loading && displayRows.length === 0"
+          class="test-shell-empty-state bg-grey-1 text-black"
+          rounded
+        >
+          No real rows loaded for {{ activeRegistryEntry?.label || 'this section' }}.
+        </q-banner>
 
         <div ref="tableScrollRef" class="test-shell-table-scroll">
           <table class="test-shell-table">
@@ -794,9 +711,11 @@ import FileFilterMenu from 'components/FileFilterMenu.vue'
 import FileHero from 'components/FileHero.vue'
 import L2SettingsMenu from 'components/L2SettingsMenu.vue'
 import FilePageToolbar from 'components/FilePageToolbar.vue'
+import MiniToolbar from 'components/MiniToolbar.vue'
 import RecordHistoryBox from 'components/RecordHistoryBox.vue'
-import ShellSectionToolbar from 'components/ShellSectionToolbar.vue'
 import BuildingBlockPreviewTile from 'components/BuildingBlockPreviewTile.vue'
+import StructureGovernancePanel from 'components/StructureGovernancePanel.vue'
+import { buildStructureToolbarItems } from 'src/utils/structureToolbarContract'
 import EyeIconButton from 'components/buttons/EyeIconButton.vue'
 import SelectionActionBar from 'components/SelectionActionBar.vue'
 import {
@@ -903,7 +822,7 @@ const liveOptionRowsBySource = ref({})
 const localDraftRowsBySource = ref({})
 
 const DEFAULT_COLUMN_MIN_WIDTH = 120
-const LDB_COLUMN_DEFAULT_WIDTH = 96
+const LDB_COLUMN_DEFAULT_WIDTH = 72
 const NAME_COLUMN_DEFAULT_WIDTH = 84
 const TABLE_CONTROL_COLUMN_WIDTH = 22
 
@@ -1068,19 +987,19 @@ const activeBbCategoryKey = ref('')
 const activeBbBlockKey = ref('')
 const expandedBbFilterCategoryKey = ref('')
 const expandedCardSettingsGroupsBySource = ref({})
-const toolbarForkOptions = computed(() => {
-  if (!activeCreateBranchEntries.value.length) return []
-  return [
-    { value: '', label: 'All' },
-    ...activeCreateBranchEntries.value.map((branch) => ({
-      value: String(branch?.value || '').trim().toLowerCase(),
-      label: String(branch?.label || '').trim(),
-    })),
-  ].filter((option) => option.label)
-})
 
 const activeSection = computed(() => {
   return level2Sections.value.find((section) => section.key === activeSectionKeyForCards.value) || level2Sections.value[0] || null
+})
+const activeGovernanceToolbarKey = computed(() => {
+  const normalized = String(activeSectionKeyForCards.value || '').trim().toLowerCase()
+  if (normalized === 'tokens' || normalized === 'views') return normalized
+  return ''
+})
+const activeGovernanceTitle = computed(() => {
+  if (activeGovernanceToolbarKey.value === 'tokens') return 'Tokens'
+  if (activeGovernanceToolbarKey.value === 'views') return 'Views'
+  return ''
 })
 const isKdbSectionActive = computed(() => isRelationshipSectionLabel(activeSection.value?.rawLabel || activeSection.value?.label))
 const isSystemSectionActive = computed(() => String(activeSection.value?.label || '').trim().toLowerCase() === 'system')
@@ -1561,18 +1480,6 @@ function normalizeEntitySourceKey(entityName) {
   return String(entityName || '').trim().toLowerCase()
 }
 
-function setActiveForkValue(nextValue) {
-  if (!activeCreateBranchEntries.value.length) return
-  const normalized = String(nextValue || '').trim().toLowerCase()
-  const nextQuery = { ...route.query }
-  if (normalized && getCreateBranchEntry(activeSourceKey.value, normalized)) {
-    nextQuery.kind = normalized
-  } else {
-    delete nextQuery.kind
-  }
-  router.push({ name: route.name, params: route.params, query: nextQuery })
-}
-
 function getRegistryTitleTokenForSource(sourceKey) {
   const entry = getFilePageRegistryEntry(sourceKey)
   if (!entry) return null
@@ -1951,25 +1858,40 @@ const tableRightSections = computed(() =>
     return isRelationshipSectionLabel(label) || label === 'system'
   }),
 )
-const eventShellNavItems = computed(() => [
-  ...tableLeftSections.value.map((section) => ({
-    value: section.key,
-    title: section.label,
-    isKdb: false,
-    isSystem: false,
-    pushRight: false,
+const governanceViewRows = computed(() =>
+  [...tableLeftSections.value, ...tableRightSections.value].map((section) => ({
+    key: section.key,
+    label: section.label,
+    side: tableRightSections.value.some((entry) => entry.key === section.key) ? 'Right' : 'Left',
+    tokenCount: level3Tokens.value.filter((token) => token.parentKey === section.key).length,
+    subgroupCount: 0,
   })),
-  ...tableRightSections.value.map((section, index) => {
-    const normalized = String(section.rawLabel || section.label || '').trim().toLowerCase()
-    return {
-      value: section.key,
-      title: section.label,
-      isKdb: isRelationshipSectionLabel(normalized),
-      isSystem: normalized === 'system',
-      pushRight: index === 0,
-    }
+)
+const tokenGroupsByView = computed(() =>
+  governanceViewRows.value.map((view) => ({
+    key: view.key,
+    label: view.label,
+    tokens: level3Tokens.value
+      .filter((token) => token.parentKey === view.key)
+      .map((token) => ({
+        key: token.key,
+        label: token.label || '—',
+        type: token.tokenType || '—',
+        required: requiredCreateTokens.value.some((entry) => entry.key === token.key) ? 'Yes' : '—',
+      })),
+  })),
+)
+const eventShellNavItems = computed(() =>
+  buildStructureToolbarItems({
+    leftItems: tableLeftSections.value,
+    rightItems: tableRightSections.value,
+    governanceItems: [
+      { value: 'tokens', title: 'Tokens' },
+      { value: 'views', title: 'Views' },
+    ],
+    isRelationshipSectionLabel,
   }),
-])
+)
 const summarySectionShellOptions = Object.freeze(buildCardRelationshipOptions())
 
 function getDefaultActiveSectionKey(sections = []) {
@@ -2231,11 +2153,15 @@ function getTableColumnStyle(columnKey, fallbackWidth) {
 }
 
 function getInitialTableColumns() {
+  const getColumnLabelWidth = (label = '') => Math.max(72, (String(label || '').trim().length * 7) + 28)
   return [
-    { key: 'name', defaultWidth: NAME_COLUMN_DEFAULT_WIDTH },
+    { key: 'name', defaultWidth: Math.max(NAME_COLUMN_DEFAULT_WIDTH, getColumnLabelWidth('Name')) },
     ...tableSectionTokens.value.map((token) => ({
       key: token.key,
-      defaultWidth: isKdbSectionActive.value ? LDB_COLUMN_DEFAULT_WIDTH : DEFAULT_COLUMN_MIN_WIDTH,
+      defaultWidth: Math.max(
+        isKdbSectionActive.value ? LDB_COLUMN_DEFAULT_WIDTH : DEFAULT_COLUMN_MIN_WIDTH,
+        getColumnLabelWidth(token?.label),
+      ),
     })),
   ]
 }
@@ -2524,22 +2450,6 @@ function getKdbDisplayItems(tokenRow) {
       entityName: '',
       tokenName: '',
     }))
-}
-
-function getEventTokenRawValue(row, token) {
-  return getCanonicalTokenValue(row?.raw || {}, token || {})
-}
-
-function eventTokenItems(row, token) {
-  const rawValue = getEventTokenRawValue(row, token)
-  if (Array.isArray(rawValue)) return rawValue.map((item) => stringifyValue(item)).filter(Boolean)
-  return []
-}
-
-function eventTokenDisplayValue(row, token) {
-  const rawValue = getEventTokenRawValue(row, token)
-  if (Array.isArray(rawValue)) return rawValue.map((item) => stringifyValue(item)).filter(Boolean).join(', ')
-  return stringifyValue(rawValue)
 }
 
 function getActiveRelationshipItems(row) {
@@ -4498,6 +4408,17 @@ function isBbGraphLinkToken(tokenRow) {
   gap: 20px;
 }
 
+.file-shell__toolbar-slot-debug {
+  display: flex;
+  align-items: center;
+  min-height: 0;
+  padding: 0;
+  margin-top: -8px;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+}
+
 .test-shell-gap-banner {
   border: 1px solid rgba(249, 115, 22, 0.18);
 }
@@ -5444,6 +5365,7 @@ function isBbGraphLinkToken(tokenRow) {
   font-weight: var(--font-weight-black);
   letter-spacing: 0.04em;
   line-height: 0.96;
+  white-space: nowrap;
 }
 
 .test-shell-table__head-inner {
@@ -5548,9 +5470,11 @@ function isBbGraphLinkToken(tokenRow) {
 }
 
 .test-shell-table__kdb-list {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  display: flex;
+  flex-wrap: wrap;
   gap: 6px;
+  width: fit-content;
+  max-width: 100%;
 }
 
 .test-shell-table__kdb-item--linkable {
@@ -5592,9 +5516,11 @@ function isBbGraphLinkToken(tokenRow) {
 }
 
 .test-shell-table__kdb-item {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 6px;
+  width: fit-content;
+  max-width: 100%;
   min-width: 0;
   padding: 4px 7px;
   color: #1f7a3d;

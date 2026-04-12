@@ -146,6 +146,13 @@
           />
         </div>
       </article>
+      <BuildingBlockPreviewTile block-key="structure-governance-panel">
+        <template #actions>
+          <button type="button" class="components-shell-page__inspect-btn" aria-label="View component details" @click="openComponentDetail('structure-governance-panel')">
+            <q-icon name="visibility" />
+          </button>
+        </template>
+      </BuildingBlockPreviewTile>
       <article class="components-shell-page__card components-shell-page__card--settings-menu">
         <button type="button" class="components-shell-page__inspect-btn" aria-label="View component details" @click="openComponentDetail('l2-settings-menu')">
           <q-icon name="visibility" />
@@ -333,6 +340,7 @@ import FilePageToolbar from 'src/components/FilePageToolbar.vue'
 import MiniToolbar from 'src/components/MiniToolbar.vue'
 import ShellSectionToolbar from 'src/components/ShellSectionToolbar.vue'
 import BuildingBlockPreviewTile from 'src/components/BuildingBlockPreviewTile.vue'
+import { buildStructureToolbarItems } from 'src/utils/structureToolbarContract'
 import B10Logo from 'src/components/B10Logo.vue'
 import B10Button from 'src/components/buttons/B10Button.vue'
 import B10IconButton from 'src/components/buttons/B10IconButton.vue'
@@ -411,14 +419,21 @@ const toolbarItems = [
   { title: 'System', value: 'system', isSystem: true },
 ]
 
-const miniToolbarItems = [
-  { title: 'General', value: 'general' },
-  { title: 'Overview', value: 'overview' },
-  { title: 'LDB', value: 'ldb', isKdb: true, pushRight: true },
-  { title: 'System', value: 'system', isSystem: true },
-  { title: 'Tokens', value: 'tokens', isGovernance: true },
-  { title: 'Views', value: 'views', isGovernance: true },
-]
+const miniToolbarItems = buildStructureToolbarItems({
+  leftItems: [
+    { title: 'General', value: 'general' },
+    { title: 'Overview', value: 'overview' },
+  ],
+  rightItems: [
+    { title: 'System', value: 'system', label: 'System' },
+    { title: 'KDB', value: 'kdb', label: 'KDB' },
+  ],
+  governanceItems: [
+    { title: 'Tokens', value: 'tokens' },
+    { title: 'Views', value: 'views' },
+  ],
+  isRelationshipSectionLabel: (label) => String(label || '').trim().toLowerCase() === 'kdb',
+})
 
 const homeDashboardStats = [
   { label: 'Open tasks', value: '27' },

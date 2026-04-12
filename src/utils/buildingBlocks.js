@@ -853,6 +853,18 @@ export const BUILDING_BLOCK_DETAILS_BY_ID = {
     usedInShells: ['BB Shell', 'Add/Edit BB Shell'],
     builtFromBbs: ['l2-toolbar', 'colors', 'surfaces', 'borders', 'radius', 'spacing'],
   }),
+  'structure-governance-panel': defineBuildingBlockDetail({
+    id: 'cmp-structure-governance-panel',
+    title: 'Structure Governance Panel',
+    status: 'extract',
+    statusLabel: 'Extract Next',
+    source: 'src/components/StructureGovernancePanel.vue',
+    nextStep: 'Use this as the shared BB governance surface for Views and Tokens so shells stop duplicating local tables.',
+    summary: 'Use this for the shared governance panel that renders flat view rows and token rows grouped by view.',
+    prompt: 'Render the Structure Governance Panel from Building Blocks using one explicit mode prop. In views mode show flat view rows. In tokens mode show token rows grouped by assigned view.',
+    usedInShells: ['BB Shell', 'Add/Edit File Shell', 'Add/Edit Record Shell'],
+    builtFromBbs: ['settings-checkbox', 'colors', 'surfaces', 'borders', 'radius', 'spacing'],
+  }),
   'l2-settings-menu': defineBuildingBlockDetail({
     id: 'cmp-l2-settings-menu',
     title: 'L2 Settings Menu',

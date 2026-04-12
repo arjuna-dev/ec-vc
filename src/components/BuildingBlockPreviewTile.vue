@@ -574,6 +574,15 @@
         />
       </template>
 
+      <template v-else-if="blockKey === 'structure-governance-panel'">
+        <StructureGovernancePanel
+          :mode="activeGovernancePanelMode"
+          :view-rows="governanceViewRowsSample"
+          :token-groups="governanceTokenGroupsSample"
+          :show-write-target="activeGovernancePanelMode === 'tokens'"
+        />
+      </template>
+
       <template v-else-if="blockKey === 'fork-selector-surface'">
         <ForkSelectorSurface
           v-model="activeLiveActionL1"
@@ -823,6 +832,7 @@ import SearchBarInput from 'src/components/SearchBarInput.vue'
 import BbCodeInput from 'src/components/BbCodeInput.vue'
 import FileFilterMenu from 'src/components/FileFilterMenu.vue'
 import MiniToolbar from 'src/components/MiniToolbar.vue'
+import StructureGovernancePanel from 'src/components/StructureGovernancePanel.vue'
 import SettingsCheckbox from 'src/components/SettingsCheckbox.vue'
 import ShellOpenDialogButton from 'src/components/ShellOpenDialogButton.vue'
 import ShellSectionToolbar from 'src/components/ShellSectionToolbar.vue'
@@ -885,6 +895,7 @@ import ValueChipLabel from 'src/components/ValueChipLabel.vue'
 import ValueChipSurface from 'src/components/ValueChipSurface.vue'
 import WidgetSettingsMenu from 'src/components/WidgetSettingsMenu.vue'
 import DialogShellFooter from 'src/components/DialogShellFooter.vue'
+import { buildStructureToolbarItems } from 'src/utils/structureToolbarContract'
 const l2SettingsSampleGroups = [
   {
     key: 'general',
@@ -1000,6 +1011,7 @@ const activeLiveActionL1 = ref('companies')
 const activeRecordContextTab = ref('notes')
 const activeRecordFeedTabPreview = ref('events')
 const activeMiniToolbarPreview = ref('general')
+const activeGovernancePanelMode = ref('views')
 const fileFilterMenuSampleSections = [
   {
     key: 'general',
@@ -1115,12 +1127,45 @@ const l2ToolbarItems = [
   { value: 'system', title: 'System', isKdb: false, isSystem: true, pushRight: false },
 ]
 
-const miniToolbarItems = [
-  { value: 'general', title: 'General' },
-  { value: 'system', title: 'System' },
-  { value: 'kdb', title: 'KDB' },
-  { value: 'tokens', title: 'Tokens', isGovernance: true },
-  { value: 'views', title: 'Views', isGovernance: true },
+const miniToolbarItems = buildStructureToolbarItems({
+  leftItems: [
+    { value: 'general', title: 'General' },
+  ],
+  rightItems: [
+    { value: 'system', title: 'System', label: 'System' },
+    { value: 'kdb', title: 'KDB', label: 'KDB' },
+  ],
+  governanceItems: [
+    { value: 'tokens', title: 'Tokens' },
+    { value: 'views', title: 'Views' },
+  ],
+  isRelationshipSectionLabel: (label) => String(label || '').trim().toLowerCase() === 'kdb',
+})
+
+const governanceViewRowsSample = [
+  { key: 'general', label: 'General', side: 'Left', tokenCount: 2, subgroupCount: 0 },
+  { key: 'system', label: 'System', side: 'Right', tokenCount: 3, subgroupCount: 0 },
+  { key: 'kdb', label: 'LDB', side: 'Right', tokenCount: 4, subgroupCount: 2 },
+  { key: 'overview', label: 'Overview', side: 'Left', tokenCount: 3, subgroupCount: 1 },
+]
+
+const governanceTokenGroupsSample = [
+  {
+    key: 'general',
+    label: 'General',
+    tokens: [
+      { key: 'name', label: 'Name', type: 'text', required: 'Yes', writeTarget: 'Company_Name' },
+      { key: 'summary', label: 'Summary', type: 'text', required: 'No', writeTarget: 'Company_Summary' },
+    ],
+  },
+  {
+    key: 'overview',
+    label: 'Overview',
+    tokens: [
+      { key: 'industry', label: 'Industry', type: 'select_single', required: 'No', writeTarget: 'Company_Industry' },
+      { key: 'hq', label: 'HQ', type: 'text', required: 'No', writeTarget: 'Company_HQ' },
+    ],
+  },
 ]
 
 const foundationFontSamples = GENERAL_SETTINGS_FONT_SAMPLES
@@ -1283,6 +1328,7 @@ onBeforeUnmount(() => {
   flex-wrap: wrap;
   justify-content: center;
 }
+
 
 
 .building-block-preview-tile__header-preview {

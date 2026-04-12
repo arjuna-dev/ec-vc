@@ -20,22 +20,38 @@
       </button>
     </div>
 
-    <div v-if="midItems.length" class="shell-section-toolbar__lane shell-section-toolbar__lane--mid">
+    <div v-if="structuralItems.length" class="shell-section-toolbar__lane shell-section-toolbar__lane--mid">
       <button
-        v-for="section in midItems"
+        v-for="section in structuralItems"
         :key="section.value"
         type="button"
         class="shell-section-toolbar__item"
         :class="{
           'shell-section-toolbar__item--active': modelValue === section.value,
-          'shell-section-toolbar__item--kdb': section.isKdb,
-          'shell-section-toolbar__item--system': section.isSystem,
-          'shell-section-toolbar__item--governance': section.isGovernance,
+          'shell-section-toolbar__item--kdb': itemTone(section) === 'ldb',
+          'shell-section-toolbar__item--system': itemTone(section) === 'system',
+          'shell-section-toolbar__item--governance': itemTone(section) === 'governance',
         }"
         @click="$emit('update:modelValue', section.value)"
       >
         <span class="shell-section-toolbar__item-label">{{ section.title }}</span>
-        <q-icon v-if="section.isKdb" name="share" :size="'var(--ds-toolbar-chip-toggle-icon-size)'" class="shell-section-toolbar__item-icon" />
+        <q-icon v-if="itemTone(section) === 'ldb'" name="share" :size="'var(--ds-toolbar-chip-toggle-icon-size)'" class="shell-section-toolbar__item-icon" />
+      </button>
+    </div>
+
+    <div v-if="governanceItems.length" class="shell-section-toolbar__lane shell-section-toolbar__lane--governance">
+      <button
+        v-for="section in governanceItems"
+        :key="section.value"
+        type="button"
+        class="shell-section-toolbar__item"
+        :class="{
+          'shell-section-toolbar__item--active': modelValue === section.value,
+          'shell-section-toolbar__item--governance': itemTone(section) === 'governance',
+        }"
+        @click="$emit('update:modelValue', section.value)"
+      >
+        <span class="shell-section-toolbar__item-label">{{ section.title }}</span>
       </button>
     </div>
 
@@ -67,11 +83,29 @@ const props = defineProps({
 defineEmits(['update:modelValue', 'update:viewMode'])
 
 const leftItems = computed(() =>
-  props.items.filter((section) => !(section.pushRight || section.isKdb || section.isSystem || section.isGovernance)),
+  props.items.filter((section) => itemLane(section) === 'left'),
 )
-const midItems = computed(() =>
-  props.items.filter((section) => section.pushRight || section.isKdb || section.isSystem || section.isGovernance),
+const structuralItems = computed(() =>
+  props.items.filter((section) => itemLane(section) === 'structural'),
 )
+const governanceItems = computed(() =>
+  props.items.filter((section) => itemLane(section) === 'governance'),
+)
+
+function itemLane(section = {}) {
+  if (section?.lane) return String(section.lane).trim().toLowerCase()
+  if (section?.isGovernance) return 'governance'
+  if (section?.pushRight || section?.isKdb || section?.isSystem) return 'structural'
+  return 'left'
+}
+
+function itemTone(section = {}) {
+  if (section?.tone) return String(section.tone).trim().toLowerCase()
+  if (section?.isGovernance) return 'governance'
+  if (section?.isKdb) return 'ldb'
+  if (section?.isSystem) return 'system'
+  return 'default'
+}
 </script>
 
 <style scoped>
@@ -80,11 +114,13 @@ const midItems = computed(() =>
   top: var(--ds-toolbar-sticky-top);
   z-index: 3;
   display: grid;
+  width: 100%;
   grid-template-columns: minmax(0, 1fr) max-content max-content;
   align-items: center;
   column-gap: var(--ds-toolbar-gap-sm);
   row-gap: var(--ds-toolbar-gap-sm);
   padding: var(--ds-toolbar-padding-sm);
+  box-sizing: border-box;
   background: var(--ds-color-surface-overlay-light);
   border: 1px solid var(--ds-color-border-default);
   border-radius: var(--ds-radius-lg);
@@ -100,9 +136,11 @@ const midItems = computed(() =>
 
 .shell-section-toolbar__lane--left {
   flex-wrap: wrap;
+  width: 100%;
 }
 
 .shell-section-toolbar__lane--mid,
+.shell-section-toolbar__lane--governance,
 .shell-section-toolbar__lane--right {
   justify-content: flex-start;
   white-space: nowrap;
@@ -178,7 +216,25 @@ const midItems = computed(() =>
   font-size: var(--ds-toolbar-kdb-icon-size) !important;
 }
 
-.shell-section-toolbar--mini .shell-section-toolbar__lane--mid {
+.shell-section-toolbar--mini .shell-section-toolbar__lane--left,
+.shell-section-toolbar--mini .shell-section-toolbar__lane--mid,
+.shell-section-toolbar--mini .shell-section-toolbar__lane--governance {
+  padding: 4px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.shell-section-toolbar--mini {
+  padding: 0;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  backdrop-filter: none;
+}
+
+.shell-section-toolbar--mini .shell-section-toolbar__lane--mid,
+.shell-section-toolbar--mini .shell-section-toolbar__lane--governance {
   gap: calc(var(--ds-toolbar-gap-sm) * 0.75);
 }
 
@@ -190,7 +246,7 @@ const midItems = computed(() =>
 .shell-section-toolbar--mini .shell-section-toolbar__item--system,
 .shell-section-toolbar--mini .shell-section-toolbar__item--governance {
   color: var(--ds-color-brand-black);
-  background: color-mix(in srgb, var(--ds-color-brand-light-grey) 78%, white);
+  background: transparent;
   border-color: rgba(15, 23, 42, 0.12);
 }
 
@@ -198,7 +254,7 @@ const midItems = computed(() =>
 .shell-section-toolbar--mini .shell-section-toolbar__item--system:hover,
 .shell-section-toolbar--mini .shell-section-toolbar__item--governance:hover {
   color: var(--ds-color-brand-black);
-  background: color-mix(in srgb, var(--ds-color-brand-light-grey) 58%, white);
+  background: rgba(255, 255, 255, 0.78);
   border-color: rgba(15, 23, 42, 0.18);
 }
 
@@ -228,11 +284,11 @@ const midItems = computed(() =>
   font-size: calc(var(--ds-font-size-xs) * 0.75);
 }
 
-.shell-section-toolbar--mini .shell-section-toolbar__item--governance:not(.shell-section-toolbar__item--active) {
+.shell-section-toolbar--mini .shell-section-toolbar__lane--governance .shell-section-toolbar__item--governance:not(.shell-section-toolbar__item--active) {
   background: color-mix(in srgb, var(--ds-color-brand-light-grey) 78%, white);
 }
 
-.shell-section-toolbar--mini .shell-section-toolbar__item--governance:not(.shell-section-toolbar__item--active):hover {
+.shell-section-toolbar--mini .shell-section-toolbar__lane--governance .shell-section-toolbar__item--governance:not(.shell-section-toolbar__item--active):hover {
   background: color-mix(in srgb, var(--ds-color-brand-light-grey) 58%, white);
 }
 
@@ -253,6 +309,7 @@ const midItems = computed(() =>
 
   .shell-section-toolbar__lane--left,
   .shell-section-toolbar__lane--mid,
+  .shell-section-toolbar__lane--governance,
   .shell-section-toolbar__lane--right {
     flex-wrap: wrap;
   }

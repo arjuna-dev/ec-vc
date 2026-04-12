@@ -56,23 +56,36 @@
         </template>
       </RecordHero>
 
-      <ShellSectionToolbar
+      <MiniToolbar
         v-if="recordShellNavItems.length"
         v-model="activeSectionKey"
         aria-label="Record sections"
         :items="recordShellNavItems"
         :view-mode="recordShellTopNavViewMode"
         :view-options="CONTACT_KDB_VIEW_OPTIONS"
+        :show-view-toggle="false"
         @update:view-mode="recordShellTopNavViewMode = $event"
       />
 
       <section class="record-shell__panel">
         <div class="record-shell__panel-head">
-          <div class="record-shell__panel-title">{{ activeSectionGroup?.title || activeSection?.label || 'Section' }}</div>
-          <div class="record-shell__panel-meta">{{ activeSectionTokens.length }} fields</div>
+          <div class="record-shell__panel-title">{{ activeGovernanceTitle || activeSectionGroup?.title || activeSection?.label || 'Section' }}</div>
+          <div class="record-shell__panel-meta">
+            {{ activeGovernanceToolbarKey ? 'Structure governance' : `${activeSectionTokens.length} fields` }}
+          </div>
         </div>
 
-        <div v-if="isKdbSectionActive" class="record-shell__kdb-grid">
+        <div v-if="activeGovernanceToolbarKey" class="record-shell__governance-surface">
+          <StructureGovernancePanel
+            :mode="activeGovernanceToolbarKey === 'governance:views' ? 'views' : 'tokens'"
+            :view-rows="governanceViewRows"
+            :token-groups="tokenGroupsByView"
+            empty-views-label="No views declared for this record."
+            empty-tokens-label="No tokens declared in this view."
+          />
+        </div>
+
+        <div v-else-if="isKdbSectionActive" class="record-shell__kdb-grid">
           <div
             v-for="group in activeKdbTokenGroups"
             :key="group.key"
@@ -581,9 +594,10 @@ import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { useQuasar } from 'quasar'
 import { useRoute, useRouter } from 'vue-router'
 import AddEditRecordShellDialog from 'src/components/AddEditRecordShellDialog.vue'
+import MiniToolbar from 'src/components/MiniToolbar.vue'
 import RecordHistoryBox from 'src/components/RecordHistoryBox.vue'
 import RecordHero from 'src/components/RecordHero.vue'
-import ShellSectionToolbar from 'src/components/ShellSectionToolbar.vue'
+import StructureGovernancePanel from 'src/components/StructureGovernancePanel.vue'
 import { setPendingAddEditShellRequest } from 'src/utils/addEditShellState'
 import {
   CANONICAL_OPTION_LISTS,
@@ -602,6 +616,7 @@ import { buildDialogSectionGroups, groupDialogLevel2Sections, splitDialogSection
 import { filterRecordFeedTabs, RECORD_FEED_GROUP_OPTIONS } from 'src/utils/recordFeedContract'
 import { setPendingIntakeShellRequest } from 'src/utils/intakeShellState'
 import { loadShellFieldSelectionMap, persistShellFieldSelectionMap } from 'src/utils/shellFieldSelection'
+import { buildStructureToolbarItems } from 'src/utils/structureToolbarContract'
 import { buildTokenUpdateChanges, tokenSupportsRecordUpdate } from 'src/utils/tokenWriteChanges'
 
 const route = useRoute()
@@ -722,7 +737,14 @@ const createSectionGroups = computed(() =>
 const createDialogSectionSplit = computed(() => splitDialogSections(createSectionGroups.value))
 const createDialogLeftSections = computed(() => createDialogSectionSplit.value.leftSections)
 const createDialogRightSections = computed(() => createDialogSectionSplit.value.rightSections)
-const activeSectionGroup = computed(() => groupedLevel2Sections.value.find((group) => group.value === activeSectionKey.value) || groupedLevel2Sections.value[0] || null)
+const activeGovernanceToolbarKey = computed(() => {
+  const current = String(activeSectionKey.value || '').trim().toLowerCase()
+  return current.startsWith('governance:') ? current : ''
+})
+const activeSectionGroup = computed(() => {
+  if (activeGovernanceToolbarKey.value) return null
+  return groupedLevel2Sections.value.find((group) => group.value === activeSectionKey.value) || groupedLevel2Sections.value[0] || null
+})
 const activeSection = computed(() => activeSectionGroup.value?.sections?.[0] || null)
 const activeSectionEntries = computed(() => activeSectionGroup.value?.sections || [])
 const activeSectionTokens = computed(() => sectionDisplayTokens.value.filter((token) => activeSectionEntries.value.some((section) => section.key === token.parentKey)))
@@ -872,29 +894,22 @@ const historySummaryItems = computed(() => {
     },
   ].filter((item) => item.value)
 })
-const recordShellNavItems = computed(() => [
-  ...toolbarLeftSections.value.map((group) => ({
-    value: group.value,
-    title: group.title,
-    isKdb: false,
-    isSystem: false,
-    pushRight: false,
-  })),
-  ...toolbarRightSections.value.map((group, index) => {
-    const normalizedSectionLabels = Array.isArray(group.sections)
-      ? group.sections.map((section) => String(section.rawLabel || section.label || '').trim().toLowerCase())
-      : []
-    const isKdb = normalizedSectionLabels.some((label) => isRelationshipSectionLabel(label))
-    const isSystem = normalizedSectionLabels.includes('system')
-    return {
-      value: group.value,
-      title: group.title,
-      isKdb,
-      isSystem,
-      pushRight: index === 0,
-    }
+const activeGovernanceTitle = computed(() => {
+  if (activeGovernanceToolbarKey.value === 'governance:tokens') return 'Tokens'
+  if (activeGovernanceToolbarKey.value === 'governance:views') return 'Views'
+  return ''
+})
+const recordShellNavItems = computed(() =>
+  buildStructureToolbarItems({
+    leftItems: toolbarLeftSections.value,
+    rightItems: toolbarRightSections.value,
+    governanceItems: [
+      { value: 'governance:tokens', title: 'Tokens' },
+      { value: 'governance:views', title: 'Views' },
+    ],
+    isRelationshipSectionLabel,
   }),
-])
+)
 const createDialogMode = computed(() => (isRecordRoute.value ? 'edit' : 'create'))
 const fieldVerificationActionOptions = [
   { label: 'Verify field', value: 'verified', icon: 'check_circle', color: 'rgba(35, 92, 26, 0.96)' },

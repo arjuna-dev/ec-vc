@@ -170,69 +170,22 @@
 
     <div v-if="!leafItemsCollapsed" class="file-structure-shell__leaf-area">
       <div v-if="isViewsToolbarActive" class="file-structure-shell__leaf-table-wrap ds-mini-scrollbar">
-        <table class="file-structure-shell__leaf-table">
-          <thead>
-            <tr>
-              <th>View</th>
-              <th>Side</th>
-              <th>Tokens</th>
-              <th>Subgroups</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="view in governanceViewRows" :key="view.key">
-              <td class="file-structure-shell__cell--label">{{ view.label }}</td>
-              <td class="file-structure-shell__cell--data">{{ view.side }}</td>
-              <td class="file-structure-shell__cell--data">{{ view.tokenCount }}</td>
-              <td class="file-structure-shell__cell--data">{{ view.subgroupCount }}</td>
-            </tr>
-            <tr v-if="!governanceViewRows.length">
-              <td colspan="4" class="file-structure-shell__leaf-empty">No views declared for this file.</td>
-            </tr>
-          </tbody>
-        </table>
+        <StructureGovernancePanel
+          mode="views"
+          :view-rows="governanceViewRows"
+          empty-views-label="No views declared for this file."
+        />
       </div>
 
       <div v-else-if="isTokensToolbarActive" class="file-structure-shell__token-groups">
-        <section
-          v-for="group in tokenGroupsByView"
-          :key="group.key"
-          class="file-structure-shell__token-group"
-        >
-          <div class="file-structure-shell__token-group-head">
-            <div class="file-structure-shell__token-group-title">{{ group.label }}</div>
-            <div class="file-structure-shell__token-group-meta">{{ group.tokens.length }} tokens</div>
-          </div>
-          <div class="file-structure-shell__leaf-table-wrap ds-mini-scrollbar">
-            <table class="file-structure-shell__leaf-table">
-              <thead>
-                <tr>
-                  <th>Label</th>
-                  <th>Type</th>
-                  <th>Required</th>
-                  <th>Write Target / Alias</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="token in group.tokens" :key="token.key">
-                  <td class="file-structure-shell__cell--label">{{ token.label }}</td>
-                  <td class="file-structure-shell__cell--data">{{ token.type }}</td>
-                  <td class="file-structure-shell__cell--data">
-                    <SettingsCheckbox
-                      :model-value="token.required"
-                      tone="light"
-                      @update:model-value="toggleRequiredField(token.key, $event)"
-                    />
-                  </td>
-                  <td class="file-structure-shell__cell--data">{{ token.writeTarget }}</td>
-                </tr>
-                <tr v-if="!group.tokens.length">
-                  <td colspan="4" class="file-structure-shell__leaf-empty">No tokens declared in this view.</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </section>
+        <StructureGovernancePanel
+          mode="tokens"
+          :token-groups="tokenGroupsByView"
+          :show-write-target="true"
+          :interactive-required="true"
+          empty-tokens-label="No tokens declared in this view."
+          @toggle-required="toggleRequiredField"
+        />
       </div>
 
       <div v-else-if="subgroupTabs.length" class="file-structure-shell__subgroup-tabs">
@@ -418,7 +371,8 @@ import RecordTitle from 'src/components/RecordTitle.vue'
 import RecordSummaryBox from 'src/components/RecordSummaryBox.vue'
 import SectionTabs from 'src/components/SectionTabs.vue'
 import MiniToolbar from 'src/components/MiniToolbar.vue'
-import SettingsCheckbox from 'src/components/SettingsCheckbox.vue'
+import StructureGovernancePanel from 'src/components/StructureGovernancePanel.vue'
+import { buildStructureToolbarItems } from 'src/utils/structureToolbarContract'
 import { buildDialogSectionGroups, groupDialogLevel2Sections, splitDialogSections } from 'src/utils/dialogShellPayload'
 import { LEVEL_2_FILE_REGISTRY_BY_KEY, LEVEL_3_FILE_REGISTRY_BY_KEY, getCanonicalTokenWriteTarget, getRegistryTitleTokenForSource } from 'src/utils/structureRegistry'
 
@@ -481,24 +435,17 @@ function isRelationshipSectionLabel(value = '') {
   const normalized = String(value || '').trim().toLowerCase()
   return normalized === 'kdb' || normalized === 'ldb'
 }
-const miniToolbarItems = computed(() => [
-  ...dialogSectionSplit.value.leftSections.map((section) => ({
-    value: section.key,
-    title: section.label,
-  })),
-  ...dialogSectionSplit.value.rightSections.map((section) => {
-    const normalized = String(section.rawLabel || section.label || '').trim().toLowerCase()
-    return {
-      value: section.key,
-      title: section.label,
-      isKdb: isRelationshipSectionLabel(normalized),
-      isSystem: normalized === 'system',
-      pushRight: true,
-    }
+const miniToolbarItems = computed(() =>
+  buildStructureToolbarItems({
+    leftItems: dialogSectionSplit.value.leftSections,
+    rightItems: dialogSectionSplit.value.rightSections,
+    governanceItems: [
+      { value: 'tokens', title: 'Tokens' },
+      { value: 'views', title: 'Views' },
+    ],
+    isRelationshipSectionLabel,
   }),
-  { value: 'tokens', title: 'Tokens', isGovernance: true, pushRight: true },
-  { value: 'views', title: 'Views', isGovernance: true, pushRight: true },
-])
+)
 const isGovernanceToolbarActive = computed(() => activeL2Toolbar.value === 'tokens' || activeL2Toolbar.value === 'views')
 const isTokensToolbarActive = computed(() => activeL2Toolbar.value === 'tokens')
 const isViewsToolbarActive = computed(() => activeL2Toolbar.value === 'views')

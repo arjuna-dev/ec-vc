@@ -427,62 +427,22 @@
                 v-if="isViewsSectionActive"
                 class="create-record-shell__governance-surface"
               >
-                <table class="create-record-shell__governance-table">
-                  <thead>
-                    <tr>
-                      <th>View</th>
-                      <th>Side</th>
-                      <th>Tokens</th>
-                      <th>Subgroups</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr v-for="view in governanceViewRows" :key="view.key">
-                      <td>{{ view.label }}</td>
-                      <td>{{ view.side }}</td>
-                      <td>{{ view.tokenCount }}</td>
-                      <td>{{ view.subgroupCount }}</td>
-                    </tr>
-                    <tr v-if="!governanceViewRows.length">
-                      <td colspan="4" class="create-record-shell__governance-empty">No views declared for this record.</td>
-                    </tr>
-                  </tbody>
-                </table>
+                <StructureGovernancePanel
+                  mode="views"
+                  :view-rows="governanceViewRows"
+                  empty-views-label="No views declared for this record."
+                />
               </div>
 
               <div
                 v-else-if="isTokensSectionActive"
                 class="create-record-shell__governance-groups"
               >
-                <section
-                  v-for="group in tokenGroupsByView"
-                  :key="group.key"
-                  class="create-record-shell__governance-group"
-                >
-                  <div class="create-record-shell__governance-group-head">
-                    <div class="create-record-shell__governance-group-title">{{ group.label }}</div>
-                    <div class="create-record-shell__governance-group-meta">{{ group.tokens.length }} tokens</div>
-                  </div>
-                  <table class="create-record-shell__governance-table">
-                    <thead>
-                      <tr>
-                        <th>Label</th>
-                        <th>Type</th>
-                        <th>Required</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr v-for="token in group.tokens" :key="token.key">
-                        <td>{{ token.label }}</td>
-                        <td>{{ token.type }}</td>
-                        <td>{{ token.required }}</td>
-                      </tr>
-                      <tr v-if="!group.tokens.length">
-                        <td colspan="3" class="create-record-shell__governance-empty">No tokens declared in this view.</td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </section>
+                <StructureGovernancePanel
+                  mode="tokens"
+                  :token-groups="tokenGroupsByView"
+                  empty-tokens-label="No tokens declared in this view."
+                />
               </div>
 
               <div
@@ -1573,12 +1533,14 @@ import CollapsibleSectionShell from 'src/components/CollapsibleSectionShell.vue'
 import DropZone from 'src/components/DropZone.vue'
 import ArtifactRow from 'src/components/ArtifactRow.vue'
 import MiniToolbar from 'src/components/MiniToolbar.vue'
+import StructureGovernancePanel from 'src/components/StructureGovernancePanel.vue'
 import ProcessingBox from 'src/components/ProcessingBox.vue'
 import ShellSelector from 'src/components/ShellSelector.vue'
 import FieldMapRow from 'src/components/FieldMapRow.vue'
 import EntryInputListBox from 'src/components/EntryInputListBox.vue'
 import L2SettingsMenu from 'src/components/L2SettingsMenu.vue'
 import RecordHistoryBox from 'src/components/RecordHistoryBox.vue'
+import { buildStructureToolbarItems } from 'src/utils/structureToolbarContract'
 import { buildRecordViewLocation } from 'src/utils/recordViewNavigation'
 import { setPendingIntakeShellRequest } from 'src/utils/intakeShellState'
 import {
@@ -1744,24 +1706,20 @@ const leftPanelSections = computed(() => {
 })
 
 const rightSections = computed(() => (branchSelectionSettled.value ? props.rightSections : []))
-const miniToolbarItems = computed(() => [
-  ...leftPanelSections.value.map((section) => ({
-    value: section.key,
-    title: section.label,
-  })),
-  ...rightSections.value.map((section) => {
-    const normalized = String(section.rawLabel || section.label || '').trim().toLowerCase()
-    return {
-      value: section.key,
-      title: section.label,
-      isKdb: normalized === 'kdb' || normalized === 'ldb',
-      isSystem: normalized === 'system',
-      pushRight: true,
-    }
+const miniToolbarItems = computed(() =>
+  buildStructureToolbarItems({
+    leftItems: leftPanelSections.value,
+    rightItems: rightSections.value,
+    governanceItems: [
+      { value: 'tokens', title: 'Tokens' },
+      { value: 'views', title: 'Views' },
+    ],
+    isRelationshipSectionLabel: (label) => {
+      const normalized = String(label || '').trim().toLowerCase()
+      return normalized === 'kdb' || normalized === 'ldb'
+    },
   }),
-  { value: 'tokens', title: 'Tokens', isGovernance: true, pushRight: true },
-  { value: 'views', title: 'Views', isGovernance: true, pushRight: true },
-])
+)
 
 const dialogTitle = computed(() => {
   const normalizedLabel = String(props.singularLabel || 'record').trim()
