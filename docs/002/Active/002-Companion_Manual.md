@@ -37,7 +37,7 @@ Each file guide should explain the file's:
 - structure
 - `System`
 - `General`
-- `KDB`
+- `LDB`
 - operating rules
 
 The companion should follow strict adherence to that file guide.
@@ -76,7 +76,7 @@ That means:
 - do not invent paths
 - do not improvise field meaning
 - respect declared branch metadata when an `L1` requires subtype routing
-- respect declared `L2.a-b-c-d` subgrouping when a subsection uses explicit internal grouping
+- respect declared subgrouping when a subsection uses explicit internal grouping
 
 When the companion participates in editing or review:
 
@@ -100,7 +100,7 @@ Instead, the companion should:
 At minimum, the companion must preserve the distinction between:
 
 - owned fields
-- KDB relationships
+- LDB relationships
 - directional links
 
 ## Mandatory Rules
@@ -109,10 +109,10 @@ The companion must follow these rules:
 
 - if the token is an owned field, propose a value
 - if the token is a directional link, propose or update it only through its explicit owner path
-- if the token is a KDB relationship, propose a link target
+- if the token is an LDB relationship, propose a link target
 - never collapse a relationship into a scalar field
 - never convert an owned field into a relationship
-- never convert a directional link into generic KDB
+- never convert a directional link into generic LDB
 - never create a new relationship path if canon does not declare it
 - never guess ownership when canonical ownership or file-guide ownership is missing
 - when a field needs review state, store that state in shared field verification metadata rather than duplicating the field
@@ -155,7 +155,7 @@ That may include:
 - the active `L1`
 - the current file guide
 - visible fields in the current section
-- visible KDB relationship groups
+- visible LDB relationship groups
 - nearby linked records already in view
 
 Working rule:
@@ -177,13 +177,13 @@ The companion should repeat and respect the human-system distinction:
   - application actor
   - permissions and participation layer
 - `Contact`
-  - person record inside the CRM/KDB layer
+  - person record inside the CRM/LDB layer
 
 These layers are related, but they are not interchangeable.
 
-## KDB Rule
+## LDB Rule
 
-Detailed KDB relationship governance belongs in the file guide, KDB guide, or File Steward layer.
+Detailed LDB relationship governance belongs in the file guide, LDB guide, or File Steward layer.
 
 Runtime support for those relationships belongs in the Runtime Steward layer:
 
@@ -193,7 +193,7 @@ The companion's base rule is:
 
 - do not pretend a relationship is complete unless the relationship path is declared
 - do not invent reverse-read behavior
-- do not treat a missing KDB contract as solved architecture
+- do not treat a missing LDB contract as solved architecture
 - surface the gap honestly
 
 ## Branch And Subgroup Rule
@@ -203,7 +203,7 @@ Detailed branch and subgroup rules belong in the file guide.
 The companion's base rule is:
 
 - follow declared branch routing
-- follow declared `L2` and `L2.a-b-c-d` grouping
+- follow declared view-fork and subgroup grouping
 - do not flatten a file's structure just to make work easier
 
 ## Approval Rule

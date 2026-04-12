@@ -77,7 +77,7 @@ The system should preserve round creation, security-type changes, valuation chan
 - shell rendering path is declared: `partial`, route exists in registry but is not workspace-visible
 - events/provenance path is declared: `partial`
 
-## L2 File System
+## View Fork System
 
 ### System
 

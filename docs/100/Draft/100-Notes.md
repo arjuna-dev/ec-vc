@@ -77,7 +77,7 @@ The system should preserve note creation, note edits, context reassignment, and 
 - shell rendering path is declared: `yes`, route `/notes`
 - events/provenance path is declared: `partial`
 
-## L2 File System
+## View Fork System
 
 ### System
 

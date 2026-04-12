@@ -53,7 +53,7 @@ If no, ask:
 
 If yes:
 
-- create as `L2`
+- create as `View Fork`
 - attach it to the selected parent file
 - describe its purpose in that file guide
 
@@ -63,17 +63,17 @@ If no, ask:
 
 If yes:
 
-- create as `L2.a`
-- attach it to the selected parent `L2`
+- create as `Subgroup`
+- attach it to the selected parent view fork
 - preserve its parent path clearly
 
 ## Default Decision
 
 When uncertain, begin as `L1`.
 
-Demote to `L2` only when the concept is clearly a section inside an already-existing file.
+Demote to `View Fork` only when the concept is clearly a section inside an already-existing file.
 
-Demote to `L2.a` only when the concept is clearly a subgroup inside an already-existing section.
+Demote to `Subgroup` only when the concept is clearly a subgroup inside an already-existing section.
 
 This protects the user mental model:
 
@@ -83,11 +83,11 @@ This protects the user mental model:
 
 ## File Specific Rule
 
-`File Specific` is not a replacement for real named `L2` sections.
+`File Specific` is not a replacement for real named view forks.
 
 `File Specific` is the governance area where the file records its unique structure metadata.
 
-Actual user-facing file structure should still be expressed through explicit `L2` and `L2.a` sections when the file needs them.
+Actual user-facing file structure should still be expressed through explicit view forks and subgroups when the file needs them.
 
 ## UX Parameters For Each File Guide
 
@@ -107,7 +107,7 @@ The `UX Steward` should:
 
 - define the user-facing questions for file birth
 - define where fork decisions appear in the flow
-- make `L1`, `L2`, and `L2.a` choices understandable without requiring architecture knowledge
+- make `L1`, `View Fork`, and `Subgroup` choices understandable without requiring architecture knowledge
 - protect the UI from hiding canonical consequences
 - help the File Steward guide the user through file creation
 - keep labels clear, compact, and aligned with canon
@@ -120,7 +120,7 @@ The `UX Steward` should not:
 
 - ask users to choose architecture vocabulary without plain-language support
 - hide structural consequences behind vague labels
-- allow `L2` or `L2.a` creation without parent selection
+- allow `View Fork` or `Subgroup` creation without parent selection
 - make the user guess whether something is a file, section, or subsection
 - let a visual shortcut bypass the file birth chain
 
@@ -141,7 +141,7 @@ The `UX Steward` should stop implementation and surface the gap when:
 - a user can create a file, section, or subsection without choosing its structural level
 - a fork is hidden behind a vague field
 - a user-facing choice creates an unclear canonical value
-- an `L2` or `L2.a` is being created without a selected parent
+- a `View Fork` or `Subgroup` is being created without a selected parent
 - the UI asks the user for architecture vocabulary without a plain-language explanation
 - a page, shell, or dialog uses wording that implies a meaning or action the system does not actually support
 

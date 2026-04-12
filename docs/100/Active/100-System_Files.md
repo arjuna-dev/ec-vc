@@ -38,11 +38,11 @@ It is the file-definition layer that helps the system know:
 | `System Files` | The app-facing file-definition surface. |
 | `Files` | The canonical entity behind the `System Files` surface. |
 | `File Guide` | The `.md` guide that explains and governs a specific file. |
-| `File Class` | Whether a file is an `L1`, `L2`, or `L2.a`. |
+| `File Class` | Whether a file is an `L1`, `View Fork`, or `Subgroup`. |
 | `Ownership Mode` | The declared ownership rule for a file or field. |
 | `Steward` | The companion or role responsible for keeping a file correct. |
-| `System` | The shared provenance and runtime-control L2 section. |
-| `General` | The shared human-readable description L2 section. |
+| `System` | The shared provenance and runtime-control view fork. |
+| `General` | The shared human-readable description view fork. |
 | `LDB` | The shared relationship section derived from the `System Files` file universe. |
 
 ## Referenced Documents
@@ -140,7 +140,7 @@ For `System Files`, the initial checklist is:
 - file guide exists: `yes`, `docs/100/Active/100-System_Files.md`
 - owner is declared: `yes`, `Owner`
 - steward is declared: `yes`, `File Steward`
-- UX fork questions are declared: `yes`, this guide defines the initial `L1/L2/L2.a` fork
+- UX fork questions are declared: `yes`, this guide defines the initial `L1 / View Fork / Subgroup` fork
 - create-branch instructions are declared: `yes`, branchable files must declare them in canon/registry before create flows depend on them
 - view-fork instructions are declared: `yes`, branchable files must declare them in canon/registry before toolbar/tune payload depends on them
 - `System` requirement is declared: `yes`
@@ -228,7 +228,7 @@ should all connect into one event backbone, even if some runtime paths still use
 
 `Creator` and `Datetime` should be treated as quick visible summaries of that event trail, not as a second competing source of truth.
 
-## L2 File System
+## View Fork System
 
 ### System
 
@@ -251,11 +251,11 @@ The `General` section should track:
 - file class
 - file status
 
-## Future L3 Field Rules
+## Future Token Field Rules
 
-When `System Files` and the `Add/Edit File Shell` later govern `L3` birth more directly, each declared `L3` should be able to carry more than just a label.
+When `System Files` and the `Add/Edit File Shell` later govern token birth more directly, each declared token should be able to carry more than just a label.
 
-At minimum, future `L3` definition should support:
+At minimum, future token definition should support:
 
 - field type
   - examples: `text`, `number`, `percentage`, `date`, `datetime`, `select_single`, `select_multi`
@@ -266,7 +266,7 @@ At minimum, future `L3` definition should support:
 
 This means file creation should later let the user decide not only:
 
-- which `L3` fields exist
+- which token fields exist
 
 but also:
 
@@ -277,7 +277,7 @@ but also:
 
 The target direction is for required-field logic to be explicit and governable, not buried in shell heuristics.
 
-That conditional-required layer should be treated as future `L3` governance work, not as loose UI-only behavior.
+That conditional-required layer should be treated as future token governance work, not as loose UI-only behavior.
 
 ### LDB
 

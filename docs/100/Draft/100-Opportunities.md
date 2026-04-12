@@ -77,7 +77,7 @@ The system should preserve opportunity creation, branch choice, status changes, 
 - shell rendering path is declared: `yes`, route `/opportunities`
 - events/provenance path is declared: `partial`
 
-## L2 File System
+## View Fork System
 
 ### System
 

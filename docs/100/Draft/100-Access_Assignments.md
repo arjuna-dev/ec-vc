@@ -98,7 +98,7 @@ The `Owner` should use `Access Assignments` to understand:
 
 The `File Steward` should validate:
 
-- whether `Access Assignments` has canonical `L1/L2/L3` structure before runtime use
+- whether `Access Assignments` has canonical `L1 / View Fork / Token` structure before runtime use
 - whether every access record has a linked `User` or access-enabled `Contact`
 - whether every scoped access record declares the relevant `Project` or scope
 - whether every scoped access record declares the relevant `Role`
@@ -189,7 +189,7 @@ This means `Access Assignments` is architecturally approved but not fully born.
 
 Do not implement access behavior from this file until the missing birth-chain items are completed.
 
-## L2 File System
+## View Fork System
 
 ### System
 

@@ -59,8 +59,8 @@ Examples of drift to avoid:
 
 After that shared base is declared, the `L1` may add:
 
-- its own independent `L2`s
-- its own explicit `L2.a`, `L2.b`, `L2.c`, `L2.d` subgrouping
+- its own independent view forks
+- its own explicit subgrouping
 
 This keeps every file compatible with the same shell activation paths while still allowing entity-specific structure.
 
@@ -93,9 +93,9 @@ The `File Steward` should treat this as a strict contract requirement, not as a 
 
 When subgrouping is structurally necessary inside a subsection:
 
-- it should be declared explicitly as `L2.a`, `L2.b`, `L2.c`, and so on
+- it should be declared explicitly as subgroup A/B/C (or similar explicit labels)
 - it should not be improvised in shell code only
-- it should preserve `L3` as the leaf layer
+- it should preserve tokens as the leaf layer
 
 ## Honest Birth Status Rule
 
@@ -170,7 +170,7 @@ The `File Steward` should:
 - protect the consistency of `System`, `LDB`, and `General` subgrouping
 - protect shared base field names from drifting into unnecessary entity-specific aliases
 - protect `LDB` as the required shared linkage section without pretending every `L1` must own a bespoke relationship leaf list
-- treat future `L3` field-definition governance as explicit contract work:
+- treat future token field-definition governance as explicit contract work:
   - field type
   - required-at-birth
   - conditional-required rules
@@ -179,9 +179,9 @@ The `File Steward` should:
 - use each file guide's `UX Steward` section to guide the user through structural forks
 - declare whether a file uses create branches, view forks, or no forks before exposing fork controls in shared shells
 - make sure `System Files` records declare `fork_mode` and `fork_enabled` before fork behavior is treated as real
-- ask whether a new structure is an `L1`, `L2`, or `L2.a` before accepting it as born
-- require parent file selection before creating an `L2`
-- require parent file and parent `L2` selection before creating an `L2.a`
+- ask whether a new structure is an `L1`, `View Fork`, or `Subgroup` before accepting it as born
+- require parent file selection before creating a `View Fork`
+- require parent file and parent view-fork selection before creating a `Subgroup`
 - treat `L1` as the safe default when the user is unsure whether something is a standalone file
 - act as the LDB orchestrator for file birth and file upkeep
 - make sure files are born correctly
@@ -216,7 +216,7 @@ The `File Steward` should:
   - real table/runtime owner
   - shared base subsections
   - shared base parameters
-  - entity-specific `L2` structure
+  - entity-specific view-fork structure
   - reciprocal LDB declarations
   - bridge owner-path choice
   - reverse-read path
@@ -257,7 +257,7 @@ The `File Steward` should not:
 - let a file guide move to `Active` when canon, registry, runtime, shell, or provenance is missing
 - create an `L1` without the shared `System`, `LDB`, and `General` base unless an approved exception exists
 - invent LDB bridge ownership after file birth instead of declaring it during bootstrap
-- bypass UX fork guidance when the user is choosing between `L1`, `L2`, and `L2.a`
+- bypass UX fork guidance when the user is choosing between `L1`, `View Fork`, and `Subgroup`
 - accept global role shortcuts when the required access rule depends on `Project x Role`
 
 ## Related Docs

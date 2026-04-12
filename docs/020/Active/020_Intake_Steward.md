@@ -60,7 +60,7 @@ The intake steward should:
 - read source materials carefully
 - orchestrate the relevant `File Stewards` when evaluating an artifact instead of answering in isolation
 - ask, file by file and section by section:
-  - does this artifact answer any declared `L1` or `L3` directive?
+  - does this artifact answer any declared `L1` or `Token` directive?
   - if yes, which specific file and token does it belong to?
   - if confidence is not high enough, should it remain a proposed value instead of a settled one?
 - propose field values through approved owner paths only

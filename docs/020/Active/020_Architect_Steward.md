@@ -35,7 +35,7 @@ No later layer should invent structure that the earlier layer did not declare.
 
 Before a new file or structural branch is treated as real, the `Architect Steward` should verify:
 
-- canonical `L1/L2/L3` structure exists
+- canonical `L1 / View Fork / Token` structure exists
 - `System Files` row exists
 - file guide exists
 - owner is declared

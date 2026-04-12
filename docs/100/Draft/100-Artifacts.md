@@ -78,7 +78,7 @@ The system should preserve artifact creation, source actor, raw-path changes, ve
 - shell rendering path is declared: `yes`, route `/artifacts`
 - events/provenance path is declared: `partial`
 
-## L2 File System
+## View Fork System
 
 ### System
 

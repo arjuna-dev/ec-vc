@@ -77,7 +77,7 @@ The system should preserve processing creation, stage changes, source artifact l
 - shell rendering path is declared: `yes`, route `/intake`
 - events/provenance path is declared: `partial`
 
-## L2 File System
+## View Fork System
 
 ### System
 

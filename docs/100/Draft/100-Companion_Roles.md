@@ -77,7 +77,7 @@ The system should preserve role creation, role contract changes, and role status
 - shell rendering path is declared: `yes`, route `/companion-roles`
 - events/provenance path is declared: `partial`
 
-## L2 File System
+## View Fork System
 
 ### System
 
