@@ -158,16 +158,48 @@ function migrateLegacyDbIfNeeded(dbPath) {
     return Number(tablesCount || 0) > 0
   }
 
+  const hasAnyRows = (probePath, tableName) => {
+    const probe = new Database(probePath, { readonly: true })
+    const exists = probe
+      .prepare("SELECT 1 FROM sqlite_master WHERE type='table' AND name=? LIMIT 1")
+      .get(String(tableName))
+    if (!exists) {
+      probe.close()
+      return false
+    }
+    const row = probe.prepare(`SELECT 1 FROM ${String(tableName)} LIMIT 1`).get()
+    probe.close()
+    return Boolean(row)
+  }
+
+  const legacyHasTables = hasTables(legacyPath)
+  if (!legacyHasTables) return
+
   if (!fse.pathExistsSync(dbPath)) {
-    if (!hasTables(legacyPath)) return
     fse.ensureDirSync(path.dirname(dbPath))
     copyLegacyDb(legacyPath, dbPath)
     return
   }
 
-  if (hasTables(dbPath)) return
-  if (!hasTables(legacyPath)) return
-  copyLegacyDb(legacyPath, dbPath)
+  if (!hasTables(dbPath)) {
+    copyLegacyDb(legacyPath, dbPath)
+    return
+  }
+
+  const currentHasRows =
+    hasAnyRows(dbPath, 'Files') ||
+    hasAnyRows(dbPath, 'Companies') ||
+    hasAnyRows(dbPath, 'Users') ||
+    hasAnyRows(dbPath, 'Notes')
+  const legacyHasRows =
+    hasAnyRows(legacyPath, 'Files') ||
+    hasAnyRows(legacyPath, 'Companies') ||
+    hasAnyRows(legacyPath, 'Users') ||
+    hasAnyRows(legacyPath, 'Notes')
+
+  if (!currentHasRows && legacyHasRows) {
+    copyLegacyDb(legacyPath, dbPath)
+  }
 }
 
 function copyLegacyDb(legacyPath, dbPath) {
