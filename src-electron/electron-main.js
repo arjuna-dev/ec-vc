@@ -6717,7 +6717,8 @@ function applyAuditedChanges(
 
     for (const change of normalizedChanges) {
       if (change.change_kind === 'relationship') {
-        const relationshipContract = getLdbRelationshipContractForToken(change.table_name, change.relationship_token, change.target_entity)
+        const resolvedTargetEntity = change.target_entity || resolveTargetEntityFromSharedToken(change.relationship_token)
+        const relationshipContract = getLdbRelationshipContractForToken(change.table_name, change.relationship_token, resolvedTargetEntity)
         if (!relationshipContract) {
           throw new Error(`Relationship contract is not wired for ${change.relationship_token} on ${change.table_name}`)
         }
@@ -9200,3 +9201,11 @@ app.on('activate', () => {
 app.on('before-quit', () => {
   closeDb()
 })
+function resolveTargetEntityFromSharedToken(tokenName = '') {
+  const raw = String(tokenName || '').trim()
+  if (!raw.startsWith('__shared_ldb__:')) return ''
+  const sourceKey = raw.slice('__shared_ldb__:'.length).trim().toLowerCase()
+  if (!sourceKey) return ''
+  const entry = FILE_PAGE_REGISTRY.find((candidate) => String(candidate?.key || '').trim().toLowerCase() === sourceKey)
+  return String(entry?.entityName || '').trim()
+}
