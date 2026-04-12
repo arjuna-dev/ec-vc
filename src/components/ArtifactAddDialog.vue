@@ -143,7 +143,7 @@ import {
   getRegistrySummaryTokenForSource,
   getRegistryTitleTokenForSource,
 } from 'src/utils/structureRegistry'
-import { buildDialogSections, groupDialogSections, splitDialogSections } from 'src/utils/dialogShellPayload'
+import { buildDialogViews, groupDialogViews, splitDialogViews } from 'src/utils/dialogShellPayload'
 import {
   createIntakeDraft,
   removeIntakeDraft,
@@ -200,7 +200,7 @@ const opportunityLevel3Tokens = computed(() =>
     })),
   ),
 )
-const opportunityGroupedLevel2Sections = computed(() => groupDialogSections(opportunityLevel2Sections.value))
+const opportunityGroupedLevel2Sections = computed(() => groupDialogViews(opportunityLevel2Sections.value))
 const opportunityKeyFieldTokens = computed(() => {
   const branchTokenName = getCreateBranchTokenName('opportunities')
   const branchToken = branchTokenName
@@ -217,8 +217,8 @@ const opportunityKeyFieldTokens = computed(() => {
 })
 const opportunityKeyFieldKeys = computed(() => new Set(opportunityKeyFieldTokens.value.map((token) => token.key)))
 const opportunitySectionGroups = computed(() =>
-  buildDialogSections({
-    groupedSections: opportunityGroupedLevel2Sections.value,
+  buildDialogViews({
+    groupedViews: opportunityGroupedLevel2Sections.value,
     tokenFilter: (section) =>
       opportunityLevel3Tokens.value.filter(
         (token) => token.parentKey === section.key && !opportunityKeyFieldKeys.value.has(token.key),
@@ -227,7 +227,7 @@ const opportunitySectionGroups = computed(() =>
     keepEmptySections: true,
   }),
 )
-const opportunityDialogSectionSplit = computed(() => splitDialogSections(opportunitySectionGroups.value))
+const opportunityDialogSectionSplit = computed(() => splitDialogViews(opportunitySectionGroups.value))
 const opportunityBranchSelectorTokenKey = computed(() => {
   const branchTokenName = getCreateBranchTokenName('opportunities')
   if (!branchTokenName) return ''

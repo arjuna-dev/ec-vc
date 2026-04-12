@@ -1,5 +1,5 @@
 <template>
-  <FilePageShell v-if="resolvedSourceKey" :shell-mode="resolvedShellMode" :source-key="resolvedSourceKey" />
+  <FilePageShell v-if="resolvedSourceKey" :shell-mode="resolvedMode" :source-key="resolvedSourceKey" />
   <q-page v-else class="q-pa-md">
     <q-banner class="bg-red-2 text-black" rounded>
       File Shell route is not mapped to an approved file source.
