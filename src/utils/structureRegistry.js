@@ -343,27 +343,13 @@ const FILE_PAGE_ENTITY_ORDER = [
   'Securities',
 ]
 
-function normalizeSubsections(entity) {
-  const subsections = entity?.subsections
-  if (Array.isArray(subsections)) return subsections
-  if (subsections && typeof subsections === 'object') return Object.values(subsections)
-  return []
-}
-
 function normalizeTokens(subsection) {
   const tokens = Array.isArray(subsection?.tokens) ? subsection.tokens : []
-  return tokens
-    .map((token, index) => {
-      const explicitRole = String(token?.token_role || token?.field_role || '').trim()
-      const legacyRole = String(token?.role || '').trim()
-      const inferredRole = explicitRole || legacyRole
-
-      return {
-        ...token,
-        tokenRole: inferredRole,
-        tokenOrder: String(token?.token_order ?? index + 1),
-      }
-    })
+  return tokens.map((token, index) => ({
+    ...token,
+    tokenRole: String(token?.token_role || token?.field_role || token?.role || '').trim(),
+    tokenOrder: String(token?.token_order ?? index + 1),
+  }))
 }
 
 function normalizeDbFieldAliases(token) {
@@ -448,7 +434,7 @@ function buildEntityRegistry(entityName) {
     .map((value) => String(value || '').trim())
     .filter(Boolean)
 
-  const sourceSubsections = customSubsections || normalizeSubsections(sourceEntity)
+  const sourceSubsections = customSubsections || []
   const tokenOverrides = meta.tokenOverrides && typeof meta.tokenOverrides === 'object' ? meta.tokenOverrides : {}
   const subsections = sourceSubsections
     .map((subsection, index) => ({
