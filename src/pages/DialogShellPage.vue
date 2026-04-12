@@ -82,7 +82,7 @@ function isRelationshipSection(sectionOrLabel) {
   const normalized = String(
     typeof sectionOrLabel === 'string'
       ? sectionOrLabel
-      : sectionOrLabel?.label || sectionOrLabel?.rawLabel || '',
+      : sectionOrLabel?.label || '',
   )
     .trim()
     .toLowerCase()
@@ -118,7 +118,6 @@ const fileViews = computed(() =>
     level_2: subsection.level_2,
     address: subsection.address,
     label: subsection.label,
-    rawLabel: subsection.rawLabel,
     structureToken: subsection.structureToken,
     subgroupKey: subsection.subgroupKey,
     subgroupLabel: subsection.subgroupLabel,
@@ -163,7 +162,7 @@ const promotedGeneralTokens = computed(() => {
     groupedViews.value
       .flatMap((group) => (Array.isArray(group.sections) ? group.sections : []))
       .filter((section) => {
-        const label = String(section?.label || section?.rawLabel || '').trim().toLowerCase()
+        const label = String(section?.label || '').trim().toLowerCase()
         return label !== 'general' && label !== 'system' && !isRelationshipSection(label)
       })
       .map((section) => section.key),
@@ -176,8 +175,8 @@ const promotedGeneralTokens = computed(() => {
 const generalSourceGroups = computed(() =>
   groupedViews.value.filter((group) =>
     Array.isArray(group.sections) &&
-      group.sections.some((section) => {
-      const label = String(section.label || section.rawLabel || '').trim().toLowerCase()
+    group.sections.some((section) => {
+      const label = String(section.label || '').trim().toLowerCase()
       return label !== 'general' && label !== 'system' && !isRelationshipSection(label)
     }),
   ),

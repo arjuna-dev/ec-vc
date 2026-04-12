@@ -967,7 +967,6 @@ const activeFileShellPayload = computed(() => {
     level_2: subsection.level_2,
     address: subsection.address,
     label: subsection.label,
-    rawLabel: subsection.rawLabel,
     structureToken: subsection.structureToken,
     subgroupKey: subsection.subgroupKey,
     subgroupLabel: subsection.subgroupLabel,
@@ -1008,12 +1007,11 @@ function isRelationshipSectionLabel(value = '') {
   return normalized === 'ldb'
 }
 const hasActiveSourceLdb = computed(() =>
-  level2Sections.value.some((section) => isRelationshipSectionLabel(section?.label || section?.rawLabel)),
+  fileViews.value.some((section) => isRelationshipSectionLabel(section?.label)),
 )
 
-const sourceLevel2Sections = computed(() => activeFileShellPayload.value.sections)
-const level2Sections = computed(() => sourceLevel2Sections.value)
-const level3Tokens = computed(() => activeFileShellPayload.value.tokens)
+const fileViews = computed(() => activeFileShellPayload.value.sections)
+const fileTokens = computed(() => activeFileShellPayload.value.tokens)
 const activeSectionKeyForCards = ref('')
 const activeFilterSectionKey = ref('')
 const activeFilterTokenKey = ref('')
@@ -1024,7 +1022,7 @@ const expandedBbFilterCategoryKey = ref('')
 const expandedCardSettingsGroupsBySource = ref({})
 
 const activeSection = computed(() => {
-  return level2Sections.value.find((section) => section.key === activeSectionKeyForCards.value) || level2Sections.value[0] || null
+  return fileViews.value.find((section) => section.key === activeSectionKeyForCards.value) || fileViews.value[0] || null
 })
 const activeGovernanceToolbarKey = computed(() => {
   const normalized = String(activeSectionKeyForCards.value || '').trim().toLowerCase()
@@ -1036,12 +1034,12 @@ const activeGovernanceTitle = computed(() => {
   if (activeGovernanceToolbarKey.value === 'views') return 'Views'
   return ''
 })
-const isLdbSectionActive = computed(() => isRelationshipSectionLabel(activeSection.value?.label || activeSection.value?.rawLabel))
+const isLdbSectionActive = computed(() => isRelationshipSectionLabel(activeSection.value?.label))
 const isSystemSectionActive = computed(() => String(activeSection.value?.label || '').trim().toLowerCase() === 'system')
 
 const activeSectionTokens = computed(() => {
   if (!activeSection.value) return []
-  return level3Tokens.value.filter((token) => token.parentKey === activeSection.value.key)
+  return fileTokens.value.filter((token) => token.parentKey === activeSection.value.key)
 })
 
 const sharedLdbSectionTokens = computed(() => {
@@ -1087,7 +1085,7 @@ const selectedRecordShellLevel3Keys = computed(() => {
   if (!isRecordShellMode.value) return []
   const rawValue = route.query.l3
   const rawItems = Array.isArray(rawValue) ? rawValue : String(rawValue || '').split(',')
-  const allowedKeys = new Set(level3Tokens.value.map((token) => token.key))
+  const allowedKeys = new Set(fileTokens.value.map((token) => token.key))
   return rawItems
     .map((value) => String(value || '').trim())
     .filter((value) => value && allowedKeys.has(value))
@@ -1096,16 +1094,15 @@ const selectedRecordShellLevel3KeySet = computed(() => new Set(selectedRecordShe
 const activeCardSettingsSectionKey = computed(() => String(activeSection.value?.key || '').trim())
 
 const forkViewRows = computed(() =>
-  level2Sections.value.map((section) => ({
+  fileViews.value.map((section) => ({
     key: section.key,
     label: section.label,
-    rawLabel: section.rawLabel,
-    tokenCount: level3Tokens.value.filter((token) => token.parentKey === section.key).length,
+    tokenCount: fileTokens.value.filter((token) => token.parentKey === section.key).length,
   })),
 )
 
 function isCoreForkViewRow(view) {
-  const normalized = String(view?.label || view?.rawLabel || '').trim().toLowerCase()
+  const normalized = String(view?.label || '').trim().toLowerCase()
   return normalized === 'general' || normalized === 'system' || isRelationshipSectionLabel(normalized)
 }
 
@@ -1121,7 +1118,7 @@ const cardSettingsSourceSections = computed(() => {
 
 const availableCardItemTokens = computed(() => {
   const sourceSectionKeys = new Set(cardSettingsSourceSections.value.map((section) => section.key))
-  return level3Tokens.value.filter(
+  return fileTokens.value.filter(
     (token) => sourceSectionKeys.has(token.parentKey) && token.key !== canonicalTitleToken.value?.key,
   )
 })
@@ -1143,7 +1140,7 @@ function getRequiredCreateTokenNamesForSource() {
 const requiredCreateTokens = computed(() => {
   const requiredTokenNames = new Set(getRequiredCreateTokenNamesForSource(activeSourceKey.value))
   if (!requiredTokenNames.size) return []
-  return level3Tokens.value
+  return fileTokens.value
     .filter((token) => requiredTokenNames.has(String(token?.tokenName || '').trim()))
     .map((token) => normalizeCreateDialogToken(token))
 })
@@ -1151,7 +1148,7 @@ const requiredCreateTokens = computed(() => {
 const createPrimaryTokens = computed(() => {
   const branchTokenName = getCreateBranchTokenName(activeSourceKey.value)
   const branchToken = branchTokenName
-    ? level3Tokens.value.find((token) => String(token?.tokenName || '').trim() === branchTokenName) || null
+    ? fileTokens.value.find((token) => String(token?.tokenName || '').trim() === branchTokenName) || null
     : null
   const tokens = [canonicalTitleToken.value, canonicalSummaryToken.value, branchToken, ...requiredCreateTokens.value].filter(Boolean)
   const seen = new Set()
@@ -1177,12 +1174,12 @@ const cardItemTokenGroups = computed(() =>
     }))
     .filter((group) => group.tokens.length),
 )
-const groupedLevel2Sections = computed(() => groupDialogSections(level2Sections.value))
+const groupedViews = computed(() => groupDialogSections(fileViews.value))
 const createSectionGroups = computed(() => {
   const primaryTokenKeys = new Set(createPrimaryTokens.value.map((token) => token.key))
   return buildDialogSections({
-    groupedSections: groupedLevel2Sections.value,
-    tokenFilter: (section) => level3Tokens.value.filter(
+    groupedSections: groupedViews.value,
+    tokenFilter: (section) => fileTokens.value.filter(
       (token) =>
         token.parentKey === section.key &&
         !primaryTokenKeys.has(token.key) &&
@@ -1202,7 +1199,7 @@ const createDialogBranchSelectorTokenKey = computed(() => {
   return createPrimaryTokens.value.find((token) => String(token?.tokenName || '').trim() === branchTokenName)?.key || ''
 })
 const createDialogLdbSectionKey = computed(
-  () => createSectionGroups.value.find((section) => isRelationshipSectionLabel(section?.label || section?.rawLabel))?.key || '',
+  () => createSectionGroups.value.find((section) => isRelationshipSectionLabel(section?.label))?.key || '',
 )
 const isTableInlineEditingAvailable = computed(() => viewMode.value !== 'card')
 const activeCardSettingsScopeKey = computed(() => `${activeContentSourceKey.value}:${activeCardSettingsSectionKey.value}`)
@@ -1906,14 +1903,14 @@ watch(
   { immediate: true },
 )
 const tableLeftSections = computed(() =>
-  level2Sections.value.filter((section) => {
-    const label = String(section.label || section.rawLabel || '').trim().toLowerCase()
+  fileViews.value.filter((section) => {
+    const label = String(section.label || '').trim().toLowerCase()
     return !isRelationshipSectionLabel(label) && label !== 'system'
   }),
 )
 const tableRightSections = computed(() =>
-  level2Sections.value.filter((section) => {
-    const label = String(section.label || section.rawLabel || '').trim().toLowerCase()
+  fileViews.value.filter((section) => {
+    const label = String(section.label || '').trim().toLowerCase()
     return isRelationshipSectionLabel(label) || label === 'system'
   }),
 )
@@ -1922,7 +1919,7 @@ const governanceViewRows = computed(() =>
     key: section.key,
     label: section.label,
     side: tableRightSections.value.some((entry) => entry.key === section.key) ? 'Right' : 'Left',
-    tokenCount: level3Tokens.value.filter((token) => token.parentKey === section.key).length,
+    tokenCount: fileTokens.value.filter((token) => token.parentKey === section.key).length,
     subgroupCount: 0,
   })),
 )
@@ -1930,7 +1927,7 @@ const tokenGroupsByView = computed(() =>
   governanceViewRows.value.map((view) => ({
     key: view.key,
     label: view.label,
-    tokens: level3Tokens.value
+    tokens: fileTokens.value
       .filter((token) => token.parentKey === view.key)
       .map((token) => ({
         key: token.key,
@@ -1974,7 +1971,7 @@ watch(
     rowHistoryLoadingByRecordId.value = {}
     await loadRows()
     await ensureLiveOptionRowsLoaded('file-system')
-    activeSectionKeyForCards.value = getDefaultActiveSectionKey(level2Sections.value)
+    activeSectionKeyForCards.value = getDefaultActiveSectionKey(fileViews.value)
   },
   { immediate: true },
 )
@@ -2026,7 +2023,7 @@ watch(
 )
 
 watch(
-  level2Sections,
+  fileViews,
   (sections) => {
     if (!sections.some((section) => section.key === activeSectionKeyForCards.value)) {
       activeSectionKeyForCards.value = getDefaultActiveSectionKey(sections)
@@ -2364,12 +2361,12 @@ function buildShellRow(row, index) {
     (isBbFileSource.value ? stringifyValue(row?.Name) : '')
     || stringifyValue(getCanonicalTokenValue(row, canonicalTitleToken.value))
   const tokenPresence = Object.fromEntries(
-    level3Tokens.value.map((token) => [token.key, Boolean(stringifyValue(getCanonicalTokenValue(row, token)))]),
+    fileTokens.value.map((token) => [token.key, Boolean(stringifyValue(getCanonicalTokenValue(row, token)))]),
   )
   const sectionPresence = Object.fromEntries(
-    level2Sections.value.map((section) => [
+    fileViews.value.map((section) => [
       section.key,
-      level3Tokens.value
+      fileTokens.value
         .filter((token) => token.parentKey === section.key)
         .some((token) => tokenPresence[token.key]),
     ]),
@@ -2517,7 +2514,7 @@ function buildExplicitCardRelationshipOverrides(row) {
 
   const itemsByPanel = {}
 
-  level3Tokens.value.forEach((token) => {
+  fileTokens.value.forEach((token) => {
     const relationshipContract = getLdbRelationshipContractForToken(entityName, token?.tokenName)
     if (!relationshipContract) return
 
@@ -2567,7 +2564,7 @@ function getSharedLdbTokenRawValue(row, token) {
   if (!contracts.length) return []
 
   const values = contracts.flatMap((contract) => {
-    const sourceToken = level3Tokens.value.find(
+    const sourceToken = fileTokens.value.find(
       (entry) => String(entry?.tokenName || '').trim() === String(contract?.sourceToken || '').trim(),
     )
     if (!sourceToken) return []
@@ -4248,7 +4245,7 @@ function deriveFileSourceKeyFromName(value) {
 function setActiveFilterSection(sectionKey) {
   activeFilterSectionKey.value = sectionKey
   if (activeFilterTokenKey.value) {
-    const tokenStillVisible = level3Tokens.value.some(
+  const tokenStillVisible = fileTokens.value.some(
       (token) => token.key === activeFilterTokenKey.value && token.parentKey === sectionKey,
     )
     if (!tokenStillVisible) activeFilterTokenKey.value = ''
@@ -4261,7 +4258,7 @@ function clearSectionFilter() {
 
 function setActiveFilterToken(tokenKey) {
   activeFilterTokenKey.value = tokenKey
-  const token = level3Tokens.value.find((entry) => entry.key === tokenKey)
+  const token = fileTokens.value.find((entry) => entry.key === tokenKey)
   if (token?.parentKey) activeFilterSectionKey.value = token.parentKey
 }
 
@@ -4279,7 +4276,7 @@ function toggleFilterToken(tokenKey, nextValue) {
 }
 
 function getSectionTokens(sectionKey) {
-  return level3Tokens.value.filter((token) => token.parentKey === sectionKey)
+  return fileTokens.value.filter((token) => token.parentKey === sectionKey)
 }
 
 function getFilterSectionTokenCount(sectionKey) {
@@ -4310,7 +4307,7 @@ function applyFilterSelection(value) {
   if (normalized.startsWith('token:')) {
     const tokenKey = normalized.slice('token:'.length)
     setActiveFilterToken(tokenKey)
-    const token = level3Tokens.value.find((entry) => entry.key === tokenKey)
+    const token = fileTokens.value.find((entry) => entry.key === tokenKey)
     expandedFilterSectionKey.value = token?.parentKey || ''
   }
 }

@@ -540,13 +540,12 @@ const activeSourceKey = computed(() => {
 })
 const hasResolvedSourceKey = computed(() => Boolean(activeSourceKey.value))
 const activeRegistryEntry = computed(() => getFilePageRegistryEntry(activeSourceKey.value) || null)
-const level2Sections = computed(() =>
+const fileViews = computed(() =>
   (Array.isArray(activeRegistryEntry.value?.subsections) ? activeRegistryEntry.value.subsections : []).map((subsection) => ({
     key: subsection.key,
     level_2: subsection.level_2,
     address: subsection.address,
     label: subsection.label,
-    rawLabel: subsection.rawLabel,
     structureToken: subsection.structureToken,
     subgroupKey: subsection.subgroupKey,
     subgroupLabel: subsection.subgroupLabel,
@@ -554,7 +553,7 @@ const level2Sections = computed(() =>
     displayGroup: subsection.displayGroup,
   })),
 )
-const level3Tokens = computed(() =>
+const fileTokens = computed(() =>
   (Array.isArray(activeRegistryEntry.value?.subsections) ? activeRegistryEntry.value.subsections : []).flatMap((subsection) =>
     (Array.isArray(subsection.tokens) ? subsection.tokens : []).map((token) => ({
       ...token,
@@ -575,12 +574,12 @@ const canonicalNameToken = computed(() => getRegistryTitleTokenForSource(activeS
 const canonicalSummaryToken = computed(() => getRegistrySummaryTokenForSource(activeSourceKey.value) || null)
 
 const selectableTokens = computed(() =>
-  level3Tokens.value.filter((token) => {
+  fileTokens.value.filter((token) => {
     const label = String(token.label || '').trim().toLowerCase()
     return label !== 'name' && label !== 'summary'
   }),
 )
-const sectionDisplayTokens = computed(() => level3Tokens.value.map((token) => normalizeCreateDialogToken(token)))
+const sectionDisplayTokens = computed(() => fileTokens.value.map((token) => normalizeCreateDialogToken(token)))
 const normalizedSelectableTokens = computed(() => selectableTokens.value.map((token) => normalizeCreateDialogToken(token)))
 
 const selectedTokenKeys = computed({
@@ -604,10 +603,10 @@ function isRelationshipSectionLabel(value = '') {
   return normalized === 'ldb'
 }
 const heroSourceGroups = computed(() =>
-  groupedLevel2Sections.value.filter((group) =>
+  groupedViews.value.filter((group) =>
     Array.isArray(group.sections) &&
     group.sections.some((section) => {
-      const label = String(section.label || section.rawLabel || '').trim().toLowerCase()
+      const label = String(section.label || '').trim().toLowerCase()
       return label !== 'general' && label !== 'system' && !isRelationshipSectionLabel(label)
     }),
   ),
@@ -622,7 +621,7 @@ const selectedHeroTokens = computed(() =>
   heroSelectableTokens.value.filter((token) => selectedTokenKeySet.value.has(token.key)),
 )
 const createKeyFieldTokens = computed(() => [canonicalNameToken.value, canonicalSummaryToken.value].filter(Boolean).map(normalizeCreateDialogToken))
-const groupedLevel2Sections = computed(() => groupDialogSections(level2Sections.value))
+const groupedViews = computed(() => groupDialogSections(fileViews.value))
 const sharedLdbSectionTokens = computed(() => {
   if (!activeRegistryEntry.value?.entityName) return []
 
@@ -662,9 +661,9 @@ const sharedLdbSectionTokens = computed(() => {
 })
 const createSectionGroups = computed(() =>
   buildDialogSections({
-    groupedSections: groupedLevel2Sections.value,
+    groupedSections: groupedViews.value,
     tokenFilter: (section) => (
-      isRelationshipSectionLabel(section?.label || section?.rawLabel)
+      isRelationshipSectionLabel(section?.label)
         ? sharedLdbSectionTokens.value
         : normalizedSelectableTokens.value.filter(
             (token) => token.parentKey === section.key && (isRecordRoute.value || selectedTokenKeySet.value.has(token.key)),
@@ -683,7 +682,7 @@ const activeGovernanceToolbarKey = computed(() => {
 })
 const activeSectionGroup = computed(() => {
   if (activeGovernanceToolbarKey.value) return null
-  return groupedLevel2Sections.value.find((group) => group.value === activeSectionKey.value) || groupedLevel2Sections.value[0] || null
+  return groupedViews.value.find((group) => group.value === activeSectionKey.value) || groupedViews.value[0] || null
 })
 const activeSection = computed(() => activeSectionGroup.value?.sections?.[0] || null)
 const activeSectionEntries = computed(() => activeSectionGroup.value?.sections || [])
@@ -692,7 +691,7 @@ const activeSectionTokens = computed(() => {
   return sectionDisplayTokens.value.filter((token) => activeSectionEntries.value.some((section) => section.key === token.parentKey))
 })
 const isLdbSectionActive = computed(() =>
-  activeSectionEntries.value.some((section) => isRelationshipSectionLabel(section.label || section.rawLabel)),
+  activeSectionEntries.value.some((section) => isRelationshipSectionLabel(section.label)),
 )
 const isSystemSectionActive = computed(() => activeSectionEntries.value.some((section) => String(section.label || '').trim().toLowerCase() === 'system'))
 const systemSectionTokens = computed(() => activeSectionTokens.value.filter((token) => !isHistoryDerivedSystemToken(token)))
@@ -707,13 +706,13 @@ const activeSectionTokenGroups = computed(() =>
     .filter((group) => group.tokens.length),
 )
 const toolbarLeftSections = computed(() =>
-  groupedLevel2Sections.value.filter(
-    (group) => !group.sections.some((section) => isRelationshipSectionLabel(section.label || section.rawLabel) || String(section.label || section.rawLabel || '').trim().toLowerCase() === 'system'),
+  groupedViews.value.filter(
+    (group) => !group.sections.some((section) => isRelationshipSectionLabel(section.label) || String(section.label || '').trim().toLowerCase() === 'system'),
   ),
 )
 const toolbarRightSections = computed(() =>
-  groupedLevel2Sections.value.filter(
-    (group) => group.sections.some((section) => isRelationshipSectionLabel(section.label || section.rawLabel) || String(section.label || section.rawLabel || '').trim().toLowerCase() === 'system'),
+  groupedViews.value.filter(
+    (group) => group.sections.some((section) => isRelationshipSectionLabel(section.label) || String(section.label || '').trim().toLowerCase() === 'system'),
   ),
 )
 
@@ -763,7 +762,7 @@ const recordFeedArtifactContext = computed(() => {
 })
 const selectedHeroFieldCards = computed(() =>
   selectedHeroTokens.value.map((token) => {
-    const sectionLabel = level2Sections.value.find((section) => section.key === token.parentKey)?.label || 'Unmapped section'
+    const sectionLabel = fileViews.value.find((section) => section.key === token.parentKey)?.label || 'Unmapped section'
     return {
       key: token.key,
       label: token.label,
@@ -863,14 +862,14 @@ const heroSettingsGroups = computed(() => heroSourceGroups.value.map((group) => 
     })),
 })).filter((group) => group.items.length))
 
-watch(level2Sections, (sections) => {
+watch(fileViews, (sections) => {
   if (!sections.length) {
     activeSectionKey.value = ''
     expandedSectionKeys.value = []
     expandedSectionSubgroupKeys.value = []
     return
   }
-  const groups = groupedLevel2Sections.value
+  const groups = groupedViews.value
   if (!groups.some((group) => group.value === activeSectionKey.value)) activeSectionKey.value = groups[0]?.value || ''
   expandedSectionKeys.value = sections.map((section) => section.key)
 }, { immediate: true })
@@ -1254,7 +1253,7 @@ function getSharedLdbTokenRawValue(token) {
   if (!contracts.length) return []
 
   const values = contracts.flatMap((contract) => {
-    const sourceToken = level3Tokens.value.find(
+    const sourceToken = fileTokens.value.find(
       (entry) => String(entry?.tokenName || '').trim() === String(contract?.sourceToken || '').trim(),
     )
     if (!sourceToken) return []
@@ -1361,7 +1360,7 @@ function formatAuditActorLabel(editedBy) {
 function getAuditTokenForFieldName(fieldName = '') {
   const normalizedFieldName = String(fieldName || '').replace(/__verification$/, '').trim()
   if (!normalizedFieldName) return null
-  return level3Tokens.value.find((token) => {
+  return fileTokens.value.find((token) => {
     const aliases = getCanonicalTokenFieldNames(token)
     return aliases.includes(normalizedFieldName)
   }) || null
