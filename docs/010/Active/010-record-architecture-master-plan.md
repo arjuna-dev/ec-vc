@@ -172,10 +172,8 @@ The reasoning matters more than the order alone:
 - once they exist, a new file should be creatable by first creating a new `Files` record and declaring what that file is
 - that record should tell the system whether the new thing is:
   - a true `L1`
-  - a `View Fork`
-  - a `Subgroup`
   - or another approved structure layer
-- that classification should help determine:
+That classification should help determine (for `L1` file rows only):
   - whether shared `System` applies
   - whether shared `LDB` applies
   - who owns the file

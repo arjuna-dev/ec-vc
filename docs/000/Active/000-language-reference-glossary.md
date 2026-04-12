@@ -60,8 +60,8 @@
 | Promoted Relationship Owner | A dedicated join table used once the relationship itself needs its own governed fields, access-control rules, activation logic, or audit meaning. | Record Architecture |
 | Loaded At Birth | The rule that a new normal `L1` should be born with its reciprocal LDB bridge layer already decided and declared as part of bootstrap, rather than relying on manual back-wiring later. | Product Reference |
 | Transitional Manual Bridge | A temporary repair where a missing LDB bridge contract is wired after file birth. This may be needed while architecture is converging, but it should not be treated as the intended steady-state rule. | Record Architecture |
-| Entity Extension Layer | The independent structure a specific `L1` adds after the shared base, including its own extra `L2`s and any explicit `L2.a-b-c-d` subgrouping. | File Steward Contract |
-| L3 Token | The leaf token level in canonical structure. It is where field behavior, alias mapping, and write-path expectations should be declared. | Record Architecture |
+| Entity Extension Layer | The independent structure a specific `L1` adds after the shared base, including its own extra view forks and any explicit subgrouping. | File Steward Contract |
+| Token | The leaf token level in canonical structure. It is where field behavior, alias mapping, and write-path expectations should be declared. | Record Architecture |
 | Owned Field | A value owned by the current record or its approved owned subtable. It writes through that owner path only. | Companion |
 | Directional Link | A root-established or rule-bearing path such as identity, authority, provenance, or parentage. It should not be treated like generic LDB. | Record Architecture |
 | LDB Relationship | A link between records that must have a declared relationship path, owner path, reverse-read path, and bidirectional visibility. In the current shared-shell flow, relation editing should open the shared `Add/Edit Record Shell` in `LDB` with the clicked source record context. | Companion |
