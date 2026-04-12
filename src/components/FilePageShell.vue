@@ -144,7 +144,7 @@
                 :title="isBbFileSource ? 'Building Block Filter' : 'File Filter'"
                 :sections="fileFilterMenuSections"
                 :expanded-section-key="isBbFileSource ? expandedBbFilterCategoryKey : expandedFilterViewKey"
-                @toggle-section="handleFileFilterToggleSection"
+                @toggle-section="handleFileFilterToggleView"
                 @toggle-item="handleFileFilterToggleItem"
                 @toggle-item-checkbox="handleFileFilterToggleItemCheckbox"
               />
@@ -439,7 +439,7 @@
                   </div>
                 </th>
                 <th
-                  v-if="isSystemSectionActive"
+                  v-if="isSystemViewActive"
                   class="test-shell-table__head"
                   :style="getTableColumnStyle('history', 320)"
                 >
@@ -589,7 +589,7 @@
                     </div>
                     <span v-else class="test-shell-card__value--placeholder">No explicit value</span>
                   </template>
-                  <template v-else-if="isLdbSectionActive">
+                  <template v-else-if="isLdbViewActive">
                     <div
                       v-if="getLdbDisplayItems(tokenRow).length"
                       class="test-shell-table__ldb-list"
@@ -637,7 +637,7 @@
                   </span>
                 </td>
                 <td
-                  v-if="isSystemSectionActive"
+                  v-if="isSystemViewActive"
                   class="test-shell-table__cell test-shell-table__cell--history"
                   :style="getTableColumnStyle('history', 320)"
                 >
@@ -1034,16 +1034,16 @@ const activeGovernanceTitle = computed(() => {
   if (activeGovernanceToolbarKey.value === 'views') return 'Views'
   return ''
 })
-const isLdbSectionActive = computed(() => isRelationshipSectionLabel(activeView.value?.label))
-const isSystemSectionActive = computed(() => String(activeView.value?.label || '').trim().toLowerCase() === 'system')
+const isLdbViewActive = computed(() => isRelationshipSectionLabel(activeView.value?.label))
+const isSystemViewActive = computed(() => String(activeView.value?.label || '').trim().toLowerCase() === 'system')
 
 const activeViewTokens = computed(() => {
   if (!activeView.value) return []
   return fileTokens.value.filter((token) => token.parentKey === activeView.value.key)
 })
 
-const sharedLdbSectionTokens = computed(() => {
-  if (!isLdbSectionActive.value) return []
+const sharedLdbViewTokens = computed(() => {
+  if (!isLdbViewActive.value) return []
 
   const systemFileTitleToken = getRegistryTitleTokenForSource('file-system')
   const seenSourceKeys = new Set()
@@ -1405,8 +1405,8 @@ const bbGraphRowColumns = computed(() => {
 })
 const tableViewTokens = computed(() => {
   const baseTokens = (
-    isLdbSectionActive.value
-      ? sharedLdbSectionTokens.value
+    isLdbViewActive.value
+      ? sharedLdbViewTokens.value
       : activeViewTokens.value.filter((token) => token.key !== canonicalTitleToken.value?.key)
   )
   if (!isBbFileSource.value) return baseTokens
@@ -1977,7 +1977,7 @@ watch(
 )
 
 watch(
-  [rawRows, isSystemSectionActive, viewMode, activeSourceKey],
+  [rawRows, isSystemViewActive, viewMode, activeSourceKey],
   async ([rows, isSystem, currentViewMode]) => {
     const shouldLoadRowHistory = isSystem || currentViewMode === 'card'
     if (!shouldLoadRowHistory || !bridge.value?.audit?.events || !activeRegistryEntry.value?.entityName) {
@@ -2216,7 +2216,7 @@ function getInitialTableColumns() {
     ...tableViewTokens.value.map((token) => ({
       key: token.key,
       defaultWidth: Math.max(
-        isLdbSectionActive.value ? LDB_COLUMN_DEFAULT_WIDTH : DEFAULT_COLUMN_MIN_WIDTH,
+        isLdbViewActive.value ? LDB_COLUMN_DEFAULT_WIDTH : DEFAULT_COLUMN_MIN_WIDTH,
         getColumnLabelWidth(token?.label),
       ),
     })),
@@ -4312,12 +4312,12 @@ function applyFilterSelection(value) {
   }
 }
 
-function handleFileFilterToggleSection(sectionKey) {
+function handleFileFilterToggleView(viewKey) {
   if (isBbFileSource.value) {
-    toggleExpandedBbFilterCategory(sectionKey)
+    toggleExpandedBbFilterCategory(viewKey)
     return
   }
-  toggleExpandedFilterView(sectionKey)
+  toggleExpandedFilterView(viewKey)
 }
 
 function handleFileFilterToggleItem(itemKey) {

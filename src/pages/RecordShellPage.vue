@@ -85,11 +85,11 @@
           />
         </div>
 
-        <div v-else-if="isSystemSectionActive" class="record-shell__system-grid">
+        <div v-else-if="isSystemViewActive" class="record-shell__system-grid">
           <div class="record-shell__system-column">
             <div class="record-shell__field-grid">
               <div
-                v-for="token in systemSectionTokens"
+                v-for="token in systemViewTokens"
                 :key="token.key"
                 class="record-shell__field-card"
               >
@@ -214,7 +214,7 @@
           </div>
         </div>
 
-        <div v-else-if="hasGroupedSectionSubsections" class="record-shell__section-group-stack">
+        <div v-else-if="hasGroupedViewSubgroups" class="record-shell__section-group-stack">
           <section
             v-for="group in activeViewTokenGroups"
             :key="group.key"
@@ -579,7 +579,7 @@ const selectableTokens = computed(() =>
     return label !== 'name' && label !== 'summary'
   }),
 )
-const sectionDisplayTokens = computed(() => fileTokens.value.map((token) => normalizeCreateDialogToken(token)))
+const viewDisplayTokens = computed(() => fileTokens.value.map((token) => normalizeCreateDialogToken(token)))
 const normalizedSelectableTokens = computed(() => selectableTokens.value.map((token) => normalizeCreateDialogToken(token)))
 
 const selectedTokenKeys = computed({
@@ -605,15 +605,15 @@ function isRelationshipViewLabel(value = '') {
 const heroSourceGroups = computed(() =>
   groupedViews.value.filter((group) =>
     Array.isArray(group.views) &&
-    group.views.some((section) => {
-      const label = String(section.label || '').trim().toLowerCase()
+    group.views.some((view) => {
+      const label = String(view.label || '').trim().toLowerCase()
       return label !== 'general' && label !== 'system' && !isRelationshipViewLabel(label)
     }),
   ),
 )
 const heroSelectableTokens = computed(() => {
   const allowedSectionKeys = new Set(
-    heroSourceGroups.value.flatMap((group) => (Array.isArray(group.views) ? group.views : []).map((section) => section.key)),
+    heroSourceGroups.value.flatMap((group) => (Array.isArray(group.views) ? group.views : []).map((view) => view.key)),
   )
   return normalizedSelectableTokens.value.filter((token) => allowedSectionKeys.has(token.parentKey))
 })
@@ -622,7 +622,7 @@ const selectedHeroTokens = computed(() =>
 )
 const createKeyFieldTokens = computed(() => [canonicalNameToken.value, canonicalSummaryToken.value].filter(Boolean).map(normalizeCreateDialogToken))
 const groupedViews = computed(() => groupDialogViews(fileViews.value))
-const sharedLdbSectionTokens = computed(() => {
+const sharedLdbViewTokens = computed(() => {
   if (!activeRegistryEntry.value?.entityName) return []
 
   const systemFileTitleToken = getRegistryTitleTokenForSource('file-system')
@@ -662,11 +662,11 @@ const sharedLdbSectionTokens = computed(() => {
 const createViewGroups = computed(() =>
   buildDialogViews({
     groupedViews: groupedViews.value,
-    tokenFilter: (section) => (
-      isRelationshipViewLabel(section?.label)
-        ? sharedLdbSectionTokens.value
+    tokenFilter: (view) => (
+      isRelationshipViewLabel(view?.label)
+        ? sharedLdbViewTokens.value
         : normalizedSelectableTokens.value.filter(
-            (token) => token.parentKey === section.key && (isRecordRoute.value || selectedTokenKeySet.value.has(token.key)),
+            (token) => token.parentKey === view.key && (isRecordRoute.value || selectedTokenKeySet.value.has(token.key)),
           )
     ),
     mapToken: normalizeCreateDialogToken,
@@ -687,32 +687,32 @@ const activeViewGroup = computed(() => {
 const activeView = computed(() => activeViewGroup.value?.views?.[0] || null)
 const activeViewEntries = computed(() => activeViewGroup.value?.views || [])
 const activeViewTokens = computed(() => {
-  if (isLdbSectionActive.value) return sharedLdbSectionTokens.value
-  return sectionDisplayTokens.value.filter((token) => activeViewEntries.value.some((section) => section.key === token.parentKey))
+  if (isLdbViewActive.value) return sharedLdbViewTokens.value
+  return viewDisplayTokens.value.filter((token) => activeViewEntries.value.some((view) => view.key === token.parentKey))
 })
-const isLdbSectionActive = computed(() =>
-  activeViewEntries.value.some((section) => isRelationshipViewLabel(section.label)),
+const isLdbViewActive = computed(() =>
+  activeViewEntries.value.some((view) => isRelationshipViewLabel(view.label)),
 )
-const isSystemSectionActive = computed(() => activeViewEntries.value.some((section) => String(section.label || '').trim().toLowerCase() === 'system'))
-const systemSectionTokens = computed(() => activeViewTokens.value.filter((token) => !isHistoryDerivedSystemToken(token)))
-const hasGroupedSectionSubsections = computed(() => !isLdbSectionActive.value && activeViewEntries.value.length > 1)
+const isSystemViewActive = computed(() => activeViewEntries.value.some((view) => String(view.label || '').trim().toLowerCase() === 'system'))
+const systemViewTokens = computed(() => activeViewTokens.value.filter((token) => !isHistoryDerivedSystemToken(token)))
+const hasGroupedViewSubgroups = computed(() => !isLdbViewActive.value && activeViewEntries.value.length > 1)
 const activeViewTokenGroups = computed(() =>
   activeViewEntries.value
-    .map((section) => ({
-      key: section.key,
-      title: section.label,
-      tokens: sectionDisplayTokens.value.filter((token) => token.parentKey === section.key),
+    .map((view) => ({
+      key: view.key,
+      title: view.label,
+      tokens: viewDisplayTokens.value.filter((token) => token.parentKey === view.key),
     }))
     .filter((group) => group.tokens.length),
 )
-const toolbarLeftSections = computed(() =>
+const toolbarLeftViews = computed(() =>
   groupedViews.value.filter(
-    (group) => !group.views.some((section) => isRelationshipViewLabel(section.label) || String(section.label || '').trim().toLowerCase() === 'system'),
+    (group) => !group.views.some((view) => isRelationshipViewLabel(view.label) || String(view.label || '').trim().toLowerCase() === 'system'),
   ),
 )
-const toolbarRightSections = computed(() =>
+const toolbarRightViews = computed(() =>
   groupedViews.value.filter(
-    (group) => group.views.some((section) => isRelationshipViewLabel(section.label) || String(section.label || '').trim().toLowerCase() === 'system'),
+    (group) => group.views.some((view) => isRelationshipViewLabel(view.label) || String(view.label || '').trim().toLowerCase() === 'system'),
   ),
 )
 
@@ -762,11 +762,11 @@ const recordFeedArtifactContext = computed(() => {
 })
 const selectedHeroFieldCards = computed(() =>
   selectedHeroTokens.value.map((token) => {
-    const sectionLabel = fileViews.value.find((section) => section.key === token.parentKey)?.label || 'Unmapped section'
+    const viewLabel = fileViews.value.find((view) => view.key === token.parentKey)?.label || 'Unmapped view'
     return {
       key: token.key,
       label: token.label,
-      description: sectionLabel,
+      description: viewLabel,
       value: getTokenDisplayValue(token),
       statusIcon: tokenHasStoredValue(token) ? 'task_alt' : '',
     }
@@ -826,8 +826,8 @@ const activeGovernanceTitle = computed(() => {
 })
 const recordShellNavItems = computed(() =>
   buildStructureToolbarItems({
-    leftItems: toolbarLeftSections.value,
-    rightItems: toolbarRightSections.value,
+    leftItems: toolbarLeftViews.value,
+    rightItems: toolbarRightViews.value,
     governanceItems: [
       { value: 'governance:tokens', title: 'Tokens' },
       { value: 'governance:views', title: 'Views' },
@@ -1653,7 +1653,7 @@ function isInlineFieldEditable(token) {
 function isSystemReadOnlyInline(token) {
   return Boolean(
     isRecordRoute.value &&
-    isSystemSectionActive.value &&
+    isSystemViewActive.value &&
     !isInlineFieldEditable(token),
   )
 }
