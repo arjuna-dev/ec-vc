@@ -89,7 +89,7 @@ Owner Genesis file creation order:
 21. `Rounds`
 22. `Markets`
 23. `Securities`
-24. remaining current supporting `KDB` / reference files
+24. remaining current supporting `LDB` / reference files
 
 File-before-record rule:
 
@@ -413,7 +413,7 @@ The game layer should repeatedly reinforce the human-system distinction:
   - permissions and participation layer
 
 - `Contact`
-  - person record inside the CRM/KDB layer
+  - person record inside the CRM/LDB layer
 
 This matters because not all human links mean the same thing.
 
