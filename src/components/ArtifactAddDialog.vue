@@ -138,7 +138,6 @@ import AddEditRecordShellDialog from './AddEditRecordShellDialog.vue'
     CANONICAL_OPTION_LISTS,
     getCreateBranchTokenName,
     getCanonicalTokenValue,
-    getFilePageRegistryEntry,
     getFilePageRegistryEntryByEntityReference,
     getRegistrySummaryTokenForSource,
     getRegistryTitleTokenForSource,
@@ -178,7 +177,6 @@ const opportunityDialogRenderKey = ref(0)
 const liveOptionRowsBySource = ref({})
 const DEFAULT_PIPELINE_ID = 'pipeline_default'
 const opportunityShellPayload = computed(() => buildFileShellPayload('opportunities'))
-const opportunityRegistryEntry = computed(() => opportunityShellPayload.value.registryEntry)
 const opportunityLevel2Sections = computed(() => opportunityShellPayload.value.sections)
 const opportunityLevel3Tokens = computed(() => opportunityShellPayload.value.tokens)
 const opportunityGroupedLevel2Sections = computed(() => groupDialogViews(opportunityLevel2Sections.value))
