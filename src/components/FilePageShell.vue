@@ -35,6 +35,8 @@
         <div>denseRows: {{ denseRowCount }}</div>
         <div>displayRows: {{ displayRows.length }}</div>
         <div>activeView: {{ activeView?.label || activeViewKey || 'none' }}</div>
+        <div>canonicalTitleToken: {{ canonicalTitleToken?.tokenName || 'none' }}</div>
+        <div>firstTitle: {{ debugFirstTitle || 'none' }}</div>
         <div>filterView: {{ activeFilterViewKey || 'none' }}</div>
         <div>filterToken: {{ activeFilterTokenKey || 'none' }}</div>
         <div>search: {{ searchQuery || 'none' }}</div>
@@ -823,6 +825,11 @@ const debugEnabled = computed(() => process.env.DEV || String(route.query.debug 
 const debugDbSummary = ref(null)
 const debugDbLoading = ref(false)
 const denseRowCount = computed(() => rawRows.value.filter((row) => row && typeof row === 'object').length)
+const debugFirstTitle = computed(() => {
+  const row = rawRows.value[0]
+  if (!row || !canonicalTitleToken.value) return ''
+  return stringifyValue(getCanonicalTokenValue(row, canonicalTitleToken.value))
+})
 const loading = ref(false)
 const error = ref('')
 const searchQuery = ref('')
