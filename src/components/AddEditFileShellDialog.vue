@@ -203,7 +203,7 @@ import SectionTabs from 'src/components/SectionTabs.vue'
 import MiniToolbar from 'src/components/MiniToolbar.vue'
 import StructureGovernancePanel from 'src/components/StructureGovernancePanel.vue'
 import { buildStructureToolbarItems } from 'src/utils/structureToolbarContract'
-import { splitDialogSections } from 'src/utils/dialogShellPayload'
+import { splitDialogViews } from 'src/utils/dialogShellPayload'
 import { getCanonicalTokenWriteTarget, getFilePageRegistryEntry, getRegistryTitleTokenForSource } from 'src/utils/structureRegistry'
 import { buildFileStructureSessionSnapshot } from 'src/utils/fileStructureSession'
 
@@ -293,7 +293,7 @@ const activeFilePayload = computed(() => {
 const payloadSections = computed(() => activeFilePayload.value.sections)
 const payloadTokens = computed(() => activeFilePayload.value.tokens)
 const fileViewGroups = computed(() => payloadSections.value)
-const toolbarViewSplit = computed(() => splitDialogSections(fileViewGroups.value))
+const toolbarViewSplit = computed(() => splitDialogViews(fileViewGroups.value))
 function isRelationshipSectionLabel(value = '') {
   const normalized = String(value || '').trim().toLowerCase()
   return normalized === 'ldb'

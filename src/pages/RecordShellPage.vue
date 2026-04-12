@@ -58,7 +58,7 @@
 
       <MiniToolbar
         v-if="recordShellNavItems.length"
-        v-model="activeSectionKey"
+        v-model="activeViewGroupKey"
         aria-label="Record sections"
         :items="recordShellNavItems"
         :view-mode="recordShellTopNavViewMode"
@@ -223,17 +223,17 @@
             <button
               type="button"
               class="record-shell__section-group-toggle"
-              @click="toggleSectionSubgroup(group.key)"
+              @click="toggleViewSubgroup(group.key)"
             >
               <q-icon
-                :name="isSectionSubgroupExpanded(group.key) ? 'expand_more' : 'chevron_right'"
+                :name="isViewSubgroupExpanded(group.key) ? 'expand_more' : 'chevron_right'"
                 size="14px"
                 class="record-shell__section-group-toggle-icon"
               />
               <span class="record-shell__section-group-title">{{ group.title }}</span>
               <span class="record-shell__section-group-meta">{{ group.tokens.length }} fields</span>
             </button>
-            <div v-if="isSectionSubgroupExpanded(group.key)" class="record-shell__field-grid">
+            <div v-if="isViewSubgroupExpanded(group.key)" class="record-shell__field-grid">
               <div v-for="token in group.tokens" :key="token.key" class="record-shell__field-card">
                 <div class="record-shell__field-label">{{ token.label }}</div>
                 <div v-if="isRecordRoute" class="record-shell__field-value-row">
@@ -449,8 +449,8 @@
         :source-label="activeRegistryEntry?.label || 'Records'"
         :singular-label="activeRegistryEntry?.singularLabel || 'record'"
         :primary-tokens="createKeyFieldTokens"
-        :left-sections="createDialogLeftSections"
-        :right-sections="createDialogRightSections"
+        :left-sections="createDialogLeftViews"
+        :right-sections="createDialogRightViews"
         :loading="createDialogLoading"
         :submit-disabled="createDialogLoading"
         :initial-values="dialogInitialValues"
@@ -491,7 +491,7 @@ import {
   FILE_SOURCE_REGISTRY,
   resolveApprovedFileSectionKey,
 } from 'src/utils/structureRegistry'
-import { buildDialogSections, groupDialogSections, splitDialogSections } from 'src/utils/dialogShellPayload'
+import { buildDialogViews, groupDialogViews, splitDialogViews } from 'src/utils/dialogShellPayload'
 import { filterRecordFeedTabs, RECORD_FEED_GROUP_OPTIONS } from 'src/utils/recordFeedContract'
 import { setPendingIntakeShellRequest } from 'src/utils/intakeShellState'
 import { loadShellFieldSelectionMap, persistShellFieldSelectionMap } from 'src/utils/shellFieldSelection'
@@ -509,10 +509,10 @@ const createDialogOpen = ref(false)
 const createDialogRenderKey = ref(0)
 const createDialogLoading = ref(false)
 const liveOptionRowsBySource = ref({})
-const expandedSectionKeys = ref([])
+const expandedViewKeys = ref([])
 const expandedHeroGroupKeys = ref([])
-const expandedSectionSubgroupKeys = ref([])
-const activeSectionKey = ref('')
+const expandedViewSubgroupKeys = ref([])
+const activeViewGroupKey = ref('')
 const contactHeroRef = ref(null)
 const contactHeroGradient = ref({ x: 50, y: 30, size: 60, opacity: 0 })
 const activeRecordFeedTab = ref('events')
@@ -604,8 +604,8 @@ function isRelationshipSectionLabel(value = '') {
 }
 const heroSourceGroups = computed(() =>
   groupedViews.value.filter((group) =>
-    Array.isArray(group.sections) &&
-    group.sections.some((section) => {
+    Array.isArray(group.views) &&
+    group.views.some((section) => {
       const label = String(section.label || '').trim().toLowerCase()
       return label !== 'general' && label !== 'system' && !isRelationshipSectionLabel(label)
     }),
@@ -613,7 +613,7 @@ const heroSourceGroups = computed(() =>
 )
 const heroSelectableTokens = computed(() => {
   const allowedSectionKeys = new Set(
-    heroSourceGroups.value.flatMap((group) => (Array.isArray(group.sections) ? group.sections : []).map((section) => section.key)),
+    heroSourceGroups.value.flatMap((group) => (Array.isArray(group.views) ? group.views : []).map((section) => section.key)),
   )
   return normalizedSelectableTokens.value.filter((token) => allowedSectionKeys.has(token.parentKey))
 })
@@ -621,7 +621,7 @@ const selectedHeroTokens = computed(() =>
   heroSelectableTokens.value.filter((token) => selectedTokenKeySet.value.has(token.key)),
 )
 const createKeyFieldTokens = computed(() => [canonicalNameToken.value, canonicalSummaryToken.value].filter(Boolean).map(normalizeCreateDialogToken))
-const groupedViews = computed(() => groupDialogSections(fileViews.value))
+const groupedViews = computed(() => groupDialogViews(fileViews.value))
 const sharedLdbSectionTokens = computed(() => {
   if (!activeRegistryEntry.value?.entityName) return []
 
@@ -660,8 +660,8 @@ const sharedLdbSectionTokens = computed(() => {
     .filter(Boolean)
 })
 const createViewGroups = computed(() =>
-  buildDialogSections({
-    groupedSections: groupedViews.value,
+  buildDialogViews({
+    groupedViews: groupedViews.value,
     tokenFilter: (section) => (
       isRelationshipSectionLabel(section?.label)
         ? sharedLdbSectionTokens.value
@@ -673,19 +673,19 @@ const createViewGroups = computed(() =>
     keepEmptySections: true,
   }),
 )
-const createDialogViewSplit = computed(() => splitDialogSections(createViewGroups.value))
-const createDialogLeftSections = computed(() => createDialogViewSplit.value.leftSections)
-const createDialogRightSections = computed(() => createDialogViewSplit.value.rightSections)
+const createDialogViewSplit = computed(() => splitDialogViews(createViewGroups.value))
+const createDialogLeftViews = computed(() => createDialogViewSplit.value.leftSections)
+const createDialogRightViews = computed(() => createDialogViewSplit.value.rightSections)
 const activeGovernanceToolbarKey = computed(() => {
-  const current = String(activeSectionKey.value || '').trim().toLowerCase()
+  const current = String(activeViewGroupKey.value || '').trim().toLowerCase()
   return current.startsWith('governance:') ? current : ''
 })
 const activeViewGroup = computed(() => {
   if (activeGovernanceToolbarKey.value) return null
-  return groupedViews.value.find((group) => group.value === activeSectionKey.value) || groupedViews.value[0] || null
+  return groupedViews.value.find((group) => group.value === activeViewGroupKey.value) || groupedViews.value[0] || null
 })
-const activeView = computed(() => activeViewGroup.value?.sections?.[0] || null)
-const activeViewEntries = computed(() => activeViewGroup.value?.sections || [])
+const activeView = computed(() => activeViewGroup.value?.views?.[0] || null)
+const activeViewEntries = computed(() => activeViewGroup.value?.views || [])
 const activeViewTokens = computed(() => {
   if (isLdbSectionActive.value) return sharedLdbSectionTokens.value
   return sectionDisplayTokens.value.filter((token) => activeViewEntries.value.some((section) => section.key === token.parentKey))
@@ -707,12 +707,12 @@ const activeViewTokenGroups = computed(() =>
 )
 const toolbarLeftSections = computed(() =>
   groupedViews.value.filter(
-    (group) => !group.sections.some((section) => isRelationshipSectionLabel(section.label) || String(section.label || '').trim().toLowerCase() === 'system'),
+    (group) => !group.views.some((section) => isRelationshipSectionLabel(section.label) || String(section.label || '').trim().toLowerCase() === 'system'),
   ),
 )
 const toolbarRightSections = computed(() =>
   groupedViews.value.filter(
-    (group) => group.sections.some((section) => isRelationshipSectionLabel(section.label) || String(section.label || '').trim().toLowerCase() === 'system'),
+    (group) => group.views.some((section) => isRelationshipSectionLabel(section.label) || String(section.label || '').trim().toLowerCase() === 'system'),
   ),
 )
 
@@ -853,8 +853,8 @@ const heroSettingsGroups = computed(() => heroSourceGroups.value.map((group) => 
   key: group.value,
   label: group.title,
   expanded: isHeroGroupExpanded(group.value),
-  items: (Array.isArray(group.sections) ? group.sections : [])
-    .flatMap((section) => getSectionTokens(section.key))
+  items: (Array.isArray(group.views) ? group.views : [])
+    .flatMap((section) => getViewTokens(section.key))
     .map((token) => ({
       key: token.key,
       label: token.label,
@@ -864,14 +864,14 @@ const heroSettingsGroups = computed(() => heroSourceGroups.value.map((group) => 
 
 watch(fileViews, (sections) => {
   if (!sections.length) {
-    activeSectionKey.value = ''
-    expandedSectionKeys.value = []
-    expandedSectionSubgroupKeys.value = []
+    activeViewGroupKey.value = ''
+    expandedViewKeys.value = []
+    expandedViewSubgroupKeys.value = []
     return
   }
   const groups = groupedViews.value
-  if (!groups.some((group) => group.value === activeSectionKey.value)) activeSectionKey.value = groups[0]?.value || ''
-  expandedSectionKeys.value = sections.map((section) => section.key)
+  if (!groups.some((group) => group.value === activeViewGroupKey.value)) activeViewGroupKey.value = groups[0]?.value || ''
+  expandedViewKeys.value = sections.map((section) => section.key)
 }, { immediate: true })
 
 watch(heroSourceGroups, (groups) => {
@@ -884,9 +884,9 @@ watch(heroSourceGroups, (groups) => {
 
 watch(activeViewTokenGroups, (groups) => {
   const nextKeys = groups.map((group) => group.key)
-  expandedSectionSubgroupKeys.value = nextKeys.filter((key) => expandedSectionSubgroupKeys.value.includes(key))
-  if (!expandedSectionSubgroupKeys.value.length && nextKeys.length) {
-    expandedSectionSubgroupKeys.value = [...nextKeys]
+  expandedViewSubgroupKeys.value = nextKeys.filter((key) => expandedViewSubgroupKeys.value.includes(key))
+  if (!expandedViewSubgroupKeys.value.length && nextKeys.length) {
+    expandedViewSubgroupKeys.value = [...nextKeys]
   }
 }, { immediate: true })
 
@@ -940,18 +940,18 @@ onBeforeUnmount(() => {
 })
 
 function isHeroGroupExpanded(groupKey) { return expandedHeroGroupKeys.value.includes(groupKey) }
-function isSectionSubgroupExpanded(groupKey) { return expandedSectionSubgroupKeys.value.includes(groupKey) }
+function isViewSubgroupExpanded(groupKey) { return expandedViewSubgroupKeys.value.includes(groupKey) }
 function toggleHeroGroup(groupKey) {
   expandedHeroGroupKeys.value = isHeroGroupExpanded(groupKey)
     ? expandedHeroGroupKeys.value.filter((key) => key !== groupKey)
     : [...expandedHeroGroupKeys.value, groupKey]
 }
-function toggleSectionSubgroup(groupKey) {
-  expandedSectionSubgroupKeys.value = isSectionSubgroupExpanded(groupKey)
-    ? expandedSectionSubgroupKeys.value.filter((key) => key !== groupKey)
-    : [...expandedSectionSubgroupKeys.value, groupKey]
+function toggleViewSubgroup(groupKey) {
+  expandedViewSubgroupKeys.value = isViewSubgroupExpanded(groupKey)
+    ? expandedViewSubgroupKeys.value.filter((key) => key !== groupKey)
+    : [...expandedViewSubgroupKeys.value, groupKey]
 }
-function getSectionTokens(sectionKey) { return selectableTokens.value.filter((token) => token.parentKey === sectionKey) }
+function getViewTokens(viewKey) { return selectableTokens.value.filter((token) => token.parentKey === viewKey) }
 function isSelectedToken(tokenKey) { return selectedTokenKeySet.value.has(tokenKey) }
 function setTokenSelected(tokenKey, isSelected) {
   const next = new Set(selectedTokenKeys.value)

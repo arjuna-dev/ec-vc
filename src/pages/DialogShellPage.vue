@@ -74,7 +74,7 @@ import {
   resolveApprovedFileSectionKey,
   TEST_SHELL_SECTION_OPTIONS,
 } from 'src/utils/structureRegistry'
-import { buildDialogSections, groupDialogSections, splitDialogSections } from 'src/utils/dialogShellPayload'
+import { buildDialogViews, groupDialogViews, splitDialogViews } from 'src/utils/dialogShellPayload'
 import { buildTokenUpdateChanges, normalizeTokenWriteValue } from 'src/utils/tokenWriteChanges'
 import { submitSharedRecordEditSession } from 'src/utils/sharedRecordEditSession'
 
@@ -135,7 +135,7 @@ const fileTokens = computed(() =>
     })),
   ),
 )
-const groupedViews = computed(() => groupDialogSections(fileViews.value))
+const groupedViews = computed(() => groupDialogViews(fileViews.value))
 const canonicalNameToken = computed(() => getRegistryTitleTokenForSource(activeSourceKey.value) || null)
 const canonicalSummaryToken = computed(() => getRegistrySummaryTokenForSource(activeSourceKey.value) || null)
 
@@ -160,7 +160,7 @@ const promotedGeneralTokens = computed(() => {
 
   const nonCoreSectionKeys = new Set(
     groupedViews.value
-      .flatMap((group) => (Array.isArray(group.sections) ? group.sections : []))
+      .flatMap((group) => (Array.isArray(group.views) ? group.views : []))
       .filter((section) => {
         const label = String(section?.label || '').trim().toLowerCase()
         return label !== 'general' && label !== 'system' && !isRelationshipSection(label)
@@ -174,8 +174,8 @@ const promotedGeneralTokens = computed(() => {
 })
 const generalSourceGroups = computed(() =>
   groupedViews.value.filter((group) =>
-    Array.isArray(group.sections) &&
-    group.sections.some((section) => {
+    Array.isArray(group.views) &&
+    group.views.some((section) => {
       const label = String(section.label || '').trim().toLowerCase()
       return label !== 'general' && label !== 'system' && !isRelationshipSection(label)
     }),
@@ -183,7 +183,7 @@ const generalSourceGroups = computed(() =>
 )
 const generalSelectableTokens = computed(() => {
   const allowedViewKeys = new Set(
-    generalSourceGroups.value.flatMap((group) => (Array.isArray(group.sections) ? group.sections : []).map((section) => section.key)),
+    generalSourceGroups.value.flatMap((group) => (Array.isArray(group.views) ? group.views : []).map((section) => section.key)),
   )
   return fileTokens.value
     .filter((token) => allowedViewKeys.has(token.parentKey))
@@ -208,7 +208,7 @@ const generalSettingsGroups = computed(() => generalSourceGroups.value.map((grou
   key: group.value,
   label: group.title,
   expanded: expandedGeneralSettingsGroupKeys.value.includes(group.value),
-  items: (Array.isArray(group.sections) ? group.sections : [])
+  items: (Array.isArray(group.views) ? group.views : [])
     .flatMap((section) =>
       fileTokens.value
         .filter((token) => token.parentKey === section.key)
@@ -264,8 +264,8 @@ const sharedLdbSectionTokens = computed(() => {
     .filter(Boolean)
 })
 const createViewGroups = computed(() =>
-  buildDialogSections({
-    groupedSections: groupedViews.value,
+  buildDialogViews({
+    groupedViews: groupedViews.value,
     tokenFilter: (section) => (
       isRelationshipSection(section)
         ? sharedLdbSectionTokens.value
@@ -277,7 +277,7 @@ const createViewGroups = computed(() =>
     keepEmptySections: true,
   }),
 )
-const dialogViewSplit = computed(() => splitDialogSections(createViewGroups.value))
+const dialogViewSplit = computed(() => splitDialogViews(createViewGroups.value))
 const canCreateWithShell = computed(() => {
   const branchEntries = getCreateBranches(activeSourceKey.value)
   if (branchEntries.length) {

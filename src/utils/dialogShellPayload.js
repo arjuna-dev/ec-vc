@@ -1,8 +1,8 @@
-export function getDialogSectionGroupValue(section) {
-  const subgroupKey = String(section?.subgroupKey || '').trim()
+export function getDialogViewGroupValue(view) {
+  const subgroupKey = String(view?.subgroupKey || '').trim()
   if (subgroupKey) return `subgroup:${subgroupKey}`
-  const displayGroup = String(section?.displayGroup || '').trim()
-  return displayGroup ? `group:${displayGroup}` : String(section?.key || '').trim()
+  const displayGroup = String(view?.displayGroup || '').trim()
+  return displayGroup ? `group:${displayGroup}` : String(view?.key || '').trim()
 }
 
 function isRelationshipSectionLabel(value = '') {
@@ -10,61 +10,61 @@ function isRelationshipSectionLabel(value = '') {
   return normalized === 'ldb'
 }
 
-export function groupDialogSections(sections = []) {
+export function groupDialogViews(views = []) {
   const groups = []
-  for (const section of Array.isArray(sections) ? sections : []) {
-    const value = getDialogSectionGroupValue(section)
+  for (const view of Array.isArray(views) ? views : []) {
+    const value = getDialogViewGroupValue(view)
     const existing = groups.find((group) => group.value === value)
     if (existing) {
-      existing.sections.push(section)
+      existing.views.push(view)
       continue
     }
     groups.push({
       value,
-      title: String(section?.subgroupLabel || section?.displayGroup || section?.label || '').trim(),
-      sections: [section],
+      title: String(view?.subgroupLabel || view?.displayGroup || view?.label || '').trim(),
+      views: [view],
     })
   }
   return groups
 }
 
-export function buildDialogSections({
-  groupedSections = [],
+export function buildDialogViews({
+  groupedViews = [],
   tokenFilter = () => true,
   mapToken = (token) => token,
   keepEmptySections = false,
 } = {}) {
-  return (Array.isArray(groupedSections) ? groupedSections : [])
+  return (Array.isArray(groupedViews) ? groupedViews : [])
     .map((group) => {
-      const subsectionGroups = (Array.isArray(group?.sections) ? group.sections : [])
-        .map((section) => ({
-          key: section.key,
-          label: section.label,
-          tokens: tokenFilter(section).map((token) => mapToken(token)),
+      const subgroupViews = (Array.isArray(group?.views) ? group.views : [])
+        .map((view) => ({
+          key: view.key,
+          label: view.label,
+          tokens: tokenFilter(view).map((token) => mapToken(token)),
         }))
-        .filter((section) => keepEmptySections || section.tokens.length)
+        .filter((view) => keepEmptySections || view.tokens.length)
 
-      const flatTokens = subsectionGroups.flatMap((section) => section.tokens)
+      const flatTokens = subgroupViews.flatMap((view) => view.tokens)
       return {
         key: group.value,
         label: group.title,
         tokens: flatTokens,
-        subgroups: subsectionGroups.length > 1 ? subsectionGroups : [],
+        subgroups: subgroupViews.length > 1 ? subgroupViews : [],
       }
     })
     .filter((group) => keepEmptySections || group.tokens.length)
 }
 
-export function splitDialogSections(sectionGroups = []) {
-  const sections = Array.isArray(sectionGroups) ? sectionGroups : []
+export function splitDialogViews(viewGroups = []) {
+  const views = Array.isArray(viewGroups) ? viewGroups : []
   return {
-    leftSections: sections.filter((section) => {
-      const sectionLabel = String(section?.label || '').trim().toLowerCase()
-      return ![ 'system' ].includes(sectionLabel) && !isRelationshipSectionLabel(sectionLabel)
+    leftSections: views.filter((view) => {
+      const viewLabel = String(view?.label || '').trim().toLowerCase()
+      return ![ 'system' ].includes(viewLabel) && !isRelationshipSectionLabel(viewLabel)
     }),
-    rightSections: sections.filter((section) => {
-      const sectionLabel = String(section?.label || '').trim().toLowerCase()
-      return sectionLabel === 'system' || isRelationshipSectionLabel(sectionLabel)
+    rightSections: views.filter((view) => {
+      const viewLabel = String(view?.label || '').trim().toLowerCase()
+      return viewLabel === 'system' || isRelationshipSectionLabel(viewLabel)
     }),
   }
 }

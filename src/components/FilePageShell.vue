@@ -525,7 +525,7 @@
                   </div>
                 </td>
                 <td
-                  v-for="tokenRow in row.sectionTokenRows"
+                  v-for="tokenRow in row.viewTokenRows"
                   :key="tokenRow.key"
                   class="test-shell-table__cell"
                   :style="getTableColumnStyle(tokenRow.columnKey, DEFAULT_COLUMN_MIN_WIDTH)"
@@ -674,8 +674,8 @@
         :source-label="activeRegistryEntry?.label || 'Records'"
         :singular-label="activeRegistryEntry?.singularLabel || 'record'"
         :primary-tokens="createPrimaryTokens"
-        :left-sections="createDialogLeftSections"
-        :right-sections="createDialogRightSections"
+        :left-sections="createDialogLeftViews"
+        :right-sections="createDialogRightViews"
         :branch-selector-token-key="createDialogBranchSelectorTokenKey"
         :loading="createDialogLoading"
         :submit-disabled="createDialogSubmitDisabled"
@@ -756,7 +756,7 @@ import {
   resolveApprovedFileSectionKey,
 } from 'src/utils/structureRegistry'
 import { getLdbRelationshipContractForToken, getLdbRelationshipContractsForEntity } from 'src/shared/ldbRelationshipContracts'
-import { buildDialogSections, groupDialogSections, splitDialogSections } from 'src/utils/dialogShellPayload'
+import { buildDialogViews, groupDialogViews, splitDialogViews } from 'src/utils/dialogShellPayload'
 import { buildRecordViewLocation } from 'src/utils/recordViewNavigation'
 import { shareRecordSelection } from 'src/utils/recordListSelectionActions'
 import { loadShellFieldSelectionMap, persistShellFieldSelectionMap } from 'src/utils/shellFieldSelection'
@@ -1174,11 +1174,11 @@ const cardItemTokenGroups = computed(() =>
     }))
     .filter((group) => group.tokens.length),
 )
-const groupedViews = computed(() => groupDialogSections(fileViews.value))
+const groupedViews = computed(() => groupDialogViews(fileViews.value))
 const createViewGroups = computed(() => {
   const primaryTokenKeys = new Set(createPrimaryTokens.value.map((token) => token.key))
-  return buildDialogSections({
-    groupedSections: groupedViews.value,
+  return buildDialogViews({
+    groupedViews: groupedViews.value,
     tokenFilter: (section) => fileTokens.value.filter(
       (token) =>
         token.parentKey === section.key &&
@@ -1190,15 +1190,15 @@ const createViewGroups = computed(() => {
     keepEmptySections: true,
   })
 })
-const createDialogViewSplit = computed(() => splitDialogSections(createViewGroups.value))
-const createDialogLeftSections = computed(() => createDialogViewSplit.value.leftSections)
-const createDialogRightSections = computed(() => createDialogViewSplit.value.rightSections)
+const createDialogViewSplit = computed(() => splitDialogViews(createViewGroups.value))
+const createDialogLeftViews = computed(() => createDialogViewSplit.value.leftSections)
+const createDialogRightViews = computed(() => createDialogViewSplit.value.rightSections)
 const createDialogBranchSelectorTokenKey = computed(() => {
   const branchTokenName = getCreateBranchTokenName(activeSourceKey.value)
   if (!branchTokenName) return ''
   return createPrimaryTokens.value.find((token) => String(token?.tokenName || '').trim() === branchTokenName)?.key || ''
 })
-const createDialogLdbSectionKey = computed(
+const createDialogLdbViewKey = computed(
   () => createViewGroups.value.find((section) => isRelationshipSectionLabel(section?.label))?.key || '',
 )
 const isTableInlineEditingAvailable = computed(() => viewMode.value !== 'card')
@@ -1436,13 +1436,13 @@ const displayRows = computed(() => {
         if (activeBbCategoryKey.value && categoryKey !== activeBbCategoryKey.value) return false
         if (activeBbBlockKey.value && blockKey !== activeBbBlockKey.value) return false
       }
-      if (activeFilterViewKey.value && !row.sectionPresence[activeFilterViewKey.value]) return false
+      if (activeFilterViewKey.value && !row.viewPresence[activeFilterViewKey.value]) return false
       if (activeFilterTokenKey.value && !row.tokenPresence[activeFilterTokenKey.value]) return false
       if (!query) return true
       const haystack = [
         row.recordId,
-        ...row.sectionTokenRows.map((tokenRow) => tokenRow.tokenName),
-        ...row.sectionTokenRows.map((tokenRow) => tokenRow.value),
+        ...row.viewTokenRows.map((tokenRow) => tokenRow.tokenName),
+        ...row.viewTokenRows.map((tokenRow) => tokenRow.value),
       ]
       return haystack.some((value) => String(value || '').toLowerCase().includes(query))
     })
@@ -1950,11 +1950,11 @@ const eventShellNavItems = computed(() =>
 )
 const summarySectionShellOptions = Object.freeze(buildCardRelationshipOptions())
 
-function getDefaultActiveSectionKey(sections = []) {
-  const normalizedSections = Array.isArray(sections) ? sections : []
-  const generalSection = normalizedSections.find((section) => String(section?.label || '').trim().toLowerCase() === 'general')
-  if (generalSection?.key) return generalSection.key
-  return normalizedSections[0]?.key || ''
+function getDefaultActiveViewKey(views = []) {
+  const normalizedViews = Array.isArray(views) ? views : []
+  const generalView = normalizedViews.find((view) => String(view?.label || '').trim().toLowerCase() === 'general')
+  if (generalView?.key) return generalView.key
+  return normalizedViews[0]?.key || ''
 }
 
 watch(
@@ -1971,7 +1971,7 @@ watch(
     rowHistoryLoadingByRecordId.value = {}
     await loadRows()
     await ensureLiveOptionRowsLoaded('file-system')
-    activeViewKey.value = getDefaultActiveSectionKey(fileViews.value)
+    activeViewKey.value = getDefaultActiveViewKey(fileViews.value)
   },
   { immediate: true },
 )
@@ -2026,7 +2026,7 @@ watch(
   fileViews,
   (sections) => {
     if (!sections.some((section) => section.key === activeViewKey.value)) {
-      activeViewKey.value = getDefaultActiveSectionKey(sections)
+      activeViewKey.value = getDefaultActiveViewKey(sections)
     }
   },
   { immediate: true },
@@ -2363,7 +2363,7 @@ function buildShellRow(row, index) {
   const tokenPresence = Object.fromEntries(
     fileTokens.value.map((token) => [token.key, Boolean(stringifyValue(getCanonicalTokenValue(row, token)))]),
   )
-  const sectionPresence = Object.fromEntries(
+  const viewPresence = Object.fromEntries(
     fileViews.value.map((section) => [
       section.key,
       fileTokens.value
@@ -2422,9 +2422,9 @@ function buildShellRow(row, index) {
     subtitleValue: '',
     cardDetailRows,
     relationshipItemsByType: buildCardRelationshipItems(buildExplicitCardRelationshipOverrides(row)),
-    sectionPresence,
+    viewPresence,
     tokenPresence,
-    sectionTokenRows: tokenRows,
+    viewTokenRows: tokenRows,
     visibleTokenCount: tokenRows.length,
   }
 }
@@ -3454,7 +3454,7 @@ async function openAddRelationShell(row) {
   editDialogRecordPayload.value = null
   createDialogDraftRecordId.value = String(row.recordId || '').trim()
   createDialogDraftEntityName.value = resolveEditEntityName(row)
-  createDialogInitialSectionKey.value = createDialogLdbSectionKey.value || 'general'
+  createDialogInitialSectionKey.value = createDialogLdbViewKey.value || 'general'
   createDialogInitialArtifacts.value = await resolveTrueArtifactsForRow(row)
   try {
     editDialogRecordPayload.value = await loadEditDialogRecordPayload(

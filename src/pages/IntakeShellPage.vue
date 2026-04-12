@@ -59,7 +59,7 @@ import {
   resolveApprovedFileSectionKey,
   TEST_SHELL_SECTION_OPTIONS,
 } from 'src/utils/structureRegistry'
-import { buildDialogSections, groupDialogSections, splitDialogSections } from 'src/utils/dialogShellPayload'
+import { buildDialogViews, groupDialogViews, splitDialogViews } from 'src/utils/dialogShellPayload'
 import { normalizeTokenWriteValue } from 'src/utils/tokenWriteChanges'
 import { consumePendingIntakeShellRequest } from 'src/utils/intakeShellState'
 import { submitSharedRecordEditSession } from 'src/utils/sharedRecordEditSession'
@@ -109,7 +109,7 @@ const fileTokens = computed(() =>
     })),
   ),
 )
-const groupedViews = computed(() => groupDialogSections(fileViews.value))
+const groupedViews = computed(() => groupDialogViews(fileViews.value))
 
 const createPrimaryTokens = computed(() => {
   const branchTokenName = getCreateBranchTokenName(activeSourceKey.value)
@@ -133,8 +133,8 @@ const branchSelectorTokenKey = computed(() => {
   return createPrimaryTokens.value.find((token) => String(token?.tokenName || '').trim() === branchTokenName)?.key || ''
 })
 const createViewGroups = computed(() =>
-  buildDialogSections({
-    groupedSections: groupedViews.value,
+  buildDialogViews({
+    groupedViews: groupedViews.value,
     tokenFilter: (section) =>
       fileTokens.value.filter(
         (token) => token.parentKey === section.key && !primaryTokenKeys.value.has(token.key),
@@ -143,7 +143,7 @@ const createViewGroups = computed(() =>
     keepEmptySections: true,
   }),
 )
-const dialogViewSplit = computed(() => splitDialogSections(createViewGroups.value))
+const dialogViewSplit = computed(() => splitDialogViews(createViewGroups.value))
 const canCreateWithShell = computed(() => {
   const branchEntries = getCreateBranches(activeSourceKey.value)
   if (branchEntries.length) {
