@@ -566,7 +566,7 @@ export const FILE_PAGE_REGISTRY_BY_KEY = Object.freeze(
   Object.fromEntries(FILE_PAGE_REGISTRY.map((entry) => [entry.key, entry])),
 )
 
-export const LEVEL_1_FILE_REGISTRY = Object.freeze(
+export const FILE_SOURCE_REGISTRY = Object.freeze(
   FILE_PAGE_REGISTRY.map((entry) => ({
     key: entry.key,
     entityName: entry.entityName,
@@ -583,45 +583,10 @@ export const LEVEL_1_FILE_REGISTRY = Object.freeze(
   })),
 )
 
-export const LEVEL_2_FILE_REGISTRY_BY_KEY = Object.freeze(
-  Object.fromEntries(
-    FILE_PAGE_REGISTRY.map((entry) => [
-      entry.key,
-      entry.subsections.map((subsection) => ({
-        key: subsection.key,
-        level_2: subsection.level_2,
-        address: subsection.address,
-        label: subsection.label,
-        structureToken: subsection.structureToken,
-        subgroupKey: subsection.subgroupKey,
-        subgroupLabel: subsection.subgroupLabel,
-        subgroupAddress: subsection.subgroupAddress,
-        displayGroup: subsection.displayGroup,
-      })),
-    ]),
-  ),
-)
-
-export const LEVEL_3_FILE_REGISTRY_BY_KEY = Object.freeze(
-  Object.fromEntries(
-    FILE_PAGE_REGISTRY.map((entry) => [
-      entry.key,
-      entry.subsections.flatMap((subsection) =>
-        subsection.tokens.map((token) => ({
-          ...token,
-          parentKey: subsection.key,
-          parentLabel: subsection.label,
-          parentLevel_2: subsection.level_2,
-        })),
-      ),
-    ]),
-  ),
-)
-
 const TEST_SHELL_RENDERABLE_KEYS = ['bb-file', 'file-system', 'events', 'users', 'artifacts', 'contacts', 'companies', 'opportunities', 'projects', 'notes', 'tasks', 'user-roles', 'companion-roles', 'markets', 'securities', 'intake']
 
 export const TEST_SHELL_SECTION_OPTIONS = Object.freeze(
-  LEVEL_1_FILE_REGISTRY.filter((entry) => TEST_SHELL_RENDERABLE_KEYS.includes(entry.key)).map((entry) => ({
+  FILE_SOURCE_REGISTRY.filter((entry) => TEST_SHELL_RENDERABLE_KEYS.includes(entry.key)).map((entry) => ({
     label: entry.label,
     value: entry.key,
   })),
@@ -656,12 +621,12 @@ export function getFilePageRegistryEntry(key) {
 
 export function getFilePageRegistryEntryByRouteName(routeName) {
   const normalizedRouteName = String(routeName || '').trim().toLowerCase()
-  return LEVEL_1_FILE_REGISTRY.find((entry) => entry.routeName === normalizedRouteName) || null
+  return FILE_SOURCE_REGISTRY.find((entry) => entry.routeName === normalizedRouteName) || null
 }
 
 export function getFilePageRegistryEntryByEntityName(entityName) {
   const normalizedEntityName = String(entityName || '').trim()
-  return LEVEL_1_FILE_REGISTRY.find((entry) => String(entry.entityName || '').trim() === normalizedEntityName) || null
+  return FILE_SOURCE_REGISTRY.find((entry) => String(entry.entityName || '').trim() === normalizedEntityName) || null
 }
 
 export function getFilePageRegistryEntryByEntityReference(entityName) {
@@ -689,7 +654,7 @@ export function resolveApprovedFileSectionKey(value, entityName = '') {
     getFilePageRegistryEntry(normalizedLower)
     || getFilePageRegistryEntryByRouteName(normalizedLower)
     || getFilePageRegistryEntryByEntityReference(normalizedValue)
-    || LEVEL_1_FILE_REGISTRY.find((candidate) =>
+    || FILE_SOURCE_REGISTRY.find((candidate) =>
       [candidate.key, candidate.routeName, candidate.entityName, candidate.label, candidate.singularLabel]
         .some((field) => String(field || '').trim().toLowerCase() === normalizedLower),
     )

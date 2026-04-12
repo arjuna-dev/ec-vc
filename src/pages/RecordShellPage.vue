@@ -488,7 +488,7 @@ import {
   getRegistrySummaryTokenForSource,
   getRegistryTitleTokenForSource,
   getRuntimeTableNameForEntityName,
-  LEVEL_1_FILE_REGISTRY,
+  FILE_SOURCE_REGISTRY,
   resolveApprovedFileSectionKey,
 } from 'src/utils/structureRegistry'
 import { buildDialogSections, groupDialogSections, splitDialogSections } from 'src/utils/dialogShellPayload'
@@ -1216,7 +1216,7 @@ function normalizeListResult(result) {
 function resolveSourceKeyFromTableName(tableName) {
   const normalized = String(tableName || '').trim().toLowerCase()
   if (!normalized) return ''
-  const direct = LEVEL_1_FILE_REGISTRY.find((entry) =>
+  const direct = FILE_SOURCE_REGISTRY.find((entry) =>
     [entry.key, entry.routeName, entry.entityName, entry.label].some((value) => String(value || '').trim().toLowerCase() === normalized),
   )
   if (direct?.key) return direct.key
