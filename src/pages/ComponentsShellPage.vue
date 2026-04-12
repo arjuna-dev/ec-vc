@@ -131,6 +131,21 @@
           />
         </div>
       </article>
+      <article class="components-shell-page__card components-shell-page__card--lg">
+        <button type="button" class="components-shell-page__inspect-btn" aria-label="View component details" @click="openComponentDetail('mini-toolbar')">
+          <q-icon name="visibility" />
+        </button>
+        <div class="components-shell-page__card-label">Mini Toolbar</div>
+        <div class="components-shell-page__card-status" :class="componentStatusClass('mini-toolbar')">{{ componentStatusLabel('mini-toolbar') }}</div>
+        <div class="components-shell-page__card-stage components-shell-page__card-stage--stretch">
+          <MiniToolbar
+            v-model="activeMiniToolbarSection"
+            :items="miniToolbarItems"
+            :show-view-toggle="false"
+            aria-label="Mini Toolbar"
+          />
+        </div>
+      </article>
       <article class="components-shell-page__card components-shell-page__card--settings-menu">
         <button type="button" class="components-shell-page__inspect-btn" aria-label="View component details" @click="openComponentDetail('l2-settings-menu')">
           <q-icon name="visibility" />
@@ -315,6 +330,7 @@ import { useRouter } from 'vue-router'
 import HomeDashboardHero from 'src/components/HomeDashboardHero.vue'
 import L3Box from 'src/components/L3Box.vue'
 import FilePageToolbar from 'src/components/FilePageToolbar.vue'
+import MiniToolbar from 'src/components/MiniToolbar.vue'
 import ShellSectionToolbar from 'src/components/ShellSectionToolbar.vue'
 import BuildingBlockPreviewTile from 'src/components/BuildingBlockPreviewTile.vue'
 import B10Logo from 'src/components/B10Logo.vue'
@@ -333,6 +349,7 @@ import WidgetSettingsMenu from 'src/components/WidgetSettingsMenu.vue'
 import { BUILDING_BLOCK_DETAILS_BY_ID } from 'src/utils/buildingBlocks'
 
 const activeToolbarSection = ref('general')
+const activeMiniToolbarSection = ref('general')
 const toolbarViewMode = ref('card')
 const activeLiveActionL1 = ref('companies')
 const l2SettingsSampleGroups = [
@@ -392,6 +409,15 @@ const toolbarItems = [
   { title: 'Notes', value: 'notes' },
   { title: 'LDB', value: 'kdb', isKdb: true, pushRight: true },
   { title: 'System', value: 'system', isSystem: true },
+]
+
+const miniToolbarItems = [
+  { title: 'General', value: 'general' },
+  { title: 'Overview', value: 'overview' },
+  { title: 'LDB', value: 'ldb', isKdb: true, pushRight: true },
+  { title: 'System', value: 'system', isSystem: true },
+  { title: 'Tokens', value: 'tokens', isGovernance: true },
+  { title: 'Views', value: 'views', isGovernance: true },
 ]
 
 const homeDashboardStats = [

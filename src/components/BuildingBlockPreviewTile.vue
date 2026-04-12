@@ -563,6 +563,17 @@
         />
       </template>
 
+      <template v-else-if="blockKey === 'mini-toolbar'">
+        <MiniToolbar
+          v-model="activeMiniToolbarPreview"
+          :items="miniToolbarItems"
+          view-mode="card"
+          :view-options="viewOptions"
+          :show-view-toggle="false"
+          aria-label="Mini toolbar"
+        />
+      </template>
+
       <template v-else-if="blockKey === 'fork-selector-surface'">
         <ForkSelectorSurface
           v-model="activeLiveActionL1"
@@ -811,6 +822,7 @@ import PlusWithLabelButton from 'src/components/PlusWithLabelButton.vue'
 import SearchBarInput from 'src/components/SearchBarInput.vue'
 import BbCodeInput from 'src/components/BbCodeInput.vue'
 import FileFilterMenu from 'src/components/FileFilterMenu.vue'
+import MiniToolbar from 'src/components/MiniToolbar.vue'
 import SettingsCheckbox from 'src/components/SettingsCheckbox.vue'
 import ShellOpenDialogButton from 'src/components/ShellOpenDialogButton.vue'
 import ShellSectionToolbar from 'src/components/ShellSectionToolbar.vue'
@@ -987,6 +999,7 @@ const viewModeToggleOptions = viewOptions
 const activeLiveActionL1 = ref('companies')
 const activeRecordContextTab = ref('notes')
 const activeRecordFeedTabPreview = ref('events')
+const activeMiniToolbarPreview = ref('general')
 const fileFilterMenuSampleSections = [
   {
     key: 'general',
@@ -1100,6 +1113,14 @@ const l2ToolbarItems = [
   { value: 'record-data', title: 'Record Data', isKdb: false, isSystem: false, pushRight: false },
   { value: 'kdb', title: 'LDB', isKdb: true, isSystem: false, pushRight: true },
   { value: 'system', title: 'System', isKdb: false, isSystem: true, pushRight: false },
+]
+
+const miniToolbarItems = [
+  { value: 'general', title: 'General' },
+  { value: 'system', title: 'System' },
+  { value: 'kdb', title: 'KDB' },
+  { value: 'tokens', title: 'Tokens', isGovernance: true },
+  { value: 'views', title: 'Views', isGovernance: true },
 ]
 
 const foundationFontSamples = GENERAL_SETTINGS_FONT_SAMPLES

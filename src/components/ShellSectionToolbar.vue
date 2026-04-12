@@ -1,5 +1,10 @@
 <template>
-  <section v-if="items.length" class="shell-section-toolbar" :aria-label="ariaLabel">
+  <section
+    v-if="items.length"
+    class="shell-section-toolbar"
+    :class="{ 'shell-section-toolbar--mini': variant === 'mini' }"
+    :aria-label="ariaLabel"
+  >
     <div class="shell-section-toolbar__lane shell-section-toolbar__lane--left">
       <button
         v-for="section in leftItems"
@@ -25,6 +30,7 @@
           'shell-section-toolbar__item--active': modelValue === section.value,
           'shell-section-toolbar__item--kdb': section.isKdb,
           'shell-section-toolbar__item--system': section.isSystem,
+          'shell-section-toolbar__item--governance': section.isGovernance,
         }"
         @click="$emit('update:modelValue', section.value)"
       >
@@ -55,12 +61,17 @@ const props = defineProps({
   viewOptions: { type: Array, default: () => [] },
   showViewToggle: { type: Boolean, default: true },
   ariaLabel: { type: String, default: 'Sections' },
+  variant: { type: String, default: 'default' },
 })
 
 defineEmits(['update:modelValue', 'update:viewMode'])
 
-const leftItems = computed(() => props.items.filter((section) => !section.isKdb && !section.isSystem))
-const midItems = computed(() => props.items.filter((section) => section.isKdb || section.isSystem))
+const leftItems = computed(() =>
+  props.items.filter((section) => !(section.pushRight || section.isKdb || section.isSystem || section.isGovernance)),
+)
+const midItems = computed(() =>
+  props.items.filter((section) => section.pushRight || section.isKdb || section.isSystem || section.isGovernance),
+)
 </script>
 
 <style scoped>
@@ -142,22 +153,89 @@ const midItems = computed(() => props.items.filter((section) => section.isKdb ||
   border-color: var(--ds-color-border-dashed);
 }
 
+.shell-section-toolbar__item--governance {
+  border-color: var(--ds-color-border-dashed);
+}
+
 .shell-section-toolbar__item--kdb,
-.shell-section-toolbar__item--system {
+.shell-section-toolbar__item--system,
+.shell-section-toolbar__item--governance {
   height: var(--ds-toolbar-chip-compact-height);
   min-height: var(--ds-toolbar-chip-compact-height);
   padding: 0 var(--ds-toolbar-chip-compact-padding-x);
   border-radius: var(--ds-toolbar-chip-compact-radius);
+  align-self: center;
+  flex: 0 0 auto;
 }
 
 .shell-section-toolbar__item--kdb .shell-section-toolbar__item-label,
-.shell-section-toolbar__item--system .shell-section-toolbar__item-label {
+.shell-section-toolbar__item--system .shell-section-toolbar__item-label,
+.shell-section-toolbar__item--governance .shell-section-toolbar__item-label {
   font-size: var(--ds-font-size-xs);
 }
 
 .shell-section-toolbar__item--kdb .shell-section-toolbar__item-icon {
   font-size: var(--ds-toolbar-kdb-icon-size) !important;
 }
+
+.shell-section-toolbar--mini .shell-section-toolbar__lane--mid {
+  gap: calc(var(--ds-toolbar-gap-sm) * 0.75);
+}
+
+.shell-section-toolbar--mini .shell-section-toolbar__item {
+  border-radius: 4px;
+}
+
+.shell-section-toolbar--mini .shell-section-toolbar__item--kdb,
+.shell-section-toolbar--mini .shell-section-toolbar__item--system,
+.shell-section-toolbar--mini .shell-section-toolbar__item--governance {
+  color: var(--ds-color-brand-black);
+  background: color-mix(in srgb, var(--ds-color-brand-light-grey) 78%, white);
+  border-color: rgba(15, 23, 42, 0.12);
+}
+
+.shell-section-toolbar--mini .shell-section-toolbar__item--kdb:hover,
+.shell-section-toolbar--mini .shell-section-toolbar__item--system:hover,
+.shell-section-toolbar--mini .shell-section-toolbar__item--governance:hover {
+  color: var(--ds-color-brand-black);
+  background: color-mix(in srgb, var(--ds-color-brand-light-grey) 58%, white);
+  border-color: rgba(15, 23, 42, 0.18);
+}
+
+.shell-section-toolbar--mini .shell-section-toolbar__item--kdb.shell-section-toolbar__item--active,
+.shell-section-toolbar--mini .shell-section-toolbar__item--system.shell-section-toolbar__item--active,
+.shell-section-toolbar--mini .shell-section-toolbar__item--governance.shell-section-toolbar__item--active {
+  color: var(--ds-color-brand-white);
+  background: var(--ds-color-brand-black);
+  border-color: var(--ds-color-brand-black);
+}
+
+.shell-section-toolbar--mini .shell-section-toolbar__item--kdb,
+.shell-section-toolbar--mini .shell-section-toolbar__item--system,
+.shell-section-toolbar--mini .shell-section-toolbar__item--governance {
+  height: var(--ds-toolbar-chip-compact-height);
+  min-height: var(--ds-toolbar-chip-compact-height);
+  padding: 0 var(--ds-toolbar-chip-compact-padding-x);
+  align-self: center;
+  flex: 0 0 auto;
+}
+
+.shell-section-toolbar--mini .shell-section-toolbar__item--kdb .shell-section-toolbar__item-label,
+.shell-section-toolbar--mini .shell-section-toolbar__item--system .shell-section-toolbar__item-label,
+.shell-section-toolbar--mini .shell-section-toolbar__item--governance .shell-section-toolbar__item-label {
+  font-family: inherit;
+  font-weight: inherit;
+  font-size: calc(var(--ds-font-size-xs) * 0.75);
+}
+
+.shell-section-toolbar--mini .shell-section-toolbar__item--governance:not(.shell-section-toolbar__item--active) {
+  background: color-mix(in srgb, var(--ds-color-brand-light-grey) 78%, white);
+}
+
+.shell-section-toolbar--mini .shell-section-toolbar__item--governance:not(.shell-section-toolbar__item--active):hover {
+  background: color-mix(in srgb, var(--ds-color-brand-light-grey) 58%, white);
+}
+
 
 .shell-section-toolbar__view-toggle {
   align-self: center;
