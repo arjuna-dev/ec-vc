@@ -9,13 +9,13 @@
 
     <div v-else-if="!hasResolvedSourceKey" class="q-pa-md">
       <q-banner class="bg-red-2 text-black" rounded>
-        File Shell source is not mapped to an approved file view.
+        File Shell source is not mapped to an approved file section.
       </q-banner>
     </div>
 
     <div v-else-if="!hasSupportedBridge" class="q-pa-md">
       <q-banner class="bg-red-2 text-black" rounded>
-        Electron detected, but this view does not expose a supported list bridge yet.
+        Electron detected, but this section does not expose a supported list bridge yet.
       </q-banner>
     </div>
 
@@ -163,7 +163,7 @@
           class="test-shell-empty-state bg-grey-1 text-black"
           rounded
         >
-          No real rows loaded for {{ activeRegistryEntry?.label || 'this view' }}.
+          No real rows loaded for {{ activeRegistryEntry?.label || 'this section' }}.
         </q-banner>
 
         <div class="bb-shell-tiles-toolbar">
@@ -240,7 +240,7 @@
             class="test-shell-empty-state bg-grey-1 text-black"
             rounded
           >
-            No real rows loaded for {{ activeRegistryEntry?.label || 'this view' }}.
+            No real rows loaded for {{ activeRegistryEntry?.label || 'this section' }}.
           </q-banner>
         </div>
 
@@ -393,7 +393,7 @@
           class="test-shell-empty-state bg-grey-1 text-black"
           rounded
         >
-          No real rows loaded for {{ activeRegistryEntry?.label || 'this view' }}.
+          No real rows loaded for {{ activeRegistryEntry?.label || 'this section' }}.
         </q-banner>
 
         <div ref="tableScrollRef" class="test-shell-table-scroll">
@@ -733,7 +733,7 @@ import {
   buildCardRelationshipOptions,
   getCardRelationshipLabel,
   resolveCardRelationshipPanel,
-} from 'src/utils/card-ldb-relationships'
+} from 'src/utils/card-kdb-relationships'
 import {
   CANONICAL_OPTION_LISTS,
   getCreateBranchEntry,
@@ -1002,12 +1002,12 @@ const hasSupportedBridge = computed(() => {
   return typeof activeLoader.value.listFn(bridge.value) !== 'undefined'
 })
 const supportsActiveSourceEditing = computed(() => activeContentSourceKey.value !== 'events')
-function isRelationshipViewLabel(value = '') {
+function isRelationshipSectionLabel(value = '') {
   const normalized = String(value || '').trim().toLowerCase()
   return normalized === 'ldb'
 }
 const hasActiveSourceLdb = computed(() =>
-  fileViews.value.some((section) => isRelationshipViewLabel(section?.label)),
+  fileViews.value.some((section) => isRelationshipSectionLabel(section?.label)),
 )
 
 const fileViews = computed(() => activeFileShellPayload.value.sections)
@@ -1034,7 +1034,7 @@ const activeGovernanceTitle = computed(() => {
   if (activeGovernanceToolbarKey.value === 'views') return 'Views'
   return ''
 })
-const isLdbSectionActive = computed(() => isRelationshipViewLabel(activeView.value?.label))
+const isLdbSectionActive = computed(() => isRelationshipSectionLabel(activeView.value?.label))
 const isSystemSectionActive = computed(() => String(activeView.value?.label || '').trim().toLowerCase() === 'system')
 
 const activeViewTokens = computed(() => {
@@ -1103,7 +1103,7 @@ const forkViewRows = computed(() =>
 
 function isCoreForkViewRow(view) {
   const normalized = String(view?.label || '').trim().toLowerCase()
-  return normalized === 'general' || normalized === 'system' || isRelationshipViewLabel(normalized)
+  return normalized === 'general' || normalized === 'system' || isRelationshipSectionLabel(normalized)
 }
 
 const cardSettingsSourceViews = computed(() => {
@@ -1199,7 +1199,7 @@ const createDialogBranchSelectorTokenKey = computed(() => {
   return createPrimaryTokens.value.find((token) => String(token?.tokenName || '').trim() === branchTokenName)?.key || ''
 })
 const createDialogLdbViewKey = computed(
-  () => createViewGroups.value.find((section) => isRelationshipViewLabel(section?.label))?.key || '',
+  () => createViewGroups.value.find((section) => isRelationshipSectionLabel(section?.label))?.key || '',
 )
 const isTableInlineEditingAvailable = computed(() => viewMode.value !== 'card')
 const activeCardSettingsScopeKey = computed(() => `${activeContentSourceKey.value}:${activeCardSettingsViewKey.value}`)
@@ -1905,13 +1905,13 @@ watch(
 const toolbarLeftViews = computed(() =>
   fileViews.value.filter((view) => {
     const label = String(view.label || '').trim().toLowerCase()
-    return !isRelationshipViewLabel(label) && label !== 'system'
+    return !isRelationshipSectionLabel(label) && label !== 'system'
   }),
 )
 const toolbarRightViews = computed(() =>
   fileViews.value.filter((view) => {
     const label = String(view.label || '').trim().toLowerCase()
-    return isRelationshipViewLabel(label) || label === 'system'
+    return isRelationshipSectionLabel(label) || label === 'system'
   }),
 )
 const governanceViewRows = computed(() =>
@@ -1945,7 +1945,7 @@ const eventShellNavItems = computed(() =>
       { value: 'tokens', title: 'Tokens' },
       { value: 'views', title: 'Views' },
     ],
-    isRelationshipViewLabel,
+    isRelationshipSectionLabel,
   }),
 )
 const summarySectionShellOptions = Object.freeze(buildCardRelationshipOptions())
@@ -2097,7 +2097,7 @@ watch(
     const row = displayRows.value.find((entry) => String(entry?.recordId || '').trim() === normalizedRecordId) || null
     if (!row) return
 
-    if (isRelationshipViewLabel(editSection)) {
+    if (isRelationshipSectionLabel(editSection)) {
       await openAddRelationShell(row)
     } else {
       await openEditRecordShell(row)
@@ -3341,7 +3341,7 @@ function requestEditRecordShell(row, options = {}) {
 
   const normalizedSectionKey = String(options?.sectionKey || '').trim().toLowerCase()
 
-  if (isRelationshipViewLabel(normalizedSectionKey)) {
+  if (isRelationshipSectionLabel(normalizedSectionKey)) {
     router.push({
       name: 'dialog-shell',
       query: {
