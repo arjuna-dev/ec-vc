@@ -89,6 +89,12 @@ This tracker should stay aligned with:
   - make shells, add/edit surfaces, row/data surfaces, inline tables, option lists, and relationship cells read from that same file-owned payload
   - keep structural registry as source/reference only while migration completes
   - do not write new runtime behavior in old scaffolding language
+  - completed cleanup slices:
+    - remove live `rawLabel` runtime use from shared shells and dialogs
+    - remove `rawLabel` from live registry payloads
+    - replace legacy level-registry exports with `FILE_SOURCE_REGISTRY`
+    - rename live local runtime fields away from `level_2` / `level_3` where they only expressed section/token order
+    - rename `EventsPage.vue` route wrapper to `HistoryPage.vue`
 - shared create-flow hardening:
   - discardable local draft birth
   - commit text inputs on blur, flush on save
@@ -298,6 +304,15 @@ This tracker should stay aligned with:
 - the parent `File Shell` contract now fails closed on unmapped routes instead of silently rendering `Tasks`
 - shared file/page surfaces now expose missing canonical title/summary ownership instead of guessing from local row fields
 - note for future checklist passes: when a wrapper is hardened, immediately audit the child shared shell for inherited fallback defaults, because wrapper hardening alone can leave a second quiet drift path behind
+- runtime convergence progress:
+  - `rawLabel` is no longer an approved live shell identity
+  - `History` is now the route/page wrapper language, not `EventsPage`
+  - `FILE_SOURCE_REGISTRY` is now the approved source-registry export replacing `LEVEL_1_FILE_REGISTRY`
+  - unused `LEVEL_2_FILE_REGISTRY_BY_KEY` and `LEVEL_3_FILE_REGISTRY_BY_KEY` exports were removed
+- current cleanup rule:
+  - if a live runtime name only exists to preserve scaffold vocabulary, rename or delete it
+  - keep canonical/workbook structure as reference input only
+  - do not add new fallback identities such as parallel `label` / `rawLabel` paths
 - stewardship correction:
   - each steward should review only the scoped history/event stream tied to its mandate
   - `Design Steward` should begin with `BB` component and shared shell `created` / `edited` events
