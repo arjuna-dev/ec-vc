@@ -32,12 +32,16 @@ import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import AddEditFileShellDialog from 'src/components/AddEditFileShellDialog.vue'
 import { TEST_SHELL_SECTION_OPTIONS, resolveApprovedFileSectionKey } from 'src/utils/structureRegistry'
+import { applyFileRegistryPresenceChanges, buildFileRegistryPresenceChanges, resolveFileRegistryRow } from 'src/utils/fileStructurePersistence'
 
 const route = useRoute()
 const router = useRouter()
 const isElectronRuntime = computed(() => typeof window !== 'undefined')
 const canConfigureFileSystem = ref(false)
 const fileStructureSessionsBySource = ref({})
+const fileRegistryRows = ref([])
+const fileRegistryPresenceChangesBySource = ref({})
+const fileRegistrySaveInFlightBySource = ref({})
 
 const activeSourceKey = computed(() => resolveValidShellSection(route.query.section, route.query.entity))
 const hasResolvedSourceKey = computed(() => Boolean(activeSourceKey.value))
@@ -56,14 +60,42 @@ function updateShellSelector(nextValue) {
   })
 }
 
-function updateFileStructureSession(snapshot = null) {
+async function updateFileStructureSession(snapshot = null) {
   const sourceKey = String(snapshot?.sourceKey || activeSourceKey.value || '').trim()
   if (!sourceKey || !snapshot || typeof snapshot !== 'object') return
+  const fileRow = resolveFileRegistryRow(fileRegistryRows.value, sourceKey)
+  const nextChanges = buildFileRegistryPresenceChanges(snapshot, fileRow)
+
   fileStructureSessionsBySource.value = {
     ...fileStructureSessionsBySource.value,
     [sourceKey]: {
       ...snapshot,
     },
+  }
+  fileRegistryPresenceChangesBySource.value = {
+    ...fileRegistryPresenceChangesBySource.value,
+    [sourceKey]: nextChanges,
+  }
+
+  if (!fileRow?.id || !nextChanges.length || fileRegistrySaveInFlightBySource.value[sourceKey]) return
+
+  try {
+    fileRegistrySaveInFlightBySource.value = {
+      ...fileRegistrySaveInFlightBySource.value,
+      [sourceKey]: true,
+    }
+    const bridge = typeof window !== 'undefined' ? window.ecvc : null
+    await applyFileRegistryPresenceChanges({
+      bridge,
+      fileRow,
+      changes: nextChanges,
+    })
+    await loadFileRegistryRows()
+  } finally {
+    fileRegistrySaveInFlightBySource.value = {
+      ...fileRegistrySaveInFlightBySource.value,
+      [sourceKey]: false,
+    }
   }
 }
 
@@ -77,8 +109,19 @@ async function loadFileSystemOwnership() {
   }
 }
 
+async function loadFileRegistryRows() {
+  try {
+    const bridge = typeof window !== 'undefined' ? window.ecvc : null
+    const result = await bridge?.['file-system']?.list?.()
+    fileRegistryRows.value = Array.isArray(result?.files) ? result.files : []
+  } catch {
+    fileRegistryRows.value = []
+  }
+}
+
 onMounted(() => {
   loadFileSystemOwnership()
+  loadFileRegistryRows()
 })
 </script>
 
