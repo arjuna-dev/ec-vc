@@ -204,7 +204,7 @@ import MiniToolbar from 'src/components/MiniToolbar.vue'
 import StructureGovernancePanel from 'src/components/StructureGovernancePanel.vue'
 import { buildStructureToolbarItems } from 'src/utils/structureToolbarContract'
 import { splitDialogViews } from 'src/utils/dialogShellPayload'
-import { getCanonicalTokenWriteTarget, getFilePageRegistryEntry, getRegistryTitleTokenForSource } from 'src/utils/structureRegistry'
+import { buildFileShellPayload, getCanonicalTokenWriteTarget, getFilePageRegistryEntry, getRegistryTitleTokenForSource } from 'src/utils/structureRegistry'
 import { buildFileStructureSessionSnapshot } from 'src/utils/fileStructureSession'
 
 const props = defineProps({
@@ -264,30 +264,20 @@ const activeShellSelectorOption = computed(() =>
 )
 const activeSettingsSourceKey = computed(() => activeShellSelectorOption.value.value || 'selected-file')
 const activeFilePayload = computed(() => {
-  const registryEntry = getFilePageRegistryEntry(activeSettingsSourceKey.value) || null
-  const sections = (Array.isArray(registryEntry?.subsections) ? registryEntry.subsections : []).map((subsection) => ({
-    key: subsection.key,
-    sectionOrder: subsection.level_2,
-    address: subsection.address,
-    label: subsection.label,
-    structureToken: subsection.structureToken,
-    subgroupKey: subsection.subgroupKey,
-    subgroupLabel: subsection.subgroupLabel,
-    subgroupAddress: subsection.subgroupAddress,
-    displayGroup: subsection.displayGroup,
-    tokens: (Array.isArray(subsection.tokens) ? subsection.tokens : []).map((token) => ({
-      ...token,
-      parentKey: subsection.key,
-      parentLabel: subsection.label,
-      parentSectionOrder: subsection.level_2,
-    })),
+  const fileShellPayload = buildFileShellPayload(activeSettingsSourceKey.value)
+  const registryEntry = fileShellPayload.registryEntry
+  const sections = fileShellPayload.sections.map((section) => ({
+    ...section,
+    tokens: fileShellPayload.tokens
+      .filter((token) => token.parentKey === section.key)
+      .map((token) => ({ ...token })),
     subgroups: [],
   }))
 
   return {
     registryEntry,
     sections,
-    tokens: sections.flatMap((section) => section.tokens || []),
+    tokens: fileShellPayload.tokens,
   }
 })
 const payloadSections = computed(() => activeFilePayload.value.sections)
@@ -394,7 +384,7 @@ const activeLeafTokens = computed(() => {
       editable: token.editable === false ? 'No' : token.editable === true ? 'Yes' : '—',
       relationshipMeaning: token.relationshipGroup || '—',
       writeTarget: writeTarget?.fieldName ? `${writeTarget.tableName}.${writeTarget.fieldName}` : token.dbFieldAliases?.join(', ') || '—',
-      order: token.tokenOrder || token.level_3 || String(index + 1),
+      order: token.tokenOrder || String(index + 1),
       uiTreatment: token.tokenType || token.optionList || token.optionSource || '—',
     }
   })

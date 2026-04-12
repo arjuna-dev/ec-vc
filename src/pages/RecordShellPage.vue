@@ -488,6 +488,7 @@ import {
   getRegistrySummaryTokenForSource,
   getRegistryTitleTokenForSource,
   getRuntimeTableNameForEntityName,
+  buildFileShellPayload,
   FILE_SOURCE_REGISTRY,
   resolveApprovedFileSectionKey,
 } from 'src/utils/structureRegistry'
@@ -540,29 +541,9 @@ const activeSourceKey = computed(() => {
 })
 const hasResolvedSourceKey = computed(() => Boolean(activeSourceKey.value))
 const activeRegistryEntry = computed(() => getFilePageRegistryEntry(activeSourceKey.value) || null)
-const fileViews = computed(() =>
-  (Array.isArray(activeRegistryEntry.value?.subsections) ? activeRegistryEntry.value.subsections : []).map((subsection) => ({
-    key: subsection.key,
-    sectionOrder: subsection.level_2,
-    address: subsection.address,
-    label: subsection.label,
-    structureToken: subsection.structureToken,
-    subgroupKey: subsection.subgroupKey,
-    subgroupLabel: subsection.subgroupLabel,
-    subgroupAddress: subsection.subgroupAddress,
-    displayGroup: subsection.displayGroup,
-  })),
-)
-const fileTokens = computed(() =>
-  (Array.isArray(activeRegistryEntry.value?.subsections) ? activeRegistryEntry.value.subsections : []).flatMap((subsection) =>
-    (Array.isArray(subsection.tokens) ? subsection.tokens : []).map((token) => ({
-      ...token,
-      parentKey: subsection.key,
-      parentLabel: subsection.label,
-      parentSectionOrder: subsection.level_2,
-    })),
-  ),
-)
+const fileShellPayload = computed(() => buildFileShellPayload(activeSourceKey.value))
+const fileViews = computed(() => fileShellPayload.value.sections)
+const fileTokens = computed(() => fileShellPayload.value.tokens)
 const fieldByName = computed(() =>
   Object.fromEntries((fields.value || []).map((field) => [String(field?.field_name || '').trim(), field])),
 )
@@ -651,7 +632,6 @@ const sharedLdbViewTokens = computed(() => {
         inputOptions: buildLiveEntityOptions(sourceKey),
         parentKey: activeViewEntries.value[0]?.key || '',
         parentLabel: activeViewEntries.value[0]?.label || 'LDB',
-        parentSectionOrder: activeViewEntries.value[0]?.sectionOrder || '',
         isSharedLdbToken: true,
         targetSourceKey: sourceKey,
         targetEntity: String(targetEntry.entityName || '').trim(),

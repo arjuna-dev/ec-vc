@@ -663,6 +663,35 @@ export function resolveApprovedFileSectionKey(value, entityName = '') {
   return String(entry?.key || '').trim().toLowerCase()
 }
 
+export function buildFileShellPayload(sourceKey = '') {
+  const normalizedSourceKey = String(sourceKey || '').trim().toLowerCase()
+  const registryEntry = getFilePageRegistryEntry(normalizedSourceKey) || null
+  const sections = (Array.isArray(registryEntry?.subsections) ? registryEntry.subsections : []).map((subsection) => ({
+    key: subsection.key,
+    address: subsection.address,
+    label: subsection.label,
+    structureToken: subsection.structureToken,
+    subgroupKey: subsection.subgroupKey,
+    subgroupLabel: subsection.subgroupLabel,
+    subgroupAddress: subsection.subgroupAddress,
+    displayGroup: subsection.displayGroup,
+  }))
+  const tokens = (Array.isArray(registryEntry?.subsections) ? registryEntry.subsections : []).flatMap((subsection) =>
+    (Array.isArray(subsection.tokens) ? subsection.tokens : []).map((token) => ({
+      ...token,
+      parentKey: subsection.key,
+      parentLabel: subsection.label,
+    })),
+  )
+
+  return {
+    sourceKey: normalizedSourceKey,
+    registryEntry,
+    sections,
+    tokens,
+  }
+}
+
 export function getFilePageReferenceDocs(sourceKey = '') {
   const entry = getFilePageRegistryEntry(sourceKey)
   if (!entry) return []

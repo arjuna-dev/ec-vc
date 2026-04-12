@@ -734,27 +734,28 @@ import {
   getCardRelationshipLabel,
   resolveCardRelationshipPanel,
 } from 'src/utils/card-kdb-relationships'
-import {
-  CANONICAL_OPTION_LISTS,
-  getCreateBranchEntry,
-  getCreateBranches,
-  getCreateBranchTokenName,
-  getFilePageBirthDefaults,
-  getFilePageCreateSurface,
-  getFilePageEditSurface,
-  getFilePageRegistryEntry,
-  getFilePageRegistryEntryByEntityReference,
-  getFilePageRegistryEntryByRouteName,
-  getFilePageReferenceDocs,
-  getRegistrySummaryTokenForSource,
-  getRegistryTitleTokenForSource,
-  getRuntimeTableNameForEntityName,
-  getCanonicalTokenFieldNames,
-  getCanonicalTokenWriteFieldName,
-  getCanonicalTokenWriteTarget,
-  getCanonicalTokenValue,
-  resolveApprovedFileSectionKey,
-} from 'src/utils/structureRegistry'
+  import {
+    CANONICAL_OPTION_LISTS,
+    getCreateBranchEntry,
+    getCreateBranches,
+    getCreateBranchTokenName,
+    getFilePageBirthDefaults,
+    getFilePageCreateSurface,
+    getFilePageEditSurface,
+    getFilePageRegistryEntry,
+    getFilePageRegistryEntryByEntityReference,
+    getFilePageRegistryEntryByRouteName,
+    getFilePageReferenceDocs,
+    getRegistrySummaryTokenForSource,
+    getRegistryTitleTokenForSource,
+    getRuntimeTableNameForEntityName,
+    getCanonicalTokenFieldNames,
+    getCanonicalTokenWriteFieldName,
+    getCanonicalTokenWriteTarget,
+    getCanonicalTokenValue,
+    resolveApprovedFileSectionKey,
+    buildFileShellPayload,
+  } from 'src/utils/structureRegistry'
 import { getLdbRelationshipContractForToken, getLdbRelationshipContractsForEntity } from 'src/shared/ldbRelationshipContracts'
 import { buildDialogViews, groupDialogViews, splitDialogViews } from 'src/utils/dialogShellPayload'
 import { buildRecordViewLocation } from 'src/utils/recordViewNavigation'
@@ -959,35 +960,7 @@ const activeSourceKey = computed(() => {
 
 const hasResolvedSourceKey = computed(() => Boolean(activeSourceKey.value))
 
-const activeFileShellPayload = computed(() => {
-  const sourceKey = String(activeContentSourceKey.value || '').trim().toLowerCase()
-  const registryEntry = getFilePageRegistryEntry(sourceKey) || null
-  const sections = (Array.isArray(registryEntry?.subsections) ? registryEntry.subsections : []).map((subsection) => ({
-    key: subsection.key,
-    sectionOrder: subsection.level_2,
-    address: subsection.address,
-    label: subsection.label,
-    structureToken: subsection.structureToken,
-    subgroupKey: subsection.subgroupKey,
-    subgroupLabel: subsection.subgroupLabel,
-    subgroupAddress: subsection.subgroupAddress,
-    displayGroup: subsection.displayGroup,
-  }))
-  const tokens = (Array.isArray(registryEntry?.subsections) ? registryEntry.subsections : []).flatMap((subsection) =>
-    (Array.isArray(subsection.tokens) ? subsection.tokens : []).map((token) => ({
-      ...token,
-      parentKey: subsection.key,
-      parentLabel: subsection.label,
-      parentSectionOrder: subsection.level_2,
-    })),
-  )
-  return {
-    sourceKey,
-    registryEntry,
-    sections,
-    tokens,
-  }
-})
+const activeFileShellPayload = computed(() => buildFileShellPayload(activeContentSourceKey.value))
 const activeRegistryEntry = computed(() => activeFileShellPayload.value.registryEntry)
 const routeRegistryEntry = computed(() => getFilePageRegistryEntryByRouteName(route.name))
 const pageShellLabel = computed(() => {
@@ -1074,7 +1047,6 @@ const sharedLdbViewTokens = computed(() => {
         tokenType: 'select_multi',
         parentKey: activeView.value?.key || '',
         parentLabel: activeView.value?.label || 'LDB',
-        parentSectionOrder: activeView.value?.sectionOrder || '',
         isSharedLdbToken: true,
         targetSourceKey: sourceKey,
         targetEntity: String(targetEntry.entityName || '').trim(),
@@ -1560,9 +1532,9 @@ function getOptionRowsForSource(sourceKey) {
 }
 
 function getOptionSubsetToken(sourceKey, fieldName) {
-  const entry = getFilePageRegistryEntry(sourceKey)
-  if (!entry) return null
-  return entry.subsections.flatMap((section) => section.tokens || []).find((token) => token.tokenName === fieldName) || null
+  const payload = buildFileShellPayload(sourceKey)
+  if (!payload.registryEntry) return null
+  return payload.tokens.find((token) => token.tokenName === fieldName) || null
 }
 
 function matchesOptionSubset(row, sourceKey, optionSubset) {
@@ -2665,14 +2637,7 @@ function buildContextRelationshipPrefillForSource(sourceKey, contextEntity, cont
   const targetEntityName = String(registryEntry?.entityName || '').trim()
   if (!targetEntityName) return { initialValues: {}, initialFieldMeta: {} }
 
-  const sourceTokens = (Array.isArray(registryEntry?.subsections) ? registryEntry.subsections : []).flatMap((subsection) =>
-    (Array.isArray(subsection.tokens) ? subsection.tokens : []).map((token) => ({
-      ...token,
-      parentKey: subsection.key,
-      parentLabel: subsection.label,
-      parentSectionOrder: subsection.level_2,
-    })),
-  )
+  const sourceTokens = buildFileShellPayload(normalizedSourceKey).tokens
   const matchingTokens = sourceTokens.filter((token) => {
     const relationshipContract = getLdbRelationshipContractForToken(targetEntityName, token?.tokenName)
     return String(relationshipContract?.targetEntity || '').trim() === normalizedContextEntity
@@ -3727,10 +3692,8 @@ function resolveEditEntityName(row) {
   if (activeCreateBranchEntry.value?.targetSourceKey) {
     return getFilePageRegistryEntry(activeCreateBranchEntry.value.targetSourceKey)?.entityName || activeRegistryEntry.value?.entityName || ''
   }
-  const opportunityRegistryEntry = getFilePageRegistryEntry('opportunities')
   const opportunityKindToken =
-    (Array.isArray(opportunityRegistryEntry?.subsections) ? opportunityRegistryEntry.subsections : [])
-      .flatMap((subsection) => Array.isArray(subsection.tokens) ? subsection.tokens : [])
+    buildFileShellPayload('opportunities').tokens
       .find((token) => String(token?.tokenName || '').trim() === 'Opportunity_Kind') || null
   const kindValue =
     String(getCanonicalTokenValue(row?.raw || {}, opportunityKindToken || {}) || '')

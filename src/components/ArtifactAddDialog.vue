@@ -134,15 +134,16 @@
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useQuasar } from 'quasar'
 import AddEditRecordShellDialog from './AddEditRecordShellDialog.vue'
-import {
-  CANONICAL_OPTION_LISTS,
-  getCreateBranchTokenName,
-  getCanonicalTokenValue,
-  getFilePageRegistryEntry,
-  getFilePageRegistryEntryByEntityReference,
-  getRegistrySummaryTokenForSource,
-  getRegistryTitleTokenForSource,
-} from 'src/utils/structureRegistry'
+  import {
+    CANONICAL_OPTION_LISTS,
+    getCreateBranchTokenName,
+    getCanonicalTokenValue,
+    getFilePageRegistryEntry,
+    getFilePageRegistryEntryByEntityReference,
+    getRegistrySummaryTokenForSource,
+    getRegistryTitleTokenForSource,
+    buildFileShellPayload,
+  } from 'src/utils/structureRegistry'
 import { buildDialogViews, groupDialogViews, splitDialogViews } from 'src/utils/dialogShellPayload'
 import {
   createIntakeDraft,
@@ -176,30 +177,10 @@ const opportunityDialogOpen = ref(false)
 const opportunityDialogRenderKey = ref(0)
 const liveOptionRowsBySource = ref({})
 const DEFAULT_PIPELINE_ID = 'pipeline_default'
-const opportunityRegistryEntry = computed(() => getFilePageRegistryEntry('opportunities') || null)
-const opportunityLevel2Sections = computed(() =>
-  (Array.isArray(opportunityRegistryEntry.value?.subsections) ? opportunityRegistryEntry.value.subsections : []).map((subsection) => ({
-    key: subsection.key,
-    sectionOrder: subsection.level_2,
-    address: subsection.address,
-    label: subsection.label,
-    structureToken: subsection.structureToken,
-    subgroupKey: subsection.subgroupKey,
-    subgroupLabel: subsection.subgroupLabel,
-    subgroupAddress: subsection.subgroupAddress,
-    displayGroup: subsection.displayGroup,
-  })),
-)
-const opportunityLevel3Tokens = computed(() =>
-  (Array.isArray(opportunityRegistryEntry.value?.subsections) ? opportunityRegistryEntry.value.subsections : []).flatMap((subsection) =>
-    (Array.isArray(subsection.tokens) ? subsection.tokens : []).map((token) => ({
-      ...token,
-      parentKey: subsection.key,
-      parentLabel: subsection.label,
-      parentSectionOrder: subsection.level_2,
-    })),
-  ),
-)
+const opportunityShellPayload = computed(() => buildFileShellPayload('opportunities'))
+const opportunityRegistryEntry = computed(() => opportunityShellPayload.value.registryEntry)
+const opportunityLevel2Sections = computed(() => opportunityShellPayload.value.sections)
+const opportunityLevel3Tokens = computed(() => opportunityShellPayload.value.tokens)
 const opportunityGroupedLevel2Sections = computed(() => groupDialogViews(opportunityLevel2Sections.value))
 const opportunityKeyFieldTokens = computed(() => {
   const branchTokenName = getCreateBranchTokenName('opportunities')

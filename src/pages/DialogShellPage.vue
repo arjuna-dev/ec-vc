@@ -71,6 +71,7 @@ import {
   getRegistrySummaryTokenForSource,
   getRegistryTitleTokenForSource,
   getRuntimeTableNameForEntityName,
+  buildFileShellPayload,
   resolveApprovedFileSectionKey,
   TEST_SHELL_SECTION_OPTIONS,
 } from 'src/utils/structureRegistry'
@@ -112,29 +113,9 @@ const dialogShellSourceKey = ref(resolveValidShellSection(route.query.section, r
 const activeSourceKey = computed(() => dialogShellSourceKey.value)
 const hasResolvedSourceKey = computed(() => Boolean(activeSourceKey.value))
 const activeRegistryEntry = computed(() => getFilePageRegistryEntry(activeSourceKey.value) || null)
-const fileViews = computed(() =>
-  (Array.isArray(activeRegistryEntry.value?.subsections) ? activeRegistryEntry.value.subsections : []).map((subsection) => ({
-    key: subsection.key,
-    sectionOrder: subsection.level_2,
-    address: subsection.address,
-    label: subsection.label,
-    structureToken: subsection.structureToken,
-    subgroupKey: subsection.subgroupKey,
-    subgroupLabel: subsection.subgroupLabel,
-    subgroupAddress: subsection.subgroupAddress,
-    displayGroup: subsection.displayGroup,
-  })),
-)
-const fileTokens = computed(() =>
-  (Array.isArray(activeRegistryEntry.value?.subsections) ? activeRegistryEntry.value.subsections : []).flatMap((subsection) =>
-    (Array.isArray(subsection.tokens) ? subsection.tokens : []).map((token) => ({
-      ...token,
-      parentKey: subsection.key,
-      parentLabel: subsection.label,
-      parentSectionOrder: subsection.level_2,
-    })),
-  ),
-)
+const fileShellPayload = computed(() => buildFileShellPayload(activeSourceKey.value))
+const fileViews = computed(() => fileShellPayload.value.sections)
+const fileTokens = computed(() => fileShellPayload.value.tokens)
 const groupedViews = computed(() => groupDialogViews(fileViews.value))
 const canonicalNameToken = computed(() => getRegistryTitleTokenForSource(activeSourceKey.value) || null)
 const canonicalSummaryToken = computed(() => getRegistrySummaryTokenForSource(activeSourceKey.value) || null)
