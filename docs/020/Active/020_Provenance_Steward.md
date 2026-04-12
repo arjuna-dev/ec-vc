@@ -52,6 +52,37 @@ The `Provenance Steward` should:
 - route intake-specific extraction questions to the `Intake Steward`
 - route runtime event wiring questions to the `Runtime Steward`
 
+## Steward Event Scope Rule
+
+The provenance layer should support steward review through explicit event-scope filters.
+
+That means stewards should not be expected to review the whole history stream blindly.
+
+Instead, each steward should be able to inspect:
+
+- relevant entity scope:
+  - `File`
+  - `Record`
+  - join-table / relationship events
+- relevant action scope:
+  - `created`
+  - `edited`
+  - `verified`
+  - `suggested`
+  - `pre-selected`
+  - `deleted`
+  - and other approved action families as they are added
+
+This matters because stewardship is mandate-specific.
+
+Example:
+
+- `Design Steward` should be able to inspect `BB` component `created` and `edited` events
+- `File Steward` should be able to inspect file-definition and token-governance events
+- `Provenance Steward` should confirm that these scoped review paths are actually recordable and reconstructable
+
+If the history layer cannot filter events clearly enough for steward review by file/record/join-table scope and action type, the `Provenance Steward` should treat that as an architecture gap.
+
 ## Prohibited Behavior
 
 The `Provenance Steward` should not:

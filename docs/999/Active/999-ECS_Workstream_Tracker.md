@@ -93,6 +93,10 @@ This tracker should stay aligned with:
   - move dialog section titles onto one shared title treatment
   - add shared dialog undo controls
   - align `Add/Edit File Shell` middle-row language to the `Record View` pattern
+- steward event-scope filtering:
+  - define steward-level history/event filters by `File` / `Record` / join-table scope
+  - define steward-level action filters such as `created`, `edited`, `verified`, `suggested`, and `pre-selected`
+  - start with `Design Steward` review of `BB` component `created` / `edited` events
 - intake extraction orchestration:
   - `Intake Steward` should orchestrate relevant `File Stewards`
   - extraction should ask whether an artifact answers any declared `L1` / `L3` directive
@@ -178,6 +182,10 @@ This tracker should stay aligned with:
     - `BB Shell`
     - route-owned shell surfaces
     - live app pages
+  - Task 7: finish `bb:mini-toolbar` strictly through the BB/component layer:
+    - do not let page-local shell logic invent toolbar behavior
+    - keep `Views` and `Tokens` payloads explicit
+    - remove old directive paths that still treat `L2` grouping language as visible control truth
   - Success condition: changing one shared component or design token updates every consuming surface automatically
   - Structural rule: keep populating `Built From BBs` so the BB catalog can classify:
     - `Leaf / Elementary`
@@ -262,6 +270,10 @@ This tracker should stay aligned with:
 - the parent `File Shell` contract now fails closed on unmapped routes instead of silently rendering `Tasks`
 - shared file/page surfaces now expose missing canonical title/summary ownership instead of guessing from local row fields
 - note for future checklist passes: when a wrapper is hardened, immediately audit the child shared shell for inherited fallback defaults, because wrapper hardening alone can leave a second quiet drift path behind
+- stewardship correction:
+  - each steward should review only the scoped history/event stream tied to its mandate
+  - `Design Steward` should begin with `BB` component and shared shell `created` / `edited` events
+  - this is meant to reveal drift earlier, not to create a second vague monitoring layer
 
 ## Update Rule
 

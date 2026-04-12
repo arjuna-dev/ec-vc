@@ -64,6 +64,43 @@ The `Design Steward` should:
 - protect token, component, and shell ownership boundaries
 - keep design changes flowing through every consuming surface from one shared source
 
+## Event Scope
+
+The `Design Steward` should review the history/event stream through an explicit mandate filter, not through vague awareness.
+
+That means the steward should be able to select relevant:
+
+- entity scope:
+  - `File`
+  - `Record`
+  - join-table / relationship events when those events affect shared UI structure
+- action scope:
+  - `created`
+  - `edited`
+  - `verified`
+  - `suggested`
+  - `pre-selected`
+  - and later other approved action types when they affect design-system integrity
+
+For `Design Steward`, the high-priority review scope should include:
+
+- `BB` component `created`
+- `BB` component `edited`
+- shared shell component `created`
+- shared shell component `edited`
+- join-table / dependency events that change `Built From BBs` or shared component composition
+
+The purpose is not to review all events.
+
+The purpose is to let the `Design Steward` inspect the exact events that can introduce:
+
+- BB drift
+- shell drift
+- shared component contract drift
+- false local fixes that bypass the shared component layer
+
+If a shared component changes without a corresponding reviewable history/event path, the `Design Steward` should treat that as incomplete governance.
+
 ## Prohibited Behavior
 
 The `Design Steward` should not:
