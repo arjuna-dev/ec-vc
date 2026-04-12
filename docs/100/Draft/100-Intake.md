@@ -79,6 +79,10 @@ The system should preserve processing creation, stage changes, source artifact l
 
 ## View Fork System
 
+Definition note:
+
+- view forks and subgroups are internal to a file, not separate file rows, unless `System Files` explicitly tracks them as such
+
 ### System
 
 Tracks intake identity, creator, datetime, and event linkage.

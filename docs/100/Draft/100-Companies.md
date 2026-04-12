@@ -80,6 +80,10 @@ The system should preserve company creation, summary changes, incorporation chan
 
 ## View Fork System
 
+Definition note:
+
+- view forks and subgroups are internal to a file, not separate file rows, unless `System Files` explicitly tracks them as such
+
 ### System
 
 Tracks company identity, creator, datetime, and event linkage.

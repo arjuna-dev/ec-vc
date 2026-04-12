@@ -80,6 +80,10 @@ The system should preserve artifact creation, source actor, raw-path changes, ve
 
 ## View Fork System
 
+Definition note:
+
+- view forks and subgroups are internal to a file, not separate file rows, unless `System Files` explicitly tracks them as such
+
 ### System
 
 Tracks artifact identity, creator, datetime, and event linkage.

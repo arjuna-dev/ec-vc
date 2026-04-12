@@ -79,6 +79,10 @@ The system should preserve role creation, role changes, and when a role becomes 
 
 ## View Fork System
 
+Definition note:
+
+- view forks and subgroups are internal to a file, not separate file rows, unless `System Files` explicitly tracks them as such
+
 ### System
 
 Tracks role identity, creator, datetime, and event linkage.

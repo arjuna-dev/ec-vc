@@ -191,6 +191,10 @@ Do not implement access behavior from this file until the missing birth-chain it
 
 ## View Fork System
 
+Definition note:
+
+- view forks and subgroups are internal to a file, not separate file rows, unless `System Files` explicitly tracks them as such
+
 ### System
 
 The `System` section should track:

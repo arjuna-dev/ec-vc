@@ -79,6 +79,10 @@ The system should preserve project creation, stage changes, ownership changes, a
 
 ## View Fork System
 
+Definition note:
+
+- view forks and subgroups are internal to a file, not separate file rows, unless `System Files` explicitly tracks them as such
+
 ### System
 
 Tracks project identity, creator, datetime, and event linkage.

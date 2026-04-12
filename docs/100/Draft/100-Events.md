@@ -117,6 +117,10 @@ That event should read as a verification action by the owner, while still preser
 
 ## View Fork System
 
+Definition note:
+
+- view forks and subgroups are internal to a file, not separate file rows, unless `System Files` explicitly tracks them as such
+
 ### System
 
 Tracks event identity, actor, timestamp, and event linkage.

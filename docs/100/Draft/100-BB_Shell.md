@@ -81,6 +81,10 @@ The system should preserve when a block guide was created, when source ownership
 
 ## View Fork System
 
+Definition note:
+
+- view forks and subgroups are internal to a file, not separate file rows, unless `System Files` explicitly tracks them as such
+
 ### General
 
 Tracks block name, summary, category, and status.

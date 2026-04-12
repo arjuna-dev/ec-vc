@@ -79,6 +79,10 @@ The system should preserve task creation, status changes, assignment changes, an
 
 ## View Fork System
 
+Definition note:
+
+- view forks and subgroups are internal to a file, not separate file rows, unless `System Files` explicitly tracks them as such
+
 ### System
 
 Tracks task identity, creator, datetime, and event linkage.

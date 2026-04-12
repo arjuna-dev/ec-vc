@@ -80,6 +80,10 @@ The system should preserve user creation, user-contact linking, status changes, 
 
 ## View Fork System
 
+Definition note:
+
+- view forks and subgroups are internal to a file, not separate file rows, unless `System Files` explicitly tracks them as such
+
 ### System
 
 Tracks user identity, creator, datetime, and event linkage.
