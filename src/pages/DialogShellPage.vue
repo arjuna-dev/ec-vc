@@ -76,6 +76,7 @@ import {
 } from 'src/utils/structureRegistry'
 import { buildDialogSections, groupDialogSections, splitDialogSections } from 'src/utils/dialogShellPayload'
 import { buildTokenUpdateChanges, normalizeTokenWriteValue } from 'src/utils/tokenWriteChanges'
+import { submitSharedRecordEditSession } from 'src/utils/sharedRecordEditSession'
 
 function isRelationshipSection(sectionOrLabel) {
   const normalized = String(
@@ -833,35 +834,23 @@ async function submitCreateRecord(values = {}) {
 }
 
 async function submitEditRecord(values = {}) {
-  if (!dialogRecordId.value || !dialogEntityName.value) {
-    $q.notify({ type: 'negative', message: 'This record cannot be edited from the shared shell yet.' })
-    return
-  }
-
   const allTokens = [...createPrimaryTokens.value, ...createSectionGroups.value.flatMap((section) => section.tokens)]
-  const changes = allTokens.flatMap((token) =>
-    buildTokenUpdateChanges(token, {
-      nextValue: values?.[token.key],
-      initialValue: dialogInitialValues.value?.[token.key],
-      recordId: dialogRecordId.value,
-      entityName: dialogEntityName.value,
-      tableName: getRuntimeTableNameForEntityName(dialogEntityName.value),
-    }),
-  )
-
-  if (!changes.length) {
-    dialogOpen.value = false
-    return
-  }
 
   dialogLoading.value = true
   try {
-    await bridge.value?.records?.update?.({
-      tableName: getRuntimeTableNameForEntityName(dialogEntityName.value),
+    const result = await submitSharedRecordEditSession({
+      bridge: bridge.value,
+      tokens: allTokens,
+      values,
+      initialValues: dialogInitialValues.value,
       recordId: dialogRecordId.value,
-      changes,
+      entityName: dialogEntityName.value,
       actionLabel: 'shared_dialog_shell_edit',
     })
+    if (!result.changes.length) {
+      dialogOpen.value = false
+      return
+    }
     dialogOpen.value = false
     $q.notify({ type: 'positive', message: `${activeRegistryEntry.value?.singularLabel || 'Missing record type'} updated.` })
   } catch (error) {
