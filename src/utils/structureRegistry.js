@@ -369,10 +369,21 @@ function normalizeTokens(subsection) {
       const level = String(token?.level_3 ?? token?.level ?? '').trim()
       return level !== '0'
     })
-    .map((token, index) => ({
-      ...token,
-      level_3: String(token?.level_3 || resolveAddressPart(token?.address, 2) || index + 1),
-    }))
+    .map((token, index) => {
+      const explicitRole = String(token?.token_role || token?.field_role || '').trim()
+      const legacyRole = String(token?.role || '').trim()
+      const label = String(token?.label || '').trim().toLowerCase()
+      const inferredRole =
+        explicitRole ||
+        legacyRole ||
+        (label === 'name' ? 'title' : label === 'summary' ? 'summary' : '')
+
+      return {
+        ...token,
+        tokenRole: inferredRole,
+        tokenOrder: String(token?.level_3 || resolveAddressPart(token?.address, 2) || index + 1),
+      }
+    })
 }
 
 function normalizeDbFieldAliases(token) {
@@ -498,6 +509,8 @@ function buildEntityRegistry(entityName) {
         return {
           key: String(token?.token_name || token?.address || '').trim(),
           level_3: String(token?.level_3 || '').trim(),
+          tokenRole: String(token?.tokenRole || '').trim(),
+          tokenOrder: String(token?.tokenOrder || '').trim(),
           address: String(token?.address || '').trim(),
           tokenName,
           dbFieldAliases: normalizeDbFieldAliases(token),
@@ -749,21 +762,13 @@ export function getFilePageBirthDefaults(sourceKey = '') {
 export function getRegistryTitleTokenForSource(sourceKey = '') {
   const payload = buildFileShellPayload(sourceKey)
   if (!payload.registryEntry) return null
-  return payload.tokens.find(
-    (token) =>
-      String(token.parentLabel || '').trim().toLowerCase() === 'general' &&
-      String(token.level_3 || '').trim() === '1',
-  ) || null
+  return payload.tokens.find((token) => String(token.tokenRole || '').trim().toLowerCase() === 'title') || null
 }
 
 export function getRegistrySummaryTokenForSource(sourceKey = '') {
   const payload = buildFileShellPayload(sourceKey)
   if (!payload.registryEntry) return null
-  return payload.tokens.find(
-    (token) =>
-      String(token.parentLabel || '').trim().toLowerCase() === 'general' &&
-      String(token.level_3 || '').trim() === '2',
-  ) || null
+  return payload.tokens.find((token) => String(token.tokenRole || '').trim().toLowerCase() === 'summary') || null
 }
 
 export function validateLevel1BootstrapContracts({ bridgeValue = null, sourceKeys = [] } = {}) {
