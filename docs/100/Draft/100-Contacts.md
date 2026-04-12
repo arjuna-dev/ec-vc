@@ -72,7 +72,7 @@ The system should preserve contact creation, linkage changes, and relationship c
 - steward is declared: `yes`, `File Steward`
 - UX fork questions are declared: `partial`
 - `System` requirement is declared: `yes`
-- `KDB` requirement is declared: `yes`
+- `LDB` requirement is declared: `yes`
 - runtime/sqlite ownership is declared: `yes`, table `Contacts`
 - shell rendering path is declared: `yes`, route `/contacts`
 - events/provenance path is declared: `partial`
@@ -87,7 +87,7 @@ Tracks contact identity, creator, datetime, and event linkage.
 
 Tracks contact name and summary/profile fields.
 
-### KDB
+### LDB
 
 Tracks relationships to `Users`, `Companies`, `Projects`, `Notes`, and role-bearing files.
 

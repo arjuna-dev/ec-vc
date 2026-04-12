@@ -50,7 +50,7 @@ This means:
 
 - every file can relate to every other file by default
 - file-specific relationship fields live inside that file’s token list
-- there is no separate KDB registry path or fallback
+- there is no separate LDB registry path or fallback
 
 ## Events / Provenance Rule
 
@@ -102,7 +102,7 @@ This keeps guidance local, easy to reach, and directly tied to the file’s decl
 - `Reverse Read`
   - how relationships show from both sides
 - `Promoted vs Generic`
-  - dedicated join table versus shared `KDB_Relationships`
+  - dedicated join table versus shared `LDB_Relationships`
 
 ### 5. Genesis
 
@@ -141,4 +141,4 @@ These are the first missing memory-extension docs the system likely needs:
 1. `File Definition Schema`
 2. `Bootstrap Sequence Manifest`
 3. `File Governance Matrix`
-4. `KDB_Orchestrator`
+4. `LDB_Orchestrator`

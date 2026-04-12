@@ -73,7 +73,7 @@ The system should preserve user creation, user-contact linking, status changes, 
 - steward is declared: `yes`, `File Steward`
 - UX fork questions are declared: `partial`
 - `System` requirement is declared: `yes`
-- `KDB` requirement is declared: `yes`
+- `LDB` requirement is declared: `yes`
 - runtime/sqlite ownership is declared: `yes`, table `Users`
 - shell rendering path is declared: `yes`, route `/users`
 - events/provenance path is declared: `partial`
@@ -88,7 +88,7 @@ Tracks user identity, creator, datetime, and event linkage.
 
 Tracks user name and primary email.
 
-### KDB
+### LDB
 
 Tracks relationships to `Owner`, `Contacts`, `Roles`, `Projects`, and future `Access Assignments`.
 

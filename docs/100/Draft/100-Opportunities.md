@@ -72,7 +72,7 @@ The system should preserve opportunity creation, branch choice, status changes, 
 - steward is declared: `yes`, `File Steward`
 - UX fork questions are declared: `yes`, branch choice at creation
 - `System` requirement is declared: `yes`
-- `KDB` requirement is declared: `yes`
+- `LDB` requirement is declared: `yes`
 - runtime/sqlite ownership is declared: `yes`, table `Opportunities`
 - shell rendering path is declared: `yes`, route `/opportunities`
 - events/provenance path is declared: `partial`
@@ -87,7 +87,7 @@ Tracks opportunity identity, creator, datetime, and event linkage.
 
 Tracks opportunity name and summary.
 
-### KDB
+### LDB
 
 Tracks relationships to companies, contacts, artifacts, funds, rounds, and events.
 

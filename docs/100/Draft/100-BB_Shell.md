@@ -74,7 +74,7 @@ The system should preserve when a block guide was created, when source ownership
 - steward is declared: `yes`, `Design Steward`
 - UX fork questions are declared: `partial`
 - `System` requirement is declared: `yes`
-- `KDB` requirement is declared: `no`, this file uses explicit custom subsections instead
+- `LDB` requirement is declared: `no`, this file uses explicit custom subsections instead
 - runtime/sqlite ownership is declared: `yes`, table `Building_Blocks`
 - shell rendering path is declared: `yes`, route `/bb-file`
 - events/provenance path is declared: `partial`

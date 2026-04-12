@@ -72,7 +72,7 @@ The system should preserve security vocabulary changes, promoted labels, and dep
 - steward is declared: `yes`, `Glossary Steward`
 - UX fork questions are declared: `partial`
 - `System` requirement is declared: `yes`
-- `KDB` requirement is declared: `yes`
+- `LDB` requirement is declared: `yes`
 - runtime/sqlite ownership is declared: `yes`, table `Securities`
 - shell rendering path is declared: `yes`, route `/securities`
 - events/provenance path is declared: `partial`
@@ -87,7 +87,7 @@ Tracks security identity, creator, datetime, and event linkage.
 
 Tracks security name and summary.
 
-### KDB
+### LDB
 
 Tracks relationships to `Rounds`, `Opportunities`, and related investment files.
 

@@ -35,7 +35,7 @@ It exists to keep note-taking explicit and governable instead of hidden inside s
 
 - Treat `Notes` as a real file, not as an unstructured helper field.
 - Keep note context explicit through file or record relationships.
-- Do not treat latest-note lists as proof of true KDB linkage.
+- Do not treat latest-note lists as proof of true LDB linkage.
 
 ## Ownership
 
@@ -72,7 +72,7 @@ The system should preserve note creation, note edits, context reassignment, and 
 - steward is declared: `yes`, `File Steward`
 - UX fork questions are declared: `partial`
 - `System` requirement is declared: `yes`
-- `KDB` requirement is declared: `yes`
+- `LDB` requirement is declared: `yes`
 - runtime/sqlite ownership is declared: `yes`, table `Notes`
 - shell rendering path is declared: `yes`, route `/notes`
 - events/provenance path is declared: `partial`
@@ -87,7 +87,7 @@ Tracks note identity, creator, datetime, and event linkage.
 
 Tracks note name and summary.
 
-### KDB
+### LDB
 
 Tracks note relationships to source file, source record, projects, tasks, contacts, and events.
 

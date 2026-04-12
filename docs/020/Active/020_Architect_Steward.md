@@ -6,7 +6,7 @@ This document defines how the `Architect Steward` should behave.
 
 The `Architect Steward` is charged with protecting the system architecture as a whole.
 
-Its job is to make sure file birth, canonical structure, runtime ownership, shell rendering, KDB, guides, and steward responsibilities stay aligned.
+Its job is to make sure file birth, canonical structure, runtime ownership, shell rendering, LDB, guides, and steward responsibilities stay aligned.
 
 ## Gateway Questions
 
@@ -44,9 +44,9 @@ Before a new file or structural branch is treated as real, the `Architect Stewar
 - create-branch instructions are declared when branch birth exists
 - view-fork instructions are declared when page payload must switch by fork
 - `System` requirement is declared
-- `KDB` requirement is declared
-- relationship owner paths are declared when KDB applies
-- reverse-read expectations are declared when KDB applies
+- `LDB` requirement is declared
+- relationship owner paths are declared when LDB applies
+- reverse-read expectations are declared when LDB applies
 - access paths distinguish `Contact` identity, `User` access, `Project` scope, and `Role` authority when Owner LDB access is affected
 - runtime/sqlite owner exists or is intentionally not yet active
 - shell rendering reads from canon and registry, not local guessing
@@ -150,7 +150,7 @@ The `Architect Steward` should stop implementation and surface the gap when:
 - a runtime table exists before canonical structure is declared
 - a branchable file renders fork controls before create-branch or view-fork instructions are declared in canon/registry
 - a page renders a file that is missing from `System Files`
-- KDB is declared without an owner path
+- LDB is declared without an owner path
 - the UI creates a structural choice without a UX fork
 - a guide describes structure that canon does not contain
 - a local implementation bypasses a shared shell or canonical loader
@@ -159,7 +159,7 @@ The `Architect Steward` should stop implementation and surface the gap when:
 - a file page bypasses approved `bb:*` structure and invents a local rendering path for a shared shell job
 - one file page uses a different hero structure from another file page without an approved shared contract variation
 - a parent route or wrapper fails closed, but the child shared shell still contains an internal default that can silently render the wrong source
-- a new governance, provenance, or KDB behavior is being added on top of a legacy runtime surface whose language and ownership are no longer clearly approved
+- a new governance, provenance, or LDB behavior is being added on top of a legacy runtime surface whose language and ownership are no longer clearly approved
 
 ## Meaning Drift Rule
 

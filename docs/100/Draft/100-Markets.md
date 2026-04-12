@@ -72,7 +72,7 @@ The system should preserve vocabulary changes, promoted labels, and deprecations
 - steward is declared: `yes`, `Glossary Steward`
 - UX fork questions are declared: `partial`
 - `System` requirement is declared: `yes`
-- `KDB` requirement is declared: `yes`
+- `LDB` requirement is declared: `yes`
 - runtime/sqlite ownership is declared: `yes`, table `Markets`
 - shell rendering path is declared: `yes`, route `/markets`
 - events/provenance path is declared: `partial`
@@ -87,7 +87,7 @@ Tracks market identity, creator, datetime, and event linkage.
 
 Tracks market name and summary.
 
-### KDB
+### LDB
 
 Tracks relationships to companies, opportunities, funds, and rounds.
 

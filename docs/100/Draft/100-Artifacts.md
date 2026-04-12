@@ -73,7 +73,7 @@ The system should preserve artifact creation, source actor, raw-path changes, ve
 - steward is declared: `yes`, `Provenance Steward`
 - UX fork questions are declared: `partial`
 - `System` requirement is declared: `yes`
-- `KDB` requirement is declared: `yes`
+- `LDB` requirement is declared: `yes`
 - runtime/sqlite ownership is declared: `yes`, table `Artifacts`
 - shell rendering path is declared: `yes`, route `/artifacts`
 - events/provenance path is declared: `partial`
@@ -88,7 +88,7 @@ Tracks artifact identity, creator, datetime, and event linkage.
 
 Tracks artifact name and summary.
 
-### KDB
+### LDB
 
 Tracks relationships to source actor, opportunities, companies, processed artifacts, and created files.
 

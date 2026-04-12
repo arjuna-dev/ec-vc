@@ -180,7 +180,7 @@ For `Access Assignments`, the current checklist is:
 - steward is declared: `yes`, `File Steward`
 - UX fork questions are declared: `yes`, this guide defines the first access fork
 - `System` requirement is declared: `yes`
-- `KDB` requirement is declared: `yes`
+- `LDB` requirement is declared: `yes`
 - runtime/sqlite ownership is declared: `no`
 - shell rendering path is declared: `no`
 - events/provenance path is declared: `partial`, required by this guide but not runtime-proven
@@ -215,9 +215,9 @@ The `General` section should track:
 - status
 - short explanation of why the access exists
 
-### KDB
+### LDB
 
-The `KDB` section should track relationships to:
+The `LDB` section should track relationships to:
 
 - `Owner`
 - `Users`

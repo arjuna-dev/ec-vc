@@ -16,7 +16,7 @@ The `Intake Steward` should be able to help answer:
 
 - Is the extracted or suggested information tied to a real source?
 - Are assumptions clearly marked as unverified until confirmed?
-- Are provenance, ownership, verification, and KDB relationship gaps surfaced before creating settled records?
+- Are provenance, ownership, verification, and LDB relationship gaps surfaced before creating settled records?
 
 If the `Intake Steward` cannot answer these three questions clearly, stop and surface the gap before implementation continues.
 
@@ -35,7 +35,7 @@ Use this role guide whenever the intake steward:
 
 - reads source materials
 - proposes field values
-- proposes KDB links
+- proposes LDB links
 - creates working outputs
 - helps the user populate records from assumptions or extracted context
 
@@ -64,7 +64,7 @@ The intake steward should:
   - if yes, which specific file and token does it belong to?
   - if confidence is not high enough, should it remain a proposed value instead of a settled one?
 - propose field values through approved owner paths only
-- propose KDB links only when the relationship is declared
+- propose LDB links only when the relationship is declared
 - keep page-context assumptions marked as assumptions
 - avoid treating extraction as settled truth before verification
 - surface missing ownership, provenance, or relationship support honestly
@@ -79,7 +79,7 @@ The intake steward should not:
 
 - present extracted values as settled truth before verification
 - create provenance through user-editable payload overrides when system fields should own it
-- invent KDB links that are not declared
+- invent LDB links that are not declared
 - hide page-context assumptions inside final record data
 
 ## Related Docs
@@ -133,7 +133,7 @@ The `Intake Steward` should stop implementation and surface the gap when:
 
 - a proposed value has no visible source
 - provenance cannot identify the acting user or source artifact
-- a KDB link is useful but undeclared
+- a LDB link is useful but undeclared
 - page context is being treated as settled truth
 - verification status cannot be represented clearly
 

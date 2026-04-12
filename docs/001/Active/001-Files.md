@@ -486,7 +486,7 @@ This name better describes the local relationship layer between:
 - records inside those files
 - local system files and their relationship paths
 
-Current implementation should avoid introducing new `KDB` names in live contracts, docs, or UI labels.
+Current implementation should avoid introducing legacy `KDB` names in live contracts, docs, or UI labels.
 
 Do not rename those pieces one by one.
 

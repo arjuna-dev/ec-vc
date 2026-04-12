@@ -33,7 +33,7 @@ Implementation need:
 - make sure the canonical format can declare:
   - shared base sections
   - entity-specific `L2`s
-  - KDB tokens
+  - LDB tokens
   - relationship ownership decision when explicitly promoted
 
 ### Canonical birth input contract
@@ -59,7 +59,7 @@ Minimum required input:
    - approved exception
 3. shared base confirmation
    - `System`
-   - `KDB`
+   - `LDB`
    - `General`
 4. shared base parameter confirmation
    - `System`
@@ -73,12 +73,12 @@ Minimum required input:
 5. entity-specific extension structure
    - entity-specific `L2` list
    - approved `L2.a-b-c-d` subgrouping
-6. KDB declaration set
+6. LDB declaration set
    - target `L1`
    - source token
    - expected reverse target
 7. relationship owner-path decision set
-   - shared `KDB_Relationships`
+   - shared `LDB_Relationships`
    - promoted dedicated join table
 8. shell ownership identity
    - file-shell route ownership
@@ -89,7 +89,7 @@ Minimum required input:
    - create works
    - edit works
    - delete works
-   - KDB appears
+   - LDB appears
    - reverse-read appears
    - shell launch works
 
@@ -100,8 +100,8 @@ Compact check:
 3. does it own the shared base?
 4. does it use the shared base parameters correctly?
 5. what are its entity-specific `L2`s?
-6. what KDB links does it declare?
-7. which links stay in `KDB_Relationships`?
+6. what LDB links does it declare?
+7. which links stay in `LDB_Relationships`?
 8. which links are explicitly promoted to dedicated join tables?
 9. what route/registry/runtime identity should be created?
 10. how do we prove the birth is complete?
@@ -110,7 +110,7 @@ This contract does not allow:
 
 - guessing labels from table names
 - creating a visible shell before runtime ownership exists
-- adding KDB tokens without reverse-read planning
+- adding LDB tokens without reverse-read planning
 - assuming every relationship deserves a dedicated join table
 - inventing subgroup structure later in shell code
 
@@ -155,7 +155,7 @@ Current status:
 
 - the shared-base rule is now documented clearly:
   - `System`
-  - `KDB`
+  - `LDB`
   - `General`
 
 Implementation need:
@@ -209,43 +209,43 @@ Implementation need:
 - make entity extension a distinct post-base step
 - ensure `L2.a-b-c-d` subgrouping is loaded only after the shared base is present
 
-### 6. Reciprocal KDB declarations
+### 6. Reciprocal LDB declarations
 
 Primary files:
 
 - `docs/000-canonical-structure.json`
-- `src/shared/kdbRelationshipContracts.js`
+- `src/shared/ldbRelationshipContracts.js`
 
 Current status:
 
-- canon can declare KDB tokens
+- canon can declare LDB tokens
 - runtime can resolve explicit contracts and generic contracts
 - reciprocal coverage is still partly manual
 
 Implementation need:
 
 - define the approved active `L1` set for reciprocal birth
-- create one birth rule that generates reciprocal KDB declarations for the new `L1`
+- create one birth rule that generates reciprocal LDB declarations for the new `L1`
 - stop relying on post-birth manual back-wiring as the default
 
 ### 7. Relationship owner-path choice
 
 Primary files:
 
-- `src/shared/kdbRelationshipContracts.js`
+- `src/shared/ldbRelationshipContracts.js`
 - `src-electron/services/sqlite-schema.js`
 
 Current status:
 
 - both models already exist:
   - dedicated join table
-  - shared `KDB_Relationships`
+  - shared `LDB_Relationships`
 - the choice is currently partly manual
 
 Implementation need:
 
 - define the default owner-path rule at birth:
-  - default to shared `KDB_Relationships`
+  - default to shared `LDB_Relationships`
   - promote to dedicated join table only when the relationship becomes a governed object
 - make this decision explicit during bootstrap
 
@@ -253,14 +253,14 @@ Implementation need:
 
 Primary files:
 
-- `src/shared/kdbRelationshipContracts.js`
+- `src/shared/ldbRelationshipContracts.js`
 - `src/components/FilePageShell.vue`
 - `src/utils/dialogShellPayload.js`
 
 Current status:
 
 - reverse-read behavior exists for some relationships
-- coverage is still uneven across the declared KDB set
+- coverage is still uneven across the declared LDB set
 
 Implementation need:
 
@@ -305,7 +305,7 @@ Implementation need:
   - create works
   - edit works
   - delete works
-  - KDB appears
+  - LDB appears
   - reverse-read appears
   - shell launch works
 - do not mark `L1` birth complete before this proof exists
@@ -315,14 +315,14 @@ Implementation need:
 The smallest clean implementation order should be:
 
 1. define the canonical input contract for new normal `L1` birth
-2. define the active `L1` set used for reciprocal KDB generation
-3. define the default KDB owner-path rule:
-   - default `KDB_Relationships`
+2. define the active `L1` set used for reciprocal LDB generation
+3. define the default LDB owner-path rule:
+   - default `LDB_Relationships`
    - promote only by explicit approval
 4. build one bootstrap helper that produces:
    - shared base sections
    - shared base parameters
-   - reciprocal KDB declarations
+   - reciprocal LDB declarations
 5. only after that wire table/runtime/registry creation through the same birth path
 6. then open a test branch and prove it through one test entity
 
@@ -331,8 +331,8 @@ The smallest clean implementation order should be:
 Before opening the test branch, we should be able to answer `yes` to all of these:
 
 - do we know the exact canonical input for a new normal `L1`?
-- do we know which existing `L1`s get reciprocal KDB declarations by default?
-- do we know when a relationship stays in `KDB_Relationships`?
+- do we know which existing `L1`s get reciprocal LDB declarations by default?
+- do we know when a relationship stays in `LDB_Relationships`?
 - do we know when a relationship is promoted to a dedicated join table?
 - do we know the minimum validation proof for a born `L1`?
 

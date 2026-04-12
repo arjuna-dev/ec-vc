@@ -110,7 +110,7 @@ That event should read as a verification action by the owner, while still preser
 - steward is declared: `yes`, `Provenance Steward`
 - UX fork questions are declared: `partial`
 - `System` requirement is declared: `yes`
-- `KDB` requirement is declared: `yes`
+- `LDB` requirement is declared: `yes`
 - runtime/sqlite ownership is declared: `yes`, table `events`
 - shell rendering path is declared: `yes`, route `/events`
 - events/provenance path is declared: `yes`, this file is the provenance surface
@@ -125,7 +125,7 @@ Tracks event identity, actor, timestamp, and event linkage.
 
 Tracks the human-readable history summary and status.
 
-### KDB
+### LDB
 
 Tracks event relationships back to source file, source record, actor, and related workflow context.
 

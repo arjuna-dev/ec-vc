@@ -47,7 +47,7 @@ The `Provenance Steward` should:
 - require `Creator` to begin from the action that made the value real, while preserving an event trail for later governed overrides
 - make file birth and genesis events reconstructable
 - make ingestion activity reconnectable to source artifacts
-- make LDB/KDB relationship creation explainable from both sides when reverse-read is expected
+- make LDB relationship creation explainable from both sides when reverse-read is expected
 - make game point changes explainable from visible objectives and events
 - route intake-specific extraction questions to the `Intake Steward`
 - route runtime event wiring questions to the `Runtime Steward`

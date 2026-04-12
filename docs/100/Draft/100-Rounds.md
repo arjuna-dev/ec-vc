@@ -72,7 +72,7 @@ The system should preserve round creation, security-type changes, valuation chan
 - steward is declared: `yes`, `File Steward`
 - UX fork questions are declared: `partial`
 - `System` requirement is declared: `yes`
-- `KDB` requirement is declared: `yes`
+- `LDB` requirement is declared: `yes`
 - runtime/sqlite ownership is declared: `yes`, table `Rounds`
 - shell rendering path is declared: `partial`, route exists in registry but is not workspace-visible
 - events/provenance path is declared: `partial`
@@ -87,7 +87,7 @@ Tracks round identity, creator, datetime, and event linkage.
 
 Tracks round name and summary.
 
-### KDB
+### LDB
 
 Tracks relationships to opportunities, companies, securities, artifacts, and events.
 

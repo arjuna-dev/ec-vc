@@ -72,7 +72,7 @@ The system should preserve processing creation, stage changes, source artifact l
 - steward is declared: `yes`, `Provenance Steward`
 - UX fork questions are declared: `partial`
 - `System` requirement is declared: `yes`
-- `KDB` requirement is declared: `yes`
+- `LDB` requirement is declared: `yes`
 - runtime/sqlite ownership is declared: `yes`, table `Intake`
 - shell rendering path is declared: `yes`, route `/intake`
 - events/provenance path is declared: `partial`
@@ -87,7 +87,7 @@ Tracks intake identity, creator, datetime, and event linkage.
 
 Tracks intake name and summary.
 
-### KDB
+### LDB
 
 Tracks relationships to original artifacts, created files, opportunities, and events.
 

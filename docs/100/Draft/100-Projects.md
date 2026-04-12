@@ -72,7 +72,7 @@ The system should preserve project creation, stage changes, ownership changes, a
 - steward is declared: `yes`, `File Steward`
 - UX fork questions are declared: `partial`
 - `System` requirement is declared: `yes`
-- `KDB` requirement is declared: `yes`
+- `LDB` requirement is declared: `yes`
 - runtime/sqlite ownership is declared: `yes`, table `Projects`
 - shell rendering path is declared: `yes`, route `/projects`
 - events/provenance path is declared: `partial`
@@ -87,7 +87,7 @@ Tracks project identity, creator, datetime, and event linkage.
 
 Tracks project name and summary.
 
-### KDB
+### LDB
 
 Tracks relationships to `Tasks`, `Notes`, `Contacts`, `Artifacts`, `Users`, and future `Access Assignments`.
 

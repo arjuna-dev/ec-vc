@@ -72,7 +72,7 @@ The system should preserve role creation, role changes, and when a role becomes 
 - steward is declared: `yes`, `File Steward`
 - UX fork questions are declared: `partial`
 - `System` requirement is declared: `yes`
-- `KDB` requirement is declared: `yes`
+- `LDB` requirement is declared: `yes`
 - runtime/sqlite ownership is declared: `yes`, table `Roles`
 - shell rendering path is declared: `yes`, route `/user-roles`
 - events/provenance path is declared: `partial`
@@ -87,7 +87,7 @@ Tracks role identity, creator, datetime, and event linkage.
 
 Tracks role name and summary.
 
-### KDB
+### LDB
 
 Tracks relationships to `Users`, `Contacts`, `Projects`, and future `Access Assignments`.
 

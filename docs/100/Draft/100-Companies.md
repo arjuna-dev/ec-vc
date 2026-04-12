@@ -73,7 +73,7 @@ The system should preserve company creation, summary changes, incorporation chan
 - steward is declared: `yes`, `File Steward`
 - UX fork questions are declared: `partial`
 - `System` requirement is declared: `yes`
-- `KDB` requirement is declared: `yes`
+- `LDB` requirement is declared: `yes`
 - runtime/sqlite ownership is declared: `yes`, table `Companies`
 - shell rendering path is declared: `yes`, route `/companies`
 - events/provenance path is declared: `partial`
@@ -88,7 +88,7 @@ Tracks company identity, creator, datetime, and event linkage.
 
 Tracks company name and summary.
 
-### KDB
+### LDB
 
 Tracks relationships to `Contacts`, `Opportunities`, `Projects`, `Artifacts`, and `Events`.
 

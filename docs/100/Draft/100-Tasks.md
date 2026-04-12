@@ -72,7 +72,7 @@ The system should preserve task creation, status changes, assignment changes, an
 - steward is declared: `yes`, `File Steward`
 - UX fork questions are declared: `partial`
 - `System` requirement is declared: `yes`
-- `KDB` requirement is declared: `yes`
+- `LDB` requirement is declared: `yes`
 - runtime/sqlite ownership is declared: `yes`, table `Tasks`
 - shell rendering path is declared: `yes`, route `/tasks`
 - events/provenance path is declared: `partial`
@@ -87,7 +87,7 @@ Tracks task identity, creator, datetime, and event linkage.
 
 Tracks task name, summary, and status.
 
-### KDB
+### LDB
 
 Tracks relationships to `Projects`, `Notes`, `Users`, `Contacts`, and `Events`.
 

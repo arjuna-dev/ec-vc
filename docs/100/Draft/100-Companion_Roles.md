@@ -72,7 +72,7 @@ The system should preserve role creation, role contract changes, and role status
 - steward is declared: `yes`, `File Steward`
 - UX fork questions are declared: `partial`
 - `System` requirement is declared: `yes`
-- `KDB` requirement is declared: `yes`
+- `LDB` requirement is declared: `yes`
 - runtime/sqlite ownership is declared: `yes`, table `Companion_Roles`
 - shell rendering path is declared: `yes`, route `/companion-roles`
 - events/provenance path is declared: `partial`
@@ -87,7 +87,7 @@ Tracks companion role identity, creator, datetime, and event linkage.
 
 Tracks companion role name and summary.
 
-### KDB
+### LDB
 
 Tracks relationships to `Owner`, companion manuals, steward contracts, and governed files.
 
