@@ -128,7 +128,7 @@
 
     <div class="file-structure-shell__toolbar-row">
       <MiniToolbar
-        v-model="activeL2Toolbar"
+        v-model="activeToolbarView"
         :items="miniToolbarItems"
         view-mode="card"
         :view-options="viewOptions"
@@ -219,7 +219,7 @@ const shellSelectorOpen = ref(false)
 const shellSelectorButton = ref(null)
 const shellSelectorMenu = ref(null)
 const pendingShellSelectorValue = ref('')
-const activeL2Toolbar = ref('')
+const activeToolbarView = ref('')
 const boxesCollapsed = ref(false)
 const leafItemsCollapsed = ref(false)
 const activeSubgroupKey = ref('')
@@ -292,16 +292,16 @@ const activeFilePayload = computed(() => {
 })
 const payloadSections = computed(() => activeFilePayload.value.sections)
 const payloadTokens = computed(() => activeFilePayload.value.tokens)
-const dialogSectionGroups = computed(() => payloadSections.value)
-const toolbarSectionSplit = computed(() => splitDialogSections(dialogSectionGroups.value))
+const fileViewGroups = computed(() => payloadSections.value)
+const toolbarViewSplit = computed(() => splitDialogSections(fileViewGroups.value))
 function isRelationshipSectionLabel(value = '') {
   const normalized = String(value || '').trim().toLowerCase()
   return normalized === 'ldb'
 }
 const miniToolbarItems = computed(() =>
   buildStructureToolbarItems({
-    leftItems: toolbarSectionSplit.value.leftSections,
-    rightItems: toolbarSectionSplit.value.rightSections,
+    leftItems: toolbarViewSplit.value.leftSections,
+    rightItems: toolbarViewSplit.value.rightSections,
     governanceItems: [
       { value: 'tokens', title: 'Tokens' },
       { value: 'views', title: 'Views' },
@@ -309,32 +309,32 @@ const miniToolbarItems = computed(() =>
     isRelationshipSectionLabel,
   }),
 )
-const isGovernanceToolbarActive = computed(() => activeL2Toolbar.value === 'tokens' || activeL2Toolbar.value === 'views')
-const isTokensToolbarActive = computed(() => activeL2Toolbar.value === 'tokens')
-const isViewsToolbarActive = computed(() => activeL2Toolbar.value === 'views')
-const activeSettingsSection = computed(
+const isGovernanceToolbarActive = computed(() => activeToolbarView.value === 'tokens' || activeToolbarView.value === 'views')
+const isTokensToolbarActive = computed(() => activeToolbarView.value === 'tokens')
+const isViewsToolbarActive = computed(() => activeToolbarView.value === 'views')
+const activeViewSection = computed(
   () => {
     if (isGovernanceToolbarActive.value) return null
-    return dialogSectionGroups.value.find((section) => section.key === activeL2Toolbar.value) || dialogSectionGroups.value[0] || null
+    return fileViewGroups.value.find((section) => section.key === activeToolbarView.value) || fileViewGroups.value[0] || null
   },
 )
 const isRelationshipSettingsSection = computed(() =>
-  isRelationshipSectionLabel(activeSettingsSection.value?.label),
+  isRelationshipSectionLabel(activeViewSection.value?.label),
 )
 const subgroupTabs = computed(() => {
   if (isRelationshipSettingsSection.value) return []
-  return (Array.isArray(activeSettingsSection.value?.subgroups) ? activeSettingsSection.value.subgroups : []).map((group) => ({
+  return (Array.isArray(activeViewSection.value?.subgroups) ? activeViewSection.value.subgroups : []).map((group) => ({
     key: group.key,
     label: group.label,
   }))
 })
 const governanceViewRows = computed(() =>
-  [...toolbarSectionSplit.value.leftSections, ...toolbarSectionSplit.value.rightSections].map((section) => {
+  [...toolbarViewSplit.value.leftSections, ...toolbarViewSplit.value.rightSections].map((section) => {
     const normalized = String(section.label || '').trim().toLowerCase()
     return {
       key: section.key,
       label: section.label,
-      side: toolbarSectionSplit.value.rightSections.some((entry) => entry.key === section.key) ? 'Right' : 'Left',
+      side: toolbarViewSplit.value.rightSections.some((entry) => entry.key === section.key) ? 'Right' : 'Left',
       tokenCount: Array.isArray(section.tokens) ? section.tokens.length : 0,
       subgroupCount: Array.isArray(section.subgroups) ? section.subgroups.length : 0,
       sortOrder: normalized,
@@ -353,7 +353,7 @@ const sharedLdbLeafTokens = computed(() => {
       return {
         key: `__shared_ldb__:${sourceKey}`,
         label: String(option?.label || targetEntry?.label || `File ${index + 1}`).trim() || `File ${index + 1}`,
-        parentLabel: activeSettingsSection.value?.label || 'LDB',
+        parentLabel: activeViewSection.value?.label || 'LDB',
         tokenType: 'select_multi',
         relationshipGroup: 'ldb',
         tokenOrder: String(index + 1),
@@ -368,13 +368,13 @@ const sharedLdbLeafTokens = computed(() => {
 })
 const activeLeafTokens = computed(() => {
   const subgroupMap = new Map(
-    (Array.isArray(activeSettingsSection.value?.subgroups) ? activeSettingsSection.value.subgroups : []).map((group) => [group.key, group]),
+    (Array.isArray(activeViewSection.value?.subgroups) ? activeViewSection.value.subgroups : []).map((group) => [group.key, group]),
   )
   const sourceTokens = isRelationshipSettingsSection.value
     ? sharedLdbLeafTokens.value
     : subgroupTabs.value.length
     ? (subgroupMap.get(activeSubgroupKey.value)?.tokens || [])
-    : (Array.isArray(activeSettingsSection.value?.tokens) ? activeSettingsSection.value.tokens : [])
+    : (Array.isArray(activeViewSection.value?.tokens) ? activeViewSection.value.tokens : [])
   const draftTokens = draftLeafRowsBySource.value[activeSettingsSourceKey.value] || []
   const tokens = [...draftTokens, ...sourceTokens]
 
@@ -384,7 +384,7 @@ const activeLeafTokens = computed(() => {
     return {
       key: token.key || '—',
       label: token.label || '—',
-      parentView: token.parentLabel || activeSettingsSection.value?.label || '—',
+      parentView: token.parentLabel || activeViewSection.value?.label || '—',
       parentSubgroup: isRelationshipSettingsSection.value
         ? '—'
         : token.draftParentSubgroup || subgroupMap.get(activeSubgroupKey.value)?.label || '—',
@@ -401,7 +401,7 @@ const activeLeafTokens = computed(() => {
 })
 const tokenGroupsByView = computed(() =>
   governanceViewRows.value.map((view) => {
-    const section = dialogSectionGroups.value.find((entry) => entry.key === view.key)
+    const section = fileViewGroups.value.find((entry) => entry.key === view.key)
     const groupTokens = Array.isArray(section?.tokens) ? section.tokens : []
     const requiredKeys = new Set(requiredFieldKeysBySource.value[activeSettingsSourceKey.value] || [])
     return {
@@ -439,8 +439,8 @@ const fileStructureSnapshot = computed(() =>
   buildFileStructureSessionSnapshot({
     sourceKey: activeSettingsSourceKey.value,
     sourceLabel: activeShellSelectorOption.value.label,
-    toolbarValue: activeL2Toolbar.value,
-    sectionKey: activeSettingsSection.value?.key || '',
+    toolbarValue: activeToolbarView.value,
+    sectionKey: activeViewSection.value?.key || '',
     viewRows: governanceViewRows.value,
     leafRows: displayLeafTokens.value,
     selectedLeafKeys: selectedLeafKeys.value,
@@ -477,7 +477,7 @@ function addLeafElement() {
         isDraft: true,
         key: nextKey,
         label: `Draft Leaf ${nextIndex}`,
-        parentLabel: activeSettingsSection.value?.label || '—',
+        parentLabel: activeViewSection.value?.label || '—',
         tokenType: 'text',
         relationshipGroup: '',
         tokenOrder: String(nextIndex),
@@ -564,8 +564,8 @@ onBeforeUnmount(() => {
 watch(
   miniToolbarItems,
   (items) => {
-    if (items.some((item) => item.value === activeL2Toolbar.value)) return
-    activeL2Toolbar.value = items[0]?.value || ''
+    if (items.some((item) => item.value === activeToolbarView.value)) return
+    activeToolbarView.value = items[0]?.value || ''
   },
   { immediate: true },
 )
