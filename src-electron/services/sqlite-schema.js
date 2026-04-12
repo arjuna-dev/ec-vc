@@ -162,6 +162,61 @@ CREATE TABLE IF NOT EXISTS Funds (
 CREATE INDEX IF NOT EXISTS idx_Funds_created_by
   ON Funds(created_by);
 
+CREATE TABLE IF NOT EXISTS Opportunities (
+  id TEXT PRIMARY KEY,
+  kind TEXT CHECK (kind IS NULL OR kind IN ('round', 'fund')),
+  company_id INTEGER,
+  Venture_Oppty_Name TEXT,
+  Round_Stage TEXT,
+  Type_of_Security TEXT,
+  Investment_Ask REAL,
+  Round_Amount REAL,
+  Hard_Commits REAL,
+  Soft_Commits REAL,
+  Pre_Valuation REAL,
+  Post_Valuation REAL,
+  Previous_Post REAL,
+  First_Close_Date TEXT,
+  Next_Close_Date TEXT,
+  Final_Close_Date TEXT,
+  Pipeline_Stage TEXT,
+  Pipeline_Status TEXT,
+  Raising_Status TEXT,
+  Board_Seats TEXT,
+  Information_Rights TEXT,
+  Voting_Rights TEXT,
+  Liquidation_Preference TEXT,
+  Anti_Dilution_Provisions TEXT,
+  Conversion_Features TEXT,
+  Most_Favored_Nation TEXT,
+  ROFO_ROR TEXT,
+  Co_Sale_Right TEXT,
+  Tag_Drag_Along TEXT,
+  Put_Option TEXT,
+  Over_Allotment_Option TEXT,
+  Stacked_Series TEXT,
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+  FOREIGN KEY (company_id) REFERENCES Companies(id) ON UPDATE CASCADE ON DELETE SET NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_Opportunities_company
+  ON Opportunities(company_id);
+
+CREATE INDEX IF NOT EXISTS idx_Opportunities_name
+  ON Opportunities(Venture_Oppty_Name);
+
+CREATE TABLE IF NOT EXISTS Opportunity_Pipeline (
+  opportunity_id TEXT NOT NULL,
+  pipeline_id TEXT NOT NULL,
+  stage_id TEXT,
+  status TEXT,
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+  PRIMARY KEY (opportunity_id, pipeline_id),
+  FOREIGN KEY (opportunity_id) REFERENCES Opportunities(id) ON UPDATE CASCADE ON DELETE CASCADE
+);
+
 CREATE TABLE IF NOT EXISTS Fund_Overview (
   fund_id TEXT PRIMARY KEY,
   Fund_Raising_Status TEXT CHECK (

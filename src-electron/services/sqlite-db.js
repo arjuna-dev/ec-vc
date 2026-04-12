@@ -8,7 +8,15 @@ import { SCHEMA_V1_SQL } from './sqlite-schema.js'
 let db = null
 
 export function initDb() {
-  if (db) return db
+  if (db) {
+    db.exec(SCHEMA_V1_SQL)
+    ensureColumn(db, 'events', 'payload_json', 'TEXT')
+    ensureColumn(db, 'Companion_Roles', 'Companion_Role_Type', 'TEXT')
+    ensureColumn(db, 'Companion_Roles', 'Companion_Role_Status', 'TEXT')
+    ensureColumn(db, 'Companion_Roles', 'Companion_Role_Contract_Path', 'TEXT')
+    db.pragma('user_version = 1')
+    return db
+  }
 
   const dbPath = path.join(app.getPath('userData'), 'ecvc.sqlite3')
   fse.ensureDirSync(path.dirname(dbPath))
