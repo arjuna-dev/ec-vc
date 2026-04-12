@@ -36,7 +36,7 @@ The clean rule is:
 | `System Files` | The app-facing surface that exposes and governs the `Files` registry. |
 | `File Guide` | The `.md` guide attached to a file record. System file guides live in `docs/100`. |
 | `File Source Key` | The stable registry key used to connect a file row to the file/page registry. |
-| `File Class` | Whether a file is an `L1`, `View Fork`, or `Subgroup`. |
+| `File Class` | Whether a file is an `L1`. `View Fork` / `Subgroup` only when internal structure is explicitly tracked in `System Files`. |
 | `File Order` | The display or creation order used by the registry and file shell. |
 | `Ownership Mode` | The ownership model for the file, such as `root_owned`. |
 | `Defined Structure` | The declared view-fork structure for the file. |
