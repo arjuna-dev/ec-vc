@@ -14,7 +14,7 @@
 | Fully Born | A file or structure whose canon, registry row, guide, ownership, steward, UX fork questions, runtime/sqlite ownership, shell path, and provenance path are honestly satisfied. | File Steward |
 | File Shell | The shared shell renderer for file-level `L1` collection surfaces. It should stay fixed while route-owned `L1` payloads swap underneath it. | Product Reference |
 | System Files File Universe | The authoritative list of files used to build shared LDB targets. If a file is not in System Files, it is not in the LDB universe. | File Steward Contract |
-| File-Owned Token Contract | The file’s token list and view forks are the live payload source for shells. Canonical/workbook docs are reference inputs only. | Record Architecture |
+| File-Owned Token Contract | The file's token list and view forks are the live payload source for shells. Canonical/workbook docs are reference inputs only. | Record Architecture |
 | Shared LDB Contract | The runtime relationship contract that writes to and reads from `LDB_Relationships`. It is the default relationship existence layer for all files. | Record Architecture |
 | BB File | `Building Blocks File`. A special `System-Level File` that governs reusable UI building blocks, design primitives, shell parts, and reconstruction guidance. It is not a standard app-data `L1` and is a controlled exception to the normal `System` / `LDB` subsection baseline. | Record Architecture |
 | Built From BBs | The explicit BB-to-BB dependency field. It declares which already-built building blocks a BB is composed from so the catalog can function as inventory, usage map, and dependency map. | Record Architecture |
@@ -36,12 +36,9 @@
 | Legacy Surface | A frontend page or dialog that is no longer route-mounted or no longer part of the approved shared shell set. Once proven unused, it should be removed rather than kept as silent drift. | Legacy Surface Audit |
 | Fixed Shell Styling | The rule that shell visuals stay fixed at shell level. `L1` may change payload, labels, section membership, and explicitly approved capabilities, but should not silently restyle the shell. | Product Reference |
 | Shared Middle-Field Selection | The rule that the selected middle fields for a given `L1` are remembered once and reused by both `File Shell` cards and `Record Shell` hero rows. | Product Reference |
-| First-Order LDB | The LDB display family for main operational `L1`s such as `Users`, `Companies`, `Projects`, `Tasks`, `Notes`, `Opportunities`, `Funds`, `Rounds`, `Artifacts`, `Contacts`, and `Roles`. | LDB Audit |
-| Local DB LDB | The LDB display family for reusable local reference or processing `L1`s such as `Markets`, `Securities`, and `Intake`. | LDB Audit |
 | Business Overview | The grouped `L2` used in `Companies` to collect overview-style subsections under one toolbar item while preserving the prior overview subsections as subgroup variants inside the panel. | Record Architecture |
 | Grouped Subsection | A preserved canonical subsection rendered inside a grouped `L2` panel. Grouped subsections should keep their own title and should be individually collapsible. | Record Architecture |
 | Grouped Dialog Section | A grouped `L2` rendered inside the shared create / edit dialog. It should preserve subgroup identity and collapse / expand behavior instead of flattening subgrouped fields into one undifferentiated section. | Record Architecture |
-| Overview Display Group | A higher display family that can collect multiple overview-style subsections under one grouped heading without changing their canonical addresses. Grouping the toolbar does not flatten the subgroup structure in the panel. | LDB Audit |
 | Record View | The eye-opened detailed surface for one selected record. Route-level `record-view` should now resolve into `Record Shell`. | Product Reference |
 | Hero Dashboard | The top shell block for card or record presentation. In `Record Shell`, it is based on the current `User Record View` hero/dashboard pattern. | Record Architecture |
 | L2 Toolbar | The section bar below the hero/dashboard that renders the selected `L1`'s subsection groups. It places normal sections on the left and `LDB` / `System` on the right. | Product Reference |
