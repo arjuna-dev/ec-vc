@@ -160,10 +160,12 @@
         <StructureGovernancePanel
           mode="tokens"
           :token-groups="tokenGroupsByView"
+          :token-columns="tokenGovernanceColumns"
           :show-write-target="true"
           :interactive-required="true"
           empty-tokens-label="No tokens declared in this view."
           @toggle-required="toggleRequiredField"
+          @update-token-cell="updateTokenCell"
         />
       </div>
 
@@ -225,6 +227,7 @@ const leafItemsCollapsed = ref(false)
 const activeSubgroupKey = ref('')
 const draftLeafRowsBySource = ref({})
 const leafFieldOverridesBySource = ref({})
+const tokenFieldOverridesBySource = ref({})
 const selectedLeafKeysBySource = ref({})
 const requiredFieldKeysBySource = ref({})
 const viewOptions = [
@@ -266,6 +269,17 @@ const optionEntityOptions = computed(() =>
     })
     .filter(Boolean),
 )
+const tokenGovernanceColumns = computed(() => [
+  { key: 'label', label: 'Label', width: 180, cellClass: 'file-structure-shell__cell--label', editable: true, kind: 'text' },
+  { key: 'type', label: 'Type', width: 112, headerClass: 'file-structure-shell__colhead--data', cellClass: 'file-structure-shell__cell--data', editable: true, kind: 'select', options: tokenTypeOptions },
+  { key: 'optionSource', label: 'Option Source', width: 150, headerClass: 'file-structure-shell__colhead--data', cellClass: 'file-structure-shell__cell--data', editable: true, kind: 'select', options: optionSourceOptions },
+  { key: 'optionEntity', label: 'Option Entity', width: 160, headerClass: 'file-structure-shell__colhead--data', cellClass: 'file-structure-shell__cell--data', editable: true, kind: 'select', options: optionEntityOptions.value },
+  { key: 'optionList', label: 'Option List', width: 140, headerClass: 'file-structure-shell__colhead--data', cellClass: 'file-structure-shell__cell--data', editable: true, kind: 'text' },
+  { key: 'dbWriteField', label: 'DB Write Field', width: 180, headerClass: 'file-structure-shell__colhead--data', cellClass: 'file-structure-shell__cell--data', editable: true, kind: 'text' },
+  { key: 'fieldClass', label: 'Field Class', width: 140, headerClass: 'file-structure-shell__colhead--data', cellClass: 'file-structure-shell__cell--data', editable: true, kind: 'select', options: fieldClassOptions },
+  { key: 'required', label: 'Required', width: 84, headerClass: 'file-structure-shell__colhead--data', cellClass: 'file-structure-shell__cell--data', kind: 'checkbox' },
+  { key: 'writeTarget', label: 'Write Target / Alias', width: 220, headerClass: 'file-structure-shell__colhead--data', cellClass: 'file-structure-shell__cell--data', editable: true, kind: 'text' },
+])
 const leafDataColumns = computed(() => [
   { key: 'parentView', label: 'View', width: 92, headerClass: 'file-structure-shell__colhead--structure', cellClass: 'file-structure-shell__cell--structure' },
   { key: 'parentSubgroup', label: 'Sub', width: 78, headerClass: 'file-structure-shell__colhead--structure', cellClass: 'file-structure-shell__cell--structure' },
@@ -422,28 +436,35 @@ const activeLeafTokens = computed(() => {
       }
   })
 })
-const tokenGroupsByView = computed(() =>
-  governanceViewRows.value.map((view) => {
-    const section = fileViewGroups.value.find((entry) => entry.key === view.key)
-    const groupTokens = Array.isArray(section?.tokens) ? section.tokens : []
-    const requiredKeys = new Set(requiredFieldKeysBySource.value[activeSettingsSourceKey.value] || [])
-    return {
-      key: view.key,
-      label: view.label,
-      tokens: groupTokens.map((token, index) => {
-        const writeTarget = getCanonicalTokenWriteTarget(token, activeShellSelectorOption.value.label, 'id')
-        return {
-          key: token.key || `token-${index}`,
-          label: token.label || '—',
-          type: token.tokenType || '—',
-          required: requiredKeys.has(token.key),
-          visible: 'Yes',
-          writeTarget: writeTarget?.fieldName ? `${writeTarget.tableName}.${writeTarget.fieldName}` : token.dbFieldAliases?.join(', ') || '—',
-        }
-      }),
-    }
-  }),
-)
+  const tokenGroupsByView = computed(() =>
+    governanceViewRows.value.map((view) => {
+      const section = fileViewGroups.value.find((entry) => entry.key === view.key)
+      const groupTokens = Array.isArray(section?.tokens) ? section.tokens : []
+      const requiredKeys = new Set(requiredFieldKeysBySource.value[activeSettingsSourceKey.value] || [])
+      return {
+        key: view.key,
+        label: view.label,
+        tokens: groupTokens.map((token, index) => {
+          const writeTarget = getCanonicalTokenWriteTarget(token, activeShellSelectorOption.value.label, 'id')
+          const overrides = tokenFieldOverridesBySource.value[activeSettingsSourceKey.value]?.[token.key] || {}
+          return {
+            key: token.key || `token-${index}`,
+            label: overrides.label ?? token.label || '—',
+            type: overrides.type ?? token.tokenType || '—',
+            optionSource: overrides.optionSource ?? token.optionSource || '—',
+            optionEntity: overrides.optionEntity ?? token.optionEntity || '—',
+            optionList: overrides.optionList ?? token.optionList || '—',
+            dbWriteField: overrides.dbWriteField ?? token.dbWriteField || token.dbFieldAliases?.[0] || '—',
+            fieldClass: overrides.fieldClass ?? token.fieldClass || token.field_class || '—',
+            required: requiredKeys.has(token.key),
+            visible: 'Yes',
+            writeTarget: overrides.writeTarget ?? (writeTarget?.fieldName ? `${writeTarget.tableName}.${writeTarget.fieldName}` : token.dbFieldAliases?.join(', ') || '—'),
+            editable: token.editable === false ? 'No' : token.editable === true ? 'Yes' : '—',
+          }
+        }),
+      }
+    }),
+  )
 const displayLeafTokens = computed(() =>
   activeLeafTokens.value.map((token) => {
     const overrides = leafFieldOverridesBySource.value[activeSettingsSourceKey.value]?.[token.key] || {}
@@ -549,6 +570,26 @@ function updateLeafCell(tokenKey, field, value) {
   const currentToken = currentBySource[tokenKey] || {}
   leafFieldOverridesBySource.value = {
     ...leafFieldOverridesBySource.value,
+    [sourceKey]: {
+      ...currentBySource,
+      [tokenKey]: {
+        ...currentToken,
+        [field]: String(value ?? '').trim() || '—',
+      },
+    },
+  }
+}
+
+function updateTokenCell(tokenKey, field, value) {
+  if (field === 'required') {
+    toggleRequiredField(tokenKey, Boolean(value))
+    return
+  }
+  const sourceKey = activeSettingsSourceKey.value
+  const currentBySource = tokenFieldOverridesBySource.value[sourceKey] || {}
+  const currentToken = currentBySource[tokenKey] || {}
+  tokenFieldOverridesBySource.value = {
+    ...tokenFieldOverridesBySource.value,
     [sourceKey]: {
       ...currentBySource,
       [tokenKey]: {

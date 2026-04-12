@@ -48,19 +48,23 @@
       <colgroup>
         <col class="structure-governance-panel__col structure-governance-panel__col--select">
         <col class="structure-governance-panel__col structure-governance-panel__col--view">
-        <col class="structure-governance-panel__col structure-governance-panel__col--label">
-        <col class="structure-governance-panel__col structure-governance-panel__col--type">
-        <col class="structure-governance-panel__col structure-governance-panel__col--required">
-        <col v-if="showWriteTarget" class="structure-governance-panel__col structure-governance-panel__col--write">
+        <col
+          v-for="column in resolvedTokenColumns"
+          :key="column.key"
+          :style="columnStyle(column)"
+        >
       </colgroup>
       <thead>
         <tr>
           <th aria-label="Selection"></th>
           <th aria-label="View"></th>
-          <th>Label</th>
-          <th>Type</th>
-          <th>Required</th>
-          <th v-if="showWriteTarget">Write Target / Alias</th>
+          <th
+            v-for="column in resolvedTokenColumns"
+            :key="column.key"
+            :class="column.headerClass"
+          >
+            {{ column.label }}
+          </th>
         </tr>
       </thead>
     </table>
@@ -94,10 +98,11 @@
         <colgroup>
           <col class="structure-governance-panel__col structure-governance-panel__col--select">
           <col class="structure-governance-panel__col structure-governance-panel__col--view">
-          <col class="structure-governance-panel__col structure-governance-panel__col--label">
-          <col class="structure-governance-panel__col structure-governance-panel__col--type">
-          <col class="structure-governance-panel__col structure-governance-panel__col--required">
-          <col v-if="showWriteTarget" class="structure-governance-panel__col structure-governance-panel__col--write">
+          <col
+            v-for="column in resolvedTokenColumns"
+            :key="column.key"
+            :style="columnStyle(column)"
+          >
         </colgroup>
         <tbody>
           <tr v-for="token in group.tokens" :key="token.key">
@@ -111,21 +116,49 @@
             <td class="structure-governance-panel__cell--control">
               <q-icon name="visibility" size="14px" class="structure-governance-panel__eye-icon" />
             </td>
-            <td class="structure-governance-panel__cell--label">{{ token.label }}</td>
-            <td class="structure-governance-panel__cell--data">{{ token.type }}</td>
-            <td class="structure-governance-panel__cell--data">
+            <td
+              v-for="column in resolvedTokenColumns"
+              :key="`${token.key}:${column.key}`"
+              :class="[column.cellClass, { 'structure-governance-panel__cell--editable': isTokenEditable(token, column) }]"
+              @dblclick="startTokenCellEdit(token, column)"
+            >
               <SettingsCheckbox
-                v-if="interactiveRequired"
-                :model-value="Boolean(token.required)"
+                v-if="column.kind === 'checkbox'"
+                :model-value="Boolean(token[column.key])"
                 tone="light"
                 @update:model-value="$emit('toggle-required', token.key, $event)"
               />
-              <span v-else>{{ token.required }}</span>
+              <select
+                v-else-if="isTokenCellEditing(token.key, column.key) && column.kind === 'select'"
+                :value="editingCellValue"
+                class="structure-governance-panel__cell-input"
+                @blur="commitTokenCellEdit(token.key, column.key, $event.target.value)"
+                @change="commitTokenCellEdit(token.key, column.key, $event.target.value)"
+                @keydown.esc.prevent="cancelDataCellEdit"
+              >
+                <option
+                  v-for="option in column.options || []"
+                  :key="option.value"
+                  :value="option.value"
+                >
+                  {{ option.label }}
+                </option>
+              </select>
+              <input
+                v-else-if="isTokenCellEditing(token.key, column.key)"
+                :value="editingCellValue"
+                class="structure-governance-panel__cell-input"
+                type="text"
+                @input="editingCellValue = $event.target.value"
+                @blur="commitTokenCellEdit(token.key, column.key, $event.target.value)"
+                @keydown.enter.prevent="commitTokenCellEdit(token.key, column.key, $event.target.value)"
+                @keydown.esc.prevent="cancelDataCellEdit"
+              >
+              <span v-else>{{ token[column.key] }}</span>
             </td>
-            <td v-if="showWriteTarget" class="structure-governance-panel__cell--data">{{ token.writeTarget }}</td>
           </tr>
           <tr v-if="!group.tokens.length">
-            <td :colspan="showWriteTarget ? 6 : 5" class="structure-governance-panel__empty">{{ emptyTokensLabel }}</td>
+            <td :colspan="resolvedTokenColumns.length + 2" class="structure-governance-panel__empty">{{ emptyTokensLabel }}</td>
           </tr>
         </tbody>
       </table>
@@ -227,7 +260,14 @@ import SettingsCheckbox from 'src/components/SettingsCheckbox.vue'
 
 defineOptions({ name: 'StructureGovernancePanel' })
 
-const emit = defineEmits(['toggle-required', 'toggle-token-select', 'toggle-view-select', 'toggle-data-select', 'update-data-cell'])
+const emit = defineEmits([
+  'toggle-required',
+  'toggle-token-select',
+  'toggle-view-select',
+  'toggle-data-select',
+  'update-data-cell',
+  'update-token-cell',
+])
 
 const props = defineProps({
   mode: { type: String, default: 'views' },
@@ -241,12 +281,25 @@ const props = defineProps({
   emptyViewsLabel: { type: String, default: 'No views declared.' },
   emptyTokensLabel: { type: String, default: 'No tokens declared.' },
   emptyDataLabel: { type: String, default: 'No rows declared.' },
+  tokenColumns: { type: Array, default: () => [] },
 })
 
 const expandedGroupKeys = ref([])
 const editingCell = ref({ rowKey: '', columnKey: '' })
 const editingCellValue = ref('')
 const selectedRowKeySet = computed(() => new Set((Array.isArray(props.selectedRowKeys) ? props.selectedRowKeys : []).map((key) => String(key || '').trim())))
+const resolvedTokenColumns = computed(() => {
+  if (Array.isArray(props.tokenColumns) && props.tokenColumns.length) return props.tokenColumns
+  const columns = [
+    { key: 'label', label: 'Label', cellClass: 'structure-governance-panel__cell--label' },
+    { key: 'type', label: 'Type', cellClass: 'structure-governance-panel__cell--data' },
+    { key: 'required', label: 'Required', cellClass: 'structure-governance-panel__cell--data', kind: 'checkbox' },
+  ]
+  if (props.showWriteTarget) {
+    columns.push({ key: 'writeTarget', label: 'Write Target / Alias', cellClass: 'structure-governance-panel__cell--data' })
+  }
+  return columns
+})
 
 watch(
   () => props.tokenGroups,
@@ -299,6 +352,32 @@ async function startDataCellEdit(row = {}, column = {}) {
 
 function commitDataCellEdit(rowKey = '', columnKey = '', value = '') {
   emit('update-data-cell', rowKey, columnKey, value)
+  editingCell.value = { rowKey: '', columnKey: '' }
+  editingCellValue.value = ''
+}
+
+function isTokenEditable(token = {}, column = {}) {
+  const isRowEditable = String(token?.editable || '').trim().toLowerCase() !== 'no'
+  return Boolean(column?.editable) && column.kind !== 'checkbox' && isRowEditable
+}
+
+function isTokenCellEditing(rowKey = '', columnKey = '') {
+  return editingCell.value.rowKey === String(rowKey || '').trim()
+    && editingCell.value.columnKey === String(columnKey || '').trim()
+}
+
+async function startTokenCellEdit(token = {}, column = {}) {
+  if (!isTokenEditable(token, column)) return
+  editingCell.value = {
+    rowKey: String(token?.key || '').trim(),
+    columnKey: String(column?.key || '').trim(),
+  }
+  editingCellValue.value = token?.[column.key] ?? ''
+  await nextTick()
+}
+
+function commitTokenCellEdit(rowKey = '', columnKey = '', value = '') {
+  emit('update-token-cell', rowKey, columnKey, value)
   editingCell.value = { rowKey: '', columnKey: '' }
   editingCellValue.value = ''
 }
