@@ -33,6 +33,24 @@
         <div>loading: {{ loading }}</div>
         <div>rawRows: {{ rawRows.length }}</div>
         <div>error: {{ error || 'none' }}</div>
+        <div v-if="debugDbSummary" class="q-mt-sm">
+          <div>db: {{ debugDbSummary.path || 'unknown' }}</div>
+          <div>files: {{ debugDbSummary.files }}</div>
+          <div>notes: {{ debugDbSummary.notes }}</div>
+          <div>companies: {{ debugDbSummary.companies }}</div>
+          <div>users: {{ debugDbSummary.users }}</div>
+        </div>
+        <div class="q-mt-sm">
+          <q-btn
+            dense
+            flat
+            no-caps
+            icon="search"
+            label="Probe DB"
+            :loading="debugDbLoading"
+            @click="probeDb"
+          />
+        </div>
       </q-banner>
       <FileHero
         :text="heroText"
@@ -796,6 +814,8 @@ const $q = useQuasar()
 const bridge = computed(() => (typeof window !== 'undefined' ? window.ecvc : null))
 const isElectronRuntime = computed(() => typeof window !== 'undefined')
 const debugEnabled = computed(() => process.env.DEV || String(route.query.debug || '').trim() === '1')
+const debugDbSummary = ref(null)
+const debugDbLoading = ref(false)
 const loading = ref(false)
 const error = ref('')
 const searchQuery = ref('')
@@ -2367,7 +2387,7 @@ async function loadRows() {
 
   loading.value = true
   try {
-    const result = await loader.listFn(bridgeValue)
+    const result = await withTimeout(loader.listFn(bridgeValue), 8000, 'Loader timeout')
     rawRows.value = Array.isArray(result?.[loader.resultKey]) ? result[loader.resultKey] : []
     loaderDiagnostics.value = result && typeof result === 'object' ? result : {}
   } catch (loadError) {
@@ -2375,6 +2395,41 @@ async function loadRows() {
   } finally {
     loading.value = false
   }
+}
+
+async function probeDb() {
+  if (!bridge.value?.db?.query) return
+  debugDbLoading.value = true
+  try {
+    const [files, notes, companies, users, info] = await Promise.all([
+      bridge.value.db.query('SELECT COUNT(*) AS count FROM Files'),
+      bridge.value.db.query('SELECT COUNT(*) AS count FROM Notes'),
+      bridge.value.db.query('SELECT COUNT(*) AS count FROM Companies'),
+      bridge.value.db.query('SELECT COUNT(*) AS count FROM Users'),
+      bridge.value.db.info(),
+    ])
+    debugDbSummary.value = {
+      path: info?.path || '',
+      files: files?.rows?.[0]?.count ?? 0,
+      notes: notes?.rows?.[0]?.count ?? 0,
+      companies: companies?.rows?.[0]?.count ?? 0,
+      users: users?.rows?.[0]?.count ?? 0,
+    }
+  } catch {
+    debugDbSummary.value = { path: '', files: 'err', notes: 'err', companies: 'err', users: 'err' }
+  } finally {
+    debugDbLoading.value = false
+  }
+}
+
+function withTimeout(promise, ms, message) {
+  let timeoutId = null
+  const timeout = new Promise((_resolve, reject) => {
+    timeoutId = setTimeout(() => {
+      reject(new Error(message))
+    }, ms)
+  })
+  return Promise.race([promise, timeout]).finally(() => clearTimeout(timeoutId))
 }
 
 function buildShellRow(row, index) {
