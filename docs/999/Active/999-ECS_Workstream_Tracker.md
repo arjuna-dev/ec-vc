@@ -95,6 +95,7 @@ This tracker should stay aligned with:
     - replace legacy level-registry exports with `FILE_SOURCE_REGISTRY`
     - rename live local runtime fields away from `level_2` / `level_3` where they only expressed section/token order
     - rename `EventsPage.vue` route wrapper to `HistoryPage.vue`
+    - route live shell view/token payloads through `buildFileShellPayload` and remove `activeRegistryEntry.subsections` reads from shared shells/dialogs
 - shared create-flow hardening:
   - discardable local draft birth
   - commit text inputs on blur, flush on save
