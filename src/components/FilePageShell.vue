@@ -352,7 +352,7 @@
                   color="white"
                   text-color="grey-8"
                   class="test-shell-card__summary-toggle"
-                  :options="summarySectionShellOptions"
+                  :options="[]"
                   @update:model-value="setRowRelationshipPanel(row, $event)"
                 />
                 <q-btn flat no-caps class="test-shell-card__summary-add-relation" aria-label="Add Relation" :disable="!supportsActiveSourceEditing || getRowRelationshipPanel(row) === 'events'" @click="handleCardAddRelation(row)">
@@ -730,11 +730,10 @@ import StructureGovernancePanel from 'components/StructureGovernancePanel.vue'
 import { buildStructureToolbarItems } from 'src/utils/structureToolbarContract'
 import EyeIconButton from 'components/buttons/EyeIconButton.vue'
 import SelectionActionBar from 'components/SelectionActionBar.vue'
-import {
-  buildCardRelationshipOptions,
-  getCardRelationshipLabel,
-  resolveCardRelationshipPanel,
-} from 'src/utils/card-kdb-relationships'
+  import {
+    getCardRelationshipLabel,
+    resolveCardRelationshipPanel,
+  } from 'src/utils/card-kdb-relationships'
   import {
     CANONICAL_OPTION_LISTS,
     getCreateBranchEntry,
@@ -1994,7 +1993,6 @@ const eventShellNavItems = computed(() =>
     isRelationshipSectionLabel,
   }),
 )
-const summarySectionShellOptions = Object.freeze(buildCardRelationshipOptions())
 
 function getDefaultActiveViewKey(views = []) {
   const normalizedViews = Array.isArray(views) ? views : []
