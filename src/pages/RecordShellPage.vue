@@ -2810,12 +2810,6 @@ function onContactHeroPointerLeave() {
 .record-shell__section-group-title { color:#111; font-family:var(--font-title); font-size:.8rem; font-weight:var(--font-weight-black); line-height:.96; }
 .record-shell__section-group-meta { margin-left:6px; color:rgba(17,17,17,.54); font-size:.7rem; }
 .record-shell__field-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:10px; }
-.record-shell__kdb-grid { display:grid; gap:14px; }
-.record-shell__kdb-group { display:grid; gap:8px; }
-.record-shell__kdb-group-toggle { display:inline-flex; align-items:center; justify-content:flex-start; gap:2px; width:max-content; padding:0; color:#111; background:transparent; border:0; text-align:left; cursor:pointer; }
-.record-shell__kdb-group-toggle-icon { color:#111; }
-.record-shell__kdb-group-title { color:rgba(17,17,17,.54); font-family:var(--font-title); font-size:.72rem; font-weight:var(--font-weight-black); line-height:.96; text-transform:uppercase; letter-spacing:.03em; }
-.record-shell__kdb-group-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:10px; }
 .record-shell__field-card { padding:10px 12px; border:1px solid rgba(17,17,17,.08); border-radius:6px; background:rgba(17,17,17,.02); }
 .record-shell__field-card--selected { border-color:rgba(38,71,255,.3); background:rgba(38,71,255,.05); }
 .record-shell__field-label-row { display:flex; align-items:center; justify-content:space-between; gap:6px; }

@@ -415,7 +415,7 @@ const toolbarItems = [
   { title: 'General', value: 'general' },
   { title: 'Tasks', value: 'tasks' },
   { title: 'Notes', value: 'notes' },
-  { title: 'LDB', value: 'kdb', isKdb: true, pushRight: true },
+  { title: 'LDB', value: 'ldb', isKdb: true, pushRight: true },
   { title: 'System', value: 'system', isSystem: true },
 ]
 
@@ -432,7 +432,7 @@ const miniToolbarItems = buildStructureToolbarItems({
     { title: 'Tokens', value: 'tokens' },
     { title: 'Views', value: 'views' },
   ],
-  isRelationshipSectionLabel: (label) => String(label || '').trim().toLowerCase() === 'kdb',
+  isRelationshipSectionLabel: (label) => String(label || '').trim().toLowerCase() === 'ldb',
 })
 
 const homeDashboardStats = [

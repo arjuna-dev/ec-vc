@@ -1,8 +1,6 @@
 import canonicalStructure from '../shared/canonicalStructure.js'
 import { formatSharedDisplayLabel } from '../shared/labelFormatting.js'
 
-export const DEFAULT_L1_REQUIRED_SUBSECTIONS = Object.freeze(['System', 'LDB'])
-export const DEFAULT_L1_OPTIONAL_STANDARD_SUBSECTIONS = Object.freeze(['General'])
 export const DEFAULT_L1_REQUIRED_RUNTIME_CAPABILITIES = Object.freeze(['list', 'create', 'delete'])
 
 const FILE_PAGE_ROUTE_META = Object.freeze({
@@ -410,12 +408,6 @@ function formatLabel(value) {
   return formatSharedDisplayLabel(value)
 }
 
-function formatSubsectionLabel(value) {
-  const normalized = String(value || '').trim().toLowerCase()
-  if (normalized === 'kdb') return 'LDB'
-  return formatLabel(value)
-}
-
 function stripTokenEntityPrefix(tokenName = '', prefixes = []) {
   const rawTokenName = String(tokenName || '').trim()
   if (!rawTokenName) return ''
@@ -430,19 +422,6 @@ function stripTokenEntityPrefix(tokenName = '', prefixes = []) {
   }
 
   return rawTokenName
-}
-
-function getSubsectionDisplayRank(subsection) {
-  const label = String(subsection?.label || '').trim().toLowerCase()
-  if (label === 'ldb') return 998
-  if (label === 'system') return 999
-  return Number(subsection?.subsectionOrder || 0)
-}
-
-function compareSubsectionDisplayOrder(a, b) {
-  const rankDifference = getSubsectionDisplayRank(a) - getSubsectionDisplayRank(b)
-  if (rankDifference !== 0) return rankDifference
-  return Number(a?.subsectionOrder || 0) - Number(b?.subsectionOrder || 0)
 }
 
 const canonicalEntitiesByName = Object.fromEntries((canonicalStructure?.entities || []).map((entity) => [entity.entity, entity]))
@@ -476,7 +455,7 @@ function buildEntityRegistry(entityName) {
       key: String(subsection?.structure_token || subsection?.subsection || '').trim() || `${entityName}_${index + 1}`,
       subsectionOrder: String(subsection?.subsection_order ?? index + 1),
       address: String(subsection?.subsection_address || '').trim(),
-      label: formatSubsectionLabel(subsection?.subsection),
+      label: formatLabel(subsection?.subsection),
       structureToken: String(subsection?.structure_token || '').trim(),
       subgroupKey: String(subsection?.subgroup_key || '').trim(),
       subgroupLabel: String(subsection?.subgroup_label || '').trim(),
@@ -527,7 +506,6 @@ function buildEntityRegistry(entityName) {
         }
       }),
     }))
-    .sort(compareSubsectionDisplayOrder)
 
   return {
     ...meta,
@@ -537,10 +515,6 @@ function buildEntityRegistry(entityName) {
     birthDefaults: meta.birthDefaults && typeof meta.birthDefaults === 'object' ? { ...meta.birthDefaults } : {},
     primaryStewardDoc: normalizeReferenceDoc(meta.primaryStewardDoc),
     extraReferenceDocs: (Array.isArray(meta.extraReferenceDocs) ? meta.extraReferenceDocs : []).map(normalizeReferenceDoc).filter(Boolean),
-    requiredSubsections: Array.isArray(meta.requiredSubsections) ? meta.requiredSubsections : [...DEFAULT_L1_REQUIRED_SUBSECTIONS],
-    optionalStandardSubsections: Array.isArray(meta.optionalStandardSubsections)
-      ? meta.optionalStandardSubsections
-      : [...DEFAULT_L1_OPTIONAL_STANDARD_SUBSECTIONS],
     requiredRuntimeCapabilities: Array.isArray(meta.requiredRuntimeCapabilities)
       ? meta.requiredRuntimeCapabilities
       : [...DEFAULT_L1_REQUIRED_RUNTIME_CAPABILITIES],
@@ -748,68 +722,6 @@ export function getRegistrySummaryTokenForSource(sourceKey = '') {
   return payload.tokens.find((token) => String(token.tokenRole || '').trim().toLowerCase() === 'summary') || null
 }
 
-export function validateLevel1BootstrapContracts({ bridgeValue = null, sourceKeys = [] } = {}) {
-  const scopedKeys = Array.isArray(sourceKeys)
-    ? sourceKeys.map((value) => String(value || '').trim().toLowerCase()).filter(Boolean)
-    : []
-  const entries = scopedKeys.length
-    ? scopedKeys.map((key) => getFilePageRegistryEntry(key)).filter(Boolean)
-    : [...FILE_PAGE_REGISTRY]
-
-  return entries.flatMap((entry) => {
-    const issues = []
-    const subsectionLabels = new Set(
-      (Array.isArray(entry?.subsections) ? entry.subsections : [])
-        .map((section) => String(section?.label || '').trim().toLowerCase())
-        .filter(Boolean),
-    )
-
-    if (!String(entry?.key || '').trim()) issues.push({ severity: 'error', sourceKey: entry?.key || '', issue: 'Missing source key.' })
-    if (!String(entry?.routeName || '').trim()) issues.push({ severity: 'error', sourceKey: entry.key, issue: 'Missing route name.' })
-    if (!String(entry?.path || '').trim()) issues.push({ severity: 'error', sourceKey: entry.key, issue: 'Missing route path.' })
-    if (!String(entry?.canonicalEntityName || '').trim()) issues.push({ severity: 'error', sourceKey: entry.key, issue: 'Missing canonical entity name.' })
-    if (!String(entry?.entityName || '').trim()) issues.push({ severity: 'error', sourceKey: entry.key, issue: 'Missing runtime entity name.' })
-
-    const missingSubsections = (Array.isArray(entry?.requiredSubsections) ? entry.requiredSubsections : [])
-      .map((label) => String(label || '').trim())
-      .filter(Boolean)
-      .filter((label) => !subsectionLabels.has(label.toLowerCase()))
-    missingSubsections.forEach((label) => {
-      issues.push({
-        severity: 'error',
-        sourceKey: entry.key,
-        issue: `Missing required subsection: ${label}.`,
-      })
-    })
-
-    if (bridgeValue) {
-      const bridgeSource = bridgeValue?.[entry.key] || null
-      if (!bridgeSource) {
-        issues.push({
-          severity: 'warn',
-          sourceKey: entry.key,
-          issue: 'Missing runtime bridge source.',
-        })
-      } else {
-        ;(Array.isArray(entry?.requiredRuntimeCapabilities) ? entry.requiredRuntimeCapabilities : [])
-          .map((capability) => String(capability || '').trim())
-          .filter(Boolean)
-          .forEach((capability) => {
-            if (typeof bridgeSource?.[capability] !== 'function') {
-              issues.push({
-                severity: 'warn',
-                sourceKey: entry.key,
-                issue: `Missing runtime capability: ${capability}.`,
-              })
-            }
-          })
-      }
-    }
-
-    return issues
-  })
-}
-
 export function getRuntimeTableNameForEntityName(entityName = '') {
   const normalized = String(entityName || '').trim()
   if (!normalized) return ''
@@ -893,41 +805,13 @@ export function getCreateBranchEntry(sourceKey = '', branchValue = '') {
   return getCreateBranches(sourceKey).find((branch) => String(branch?.value || '').trim().toLowerCase() === normalizedBranchValue) || null
 }
 
-function buildAutoFileSpecificViewForks(entry) {
-  if (!entry) return null
-  const coreLabels = new Set(['general', 'system', 'ldb'])
-  const fileSpecificSections = (Array.isArray(entry.subsections) ? entry.subsections : [])
-    .map((section) => ({
-      label: String(section?.label || '').trim(),
-    }))
-    .filter((section) => section.label && !coreLabels.has(section.label.toLowerCase()))
-
-  return fileSpecificSections.map((section) => ({
-    value: String(section.label || '')
-      .trim()
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-+|-+$/g, ''),
-    label: section.label,
-    sectionRawLabels: [section.label],
-    forkGroup: 'file-specific',
-  }))
-}
-
 export function getViewForks(sourceKey = '') {
   const entry = getFilePageRegistryEntry(sourceKey)
   if (!entry) return []
 
-  const forks = []
-  forks.push(...buildAutoFileSpecificViewForks(entry))
-
-  if (Array.isArray(entry.viewForks)) {
-    forks.push(...entry.viewForks)
-  }
-
   return Array.from(
     new Map(
-      forks
+      (Array.isArray(entry.viewForks) ? entry.viewForks : [])
         .filter((fork) => String(fork?.value || '').trim() && String(fork?.label || '').trim())
         .map((fork) => [String(fork.value || '').trim().toLowerCase(), fork]),
     ).values(),
