@@ -571,10 +571,9 @@ That baseline is:
 
 Working order rule:
 
-- `Name` is the first canonical general field
-- `Summary` is the second canonical general field
-- shared edit surfaces should treat `Name` as the first field in the left grid
-- shared edit surfaces should treat `Summary` as the first field in the right grid
+- `Name` and `Summary` are the shared starter fields in `General`
+- shared edit surfaces should expose `Name` and `Summary` as the shared starter fields in `General`
+- live shell behavior should not depend on `Name` being discovered only because it is first or `Summary` only because it is second
 
 This is the default contract for new `Knowledge DB` files such as:
 

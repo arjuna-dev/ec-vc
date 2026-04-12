@@ -43,7 +43,7 @@
 | Hero Dashboard | The top shell block for card or record presentation. In `Record Shell`, it is based on the current `User Record View` hero/dashboard pattern. | Record Architecture |
 | L2 Toolbar | The section bar below the hero/dashboard that renders the selected `L1`'s subsection groups. It places normal sections on the left and `LDB` / `System` on the right. | Product Reference |
 | System | The canonical subsection for record identity, provenance, creator, timestamps, and other record-owned system fields. | Product Reference |
-| General | The canonical subsection for the main descriptive record fields. `Name` is standardized as the first general field and `Summary` as the second. | Product Reference |
+| General | The canonical subsection for the main descriptive record fields. `Name` and `Summary` are the shared starter tokens for normal files, but live shells should not rely on positional order alone as runtime truth. | Product Reference |
 | LDB | The subsection for declared local record relationships. It is not just another content tab; it changes the interaction model into relationship browsing and linking. | Product Reference |
 | L0 | The provenance/history layer that sits beneath normal record content. It is a strong fit for event-log and origin data such as `Owner created`, and conceptually belongs with the system/knowledge side rather than as another editable business-content layer. | ECS Workstream Tracker |
 | L0 Events File View | The route-owned `File View` for the `L0` event layer. It uses the same shared `L1` file shell as the other file surfaces, but it is view-oriented and routes rows into the event log surface rather than a normal databook record page. | ECS Workstream Tracker |

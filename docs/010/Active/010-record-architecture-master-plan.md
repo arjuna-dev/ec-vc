@@ -1750,8 +1750,8 @@ Working order rule:
 
 - `Name` is canonical field `*.3.1`
 - `Summary` is canonical field `*.3.2`
-- `Name` should anchor the left-side first field position in shared edit surfaces
-- `Summary` should anchor the right-side first field position in shared edit surfaces
+- `Name` and `Summary` should remain the shared starter fields in `General`
+- shared edit surfaces may place them prominently, but runtime ownership should come from explicit token/view contracts rather than positional assumptions
 - this is a shared contract rule, not a page-by-page layout choice
 
 If a new DB needs more than that, add it on top of this baseline instead of inventing a one-off structure.

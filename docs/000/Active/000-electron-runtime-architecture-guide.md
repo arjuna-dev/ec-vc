@@ -8,7 +8,7 @@ This document explains the role of these files:
 - `src-electron/services/sqlite-db.js`
 - `src-electron/electron-main.js`
 - `src-electron/electron-preload.js`
-- `src/shared/kdbRelationshipContracts.js`
+- `src/shared/ldbRelationshipContracts.js`
 - `src/components/FilePageShell.vue`
 - `src/utils/dialogShellPayload.js`
 
@@ -43,12 +43,18 @@ So in simple words:
 
 The other three files sit on top of that runtime path:
 
-- `kdbRelationshipContracts.js`
-  - decides how canon-declared KDB links are interpreted underneath
+- `ldbRelationshipContracts.js`
+  - decides how canon-declared LDB links are interpreted underneath
 - `FilePageShell.vue`
   - is the main shared file-shell renderer that consumes the runtime path
 - `dialogShellPayload.js`
-  - organizes canonical section payloads for the shared create/edit dialog
+  - organizes transitional section payloads for the shared create/edit dialog while the file-owned token/view contract finishes converging
+
+Important direction:
+
+- workbook and canonical structure are still useful reference inputs
+- but they should not keep acting as live shell payload truth
+- the target runtime owner is the newer file-owned token/view structure, with shared `LDB` behavior derived from `System Files`
 
 ## 1. `src-electron/services/sqlite-schema.js`
 
@@ -154,7 +160,7 @@ It handles:
 - IPC handlers
 - create/list/delete actions for many entities
 - databook read/write behavior
-- KDB relationship behavior
+- LDB relationship behavior
 - artifact ingestion and file operations
 - workspace and workbook sync behavior
 - event logging and audit paths
@@ -191,7 +197,7 @@ Important caution:
 
 Also:
 
-- this file is where KDB relationship behavior becomes real
+- this file is where LDB relationship behavior becomes real
 - if `sqlite-schema.js` defines the possible relationship tables, `electron-main.js` is where the app actually uses them
 
 ## 4. `src-electron/electron-preload.js`

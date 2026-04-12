@@ -24,7 +24,7 @@ It is the file-definition layer that helps the system know:
 - what kind of files they are
 - which file guide belongs to each file
 - whether each file requires `System`
-- whether each file requires `KDB`
+- whether each file requires `LDB`
 - who owns each file
 - which steward governs each file
 - which rulebooks and manuals each file depends on
@@ -43,7 +43,7 @@ It is the file-definition layer that helps the system know:
 | `Steward` | The companion or role responsible for keeping a file correct. |
 | `System` | The shared provenance and runtime-control L2 section. |
 | `General` | The shared human-readable description L2 section. |
-| `KDB` | The declared relationship L2 section. |
+| `LDB` | The shared relationship section derived from the `System Files` file universe. |
 
 ## Referenced Documents
 
@@ -64,12 +64,12 @@ It is the file-definition layer that helps the system know:
 - Do not treat a file as fully born if it has no guide.
 - Do not treat a file as fully born if its UX fork questions are missing.
 - Do not treat a branchable file as fully born if its create-branch or view-fork instructions are missing.
-- Do not treat a file as fully born if its `System`, `General`, or required `KDB` sections are missing.
+- Do not treat a file as fully born if its `System`, `General`, or required `LDB` sections are missing.
 - Do not add file visibility in layout code as a substitute for registry/canon acceptance.
 - Do not load canonical structure through scattered direct JSON imports; use the approved canonical loader boundary.
 - Do not use this file as a loose notes page; every row should help define file birth, ownership, rendering, governance, or guide linkage.
 - If a file is visible in the app but missing here, surface that as drift.
-- Treat legacy runtime names honestly. If a file still depends on an older runtime surface such as `databooks:*`, do not widen that dependency casually while file-definition, provenance, and KDB rules are becoming more detailed.
+- Treat legacy runtime names honestly. If a file still depends on an older runtime surface such as `databooks:*`, do not widen that dependency casually while file-definition, provenance, and LDB rules are becoming more detailed.
 
 ## Ownership
 
@@ -80,7 +80,7 @@ It is the file-definition layer that helps the system know:
 
 The `Owner` has final authority over file-definition direction.
 
-The `File Steward` governs whether each file is born correctly, has its required guide, and is connected to the right KDB relationships.
+The `File Steward` governs whether each file is born correctly, has its required guide, and is connected to the shared LDB relationship layer correctly.
 
 `File_Owner` should mean the actual owning authority for the file.
 
@@ -93,7 +93,7 @@ The `Owner` should use `System Files` to understand:
 - which files exist
 - why they exist
 - which ones are ready
-- which ones still need guide, KDB, or runtime work
+- which ones still need guide, LDB, or runtime work
 - which companions or stewards govern the file
 
 ## File Steward
@@ -105,7 +105,7 @@ The `File Steward` should use `System Files` to validate:
 - file guide path
 - required `System` section
 - required `General` section
-- required `KDB` section
+- required `LDB` section
 - ownership mode
 - steward assignment
 - create-branch instructions
@@ -145,7 +145,7 @@ For `System Files`, the initial checklist is:
 - create-branch instructions are declared: `yes`, branchable files must declare them in canon/registry before create flows depend on them
 - view-fork instructions are declared: `yes`, branchable files must declare them in canon/registry before toolbar/tune payload depends on them
 - `System` requirement is declared: `yes`
-- `KDB` requirement is declared: `yes`
+- `LDB` requirement is declared: `yes`
 - runtime/sqlite ownership is declared: `yes`, table `Files`
 - shell rendering path is declared: `yes`, route `/file-system`
 - events/provenance path is declared: `partial`, event log linkage exists but full genesis event reconstruction is still an open runtime task
@@ -213,7 +213,7 @@ The system should be able to reconstruct:
 - who created it
 - when its guide was created
 - when its guide changed
-- when its KDB requirements changed
+- when its LDB requirements changed
 - when it became visible or accepted as a real file
 
 This event/provenance layer is system-wide.
@@ -263,7 +263,7 @@ At minimum, future `L3` definition should support:
 - required-at-birth rule
 - required-under-condition rule
 - multi-selectable requirement conditions
-- whether the field is system-governed, user-input, KDB-linked, or derived
+- whether the field is system-governed, user-input, LDB-linked, or derived
 
 This means file creation should later let the user decide not only:
 
@@ -280,9 +280,13 @@ The target direction is for required-field logic to be explicit and governable, 
 
 That conditional-required layer should be treated as future `L3` governance work, not as loose UI-only behavior.
 
-### KDB
+### LDB
 
-The `KDB` section should track set relationships to:
+The `LDB` section should surface relationships from the shared file universe declared in `System Files`.
+
+It should not behave like a per-file bespoke relationship token list.
+
+It should track relationships to:
 
 - `Owner`
 - `Users`
@@ -299,7 +303,7 @@ These relationships should be born deliberately, not discovered by later guessin
 The file-specific section should track:
 
 - whether the file requires `System`
-- whether the file requires `KDB`
+- whether the file requires `LDB`
 - fork mode
 - fork enabled
 - ownership mode

@@ -16,7 +16,7 @@ The `File Steward` should be able to help answer:
 
 - Is this file born correctly?
 - Does this file have the required canonical structure, registry row, guide, runtime owner, and shell path?
-- Are its `System`, `General`, `KDB`, and `File Specific` responsibilities clearly separated?
+- Are its `System`, `General`, `LDB`, and `File Specific` responsibilities clearly separated?
 
 If the `File Steward` cannot answer these three questions clearly, stop and surface the gap before implementation continues.
 
@@ -27,7 +27,7 @@ The `File Steward` should treat every normal `L1` as starting from one shared ca
 That shared base should include:
 
 - shared `System`
-- shared `KDB`
+- shared `LDB`
 - shared `General`
 
 And only two parts of that base carry a fixed shared parameter set:
@@ -41,7 +41,7 @@ And only two parts of that base carry a fixed shared parameter set:
   - `Name`
   - `Summary`
 
-`KDB` is also part of the shared base, but as the shared linkage section.
+`LDB` is also part of the shared base, but as the shared linkage section.
 
 It should not be treated as one fixed universal list of relationship leaf names.
 
@@ -84,7 +84,7 @@ That means:
 Unless an approved exception is declared, a file entity should own:
 
 - `System`
-- `KDB`
+- `LDB`
 - `General`
 
 Each subgroup should contain its own explicit leaf items.
@@ -134,7 +134,7 @@ A file is only fully born when the file birth checklist is honestly satisfied:
 - create-branch instructions are declared when the file can birth into child branches
 - view-fork instructions are declared when the file page must switch payload by fork
 - `System` requirement is declared
-- `KDB` requirement is declared
+- `LDB` requirement is declared
 - runtime/sqlite ownership is declared
 - shell rendering path is declared
 - events/provenance path is declared
@@ -168,15 +168,15 @@ The `File Steward` should:
 - maintain existing file entities so runtime, shell, and sqlite ownership stay aligned
 - flag when a declared file surface has no real backend/runtime owner
 - flag when a runtime table exists without its own explicit canonical contract
-- protect the consistency of `System`, `KDB`, and `General` subgrouping
+- protect the consistency of `System`, `LDB`, and `General` subgrouping
 - protect shared base field names from drifting into unnecessary entity-specific aliases
-- protect `KDB` as the required shared linkage section without pretending every `L1` must use one identical relationship leaf list
+- protect `LDB` as the required shared linkage section without pretending every `L1` must own a bespoke relationship leaf list
 - treat future `L3` field-definition governance as explicit contract work:
   - field type
   - required-at-birth
   - conditional-required rules
   - multi-condition requirement support
-  - system-governed vs user-input vs KDB-linked vs derived status
+  - system-governed vs user-input vs LDB-linked vs derived status
 - use each file guide's `UX Steward` section to guide the user through structural forks
 - declare whether a file uses create branches, view forks, or no forks before exposing fork controls in shared shells
 - make sure `System Files` records declare `fork_mode` and `fork_enabled` before fork behavior is treated as real
@@ -184,9 +184,9 @@ The `File Steward` should:
 - require parent file selection before creating an `L2`
 - require parent file and parent `L2` selection before creating an `L2.a`
 - treat `L1` as the safe default when the user is unsure whether something is a standalone file
-- act as the KDB orchestrator for file birth and file upkeep
+- act as the LDB orchestrator for file birth and file upkeep
 - make sure files are born correctly
-- make sure `KDB` is born with them
+- make sure `LDB` is born with them
 - make sure the right relationships exist
 - make sure relationship direction, owner-path, and reverse-read are correct
 - make sure file order and creation sequence support those connections
@@ -207,9 +207,9 @@ The `File Steward` should:
 - make sure every file guide includes a glossary section
 - treat `Glossary Steward` as heavy governance only where language risk is meaningfully high, not automatically for every file
 - treat `Markets` and `Securities` as heavy glossary-governed files from the start
-- ensure new normal `L1`s are born with reciprocal KDB bridge wiring as part of file birth, not as a later repair step
-- ensure each canon-declared KDB relationship has an approved owner path and reverse-read path from the start
-- ensure `L1` bootstrap makes the bridge choice between dedicated join table and shared `KDB_Relationships` explicitly
+- ensure new normal `L1`s are born with shared LDB relationship behavior as part of file birth, not as a later repair step
+- ensure each canon-declared LDB relationship has an approved owner path and reverse-read path from the start
+- ensure `L1` bootstrap makes the bridge choice between dedicated join table and shared relationship ownership explicitly
 - prefer composition from approved existing parts over introducing new file-side primitives or convenience modes
 - help keep what file surfaces say, mean, and do aligned so file labels, statuses, and actions do not drift from canon or runtime
 - enforce the full `L1` birth sequence:
@@ -218,7 +218,7 @@ The `File Steward` should:
   - shared base subsections
   - shared base parameters
   - entity-specific `L2` structure
-  - reciprocal KDB declarations
+  - reciprocal LDB declarations
   - bridge owner-path choice
   - reverse-read path
   - route/registry/shell ownership
@@ -256,8 +256,8 @@ The `File Steward` should not:
 
 - treat a route, menu item, or shell surface as proof that a file is fully born
 - let a file guide move to `Active` when canon, registry, runtime, shell, or provenance is missing
-- create an `L1` without the shared `System`, `KDB`, and `General` base unless an approved exception exists
-- invent KDB bridge ownership after file birth instead of declaring it during bootstrap
+- create an `L1` without the shared `System`, `LDB`, and `General` base unless an approved exception exists
+- invent LDB bridge ownership after file birth instead of declaring it during bootstrap
 - bypass UX fork guidance when the user is choosing between `L1`, `L2`, and `L2.a`
 - accept global role shortcuts when the required access rule depends on `Project x Role`
 
@@ -285,8 +285,8 @@ The `File Steward` should stop implementation and surface the gap when:
 - a file surface is borrowing another entity's structure without explicit approval
 - branch behavior is being implemented without explicit canonical branch metadata
 - fork instructions are missing even though the toolbar, tune menu, or create flow depends on branch selection
-- a new normal `L1` is being introduced without its reciprocal KDB bridge layer
-- KDB bridge ownership is being invented ad hoc after file birth instead of being declared during bootstrap
+- a new normal `L1` is being introduced without its shared LDB layer
+- LDB bridge ownership is being invented ad hoc after file birth instead of being declared during bootstrap
 - a new convenience component, mode, or leaf variant is being added where the approved underlying component should be corrected instead
 - a user is being asked to create file structure without UX fork guidance from the file guide
 - a user is being asked to manually restate creator, owner, steward, or other birth-governance fields that the active birth context should already determine

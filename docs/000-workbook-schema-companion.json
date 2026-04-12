@@ -4,7 +4,9 @@
   "notes": [
     "Workbook is the human editing surface.",
     "This JSON companion is the machine-readable indexing companion.",
-    "Section labels may evolve, but addresses should remain stable whenever possible."
+    "Section labels may evolve, but addresses should remain stable whenever possible.",
+    "This workbook companion is legacy scaffolding/reference and should not be treated as live shell payload truth.",
+    "Older labels such as KDB and positional level_3 conventions may still appear here as source-history, but newer runtime code should prefer file-owned tokens/views and shared LDB contracts."
   ],
   "addressing": {
     "entity_address_pattern": "L1.0.0",
