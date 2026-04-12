@@ -205,13 +205,14 @@ import StructureGovernancePanel from 'src/components/StructureGovernancePanel.vu
 import { buildStructureToolbarItems } from 'src/utils/structureToolbarContract'
 import { splitDialogSections } from 'src/utils/dialogShellPayload'
 import { getCanonicalTokenWriteTarget, getFilePageRegistryEntry, getRegistryTitleTokenForSource } from 'src/utils/structureRegistry'
+import { buildFileStructureSessionSnapshot } from 'src/utils/fileStructureSession'
 
 const props = defineProps({
   shellSelectorValue: { type: String, default: '' },
   shellSelectorOptions: { type: Array, default: () => [] },
 })
 
-const emit = defineEmits(['update:shellSelectorValue'])
+const emit = defineEmits(['update:shellSelectorValue', 'change'])
 const FILE_GUIDE_DOC_URL = 'file:///C:/Users/erikc/Coding_Repository/ec-vc/docs/001/Active/001-Files.md'
 
 const shellSelectorOpen = ref(false)
@@ -435,6 +436,19 @@ const displayLeafTokens = computed(() =>
   }),
 )
 const selectedLeafKeys = computed(() => selectedLeafKeysBySource.value[activeSettingsSourceKey.value] || [])
+const activeRequiredFieldKeys = computed(() => requiredFieldKeysBySource.value[activeSettingsSourceKey.value] || [])
+const fileStructureSnapshot = computed(() =>
+  buildFileStructureSessionSnapshot({
+    sourceKey: activeSettingsSourceKey.value,
+    sourceLabel: activeShellSelectorOption.value.label,
+    toolbarValue: activeL2Toolbar.value,
+    sectionKey: activeSettingsSection.value?.key || '',
+    viewRows: governanceViewRows.value,
+    leafRows: displayLeafTokens.value,
+    selectedLeafKeys: selectedLeafKeys.value,
+    requiredFieldKeys: activeRequiredFieldKeys.value,
+  }),
+)
 
 function selectShellSelectorOption(value) {
   pendingShellSelectorValue.value = String(value || '').trim()
@@ -610,6 +624,14 @@ watch(
 watch(activeSettingsSourceKey, () => {
   loadLatestNotes()
 })
+
+watch(
+  fileStructureSnapshot,
+  (snapshot) => {
+    emit('change', snapshot)
+  },
+  { immediate: true },
+)
 
 </script>
 

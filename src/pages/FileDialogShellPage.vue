@@ -20,6 +20,7 @@
           :shell-selector-options="TEST_SHELL_SECTION_OPTIONS"
           :can-configure-file-system="canConfigureFileSystem"
           @update:shell-selector-value="updateShellSelector"
+          @change="updateFileStructureSession"
         />
       </div>
     </div>
@@ -36,6 +37,7 @@ const route = useRoute()
 const router = useRouter()
 const isElectronRuntime = computed(() => typeof window !== 'undefined')
 const canConfigureFileSystem = ref(false)
+const fileStructureSessionsBySource = ref({})
 
 const activeSourceKey = computed(() => resolveValidShellSection(route.query.section, route.query.entity))
 const hasResolvedSourceKey = computed(() => Boolean(activeSourceKey.value))
@@ -52,6 +54,17 @@ function updateShellSelector(nextValue) {
       section,
     },
   })
+}
+
+function updateFileStructureSession(snapshot = null) {
+  const sourceKey = String(snapshot?.sourceKey || activeSourceKey.value || '').trim()
+  if (!sourceKey || !snapshot || typeof snapshot !== 'object') return
+  fileStructureSessionsBySource.value = {
+    ...fileStructureSessionsBySource.value,
+    [sourceKey]: {
+      ...snapshot,
+    },
+  }
 }
 
 async function loadFileSystemOwnership() {
