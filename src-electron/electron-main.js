@@ -1653,11 +1653,6 @@ function buildDefinedStructureJson(entry) {
   })
 }
 
-function getFileRegistryRequiresSubsection(entry, subsectionName) {
-  const normalizedName = String(subsectionName || '').trim().toLowerCase()
-  return getFileRegistrySubsectionLabels(entry).some((label) => label.toLowerCase() === normalizedName) ? 'Yes' : 'No'
-}
-
 function getFileRegistryForkMode(entry) {
   const sourceKey = String(entry?.key || '').trim()
   const hasCreateBranches = getCreateBranches(sourceKey).length > 0
@@ -1717,8 +1712,6 @@ function buildDefaultFileRegistryRow(entry, index) {
     File_Status: getDefaultFileStatusForGuidePath(guidePath),
     File_Guide_Path: guidePath,
     File_Class: 'L1',
-    Requires_System: getFileRegistryRequiresSubsection(entry, 'System'),
-    Requires_KDB: getFileRegistryRequiresSubsection(entry, 'KDB'),
     Ownership_Mode: 'root_owned',
     File_Owner: 'Owner',
     File_Steward: 'File Steward',
@@ -1762,8 +1755,6 @@ function buildDraftFileDefinitionRow(sourceKey, payload = {}) {
       'Draft',
     File_Guide_Path: normalizeNullableString(payload?.File_Guide_Path) || '',
     File_Class: normalizeNullableString(payload?.File_Class) || 'L1',
-    Requires_System: normalizeNullableString(payload?.Requires_System) || 'No',
-    Requires_KDB: normalizeNullableString(payload?.Requires_KDB) || 'No',
     Ownership_Mode: normalizeNullableString(payload?.Ownership_Mode) || 'root_owned',
     File_Owner: normalizeNullableString(payload?.File_Owner) || 'Owner',
     File_Steward: normalizeNullableString(payload?.File_Steward) || 'File Steward',
@@ -1941,28 +1932,6 @@ function buildFilesAcceptanceValidation(rows = []) {
       })
     }
 
-    if (normalizeYesNoValue(row?.Requires_System) !== expected.Requires_System) {
-      addIssue({
-        severity: 'warn',
-        sourceKey,
-        fileId,
-        field: 'Requires_System',
-        issue: `Requires_System drift: expected "${expected.Requires_System}".`,
-        suggestedAction: 'Align the row value with canonical subsection requirements.',
-      })
-    }
-
-    if (normalizeYesNoValue(row?.Requires_KDB) !== expected.Requires_KDB) {
-      addIssue({
-        severity: 'warn',
-        sourceKey,
-        fileId,
-        field: 'Requires_KDB',
-        issue: `Requires_KDB drift: expected "${expected.Requires_KDB}".`,
-        suggestedAction: 'Align the row value with canonical subsection requirements.',
-      })
-    }
-
     if (normalizeForkModeValue(row?.Fork_Mode) !== expected.Fork_Mode) {
       addIssue({
         severity: 'warn',
@@ -2082,8 +2051,6 @@ function ensureDefaultFiles(database) {
   const hasLegacyFileContractPath = filesMeta.columnsSet.has('File_Contract_Path')
   const requiredColumns = [
     ['File_Class', 'TEXT'],
-    ['Requires_System', 'TEXT'],
-    ['Requires_KDB', 'TEXT'],
     ['Ownership_Mode', 'TEXT'],
     ['File_Owner', 'TEXT'],
     ['File_Steward', 'TEXT'],
@@ -2129,8 +2096,6 @@ function ensureDefaultFiles(database) {
       File_Status,
       File_Guide_Path,
       File_Class,
-      Requires_System,
-      Requires_KDB,
       Ownership_Mode,
       File_Owner,
       File_Steward,
@@ -2156,8 +2121,6 @@ function ensureDefaultFiles(database) {
       @File_Status,
       @File_Guide_Path,
       @File_Class,
-      @Requires_System,
-      @Requires_KDB,
       @Ownership_Mode,
       @File_Owner,
       @File_Steward,
@@ -2187,16 +2150,6 @@ function ensureDefaultFiles(database) {
         ELSE Files.File_Guide_Path
       END,
       File_Class = COALESCE(NULLIF(Files.File_Class, ''), excluded.File_Class),
-      Requires_System = CASE
-        WHEN Files.Requires_System IS NULL OR Files.Requires_System = '' THEN excluded.Requires_System
-        WHEN Files.Requires_System = 'Yes' AND excluded.Requires_System = 'No' THEN excluded.Requires_System
-        ELSE Files.Requires_System
-      END,
-      Requires_KDB = CASE
-        WHEN Files.Requires_KDB IS NULL OR Files.Requires_KDB = '' THEN excluded.Requires_KDB
-        WHEN Files.Requires_KDB = 'Yes' AND excluded.Requires_KDB = 'No' THEN excluded.Requires_KDB
-        ELSE Files.Requires_KDB
-      END,
       Ownership_Mode = COALESCE(NULLIF(Files.Ownership_Mode, ''), excluded.Ownership_Mode),
       File_Owner = COALESCE(NULLIF(Files.File_Owner, ''), excluded.File_Owner),
       File_Steward = COALESCE(NULLIF(Files.File_Steward, ''), excluded.File_Steward),
@@ -2237,8 +2190,6 @@ function listFiles() {
         File_Status,
         File_Guide_Path,
         File_Class,
-        Requires_System,
-        Requires_KDB,
         Ownership_Mode,
         File_Owner,
         File_Steward,
@@ -2317,8 +2268,6 @@ function createFile(payload = {}) {
       File_Status,
       File_Guide_Path,
       File_Class,
-      Requires_System,
-      Requires_KDB,
       Ownership_Mode,
       File_Owner,
       File_Steward,
@@ -2346,8 +2295,6 @@ function createFile(payload = {}) {
       @File_Status,
       @File_Guide_Path,
       @File_Class,
-      @Requires_System,
-      @Requires_KDB,
       @Ownership_Mode,
       @File_Owner,
       @File_Steward,
@@ -2382,8 +2329,6 @@ function createFile(payload = {}) {
       registryDefaults.File_Status,
     File_Guide_Path: normalizeNullableString(payload?.File_Guide_Path) || registryDefaults.File_Guide_Path,
     File_Class: normalizeNullableString(payload?.File_Class) || registryDefaults.File_Class,
-    Requires_System: normalizeNullableString(payload?.Requires_System) || registryDefaults.Requires_System,
-    Requires_KDB: normalizeNullableString(payload?.Requires_KDB) || registryDefaults.Requires_KDB,
     Ownership_Mode: normalizeNullableString(payload?.Ownership_Mode) || registryDefaults.Ownership_Mode,
     File_Owner: normalizeNullableString(payload?.File_Owner) || registryDefaults.File_Owner,
     File_Steward: normalizeNullableString(payload?.File_Steward) || registryDefaults.File_Steward,

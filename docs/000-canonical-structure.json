@@ -2988,22 +2988,6 @@
                                                                                          ]
                                                                 },
                                                                 {
-                                                                    "address":  "23.4.10",
-                                                                    "token_name":  "Requires_System",
-                                                                    "token_type":  "boolean",
-                                                                    "db_field_aliases":  [
-                                                                                             "Requires_System"
-                                                                                         ]
-                                                                },
-                                                                {
-                                                                    "address":  "23.4.11",
-                                                                    "token_name":  "Requires_LDB",
-                                                                    "token_type":  "boolean",
-                                                                    "db_field_aliases":  [
-                                                                                             "Requires_LDB"
-                                                                                         ]
-                                                                },
-                                                                {
                                                                     "address":  "23.4.12",
                                                                     "token_name":  "Ownership_Mode",
                                                                     "token_type":  "text",

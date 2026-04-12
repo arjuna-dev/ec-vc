@@ -1,203 +1,104 @@
-# Owner
+# Owner Manual
 
 ## Purpose
 
-This manual is the Owner-facing guidebook for the system.
+This manual is the Owner-facing guidebook for the system. It should help the Owner pause, re-orient, and find the correct layer quickly, the way a clear pause menu helps a player understand what is real right now.
 
-It should help the Owner pause, re-orient, and find the right layer quickly, the same way a pause menu in a game helps a player understand:
+This document is meant to stay human-readable while also acting as a memory extension for the system.
 
-- where they are
-- what systems exist
-- what matters now
-- where to go next
+## Operating Model (Current Direction)
 
-This manual is meant to stay readable by a human while also functioning as a stable memory extension for the system.
+The system now follows a strict contract model:
 
-## README
+- `System Files` defines the file universe.
+- Each file owns its own tokens and views via `Defined_Structure`.
+- Shared LDB relationships are derived from the `System Files` file universe.
+- Shells render from the explicit file-owned structure contract, not from legacy scaffolding.
 
-These docs should stop being "extra documentation" and start being part of the operating system.
+This manual exists to keep that contract understandable for the Owner and easy to enforce.
 
-So for me, and for the user, they become:
+## Why These Docs Are Required
 
-- memory extensions
-- governance references
-- creation inputs
-- validation surfaces
+Without them, the system drifts into remembered exceptions and partial architecture.
 
-That is why they matter.
+With them, the system can state clearly:
 
-### Why These Are Needed
-
-Without them, we keep relying on:
-
-- remembered exceptions
-- conversational context
-- partial architecture spread across many files
-
-With them, the system can say clearly:
-
-- what this file is
-- how it should be created
-- what it depends on
-- how it connects
+- what a file is
+- how it is born
 - who governs it
-- what events should prove it was born correctly
+- what contracts it must satisfy
+- what events prove it was created correctly
 
-That makes file birth much more stable.
+That makes file birth and governance stable.
 
-### Why `System Files` Matters
+## Why System Files Matters
 
-These fields:
+`System Files` is not just a registry. It is the live file-definition surface and the source of truth for file structure:
 
-- is it `L1`, `L2`, or `L2.a`
-- does it require `System`
-- does it require `KDB`
-- who owns it
-- which steward governs it
-- which rulebooks it depends on
+- file identity and guide
+- ownership and stewardship
+- fork mode and view fork instructions
+- file-owned `Defined_Structure` (views + tokens)
 
-should absolutely live in `System Files`.
+`System Files` is the gatekeeper for whether a file is accepted as real or remains draft/hidden.
 
-That means `System Files` is not just a registry.
+## Shared LDB (Relationships)
 
-It becomes:
+The shared LDB layer is derived from the file universe declared in `System Files`.
 
-- a file-definition layer
-- a governance layer
-- a rendering input layer
+This means:
 
-And yes, the `L2` architecture can help catalog those properties cleanly.
+- every file can relate to every other file by default
+- file-specific relationship fields live inside that file’s token list
+- there is no separate KDB registry path or fallback
 
-### `KDB_Orchestrator`
+## Events / Provenance Rule
 
-`KDB_Orchestrator` should be the place that tells us:
-
-- which file relates to which
-- whether the relationship is born at file creation
-- whether it is generic or promoted
-- whether reverse-read exists
-
-That is a real missing system memory layer right now.
-
-### Genesis Companion / Steward Manifest
-
-This should tell us:
-
-- install order
-- dependency docs
-- authority
-- maintenance responsibility
-
-That helps both the bootstrap system and the human operator understand:
-
-- who comes first
-- why
-- what each companion/steward is allowed to do
-
-### Events / Provenance Rule Sheet
-
-If it can recreate genesis events from system logs, then it becomes much safer.
-
-That means:
-
-- even if we are uncertain about when to surface it
-- we know it must exist early enough to preserve provenance
-- and later it can reconstruct the system story from real event history
-
-Events should also help collaboration, not only reconstruction.
-
-That means the Owner should be able to use the event system to filter:
+Events must remain useful for audit and reconstruction. The Owner should be able to filter:
 
 - what was created
 - what was modified
 - what was deleted
 - what was pre-selected by context
-- what was suggested by a user or companion
-- what was verified
-- what was rejected
+- what was suggested or verified
 
-This makes the event layer useful for:
+This keeps provenance usable for audit, review, and governance.
 
-- audit trail
-- collaboration review
-- owner approval queues
-- provenance filtering by record and field
+## File Guides (One per File)
 
-### One `.md` Per File
+Each file should have a guide `.md` and it should be visible from:
 
-Each file should have its accompanying `.md`.
+- `System Files` as the file-guide column
+- `Add/Edit File Shell` next to the file box title
 
-That file-level `.md` should be visible in:
+This keeps guidance local, easy to reach, and directly tied to the file’s declared contract.
 
-- `System Files` `L1` view as a file-guide/reference column
-- `Add/Edit File Shell` in the top-left box, next to the box title
-
-That is the right pattern because the guide becomes:
-
-- local to the file
-- easy to find
-- available from both governance view and editing view
-
-So yes, this is the correct direction:
-
-- one system file record
-- one accompanying file guide
-- one clear place to govern creation, rendering, KDB, stewardship, and provenance
-
-The next best step is to define the exact first memory-extension set and what each one must contain before we implement more UI around them.
-
-## Index
-
-Use this as the Owner's pause menu.
+## Owner Index (Pause Menu)
 
 ### 1. Core System
 
-- `System Files`
-  - what files exist
-  - what kind of files they are
-  - which ones are canonical
-  - which guides belong to them
-- `Events`
-  - what happened
-  - in what order
-  - what can be reconstructed from provenance
-- `Files + Registry`
-  - the first repository/genesis layer
+- `System Files` (file universe + structure contract)
+- `Events` (provenance and audit)
+- `Files` (registry entity behind System Files)
 
 ### 2. Architecture
 
-- `Record Architecture`
-  - overall `File -> Card -> Record View` system
-- `Intake Architecture`
-  - ingestion, draft flow, staged extraction
-- `Bootstrap`
-  - how new `L1`s should be born
-- `Field Classification`
-  - what a token means and how it should behave
+- Record Architecture (File → Card → Record View)
+- Intake Architecture
+- Bootstrap / Genesis
+- Field Classification
 
 ### 3. Governance
 
-- `File Steward`
-  - file creation
-  - file upkeep
-  - KDB birth discipline
-- `Design Steward`
-  - BB and shell consistency
-- `Companion`
-  - how companions should behave
-- `Game Rulebook`
-  - how the guide/game layer should motivate without weakening truth
-  - current guide: `docs/300/Active/300_Game_Rulebook.md`
-- `Game Steward`
-  - companion steward role that explains and governs the game layer
-  - current role guide: `docs/020/Active/020_Game_Steward.md`
+- `File Steward` (file creation + structure integrity)
+- `Architect Steward` (contract enforcement)
+- `Design Steward` (UI system integrity)
+- `Companion` (behavior and manual)
 
 ### 4. Relationship System
 
-- `KDB`
-  - file-to-file and record-to-record relationship meaning
-- `KDB_Orchestrator`
-  - relationship registry and birth logic
+- Shared LDB contract
+- Relationship governance and audit
 - `Reverse Read`
   - how relationships show from both sides
 - `Promoted vs Generic`

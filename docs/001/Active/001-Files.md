@@ -55,7 +55,7 @@ These references must not act as live shell payload truth.
 
 That means:
 
-- `System Files` registers the file, class, guide, owner, steward, and required `System` or `LDB` status
+- `System Files` registers the file, class, guide, owner, steward, and `Defined Structure`
 - file-owned tokens/views are the runtime payload source for shells
 - the file guide explains the human and steward rules for that file
 - runtime/sqlite and shell rendering follow the System Files + token/view contract
@@ -72,8 +72,7 @@ Before a file is treated as born, the `Architect Steward`, `File Steward`, and `
 - owner is declared
 - steward is declared
 - UX fork questions are declared
-- `System` requirement is declared
-- `LDB` requirement is declared
+- shared sections are declared in `Defined Structure`
 - runtime/sqlite ownership is declared
 - shell rendering path is declared
 - events/provenance path is declared

@@ -1489,8 +1489,6 @@ CREATE TABLE IF NOT EXISTS Files (
   File_Status TEXT,
   File_Guide_Path TEXT,
   File_Class TEXT,
-  Requires_System TEXT,
-  Requires_KDB TEXT,
   Ownership_Mode TEXT,
   File_Owner TEXT,
   File_Steward TEXT,

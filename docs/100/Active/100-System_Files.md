@@ -64,7 +64,7 @@ It is the file-definition layer that helps the system know:
 - Do not treat a file as fully born if it has no guide.
 - Do not treat a file as fully born if its UX fork questions are missing.
 - Do not treat a branchable file as fully born if its create-branch or view-fork instructions are missing.
-- Do not treat a file as fully born if its `System`, `General`, or required `LDB` sections are missing.
+- Do not treat a file as fully born if its declared shared sections or relationship structure are missing.
 - Do not add file visibility in layout code as a substitute for registry/canon acceptance.
 - Do not load canonical structure through scattered direct JSON imports; use the approved canonical loader boundary.
 - Do not use this file as a loose notes page; every row should help define file birth, ownership, rendering, governance, or guide linkage.
@@ -103,9 +103,8 @@ The `File Steward` should use `System Files` to validate:
 - file name
 - file class
 - file guide path
-- required `System` section
-- required `General` section
-- required `LDB` section
+- declared shared sections
+- declared relationship section
 - ownership mode
 - steward assignment
 - create-branch instructions

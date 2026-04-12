@@ -38,8 +38,6 @@ The clean rule is:
 | `File Source Key` | The stable registry key used to connect a file row to the file/page registry. |
 | `File Class` | Whether a file is an `L1`, `L2`, or `L2.a`. |
 | `File Order` | The display or creation order used by the registry and file shell. |
-| `Requires System` | Whether the file requires the shared `System` section. |
-| `Requires LDB` | Whether the file requires the shared relationship section. |
 | `Ownership Mode` | The ownership model for the file, such as `root_owned`. |
 | `Defined Structure` | The declared L2 structure for the file. |
 
@@ -87,8 +85,7 @@ The `Owner` should use `Files` to understand:
 - which files are active, draft, archived, or incomplete
 - where each file guide lives
 - who owns and governs each file
-- whether each file requires `System`
-- whether each file requires `LDB`
+- which shared sections are declared in `Defined Structure`
 - whether the file is fully born or only approved direction
 
 ## File Steward
@@ -105,8 +102,6 @@ The `File Steward` should use `Files` to validate:
 - file path
 - file order
 - file class
-- `System` requirement
-- `LDB` requirement
 - ownership mode
 - steward
 - rulebook dependencies
@@ -241,8 +236,6 @@ The `File Specific` section tracks the registry-specific fields:
 - `File_Path`
 - `File_Order`
 - `File_Class`
-- `Requires_System`
-- `Requires_LDB`
 - `Ownership_Mode`
 - `File_Steward`
 - `Rulebook_Dependencies`
