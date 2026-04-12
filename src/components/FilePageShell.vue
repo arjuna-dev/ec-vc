@@ -20,6 +20,20 @@
     </div>
 
     <div v-else class="test-shell-body">
+      <q-banner
+        v-if="debugEnabled"
+        class="bg-grey-2 text-black q-mb-md"
+        rounded
+      >
+        <div><strong>Shell Debug</strong></div>
+        <div>route: {{ route.name }}</div>
+        <div>sourceKey: {{ activeSourceKey }}</div>
+        <div>contentSourceKey: {{ activeContentSourceKey }}</div>
+        <div>loader: {{ activeLoader ? activeContentSourceKey : 'none' }}</div>
+        <div>loading: {{ loading }}</div>
+        <div>rawRows: {{ rawRows.length }}</div>
+        <div>error: {{ error || 'none' }}</div>
+      </q-banner>
       <FileHero
         :text="heroText"
         :stats="heroStats"
@@ -781,6 +795,7 @@ const $q = useQuasar()
 
 const bridge = computed(() => (typeof window !== 'undefined' ? window.ecvc : null))
 const isElectronRuntime = computed(() => typeof window !== 'undefined')
+const debugEnabled = computed(() => String(route.query.debug || '').trim() === '1')
 const loading = ref(false)
 const error = ref('')
 const searchQuery = ref('')
