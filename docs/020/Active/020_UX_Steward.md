@@ -67,6 +67,10 @@ If yes:
 - attach it to the selected parent view fork
 - preserve its parent path clearly
 
+Definition note:
+
+- view forks and subgroups are internal to a file, not separate file rows, unless `System Files` explicitly tracks them as such
+
 ## Default Decision
 
 When uncertain, begin as `L1`.

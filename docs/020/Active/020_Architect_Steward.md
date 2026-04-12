@@ -54,6 +54,10 @@ Before a new file or structural branch is treated as real, the `Architect Stewar
 
 If any checklist item is unclear, stop and surface the gap before implementation continues.
 
+Definition note:
+
+- view forks and subgroups are internal to a file, not separate file rows, unless `System Files` explicitly tracks them as such
+
 ## Checklist Status Vocabulary
 
 Use these statuses when reviewing the File Birth Checklist:
