@@ -400,11 +400,16 @@
             :collapsed="recordDataCollapsed"
             @toggle="recordDataCollapsed = !recordDataCollapsed"
           >
-            <SectionTabs
-              v-model="activeSectionKey"
-              :left-tabs="leftPanelSections"
-              :right-tabs="rightSections"
-            />
+            <div class="create-record-shell__toolbar-slot-debug">
+              <MiniToolbar
+                v-model="activeSectionKey"
+                :items="miniToolbarItems"
+                view-mode="card"
+                :view-options="viewOptions"
+                :show-view-toggle="false"
+                aria-label="Add Edit Record Mini Toolbar"
+              />
+            </div>
 
             <div class="create-record-shell__panel ds-mini-scrollbar">
               <div class="create-record-shell__panel-head">
@@ -419,7 +424,69 @@
               </div>
 
               <div
-                v-if="isSystemSectionActive && activeFields.length"
+                v-if="isViewsSectionActive"
+                class="create-record-shell__governance-surface"
+              >
+                <table class="create-record-shell__governance-table">
+                  <thead>
+                    <tr>
+                      <th>View</th>
+                      <th>Side</th>
+                      <th>Tokens</th>
+                      <th>Subgroups</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="view in governanceViewRows" :key="view.key">
+                      <td>{{ view.label }}</td>
+                      <td>{{ view.side }}</td>
+                      <td>{{ view.tokenCount }}</td>
+                      <td>{{ view.subgroupCount }}</td>
+                    </tr>
+                    <tr v-if="!governanceViewRows.length">
+                      <td colspan="4" class="create-record-shell__governance-empty">No views declared for this record.</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <div
+                v-else-if="isTokensSectionActive"
+                class="create-record-shell__governance-groups"
+              >
+                <section
+                  v-for="group in tokenGroupsByView"
+                  :key="group.key"
+                  class="create-record-shell__governance-group"
+                >
+                  <div class="create-record-shell__governance-group-head">
+                    <div class="create-record-shell__governance-group-title">{{ group.label }}</div>
+                    <div class="create-record-shell__governance-group-meta">{{ group.tokens.length }} tokens</div>
+                  </div>
+                  <table class="create-record-shell__governance-table">
+                    <thead>
+                      <tr>
+                        <th>Label</th>
+                        <th>Type</th>
+                        <th>Required</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr v-for="token in group.tokens" :key="token.key">
+                        <td>{{ token.label }}</td>
+                        <td>{{ token.type }}</td>
+                        <td>{{ token.required }}</td>
+                      </tr>
+                      <tr v-if="!group.tokens.length">
+                        <td colspan="3" class="create-record-shell__governance-empty">No tokens declared in this view.</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </section>
+              </div>
+
+              <div
+                v-else-if="isSystemSectionActive && activeFields.length"
                 class="create-record-shell__fields create-record-shell__fields--system"
                 :style="{ '--field-map-label-width': activeFieldLabelWidth }"
               >
@@ -1505,8 +1572,8 @@ import DialogShellTitleRow from 'src/components/DialogShellTitleRow.vue'
 import CollapsibleSectionShell from 'src/components/CollapsibleSectionShell.vue'
 import DropZone from 'src/components/DropZone.vue'
 import ArtifactRow from 'src/components/ArtifactRow.vue'
+import MiniToolbar from 'src/components/MiniToolbar.vue'
 import ProcessingBox from 'src/components/ProcessingBox.vue'
-import SectionTabs from 'src/components/SectionTabs.vue'
 import ShellSelector from 'src/components/ShellSelector.vue'
 import FieldMapRow from 'src/components/FieldMapRow.vue'
 import EntryInputListBox from 'src/components/EntryInputListBox.vue'
@@ -1677,6 +1744,24 @@ const leftPanelSections = computed(() => {
 })
 
 const rightSections = computed(() => (branchSelectionSettled.value ? props.rightSections : []))
+const miniToolbarItems = computed(() => [
+  ...leftPanelSections.value.map((section) => ({
+    value: section.key,
+    title: section.label,
+  })),
+  ...rightSections.value.map((section) => {
+    const normalized = String(section.rawLabel || section.label || '').trim().toLowerCase()
+    return {
+      value: section.key,
+      title: section.label,
+      isKdb: normalized === 'kdb' || normalized === 'ldb',
+      isSystem: normalized === 'system',
+      pushRight: true,
+    }
+  }),
+  { value: 'tokens', title: 'Tokens', isGovernance: true, pushRight: true },
+  { value: 'views', title: 'Views', isGovernance: true, pushRight: true },
+])
 
 const dialogTitle = computed(() => {
   const normalizedLabel = String(props.singularLabel || 'record').trim()
@@ -1718,15 +1803,47 @@ const processingArtifacts = computed(() =>
 )
 const canOpenIntakeShell = computed(() => stagedArtifacts.value.length > 0 || processingArtifacts.value.length > 0)
 const activeFieldLabelWidth = computed(() => '10ch')
+const viewOptions = [
+  { label: '', value: 'card', icon: 'grid_view' },
+  { label: '', value: 'table', icon: 'table_rows' },
+]
 
-const activeSection = computed(
-  () => allSections.value.find((section) => section.key === activeSectionKey.value) || allSections.value[0] || null,
-)
+const activeSection = computed(() => {
+  if (activeSectionKey.value === 'tokens' || activeSectionKey.value === 'views') return null
+  return allSections.value.find((section) => section.key === activeSectionKey.value) || allSections.value[0] || null
+})
 
+const isTokensSectionActive = computed(() => activeSectionKey.value === 'tokens')
+const isViewsSectionActive = computed(() => activeSectionKey.value === 'views')
 const isGeneralSectionActive = computed(() => String(activeSection.value?.label || '').trim().toLowerCase() === 'general')
 const isSystemSectionActive = computed(() => String(activeSection.value?.label || '').trim().toLowerCase() === 'system')
 const activeFields = computed(() => activeSection.value?.tokens || [])
 const activeSectionSubgroups = computed(() => Array.isArray(activeSection.value?.subgroups) ? activeSection.value.subgroups : [])
+const governanceViewRows = computed(() =>
+  [...leftPanelSections.value, ...rightSections.value].map((section) => ({
+    key: section.key,
+    label: section.label,
+    side: rightSections.value.some((entry) => entry.key === section.key) ? 'Right' : 'Left',
+    tokenCount: Array.isArray(section.tokens) ? section.tokens.length : 0,
+    subgroupCount: Array.isArray(section.subgroups) ? section.subgroups.length : 0,
+  })),
+)
+const tokenGroupsByView = computed(() =>
+  governanceViewRows.value.map((view) => {
+    const section = allSections.value.find((entry) => entry.key === view.key)
+    const sectionTokens = Array.isArray(section?.tokens) ? section.tokens : []
+    return {
+      key: view.key,
+      label: view.label,
+      tokens: sectionTokens.map((token) => ({
+        key: token.key,
+        label: token.label || '—',
+        type: token.tokenType || '—',
+        required: isNameField(token) ? 'Yes' : '—',
+      })),
+    }
+  }),
+)
 const activeFieldEntries = computed(() => {
   const nameEntries = []
   const summaryEntries = []
@@ -2958,7 +3075,7 @@ onBeforeUnmount(() => {
   min-height: min(78vh, 690px);
   max-width: calc(100vw - 48px);
   max-height: calc(100vh - 48px);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(246, 246, 244, 0.98) 100%);
+  background: rgba(249, 249, 247, 0.98);
   border-radius: 18px;
   overflow: hidden;
 }
@@ -3717,6 +3834,74 @@ onBeforeUnmount(() => {
   justify-content: space-between;
   gap: 12px;
   margin-bottom: 10px;
+}
+
+.create-record-shell__governance-surface {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 10px 0 4px;
+}
+
+.create-record-shell__governance-groups {
+  display: grid;
+  gap: 14px;
+  padding: 10px 0 4px;
+}
+
+.create-record-shell__governance-group {
+  display: grid;
+  gap: 8px;
+}
+
+.create-record-shell__governance-group-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.create-record-shell__governance-group-title {
+  color: #111111;
+  font-family: var(--font-title);
+  font-size: 0.8rem;
+  font-weight: var(--font-weight-black);
+  line-height: 0.96;
+}
+
+.create-record-shell__governance-group-meta {
+  color: rgba(17, 17, 17, 0.54);
+  font-family: var(--font-body);
+  font-size: 0.7rem;
+}
+
+.create-record-shell__governance-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.create-record-shell__governance-table th,
+.create-record-shell__governance-table td {
+  padding: 8px 10px;
+  text-align: left;
+  border-bottom: 1px solid rgba(17, 17, 17, 0.08);
+}
+
+.create-record-shell__governance-table th {
+  color: rgba(17, 17, 17, 0.58);
+  font-family: var(--font-body);
+  font-size: 0.68rem;
+  font-weight: var(--font-weight-medium);
+}
+
+.create-record-shell__governance-table td {
+  color: #111111;
+  font-family: var(--font-body);
+  font-size: 0.74rem;
+}
+
+.create-record-shell__governance-empty {
+  color: rgba(17, 17, 17, 0.56);
 }
 
 .create-record-shell__subgroup-stack {
