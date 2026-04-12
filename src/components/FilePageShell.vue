@@ -42,6 +42,15 @@
         <div>filterToken: {{ activeFilterTokenKey || 'none' }}</div>
         <div>search: {{ searchQuery || 'none' }}</div>
         <div>error: {{ error || 'none' }}</div>
+        <div class="q-mt-sm">
+          <div>mergeCount: {{ debugRowStats.mergeCount }}</div>
+          <div>builtCount: {{ debugRowStats.builtCount }}</div>
+          <div>bbFilteredCount: {{ debugRowStats.bbFilteredCount }}</div>
+          <div>viewFilteredCount: {{ debugRowStats.viewFilteredCount }}</div>
+          <div>tokenFilteredCount: {{ debugRowStats.tokenFilteredCount }}</div>
+          <div>queryFilteredCount: {{ debugRowStats.queryFilteredCount }}</div>
+          <div v-if="debugRowStats.error">rowStatsError: {{ debugRowStats.error }}</div>
+        </div>
         <div v-if="debugDbSummary" class="q-mt-sm">
           <div>db: {{ debugDbSummary.path || 'unknown' }}</div>
           <div>files: {{ debugDbSummary.files }}</div>
@@ -832,6 +841,68 @@ const debugFirstTitle = computed(() => {
   return stringifyValue(getCanonicalTokenValue(row, canonicalTitleToken.value))
 })
 const debugFirstCardId = computed(() => displayRows.value[0]?.cardId || '')
+const debugRowStats = computed(() => {
+  try {
+    const merged = [
+      ...(createDialogOpen.value &&
+      createDialogMode.value === 'create' &&
+      String(createDialogDraftSourceKey.value || '').trim().toLowerCase() === activeContentSourceKey.value
+        ? (Array.isArray(localDraftRowsBySource.value[activeContentSourceKey.value])
+            ? localDraftRowsBySource.value[activeContentSourceKey.value].filter(
+                (row) => String(row?.id || '').trim() === String(createDialogDraftRecordId.value || '').trim(),
+              )
+            : [])
+        : []),
+      ...rawRows.value,
+    ]
+    const built = merged.map((row, index) => buildShellRow(row, index))
+    const bbFiltered = isBbFileSource.value
+      ? built.filter((row) => {
+          const blockKey = getBbTileBlockKey(row)
+          const categoryKey = String(row?.raw?.Category || '').trim().toLowerCase()
+          if (activeBbCategoryKey.value && categoryKey !== activeBbCategoryKey.value) return false
+          if (activeBbBlockKey.value && blockKey !== activeBbBlockKey.value) return false
+          return true
+        })
+      : built
+    const viewFiltered = activeFilterViewKey.value
+      ? bbFiltered.filter((row) => row.viewPresence[activeFilterViewKey.value])
+      : bbFiltered
+    const tokenFiltered = activeFilterTokenKey.value
+      ? viewFiltered.filter((row) => row.tokenPresence[activeFilterTokenKey.value])
+      : viewFiltered
+    const query = String(searchQuery.value || '').trim().toLowerCase()
+    const queryFiltered = query
+      ? tokenFiltered.filter((row) => {
+          const haystack = [
+            row.recordId,
+            ...row.viewTokenRows.map((tokenRow) => tokenRow.tokenName),
+            ...row.viewTokenRows.map((tokenRow) => tokenRow.value),
+          ]
+          return haystack.some((value) => String(value || '').toLowerCase().includes(query))
+        })
+      : tokenFiltered
+    return {
+      mergeCount: merged.length,
+      builtCount: built.length,
+      bbFilteredCount: bbFiltered.length,
+      viewFilteredCount: viewFiltered.length,
+      tokenFilteredCount: tokenFiltered.length,
+      queryFilteredCount: queryFiltered.length,
+      error: '',
+    }
+  } catch (error) {
+    return {
+      mergeCount: 0,
+      builtCount: 0,
+      bbFilteredCount: 0,
+      viewFilteredCount: 0,
+      tokenFilteredCount: 0,
+      queryFilteredCount: 0,
+      error: error?.message || String(error || 'unknown error'),
+    }
+  }
+})
 const loading = ref(false)
 const error = ref('')
 const searchQuery = ref('')
