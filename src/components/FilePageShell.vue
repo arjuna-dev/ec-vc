@@ -34,6 +34,9 @@
         <div>rawRows: {{ rawRows.length }}</div>
         <div>displayRows: {{ displayRows.length }}</div>
         <div>activeView: {{ activeView?.label || activeViewKey || 'none' }}</div>
+        <div>filterView: {{ activeFilterViewKey || 'none' }}</div>
+        <div>filterToken: {{ activeFilterTokenKey || 'none' }}</div>
+        <div>search: {{ searchQuery || 'none' }}</div>
         <div>error: {{ error || 'none' }}</div>
         <div v-if="debugDbSummary" class="q-mt-sm">
           <div>db: {{ debugDbSummary.path || 'unknown' }}</div>
