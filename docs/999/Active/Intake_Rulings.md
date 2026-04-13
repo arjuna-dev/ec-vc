@@ -178,6 +178,36 @@ Working rule:
 
 - if a UI shows an opportunity choice or linked-looking state, we still need to prove the persisted link underneath it
 
+### 9. Shared shell surfaces must use a Strict Feeder Chain
+
+Current governing meaning:
+
+- shared renderers are not enough by themselves
+- the feeder path that prepares shared toolbar or surface items must also be shared and strict
+
+`Strict Feeder Chain` means:
+
+- shells provide canonical section data
+- one shared feeder classifies and filters that data
+- one shared builder turns it into normalized items
+- one shared renderer displays the result
+
+Working rule:
+
+- shells must not locally decide how shared toolbar or shared surface items are shaped
+- grouping, side assignment, structural classification, and related filtering should happen in the shared feeder path
+
+Debugging rule:
+
+If two shells render the same shared surface differently, the difference should be traceable to one of these layers only:
+
+1. canonical section data
+2. feeder logic
+3. builder output
+4. renderer
+
+If the difference cannot be localized through that ladder, the contract is not yet strict enough.
+
 ## Caution Against Overclaiming
 
 When updating this document, do not casually promote a direction into a confirmed runtime fact.

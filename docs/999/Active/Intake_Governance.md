@@ -125,6 +125,46 @@ If one of them needs behavior that the others should also inherit, fix the share
 
 Do not patch one page locally just to make it appear finished.
 
+### Rule 1A. Strict Feeder Chain
+
+Shared shell surfaces must not only share renderers.
+
+They must also share the governed traffic path that feeds those renderers.
+
+`Strict Feeder Chain` means:
+
+- shells provide canonical section data
+- one shared feeder classifies and filters that data
+- one shared builder turns it into normalized toolbar or surface items
+- one shared renderer displays the result
+
+This is both:
+
+- an architecture rule
+- a debugging rule
+
+Why it matters:
+
+- if shells shape shared toolbar or surface items locally, drift begins even when the renderer is shared
+- if one feeder path governs the traffic, differences become easier to trace and prove
+
+Working rule:
+
+- shells must not decide locally how shared toolbar or shared surface items are shaped
+- shells may provide canonical section data only
+- shared item classification, side assignment, grouping, and structural detection must happen in the feeder path
+
+Bug-filter meaning:
+
+When two shared shells render differently, the mismatch should be traceable to one of only four layers:
+
+1. canonical section data differs
+2. feeder logic differs
+3. builder output differs
+4. renderer differs
+
+If we cannot localize a difference through that ladder, the traffic path is not governed strictly enough.
+
 ### Rule 2. Record Shell And Add/Edit Record Shell Have Different Jobs
 
 This distinction must remain explicit.
@@ -247,3 +287,4 @@ When making intake decisions from this point forward:
 - prefer exposure over concealment
 - prefer shared fixes over page-local fixes
 - prefer sequential truth over apparent completeness
+- prefer one governed feeder path over multiple local shaping paths

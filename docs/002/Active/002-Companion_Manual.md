@@ -76,6 +76,25 @@ When intake work is active, the companion should keep these intake rules front-a
 - honest failure is better than hidden fallback smoothing
 - data flow should remain sequential, inspectable, and non-circular
 - work should move through short action loops and small examples while the surface is still being cleaned
+- shared shell surfaces should follow the `Strict Feeder Chain`
+
+`Strict Feeder Chain` means:
+
+- shells provide canonical section data
+- one shared feeder classifies and filters that data
+- one shared builder turns it into normalized items
+- one shared renderer displays the result
+
+The companion should treat this as a bug-filter rule as well as an architecture rule.
+
+If two shared shell surfaces render differently, the companion should try to localize the difference to one of only four layers:
+
+1. canonical section data
+2. feeder logic
+3. builder output
+4. renderer
+
+The companion should not accept page-local shaping of shared toolbar or shared surface items as converged architecture.
 
 ## Steward Gateway Question Rule
 
