@@ -1043,7 +1043,7 @@ function resetTokenMeta(token) {
 function tokenMetaUsesOptionList(token) {
   const overrideSource = String(getTokenMetaDraftValue(token, 'optionSource') || '').trim()
   const source = overrideSource || String(token?.optionSource || '').trim()
-  return false
+  return source === 'option_list'
 }
 function isRelationshipViewLabel(value = '') {
   const normalized = String(value || '').trim().toLowerCase()
@@ -1632,7 +1632,6 @@ function normalizeCreateDialogToken(token) {
 
 function getInputOptionsForToken(token) {
   const optionSource = String(token?.optionSource || '').trim()
-  const optionList = String(token?.optionList || '').trim()
   if (optionSource === 'live_entity') return getLiveEntityOptionsForToken(token)
   if (optionSource === 'live_entity_set') return getLiveEntitySetOptionsForToken(token)
   if (optionSource === 'shared_file_universe' || token?.isSharedLdbToken) {

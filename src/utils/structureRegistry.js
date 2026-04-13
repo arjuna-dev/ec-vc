@@ -341,23 +341,6 @@ const FILE_PAGE_ENTITY_ORDER = [
   'Securities',
 ]
 
-function normalizeOptionItems(items) {
-  if (!Array.isArray(items)) return []
-  return items
-    .map((item) => {
-      if (item && typeof item === 'object') {
-        const label = String(item.label ?? item.value ?? '').trim()
-        const value = item.value ?? label
-        if (!label) return null
-        return { label, value }
-      }
-      const value = String(item || '').trim()
-      if (!value) return null
-      return { label: value, value }
-    })
-    .filter(Boolean)
-}
-
 function normalizeReferenceDoc(doc = {}) {
   const id = String(doc?.id || '').trim()
   const label = String(doc?.label || '').trim()

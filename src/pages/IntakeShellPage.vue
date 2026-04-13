@@ -261,7 +261,6 @@ function normalizeCreateDialogToken(token) {
 
 function getInputOptionsForToken(token) {
   const optionSource = String(token?.optionSource || '').trim()
-  const optionList = String(token?.optionList || '').trim()
   if (optionSource === 'live_entity') return getLiveEntityOptionsForToken(token)
   if (optionSource === 'live_entity_set') return getLiveEntitySetOptionsForToken(token)
   return Array.isArray(token?.inputOptions) ? token.inputOptions : []
