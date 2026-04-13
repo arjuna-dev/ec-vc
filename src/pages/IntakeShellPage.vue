@@ -46,7 +46,6 @@ import { useQuasar } from 'quasar'
 import { useRoute } from 'vue-router'
 import IntakeShellDialog from 'src/components/IntakeShellDialog.vue'
 import {
-  CANONICAL_OPTION_LISTS,
   getCreateBranchEntry,
   getCreateBranches,
   getCreateBranchTokenName,
@@ -263,7 +262,6 @@ function normalizeCreateDialogToken(token) {
 function getInputOptionsForToken(token) {
   const optionSource = String(token?.optionSource || '').trim()
   const optionList = String(token?.optionList || '').trim()
-  if (optionSource === 'canonical_list' && optionList) return CANONICAL_OPTION_LISTS[optionList] || []
   if (optionSource === 'live_entity') return getLiveEntityOptionsForToken(token)
   if (optionSource === 'live_entity_set') return getLiveEntitySetOptionsForToken(token)
   return Array.isArray(token?.inputOptions) ? token.inputOptions : []

@@ -135,7 +135,6 @@ import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useQuasar } from 'quasar'
 import AddEditRecordShellDialog from './AddEditRecordShellDialog.vue'
   import {
-    CANONICAL_OPTION_LISTS,
     getCreateBranchTokenName,
     getCanonicalTokenValue,
     getFilePageRegistryEntryByEntityReference,
@@ -295,7 +294,6 @@ function normalizeOpportunityDialogToken(token) {
 function getInputOptionsForToken(token) {
   const optionSource = String(token?.optionSource || '').trim()
   const optionList = String(token?.optionList || '').trim()
-  if (optionSource === 'canonical_list' && optionList) return CANONICAL_OPTION_LISTS[optionList] || []
   if (optionSource === 'live_entity') return getLiveEntityOptionsForToken(token)
   if (optionSource === 'live_entity_set') return getLiveEntitySetOptionsForToken(token)
   return Array.isArray(token?.inputOptions) ? token.inputOptions : []

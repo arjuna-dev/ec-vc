@@ -1,4 +1,3 @@
-import canonicalStructure from '../shared/canonicalStructure.js'
 
 export const DEFAULT_L1_REQUIRED_RUNTIME_CAPABILITIES = Object.freeze(['list', 'create', 'delete'])
 
@@ -376,11 +375,6 @@ function normalizeReferenceDoc(doc = {}) {
 const runtimeFileStructuresBySource = {}
 const runtimeStructureSubscribers = new Set()
 let runtimeStructureVersion = 0
-export const CANONICAL_OPTION_LISTS = Object.freeze(
-  Object.fromEntries(
-    Object.entries(canonicalStructure?.option_lists || {}).map(([listName, items]) => [listName, normalizeOptionItems(items)]),
-  ),
-)
 
 function buildEntityRegistry(entityName) {
   const meta = FILE_PAGE_ROUTE_META[entityName]

@@ -720,7 +720,6 @@ import RecordHero from 'src/components/RecordHero.vue'
 import StructureGovernancePanel from 'src/components/StructureGovernancePanel.vue'
 import { setPendingAddEditShellRequest } from 'src/utils/addEditShellState'
 import {
-  CANONICAL_OPTION_LISTS,
   getCanonicalTokenFieldNames,
   getCanonicalTokenValue,
   getFilePageRegistryEntry,
@@ -894,7 +893,6 @@ const TOKEN_TYPE_OPTIONS = [
 ]
 const OPTION_SOURCE_OPTIONS = [
   { label: 'None', value: '' },
-  { label: 'Canonical List', value: 'canonical_list' },
   { label: 'Live Entity', value: 'live_entity' },
   { label: 'Live Entity Set', value: 'live_entity_set' },
   { label: 'Shared File Universe', value: 'shared_file_universe' },
@@ -1045,7 +1043,7 @@ function resetTokenMeta(token) {
 function tokenMetaUsesOptionList(token) {
   const overrideSource = String(getTokenMetaDraftValue(token, 'optionSource') || '').trim()
   const source = overrideSource || String(token?.optionSource || '').trim()
-  return source === 'canonical_list'
+  return false
 }
 function isRelationshipViewLabel(value = '') {
   const normalized = String(value || '').trim().toLowerCase()
@@ -1635,7 +1633,6 @@ function normalizeCreateDialogToken(token) {
 function getInputOptionsForToken(token) {
   const optionSource = String(token?.optionSource || '').trim()
   const optionList = String(token?.optionList || '').trim()
-  if (optionSource === 'canonical_list' && optionList) return CANONICAL_OPTION_LISTS[optionList] || []
   if (optionSource === 'live_entity') return getLiveEntityOptionsForToken(token)
   if (optionSource === 'live_entity_set') return getLiveEntitySetOptionsForToken(token)
   if (optionSource === 'shared_file_universe' || token?.isSharedLdbToken) {

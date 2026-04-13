@@ -60,7 +60,6 @@ import { consumePendingAddEditShellRequest } from 'src/utils/addEditShellState'
 import { getLdbRelationshipContractForToken, getLdbRelationshipContractsForEntity } from 'src/shared/ldbRelationshipContracts'
 import { loadShellFieldSelectionMap, persistShellFieldSelectionMap } from 'src/utils/shellFieldSelection'
 import {
-  CANONICAL_OPTION_LISTS,
   getCreateBranchEntry,
   getCreateBranches,
   getCreateBranchTokenName,
@@ -462,7 +461,6 @@ function normalizeCreateDialogToken(token) {
 function getInputOptionsForToken(token) {
   const optionSource = String(token?.optionSource || '').trim()
   const optionList = String(token?.optionList || '').trim()
-  if (optionSource === 'canonical_list' && optionList) return CANONICAL_OPTION_LISTS[optionList] || []
   if (optionSource === 'live_entity') return getLiveEntityOptionsForToken(token)
   if (optionSource === 'live_entity_set') return getLiveEntitySetOptionsForToken(token)
   if (optionSource === 'shared_file_universe' || token?.isSharedLdbToken) {

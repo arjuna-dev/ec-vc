@@ -740,7 +740,6 @@ import { buildStructureToolbarItems } from 'src/utils/structureToolbarContract'
 import EyeIconButton from 'components/buttons/EyeIconButton.vue'
 import SelectionActionBar from 'components/SelectionActionBar.vue'
   import {
-    CANONICAL_OPTION_LISTS,
     getCreateBranchEntry,
     getCreateBranches,
     getCreateBranchTokenName,
@@ -1529,10 +1528,6 @@ function isBranchSelectorToken(token, sourceKey = activeSourceKey.value) {
 function getInputOptionsForToken(token) {
   const optionSource = String(token?.optionSource || '').trim()
   const optionList = String(token?.optionList || '').trim()
-
-  if (optionSource === 'canonical_list' && optionList) {
-    return CANONICAL_OPTION_LISTS[optionList] || []
-  }
 
   if (optionSource === 'live_entity') {
     return getLiveEntityOptionsForToken(token)
