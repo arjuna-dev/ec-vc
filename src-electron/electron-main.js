@@ -1909,9 +1909,9 @@ function enforceUniqueTokenNames(structure = null, runtimeEntityName = '') {
       const rawRole = String(token?.tokenRole || '').trim().toLowerCase()
       const roleKey = rawRole === 'title' || rawRole === 'summary'
         ? rawRole
-        : labelKey === 'name' || labelFlat.endsWith('name')
+        : labelKey === 'name' || labelFlat.endsWith('name') || labelFlat.includes('name')
           ? 'title'
-          : labelKey === 'summary' || labelFlat.endsWith('summary')
+          : labelKey === 'summary' || labelFlat.endsWith('summary') || labelFlat.includes('summary')
             ? 'summary'
             : ''
       if (!nameKey) {
