@@ -162,8 +162,8 @@ Current status:
 
 Implementation need:
 
-- ensure new normal `L1`s always start with those three sections unless an approved exception is declared
-- remove any birth path that can create an `L1` without the shared base
+- ensure new files always start with those three sections unless an approved exception is declared
+- remove any birth path that can create a file without the shared base
 
 ### 4. Shared base parameters
 
@@ -192,10 +192,10 @@ Current status:
 Implementation need:
 
 - define one reusable base parameter block
-- ensure new normal `L1`s inherit this block at birth
+- ensure new files inherit this block at birth
 - stop entity birth from renaming shared base fields into entity-prefixed duplicates
 
-### 5. Entity-specific structure
+### 5. Entity-specific view structure
 
 Primary files:
 
@@ -209,7 +209,7 @@ Current status:
 Implementation need:
 
 - make entity extension a distinct post-base step
-- ensure subgrouping is loaded only after the shared base is present
+- ensure view subgrouping is loaded only after the shared base is present
 
 ### 6. Reciprocal LDB declarations
 
@@ -226,8 +226,8 @@ Current status:
 
 Implementation need:
 
-- define the approved active `L1` set for reciprocal birth
-- create one birth rule that generates reciprocal LDB declarations for the new `L1`
+- define the approved active file set for reciprocal birth
+- create one birth rule that generates reciprocal LDB declarations for the new file
 - stop relying on post-birth manual back-wiring as the default
 
 ### 7. Relationship owner-path choice
@@ -302,7 +302,7 @@ Current status:
 
 Implementation need:
 
-- define the minimum proof for a born `L1`:
+- define the minimum proof for a born file:
   - list works
   - create works
   - edit works
@@ -310,14 +310,14 @@ Implementation need:
   - LDB appears
   - reverse-read appears
   - shell launch works
-- do not mark `L1` birth complete before this proof exists
+- do not mark file birth complete before this proof exists
 
 ## First Implementation Slice
 
 The smallest clean implementation order should be:
 
-1. define the canonical input contract for new normal `L1` birth
-2. define the active `L1` set used for reciprocal LDB generation
+1. define the canonical input contract for new file birth
+2. define the active file set used for reciprocal LDB generation
 3. define the default LDB owner-path rule:
    - default `LDB_Relationships`
    - promote only by explicit approval
@@ -332,10 +332,10 @@ The smallest clean implementation order should be:
 
 Before opening the test branch, we should be able to answer `yes` to all of these:
 
-- do we know the exact canonical input for a new normal `L1`?
-- do we know which existing `L1`s get reciprocal LDB declarations by default?
+- do we know the exact canonical input for a new file?
+- do we know which existing files get reciprocal LDB declarations by default?
 - do we know when a relationship stays in `LDB_Relationships`?
 - do we know when a relationship is promoted to a dedicated join table?
-- do we know the minimum validation proof for a born `L1`?
+- do we know the minimum validation proof for a born file?
 
 If any answer is `no`, the bootstrap rule is still under-defined.
