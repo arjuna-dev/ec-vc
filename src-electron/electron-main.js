@@ -1644,9 +1644,6 @@ function buildBaseFileStructure(entry) {
         label: 'System',
         address: '',
         structureToken: '',
-        subgroupKey: '',
-        subgroupLabel: '',
-        subgroupAddress: '',
         displayGroup: '',
         tokens: [
           {
@@ -1688,9 +1685,6 @@ function buildBaseFileStructure(entry) {
         label: 'General',
         address: '',
         structureToken: '',
-        subgroupKey: '',
-        subgroupLabel: '',
-        subgroupAddress: '',
         displayGroup: '',
         tokens: [
           {
@@ -1732,9 +1726,6 @@ function buildBaseFileStructure(entry) {
         label: 'LDB',
         address: '',
         structureToken: '',
-        subgroupKey: '',
-        subgroupLabel: '',
-        subgroupAddress: '',
         displayGroup: '',
         tokens: [],
       },
