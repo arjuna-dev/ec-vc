@@ -1478,7 +1478,12 @@ function artifactPreviewIcon(artifact) {
 }
 
 async function persistDroppedArtifact(artifact) {
-  if (!artifact?.path || !bridge.value?.artifacts?.ingest) return artifact
+  if (!artifact?.path) {
+    throw new Error('Artifact drop failed because the file path was missing.')
+  }
+  if (!bridge.value?.artifacts?.ingest) {
+    throw new Error('Artifact ingestion requires the Electron runtime bridge.')
+  }
   try {
     const result = await bridge.value.artifacts.ingest({
       filePaths: [artifact.path],
