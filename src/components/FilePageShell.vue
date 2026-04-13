@@ -31,6 +31,17 @@
         @action-item-click="handleHeroActionItemClick"
       />
 
+      <q-banner v-if="showDebugBanner" class="bg-grey-2 text-black" rounded>
+        <div>Debug: File Shell payload</div>
+        <div>source: {{ activeSourceKey }}</div>
+        <div>content: {{ activeContentSourceKey }}</div>
+        <div>views: {{ fileViews.length }}</div>
+        <div>tokens: {{ fileTokens.length }}</div>
+        <div>toolbar items: {{ eventShellNavItems.length }}</div>
+        <div>raw rows: {{ rawRows.length }}</div>
+        <div>display rows: {{ displayRows.length }}</div>
+      </q-banner>
+
       <div class="file-shell__toolbar-slot-debug">
         <MiniToolbar
           v-if="eventShellNavItems.length"
@@ -1009,6 +1020,7 @@ const activeSourceKey = computed(() => {
 })
 
 const hasResolvedSourceKey = computed(() => Boolean(activeSourceKey.value))
+const showDebugBanner = computed(() => String(route.query.debug || '').trim() === '1')
 
 const activeFileShellPayload = computed(() => {
   runtimeStructureVersion.value
