@@ -165,6 +165,46 @@ When two shared shells render differently, the mismatch should be traceable to o
 
 If we cannot localize a difference through that ladder, the traffic path is not governed strictly enough.
 
+### Rule 1B. Two-Layer Asset Rule
+
+Important shared system assets should converge in two layers:
+
+- runtime utility layer
+- BB or system-facing asset layer
+
+This matters because a shared system tool should not live only as hidden code if it is also part of the approved system language.
+
+Working meaning:
+
+- if a shared asset has real runtime responsibility, it may need a utility or feeder implementation
+- if that same asset is important for naming, inspection, governance, or BB-shell visibility, it should also have an approved BB or system-facing representation
+
+Examples of why this helps:
+
+- the asset can be called by name
+- the asset can be inspected in `BB Shell`
+- the asset can be governed as part of the approved system
+- backend, translators/feeders, and frontend can converge toward the same named unit instead of drifting apart
+
+This rule does not mean every tiny helper needs BB identity.
+
+It does mean that important shared shell, data, interaction, and feeder assets should not remain invisible if they are central to the system's architecture.
+
+Convergence direction:
+
+- user-facing preference assets may converge through design-system and settings language such as base colors, text style, and foundational surfaces
+- governed system assets may converge through BB identity, runtime ownership, feeder logic, and shared shell usage
+
+The goal is not just visual reuse.
+
+The goal is a governed system where:
+
+- backend
+- translators and feeders
+- frontend
+
+all point to the same approved asset language.
+
 ### Rule 2. Record Shell And Add/Edit Record Shell Have Different Jobs
 
 This distinction must remain explicit.
@@ -257,6 +297,7 @@ We want to preserve:
 
 - strict shell behavior
 - explicit shared components
+- approved system asset language
 - fail-closed structure
 - honest runtime exposure
 - federated file ownership

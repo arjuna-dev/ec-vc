@@ -208,6 +208,31 @@ If two shells render the same shared surface differently, the difference should 
 
 If the difference cannot be localized through that ladder, the contract is not yet strict enough.
 
+### 10. Important shared system assets should follow the Two-Layer Asset Rule
+
+Current governing meaning:
+
+- an important shared system asset may need both a runtime implementation and a BB or system-facing identity
+- shared system logic should not remain invisible when it is central to how the product names, governs, and inspects behavior
+
+`Two-Layer Asset Rule` means:
+
+- runtime utility layer when the asset has logic responsibility
+- BB or system-facing asset layer when the asset needs naming, inspection, governance, or approved-system visibility
+
+Working rule:
+
+- do not treat hidden runtime helpers alone as the full answer when the asset is becoming a first-class shared system tool
+- do not require BB identity for every tiny helper
+- do require stronger system identity for important shared shell, feeder, translator, interaction, and data-surface assets
+
+Convergence meaning:
+
+- user-preference assets may converge through settings and design-system foundations
+- governed system assets may converge through BB identity, runtime ownership, feeder logic, and shell usage
+
+This helps backend, feeders/translators, and frontend point to the same approved unit instead of drifting into separate languages.
+
 ## Caution Against Overclaiming
 
 When updating this document, do not casually promote a direction into a confirmed runtime fact.

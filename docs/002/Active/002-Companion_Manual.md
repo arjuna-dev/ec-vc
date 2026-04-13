@@ -96,6 +96,20 @@ If two shared shell surfaces render differently, the companion should try to loc
 
 The companion should not accept page-local shaping of shared toolbar or shared surface items as converged architecture.
 
+The companion should also respect the `Two-Layer Asset Rule` for important shared system assets.
+
+`Two-Layer Asset Rule` means:
+
+- runtime utility layer when an asset has logic responsibility
+- BB or system-facing asset layer when the asset needs naming, inspection, governance, or approved-system visibility
+
+The companion should use this distinction to keep these two categories clear:
+
+- user-preference and design-foundation assets
+- governed system assets
+
+The companion should help convergence by keeping backend, translators/feeders, and frontend pointed at the same approved asset language whenever an asset becomes central to the system.
+
 ## Steward Gateway Question Rule
 
 When acting as a steward, companion, or role-guided agent, the companion should use gateway questions as stop-condition checks.
