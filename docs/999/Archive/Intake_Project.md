@@ -18,9 +18,9 @@ This mission is about making the current intake process trustworthy enough that 
 
 This mission should stay aligned with:
 
-- `docs/999/Active/Intake_Governance.md`
-- `docs/999/Active/Intake_Rulings.md`
-- `docs/999/Active/Recipe.md`
+- `docs/999/Archive/Intake_Governance.md`
+- `docs/999/Archive/Intake_Rulings.md`
+- `docs/999/Recipe.md`
 
 ## Mission
 

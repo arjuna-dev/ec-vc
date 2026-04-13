@@ -37,11 +37,11 @@ The `Game Steward` explains and governs this operating layer.
 
 Related steward:
 
-- `docs/020/Active/020_Game_Steward.md`
+- `docs/020/020_Game_Steward.md`
 
 Related concrete guide:
 
-- `docs/010/Active/Game_Rulebook.md`
+- `docs/010/Archive/Game_Rulebook.md`
 
 ## Stop Conditions
 

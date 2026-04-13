@@ -1,27 +1,93 @@
-# Game Rulebook
+# Game_of
 
-## Status
+## Purpose
 
-This document is the current concrete Games guide.
+This document is the single active `Game_of` guide.
 
-It lives in `docs/300` because it describes a game-specific guide, not a system-wide architecture rule and not a companion role.
+It now carries:
 
-Related docs:
+- root `Game_of` rules
+- `Game_of` operation
+- the current concrete game rulebook
 
-- `docs/000-00.md`
-- `docs/010/Active/Games.md`
-- `docs/010/Archive/Game_Operation.md`
+The `Game_of` layer exists to invite users and companions into a structured objective path where they accumulate points by gathering correct information through governed processes.
+
+It should make progress legible, motivating, and prioritized without weakening truth, ownership, verification, provenance, or canonical structure.
+
+## Authority Rule
+
+`Game_of` is a guidance layer.
+
+They should help humans, companions, and future bots understand:
+
+- what matters next
+- why it matters
+- what stage the work is in
+- how progress is scored
+- which quests, boards, or priorities are active
+
+`Game_of` must not replace:
+
+- canonical ownership
+- file birth rules
+- runtime validation
+- verification status
+- steward stop conditions
+
+## Related Docs
+
 - `docs/010/DAMP.md`
 - `docs/020/020_Game_Steward.md`
 
-Domain rule:
+The `Game Steward` remains in `020` because it is a Companion Steward role. This file defines the `Game_of` layer itself.
 
-- `docs/010/Active/Games.md` defines root Games rules
-- `docs/010/Archive/Game_Operation.md` defines Games operation
-- this `300` guide defines the current concrete game rulebook
-- `Game Steward` remains in `020` because it is the companion role that explains and governs this layer
+## Root Rules
 
-## Owner Genesis
+- `Game_of` should surface structure, not invent structure.
+- `Game_of` should make priorities clearer, not hide missing architecture.
+- `Game_of` may reward effort provisionally, but truth should only be fully rewarded after verification.
+- `Game_of` should make blockers visible when ownership, runtime, relationship, or provenance paths are incomplete.
+- `Game_of` should remain readable to the `Owner` and useful to companions without requiring architecture vocabulary.
+
+## Operating Layer
+
+`Game_of` operation should convert approved structure into visible guidance.
+
+It should explain:
+
+- boards
+- quests
+- points
+- rankings
+- stage objectives
+- provisional versus verified progress
+
+It should not create structure that canon, file guides, stewards, or runtime ownership have not approved.
+
+### Current Operating Model
+
+1. A file, record, task, or relationship exposes an approved objective.
+2. The `Game_of` layer translates that objective into a visible quest, board position, or priority.
+3. The user or companion performs the work.
+4. The system records whether the work is provisional, verified, blocked, or complete.
+5. Points and rankings explain relevance without replacing verification.
+
+### Stop Conditions
+
+Stop before treating game output as settled truth when:
+
+- the source file is not fully born
+- ownership is unclear
+- verification status is missing
+- the quest depends on an unapproved relationship
+- the score is not tied to a visible objective
+- provenance cannot explain why progress changed
+
+## Concrete Rulebook
+
+This section defines the current concrete `Game_of` rulebook.
+
+### Owner Genesis
 
 `Owner Genesis` is the root setup sequence for a new node.
 
@@ -115,36 +181,30 @@ Working rule:
 - the current schema baseline means the currently declared table set in `src-electron/services/sqlite-schema.js`, not a reduced temporary subset
 - `BB File` is a controlled system-level exception and should not be treated as a precedent for weakening the standard operational `L1` rules
 
-## Purpose
+### First Board
 
-This document defines the first-pass game layer that sits on top of the contract system.
-
-The purpose of the game layer is:
+The purpose of the `Game_of` layer is:
 
 - to help users and companions focus on the right objectives
 - to make progress visible
 - to make verification rewarding
 - to turn structured work into a guided board with clear next actions
 
-This layer should improve motivation and prioritization.
-
-It should not replace or weaken the underlying contract system.
-
 Current first board:
 
 - the first game board should be `Ingestion`
 - the first scoring loop should help users and the Companion improve ingestion quality, provenance, verification, and downstream file creation
 
-## Governing Rule
+### Governing Rule
 
-The game layer must sit above the contract layer.
+The `Game_of` layer must sit above the contract layer.
 
 That means:
 
 - canon still decides what is allowed
 - runtime ownership still decides where data writes
 - verification still decides what becomes trusted
-- the game layer only decides:
+- the `Game_of` layer only decides:
   - priority
   - progress
   - points
@@ -154,12 +214,12 @@ That means:
 
 Working rule:
 
-- game should guide
+- `Game_of` should guide
 - contract should govern
 
-## Core Objects
+### Core Objects
 
-### 1. Points
+#### Points
 
 Points measure useful progress.
 
@@ -173,7 +233,48 @@ There are two kinds of points:
   - awarded when that work is verified as correct
   - counted as true progress
 
-## Point Structure Rule
+#### Deductions
+
+Points should be deducted when:
+
+- information is wrong
+- a claimed completion is later disproven
+- a required field was filled incorrectly
+- a relationship was proposed incorrectly and rejected
+
+#### Bonuses
+
+Bonus points should be awarded when:
+
+- a required field group is completed correctly
+- a full record is completed correctly
+- a full stage pass is completed correctly
+- a high-priority quest is completed cleanly
+
+#### Quests
+
+Quests are concrete objectives.
+
+They should tell the user or companion:
+
+- what matters next
+- why it matters
+- what success looks like
+- what reward is attached to it
+
+#### Boards
+
+Each pipeline should function as a board.
+
+Each board should have:
+
+- stage objectives
+- required information
+- expected outcomes
+- ranking logic
+- quest priority
+
+### Point Structure Rule
 
 The point structure should be driven by data relevancy.
 
@@ -182,11 +283,6 @@ That means:
 - points are not flat by task type alone
 - points depend on what matters most at the current stage
 - the same action may be worth more or less depending on context
-
-Example:
-
-- when setting a new `Opportunity`, linking the parent company should usually be worth more than adding a related contact
-- this is because the company usually anchors more downstream understanding, more pairing links, and more structural context
 
 Working rule:
 
@@ -199,7 +295,7 @@ This should also inform ranking and front-loading:
 - the point model can help companions and users see which choices are most relevant
 - this ranking may help order human-facing options and bot-facing suggestions
 
-## Default Assumption Rule
+### Default Assumption Rule
 
 Some context-aware defaults may be front-loaded for speed.
 
@@ -219,7 +315,7 @@ Working rule:
 - do not score them as realized truth until they are confirmed
 - but it must not alter ownership or write-path truth
 
-## Base-10 Scoring Rule
+### Base-10 Scoring Rule
 
 To keep the scoring language clear, use a base-10 system.
 
@@ -250,70 +346,7 @@ Working rule:
 - use `10, 100, 1000` to express order-of-importance jumps
 - keep the scoring easy to read for users, companions, and future bots
 
-### 2. Deductions
-
-Points should be deducted when:
-
-- information is wrong
-- a claimed completion is later disproven
-- a required field was filled incorrectly
-- a relationship was proposed incorrectly and rejected
-
-### 3. Bonuses
-
-Bonus points should be awarded when:
-
-- a required field group is completed correctly
-- a full record is completed correctly
-- a full stage pass is completed correctly
-- a high-priority quest is completed cleanly
-
-### 4. Quests
-
-Quests are concrete objectives.
-
-They should tell the user or companion:
-
-- what matters next
-- why it matters
-- what success looks like
-- what reward is attached to it
-
-### 5. Boards
-
-Each pipeline should function as a board.
-
-Each board should have:
-
-- stage objectives
-- required information
-- expected outcomes
-- ranking logic
-- quest priority
-
-### 6. Game Steward
-
-The `Game Steward` is the guide layer that explains the board, updates the ranking, and keeps the user moving toward the most relevant objectives.
-
-The Game Steward role is defined in `docs/020/020_Game_Steward.md`.
-
-The Game Steward should:
-
-- explain the current board
-- explain why points changed
-- explain what is most relevant next
-- explain what is blocking progress
-- keep guidance fun, motivating, and clear
-
-The Game Steward should not:
-
-- invent structure
-- override ownership
-- mark unverified information as settled truth
-
-The `Companion` should be understood as the guide helping the user navigate the game and score points in a useful way.
-
-## Point Flow
+### Point Flow
 
 The intended first-pass point flow is:
 
@@ -329,7 +362,7 @@ Working principle:
 - effort can be rewarded early
 - truth is only rewarded fully after verification
 
-## Relevancy Rule
+### Relevancy Rule
 
 Points should be dynamic by stage and objective.
 
@@ -340,17 +373,12 @@ That means the system should ask:
 - what information is most important right now
 - what information unlocks the most downstream value right now
 
-Examples:
-
-- if the stage is still forming the core shape of an `Opportunity`, company linkage may deserve a `10` band while secondary contacts may remain in a `2` or `3` band
-- if a later stage depends heavily on stakeholder follow-up, contact completeness may move up in value
-
 Working rule:
 
 - points should track current relevance
 - points should not be permanently fixed just because a field or link exists
 
-## Example Scoring Logic
+### Example Scoring Logic
 
 Examples of early scoring behavior:
 
@@ -367,7 +395,7 @@ Examples of realization behavior:
 - verified full record -> realized completion bonus
 - wrong field or wrong relationship -> deduction in the same scoring band it occupied
 
-## Bonus Rule
+### Bonus Rule
 
 Bonus logic should also follow relevance.
 
@@ -382,11 +410,11 @@ Working rule:
 - bonuses should reward meaningful completion
 - not just volume
 
-## Quest Logic
+### Quest Logic
 
 Quests should be ranked by relevance, not just by difficulty.
 
-That means the game layer should prioritize:
+That means the `Game_of` layer should prioritize:
 
 - required information before optional information
 - blocking fields before decorative fields
@@ -395,12 +423,12 @@ That means the game layer should prioritize:
 
 Working rule:
 
-- the game layer should surface what matters most now
+- the `Game_of` layer should surface what matters most now
 - not merely what is easiest to score
 
-## Human-System Relevance
+### Human-System Relevance
 
-The game layer should repeatedly reinforce the human-system distinction:
+The `Game_of` layer should repeatedly reinforce the human-system distinction:
 
 - `Owner`
   - system authority
@@ -414,14 +442,12 @@ The game layer should repeatedly reinforce the human-system distinction:
 - `Contact`
   - person record inside the CRM/LDB layer
 
-This matters because not all human links mean the same thing.
-
 Working rule:
 
 - identity and authority links should usually score as higher-order structural work
 - generic social or network links should not automatically outrank root-established human-system links
 
-## Field-Class Scoring Rule
+### Field-Class Scoring Rule
 
 The point system should respect field class.
 
@@ -441,7 +467,7 @@ Working rule:
 - do not reward a low-impact relationship like a high-impact root-established link
 - use the field class, stage, and board objective together when ranking work
 
-## Pipeline Board Rule
+### Pipeline Board Rule
 
 Each pipeline board should define:
 
@@ -459,9 +485,9 @@ The board should help the user understand:
 - what still blocks advancement
 - why some actions are worth more than others right now
 
-## Companion Role
+### Companion Role
 
-The `Companion` should help the user navigate the game layer and score points in a useful way.
+The `Companion` should help the user navigate the `Game_of` layer and score points in a useful way.
 
 That means the Companion may:
 
@@ -478,17 +504,21 @@ But the Companion must still obey the companion contract:
 - strict about structure
 - honest about missing ownership
 
-## Current Scope
+### Current Scope
 
 This is a first-pass rulebook.
 
-Current purpose:
-
-- define how the game layer should work
-- align it with the current contract system
-- keep the team aware that the current main objective is still underlying structure correctness
-
 Current rule:
 
-- the game layer may help surface issues
-- the game layer must not distract from getting the ownership and runtime structure correct underneath
+- the `Game_of` layer may help surface issues
+- the `Game_of` layer must not distract from getting the ownership and runtime structure correct underneath
+
+## Open Questions
+
+- Which point categories are universal across the app?
+- Which point categories are file-specific or stage-specific?
+- Which game events should be reconstructable from provenance logs?
+- Which runtime events should create point changes?
+- Which quests should be file-specific?
+- Which quests should be generated from stewardship checklists?
+- Which rankings should be visible to the `Owner` first?

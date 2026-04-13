@@ -724,5 +724,5 @@ The goal is:
 
 The current System Files acceptance-contract direction lives in:
 
-- `docs/010/Draft/010-files-system-birth-audit.md`
+- `docs/010/Archive/010-files-system-birth-audit.md`
 

@@ -2100,7 +2100,7 @@ function buildDefaultFileRegistryRow(entry, index) {
     Ownership_Mode: 'root_owned',
     File_Owner: 'Owner',
     File_Steward: 'File Steward',
-    Rulebook_Dependencies: 'docs/001/Active/001-Files.md',
+    Rulebook_Dependencies: 'docs/001/Archive/001-Files.md',
     Fork_Mode: getFileRegistryForkMode(entry),
     Fork_Enabled: getFileRegistryForkEnabled(entry),
     Create_Fork_Instructions: buildCreateForkInstructions(entry),
@@ -2162,30 +2162,31 @@ const ACCEPTED_FILE_STATUS_VALUES = Object.freeze(['Active', 'Partial', 'Draft',
 const ACCEPTED_FORK_MODE_VALUES = Object.freeze(['none', 'view', 'create', 'view_and_create'])
 const PROTECTED_BOOTSTRAP_FILE_SOURCE_KEYS = new Set(['file-system', 'events', 'bb-file'])
 const FILE_GUIDE_PATH_BY_SOURCE_KEY = Object.freeze({
-  'bb-file': 'docs/100/Draft/100-BB_Shell.md',
-  events: 'docs/100/Draft/100-Events.md',
-  'file-system': 'docs/100/Active/100-System_Files.md',
-  users: 'docs/100/Draft/100-Users.md',
-  artifacts: 'docs/100/Draft/100-Artifacts.md',
-  contacts: 'docs/100/Draft/100-Contacts.md',
-  companies: 'docs/100/Draft/100-Companies.md',
-  opportunities: 'docs/100/Draft/100-Opportunities.md',
-  funds: 'docs/100/Draft/100-Funds.md',
-  rounds: 'docs/100/Draft/100-Rounds.md',
-  projects: 'docs/100/Draft/100-Projects.md',
-  tasks: 'docs/100/Draft/100-Tasks.md',
-  notes: 'docs/100/Draft/100-Notes.md',
-  'user-roles': 'docs/100/Draft/100-User_Roles.md',
-  'companion-roles': 'docs/100/Draft/100-Companion_Roles.md',
-  markets: 'docs/100/Draft/100-Markets.md',
-  securities: 'docs/100/Draft/100-Securities.md',
-  intake: 'docs/100/Draft/100-Intake.md',
+  'bb-file': 'docs/100/Archive/100-BB_Shell.md',
+  events: 'docs/100/Archive/100-Events.md',
+  'file-system': 'docs/100/100-System_Files.md',
+  users: 'docs/100/Archive/100-Users.md',
+  artifacts: 'docs/100/Archive/100-Artifacts.md',
+  contacts: 'docs/100/Archive/100-Contacts.md',
+  companies: 'docs/100/Archive/100-Companies.md',
+  opportunities: 'docs/100/Archive/100-Opportunities.md',
+  funds: 'docs/100/Archive/100-Funds.md',
+  rounds: 'docs/100/Archive/100-Rounds.md',
+  projects: 'docs/100/Archive/100-Projects.md',
+  tasks: 'docs/100/Archive/100-Tasks.md',
+  notes: 'docs/100/Archive/100-Notes.md',
+  'user-roles': 'docs/100/Archive/100-User_Roles.md',
+  'companion-roles': 'docs/100/Archive/100-Companion_Roles.md',
+  markets: 'docs/100/Archive/100-Markets.md',
+  securities: 'docs/100/Archive/100-Securities.md',
+  intake: 'docs/100/Archive/100-Intake.md',
 })
 
 function getDefaultFileStatusForGuidePath(guidePath = '') {
   const normalizedPath = String(guidePath || '').trim().toLowerCase()
+  if (normalizedPath.startsWith('docs/') && !normalizedPath.includes('/archive/')) return 'Active'
   if (normalizedPath.includes('/active/')) return 'Active'
-  if (normalizedPath.includes('/draft/')) return 'Draft'
+  if (normalizedPath.includes('/draft/')) return 'Archived'
   if (normalizedPath.includes('/archive/')) return 'Archived'
   return 'Partial'
 }
@@ -2661,7 +2662,7 @@ function ensureDefaultFiles(database) {
       File_Status = excluded.File_Status,
       File_Guide_Path = CASE
         WHEN excluded.File_Guide_Path IS NOT NULL THEN excluded.File_Guide_Path
-        WHEN Files.File_Guide_Path = 'docs/100/Active/100-System_Files.md' THEN NULL
+        WHEN Files.File_Guide_Path = 'docs/100/100-System_Files.md' THEN NULL
         ELSE Files.File_Guide_Path
       END,
       File_Class = COALESCE(NULLIF(Files.File_Class, ''), excluded.File_Class),
@@ -6349,7 +6350,7 @@ function ensureDefaultCompanionRoles(database, actorUserId = null) {
       summary: 'Bootstrap operator responsible for sequential genesis and contract alignment.',
       type: 'Companion',
       status: 'Active',
-      contractPath: 'docs/020/Active/020_Master_Companion.md',
+      contractPath: 'docs/020/020_Master_Companion.md',
     },
     {
       id: 'companion-role:intake-steward',
@@ -6357,7 +6358,7 @@ function ensureDefaultCompanionRoles(database, actorUserId = null) {
       summary: 'Steward role that governs intake extraction, logic, and proposal review.',
       type: 'Companion',
       status: 'Active',
-      contractPath: 'docs/020/Active/020_Intake_Steward.md',
+      contractPath: 'docs/020/020_Intake_Steward.md',
     },
     {
       id: 'companion-role:point-tracker',
@@ -6365,7 +6366,7 @@ function ensureDefaultCompanionRoles(database, actorUserId = null) {
       summary: 'Maintains score, progress, and verification checkpoints for the game layer.',
       type: 'Companion',
       status: 'Draft',
-      contractPath: 'docs/020/Active/020_Point_Tracker.md',
+      contractPath: 'docs/020/020_Point_Tracker.md',
     },
     {
       id: 'companion-role:quest-builder',
@@ -6373,7 +6374,7 @@ function ensureDefaultCompanionRoles(database, actorUserId = null) {
       summary: 'Defines and curates quests, tasks, and progression logic for game loops.',
       type: 'Companion',
       status: 'Draft',
-      contractPath: 'docs/020/Active/020_Quest_Builder.md',
+      contractPath: 'docs/020/020_Quest_Builder.md',
     },
   ]
 

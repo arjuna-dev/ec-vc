@@ -1,0 +1,101 @@
+# Funds
+
+## File Identity
+
+- file name: `Funds`
+- file guide: `docs/100/Archive/100-Funds.md`
+- parent guide: `docs/001/Archive/001-Files.md`
+- file class: `L1`
+- canonical entity: `Funds`
+- app-facing label: `Funds`
+- canonical owner identity: `Owner`
+
+## Purpose
+
+`Funds` stores fund-specific opportunity branches.
+
+It exists to hold fund records as a specialized branch under the broader opportunity model.
+
+## Glossary
+
+| Term | Meaning |
+| --- | --- |
+| `Fund` | A fund-specific opportunity record. |
+| `Branch` | The specialized path from `Opportunities` into `Funds`. |
+| `Overview` | The main fund operating layer. |
+
+## Referenced Documents
+
+- `docs/001/Archive/001-Files.md`
+- `docs/100/Archive/100-Opportunities.md`
+- `docs/020/020_File_Steward.md`
+- `docs/000-canonical-structure.json`
+
+## Operating Rules
+
+- Treat `Funds` as a specialized branch file.
+- Preserve separation from `Rounds`.
+- Do not hide fund structure behind the parent opportunity only.
+
+## Ownership
+
+- owner: `Owner`
+- steward: `File Steward`
+- ownership mode: `root_owned`
+
+## Owner
+
+The `Owner` should use `Funds` to understand fund-specific records and their economics, controls, and related artifacts.
+
+## File Steward
+
+The `File Steward` should validate that `Funds` stays branch-correct and structurally distinct from `Rounds`.
+
+## UX Steward
+
+The `UX Steward` should keep the branch decision visible and fund-specific follow-up fields understandable.
+
+## Governance
+
+`Funds` is governed by `Owner`, `File Steward`, branch rules, and fund-specific structure in canon/runtime.
+
+## Provenance / Events
+
+The system should preserve fund creation, branch selection, fund status changes, and major fund relationship changes.
+
+## File Birth Checklist
+
+- canonical JSON structure exists: `yes`
+- `System Files` registry row exists: `yes`
+- file guide exists: `yes`, `docs/100/Archive/100-Funds.md`
+- owner is declared: `yes`, `Owner`
+- steward is declared: `yes`, `File Steward`
+- UX fork questions are declared: `partial`
+- `System` requirement is declared: `yes`
+- `LDB` requirement is declared: `yes`
+- runtime/sqlite ownership is declared: `yes`, table `Funds`
+- shell rendering path is declared: `partial`, route exists in registry but is not workspace-visible
+- events/provenance path is declared: `partial`
+
+## View Structure
+
+### System
+
+Tracks fund identity, creator, datetime, and event linkage.
+
+### General
+
+Tracks fund name and summary.
+
+### LDB
+
+Tracks relationships to opportunities, companies, contacts, artifacts, and events.
+
+### File Specific
+
+Tracks fund overview, strategy, economics, controls, and other fund sections.
+
+## Open Questions
+
+- Should `Funds` become directly visible in workspace navigation later?
+- Which fund sections need the first full file-guide deepening pass?
