@@ -219,6 +219,7 @@
 
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { useQuasar } from 'quasar'
 import DialogShellFrame from 'src/components/DialogShellFrame.vue'
 import RecordFieldsBox from 'src/components/RecordFieldsBox.vue'
 import DialogShellTitleRow from 'src/components/DialogShellTitleRow.vue'
@@ -247,6 +248,7 @@ const props = defineProps({
 
 const emit = defineEmits(['update:shellSelectorValue', 'change'])
 const FILE_GUIDE_DOC_URL = 'file:///C:/Users/erikc/Coding_Repository/ec-vc/docs/001/Active/001-Files.md'
+const $q = useQuasar()
 
 const shellSelectorOpen = ref(false)
 const runtimeStructureVersion = ref(getRuntimeStructureVersion())
@@ -560,6 +562,7 @@ function addLeafElement() {
   const currentDrafts = draftLeafRowsBySource.value[sourceKey] || []
   const nextIndex = currentDrafts.length + 1
   const nextKey = `${sourceKey}-draft-leaf-${nextIndex}`
+  const nextLabel = ensureUniqueTokenLabel(`Draft Leaf ${nextIndex}`, sourceKey)
   draftLeafRowsBySource.value = {
     ...draftLeafRowsBySource.value,
     [sourceKey]: [
@@ -567,7 +570,7 @@ function addLeafElement() {
       {
         isDraft: true,
         key: nextKey,
-        label: `Draft Leaf ${nextIndex}`,
+        label: nextLabel,
         parentLabel: activeViewSection.value?.label || '—',
         tokenType: 'text',
         relationshipGroup: '',
@@ -589,6 +592,7 @@ function addTokenElement() {
   const currentDrafts = draftTokenRowsBySource.value[sourceKey] || []
   const nextIndex = currentDrafts.length + 1
   const nextKey = `${sourceKey}-draft-token-${nextIndex}`
+  const nextLabel = ensureUniqueTokenLabel(`Draft Token ${nextIndex}`, sourceKey)
   draftTokenRowsBySource.value = {
     ...draftTokenRowsBySource.value,
     [sourceKey]: [
@@ -596,7 +600,7 @@ function addTokenElement() {
       {
         isDraft: true,
         key: nextKey,
-        label: `Draft Token ${nextIndex}`,
+        label: nextLabel,
         tokenType: 'text',
         tokenOrder: String(nextIndex),
         dbFieldAliases: [],
@@ -636,6 +640,14 @@ function updateLeafCell(tokenKey, field, value) {
     toggleRequiredField(tokenKey, Boolean(value))
     return
   }
+  if (field === 'label') {
+    const nextLabel = String(value ?? '').trim()
+    if (!nextLabel) return
+    if (isDuplicateTokenLabel(tokenKey, nextLabel)) {
+      notifyDuplicateTokenLabel(nextLabel)
+      return
+    }
+  }
   const sourceKey = activeSettingsSourceKey.value
   const currentBySource = leafFieldOverridesBySource.value[sourceKey] || {}
   const currentToken = currentBySource[tokenKey] || {}
@@ -655,6 +667,14 @@ function updateTokenCell(tokenKey, field, value) {
   if (field === 'required') {
     toggleRequiredField(tokenKey, Boolean(value))
     return
+  }
+  if (field === 'label') {
+    const nextLabel = String(value ?? '').trim()
+    if (!nextLabel) return
+    if (isDuplicateTokenLabel(tokenKey, nextLabel)) {
+      notifyDuplicateTokenLabel(nextLabel)
+      return
+    }
   }
   const sourceKey = activeSettingsSourceKey.value
   const currentBySource = tokenFieldOverridesBySource.value[sourceKey] || {}
@@ -680,6 +700,55 @@ function toggleRequiredField(tokenKey, value) {
     ...requiredFieldKeysBySource.value,
     [sourceKey]: Array.from(current),
   }
+}
+
+function normalizeTokenLabel(value) {
+  return String(value || '').trim().toLowerCase()
+}
+
+function notifyDuplicateTokenLabel(label) {
+  $q?.notify?.({
+    type: 'negative',
+    message: `Token labels must be unique. "${label}" already exists in this file.`,
+  })
+}
+
+function collectTokenLabelsForSource(sourceKey, excludedKey) {
+  const labels = new Set()
+  const tokenOverrides = tokenFieldOverridesBySource.value[sourceKey] || {}
+  const leafOverrides = leafFieldOverridesBySource.value[sourceKey] || {}
+  const addToken = (token) => {
+    if (!token) return
+    const tokenKey = String(token.key || '').trim()
+    if (excludedKey && tokenKey === excludedKey) return
+    const overrideLabel = tokenOverrides[tokenKey]?.label ?? leafOverrides[tokenKey]?.label
+    const label = normalizeTokenLabel(overrideLabel || token.label || token.tokenName || token.key)
+    if (label) labels.add(label)
+  }
+
+  ;(Array.isArray(payloadTokens.value) ? payloadTokens.value : []).forEach(addToken)
+  ;(draftTokenRowsBySource.value[sourceKey] || []).forEach(addToken)
+  ;(draftLeafRowsBySource.value[sourceKey] || []).forEach(addToken)
+  return labels
+}
+
+function isDuplicateTokenLabel(tokenKey, nextLabel) {
+  const sourceKey = activeSettingsSourceKey.value
+  const normalized = normalizeTokenLabel(nextLabel)
+  if (!normalized) return false
+  const labels = collectTokenLabelsForSource(sourceKey, tokenKey)
+  return labels.has(normalized)
+}
+
+function ensureUniqueTokenLabel(baseLabel, sourceKey) {
+  const labels = collectTokenLabelsForSource(sourceKey)
+  let nextLabel = String(baseLabel || '').trim() || 'New Token'
+  if (!labels.has(normalizeTokenLabel(nextLabel))) return nextLabel
+  let counter = 2
+  while (labels.has(normalizeTokenLabel(`${nextLabel} ${counter}`))) {
+    counter += 1
+  }
+  return `${nextLabel} ${counter}`
 }
 
 function toggleTokenSelection(tokenKey, value) {
