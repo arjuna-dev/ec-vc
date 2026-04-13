@@ -103,6 +103,196 @@ The goal is operational consistency:
 - the same entity should expose the same section logic in file-owned tokens/views
 - the same entity should render predictably in file view and record view
 
+## File Guide Governance Layer
+
+This document now also carries the parent file-guide rule that used to live in the separate active `Files` guide.
+
+### Parent File Guide Rule
+
+Every file should be born with its own accompanying `.md`.
+
+That file-level guide should:
+
+- explain the file to the `Owner`
+- explain the file to the `File Steward`
+- stay local to the file
+- be visible from `System Files`
+- be visible from the `Add/Edit File Shell`
+
+This means:
+
+- one file record
+- one file guide
+- one stable guide surface for governance, rendering, `LDB`, stewardship, and provenance
+
+### File Birth Chain
+
+Every file should be born from the `System Files` registry and the file-owned token/view contract.
+
+The intended birth chain is:
+
+1. `System Files` registry row
+2. file guide `.md`
+3. file-owned tokens/views
+4. runtime/sqlite table and shell rendering
+
+Reference inputs:
+
+- `docs/000-canonical-structure.json`
+- `docs/000-workbook-schema-companion.json`
+
+These references must not act as live shell payload truth.
+
+### File Birth Checklist
+
+Before a file is treated as born, the `Architect Steward`, `File Steward`, and `UX Steward` should be able to verify:
+
+- canonical JSON structure exists
+- `System Files` registry row exists
+- file guide exists
+- owner is declared
+- steward is declared
+- UX fork questions are declared
+- shared sections are declared in `Defined Structure`
+- runtime/sqlite ownership is declared
+- shell rendering path is declared
+- events/provenance path is declared
+
+If any checklist item is unclear, stop and surface the gap before implementation continues.
+
+### Checklist Status Vocabulary
+
+Use these statuses when applying the file birth checklist:
+
+- `yes`
+- `partial`
+- `unclear`
+- `no`
+
+If the honest status is `partial`, preserve the note explaining what exists and what remains unproven.
+
+If the honest status is `unclear` or `no`, implementation should pause until the gap is resolved or deliberately accepted as an open item.
+
+### Parent / Child Guide Rule
+
+`DAMP.md` now carries the parent guide rule.
+
+Every file-specific guide should be a child guide derived from it.
+
+That means:
+
+- this document defines the required structure
+- each file-specific guide inherits that structure
+- each file-specific guide then adds file-specific rules
+
+### Fork Characteristic Rule
+
+Fork behavior should be treated as a file characteristic, not as a page-only convenience.
+
+That means each file should be able to declare at least:
+
+- `fork_mode`
+  - `none`
+  - `view`
+  - `create`
+  - `view_and_create`
+- `fork_enabled`
+  - `yes`
+  - `no`
+
+These declarations should live in `System Files` and be reflected in canon/registry guidance before shared shells expose fork controls.
+
+### Meaning Drift Rule
+
+If a surface says something, the system should mean it.
+
+If the system means it, runtime behavior should do it.
+
+If runtime behavior does it, canon and guides should describe it the same way.
+
+Three drift classes should be treated as real architecture drift:
+
+- language drift
+- behavior drift
+- ownership drift
+
+When these drift classes appear, do not patch only the surface wording.
+
+Resolve the mismatch so that what the surface says, what the system means, and what runtime does are aligned again.
+
+### Shared BB Rendering Rule
+
+Rendering pages must be composed only from approved `bb:*` elements.
+
+That means:
+
+- shared structure should come from approved building blocks
+- page-level code may provide payload, source bindings, and approved shell contract values
+- page-level code should not invent local structural lookalikes when the structure is meant to be shared
+- if a needed structure does not yet exist in the `BB` layer, that is a `BB` gap and should be surfaced as such
+
+### Shared File Hero Rule
+
+All file pages must use the same shared `bb:file-hero` structure.
+
+Files may provide different hero payload values, but they must not switch to different hero layouts or page-specific hero contracts.
+
+## Field Classification Layer
+
+This document now also carries the active field-class layer that used to live in the separate field classification map.
+
+### Working Rule
+
+Token behavior should live in the structure, not in remembered exceptions.
+
+The active classification layer should move toward explicit token behavior such as:
+
+- `field_class`
+- `ownership_mode`
+- `cardinality`
+- `reverse_visibility`
+- `write_path`
+
+### Field Classes
+
+| Field Class | Meaning | Typical Directionality | Typical Edit Rule |
+| --- | --- | --- | --- |
+| `owned_field` | Ordinary field value on the current record or owned subtable | Local | Edit on the current record |
+| `directional_link` | Root-established or rule-bearing path such as identity, authority, provenance, or parentage | One-directional | Edit from the owner side only |
+| `ldb_relationship` | Mutual relationship between records | Usually bidirectional | Edit through the approved relationship owner path |
+
+### Root Cases
+
+These are the first cases we should normalize before the broader pass.
+
+| File | View | Token | Human Meaning | Field Class | Ownership Mode | Cardinality | Reverse Visibility | Write Path | Editable Where | Notes |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `Owner_DB` | `System` | `Owner_User` | The node can have only one owner user | `directional_link` | `root_owned` | `one_to_one` | `visible` | `Owner_DB.owner_user_id` | owner/root only | This is authority and bootstrap, not casual LDB |
+| `Users` | `System` | `User_Role` | A user receives a role and permissions | `directional_link` | `root_owned` | `one_to_one` to start | `visible` | `Users_Roles.role_id` | owner / admin side | Treat as permissions path, not loose LDB |
+| `Contacts` | `LDB` | `Contact_User` | A contact may be the same human as a user | `directional_link` | `root_owned` | `one_to_one` | `visible` | `Contacts.linked_user_id` | owner side only | Already backed directly in the DB |
+| `Users` | `LDB` | `User_Contact` | Reverse-visible identity link from user to contact | `directional_link` | `root_owned` | `one_to_one` | `visible` | reverse of `Contacts.linked_user_id` | follow back to owner side | Should not behave like generic multi-link LDB |
+| `Any File` | `System` | `*_Creator` | The actor who created the record | `directional_link` | `root_owned` | `one_to_one` | `visible` | creator provenance path | source record only | Loaded but locked in linked views |
+| `Artifacts` | `LDB` or `System` | `Artifact_Ingestion` | Original artifact points to ingestion/provenance flow | `directional_link` | `relationship_owned` | `one_to_many` | `visible` | ingestion provenance owner path | owner/provenance side | Treat as provenance, not casual LDB |
+| `Ingestion` | `LDB` or `System` | `Ingestion_Created_Files` | Ingestion creates downstream files | `directional_link` | `relationship_owned` | `one_to_many` | `visible` | created-files provenance path | ingestion side | Output lineage should remain explicit |
+
+### Current Decision Standard
+
+For now:
+
+- prefer explicit owner paths over generic `LDB` when the field is really identity, authority, or provenance
+- use generic `LDB` only when the relationship is genuinely mutual and not already owned directly
+- keep the wording repeated across architecture, product reference, companion contract, and game rulebook
+
+### Review Prompts
+
+When reviewing a token, ask:
+
+1. Is this a local value, a directional link, or a true `LDB` relationship?
+2. Would editing it from both sides create ambiguity?
+3. Does it define identity, authority, provenance, or parentage?
+4. Is the current runtime path direct, joined, or generic?
+5. Should the reverse side be visible, editable, or only followable?
+
 ## Highest Priority
 
 The highest-priority architecture workflow is now:
