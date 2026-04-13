@@ -32,6 +32,14 @@ function baseName(fileName) {
   return parsed.name || 'artifact'
 }
 
+function resolveOpportunityLinkIds(opportunityId) {
+  const normalized = String(opportunityId || '').trim()
+  if (!normalized) return { roundId: null, fundId: null }
+  if (normalized.startsWith('fund:')) return { roundId: null, fundId: normalized }
+  if (normalized.startsWith('round:')) return { roundId: normalized, fundId: null }
+  return { roundId: null, fundId: null }
+}
+
 function isImageExt(ext) {
   return ['.png', '.jpg', '.jpeg', '.webp', '.gif', '.tif', '.tiff'].includes(String(ext || ''))
 }
@@ -291,13 +299,16 @@ export async function ingestArtifactsFromPaths({
   emitStatus,
   apiKeys = {},
   duplicateStrategy = 'reject',
+  skipProcessing = false,
+  pathsAreWorkspaceRelative = false,
+  rawArtifactMap = {},
 } = {}) {
   initDb()
 
   const files = Array.isArray(filePaths) ? filePaths : []
   const openaiApiKey = normalizeApiKey(apiKeys?.openai)
   const geminiApiKey = normalizeApiKey(apiKeys?.gemini)
-  void opportunityId
+  const { roundId, fundId } = resolveOpportunityLinkIds(opportunityId)
   if (!workspaceRoot) throw new Error('workspaceRoot is required')
   if (files.length === 0) {
     emitStatus?.({
@@ -312,42 +323,44 @@ export async function ingestArtifactsFromPaths({
   await fse.ensureDir(rawDir)
   await fse.ensureDir(llmDir)
 
-  const seenInputNames = new Set()
-  for (const srcPath of files) {
-    const fileName = safeBasename(srcPath)
-    const normalized = fileName.toLowerCase()
-    if (seenInputNames.has(normalized) && duplicateStrategy !== 'rename') {
-      emitStatus?.({
-        type: 'warning',
-        message: `A file named "${fileName}" appears more than once in this upload.`,
-      })
-      throw new Error(`Duplicate filename in upload: "${fileName}".`)
-    }
-    seenInputNames.add(normalized)
-
-    const rawCandidatePath = path.join(rawDir, fileName)
-    if (duplicateStrategy !== 'rename' && (await fse.pathExists(rawCandidatePath))) {
-      const rawRelPath = toWorkspaceRelativePath(workspaceRoot, rawCandidatePath)
-      const refs = Number(
-        dbAll('SELECT COUNT(*) AS c FROM Artifact_Details WHERE fs_path = ?', [rawRelPath])?.[0]
-          ?.c || 0,
-      )
-      if (refs > 0) {
+  if (!pathsAreWorkspaceRelative) {
+    const seenInputNames = new Set()
+    for (const srcPath of files) {
+      const fileName = safeBasename(srcPath)
+      const normalized = fileName.toLowerCase()
+      if (seenInputNames.has(normalized) && duplicateStrategy !== 'rename') {
         emitStatus?.({
           type: 'warning',
-          message: `A file named "${fileName}" already exists.`,
+          message: `A file named "${fileName}" appears more than once in this upload.`,
         })
-        throw new Error(`Duplicate filename: "${fileName}" already exists.`)
+        throw new Error(`Duplicate filename in upload: "${fileName}".`)
       }
+      seenInputNames.add(normalized)
 
-      try {
-        await fse.remove(rawCandidatePath)
-      } catch (e) {
-        emitStatus?.({
-          type: 'error',
-          message: `Found a stale file named "${fileName}" but could not clean it up automatically.`,
-        })
-        throw e
+      const rawCandidatePath = path.join(rawDir, fileName)
+      if (duplicateStrategy !== 'rename' && (await fse.pathExists(rawCandidatePath))) {
+        const rawRelPath = toWorkspaceRelativePath(workspaceRoot, rawCandidatePath)
+        const refs = Number(
+          dbAll('SELECT COUNT(*) AS c FROM Artifact_Details WHERE fs_path = ?', [rawRelPath])?.[0]
+            ?.c || 0,
+        )
+        if (refs > 0) {
+          emitStatus?.({
+            type: 'warning',
+            message: `A file named "${fileName}" already exists.`,
+          })
+          throw new Error(`Duplicate filename: "${fileName}" already exists.`)
+        }
+
+        try {
+          await fse.remove(rawCandidatePath)
+        } catch (e) {
+          emitStatus?.({
+            type: 'error',
+            message: `Found a stale file named "${fileName}" but could not clean it up automatically.`,
+          })
+          throw e
+        }
       }
     }
   }
@@ -362,6 +375,31 @@ export async function ingestArtifactsFromPaths({
 
   for (const srcPath of files) {
     const sourceFilePath = String(srcPath || '')
+    if (pathsAreWorkspaceRelative) {
+      const rawRelPath = String(sourceFilePath || '').trim()
+      if (!rawRelPath) throw new Error('Raw artifact path was empty.')
+      const rawAbsPath = path.join(workspaceRoot, rawRelPath)
+      if (!(await fse.pathExists(rawAbsPath))) {
+        throw new Error(`Raw artifact path does not exist: ${rawAbsPath}`)
+      }
+      const originalFileName = safeBasename(rawAbsPath)
+      const originalExt = extLower(originalFileName)
+      const rawArtifactId = String(rawArtifactMap?.[rawRelPath] || '').trim()
+      if (!rawArtifactId) {
+        throw new Error(`Missing raw artifact id for "${rawRelPath}".`)
+      }
+      stagedFiles.push({
+        sourceFilePath: rawAbsPath,
+        originalFileName,
+        originalExt,
+        storedRawFileName: path.basename(rawAbsPath),
+        rawAbsPath,
+        rawRelPath,
+        rawArtifactId,
+      })
+      continue
+    }
+
     if (!sourceFilePath) {
       emitStatus?.({
         type: 'error',
@@ -418,15 +456,17 @@ export async function ingestArtifactsFromPaths({
           round_id,
           fund_id,
           title,
-          artifact_format
-        ) VALUES (?, ?, ?, ?, ?)
+          artifact_format,
+          Status
+        ) VALUES (?, ?, ?, ?, ?, ?)
       `,
         [
           rawArtifactId,
-          null,
-          null,
+          roundId,
+          fundId,
           baseName(originalFileName),
           originalExt.replace('.', '') || null,
+          'Draft',
         ],
       )
       dbRun(
@@ -450,13 +490,25 @@ export async function ingestArtifactsFromPaths({
 
     stagedFiles.push({
       sourceFilePath,
-      originalFileName,
-      originalExt,
-      storedRawFileName: path.basename(rawAbsPath),
-      rawAbsPath,
-      rawRelPath,
-      rawArtifactId,
+    originalFileName,
+    originalExt,
+    storedRawFileName: path.basename(rawAbsPath),
+    rawAbsPath,
+    rawRelPath,
+    rawArtifactId,
+  })
+  }
+
+  if (skipProcessing) {
+    const results = stagedFiles.map((item) => ({
+      source: item.sourceFilePath,
+      raw: { artifact_id: item.rawArtifactId, fs_path: item.rawRelPath },
+    }))
+    emitStatus?.({
+      type: 'info',
+      message: 'Files saved. Processing will start when you click Start.',
     })
+    return { results }
   }
 
   emitStatus?.({
@@ -506,10 +558,11 @@ export async function ingestArtifactsFromPaths({
             round_id,
             fund_id,
             title,
-            artifact_format
-          ) VALUES (?, ?, ?, ?, ?)
+            artifact_format,
+            Status
+          ) VALUES (?, ?, ?, ?, ?, ?)
         `,
-          [llmArtifactId, null, null, baseName(originalFileName), 'md'],
+          [llmArtifactId, roundId, fundId, baseName(originalFileName), 'md', 'Draft'],
         )
         dbRun(
           `
@@ -666,10 +719,11 @@ export async function ingestArtifactsFromPaths({
           round_id,
           fund_id,
           title,
-          artifact_format
-        ) VALUES (?, ?, ?, ?, ?)
+          artifact_format,
+          Status
+        ) VALUES (?, ?, ?, ?, ?, ?)
       `,
-        [llmArtifactId, null, null, baseName(originalFileName), 'md'],
+        [llmArtifactId, roundId, fundId, baseName(originalFileName), 'md', 'Draft'],
       )
       dbRun(
         `

@@ -125,15 +125,9 @@
                 </div>
 
                 <div class="create-record-shell__artifact-drop-footer">
-                  <q-checkbox
-                    v-model="autoProcessArtifacts"
-                    dense
-                    size="sm"
-                    checked-icon="check_box"
-                    unchecked-icon="check_box_outline_blank"
-                    class="create-record-shell__artifact-checkbox"
-                    label="Autmatically process files as I drop"
-                  />
+                  <div class="create-record-shell__artifact-drop-hint">
+                    Files are saved on drop. Processing starts when you click Start.
+                  </div>
                 </div>
               </div>
               </div>
@@ -172,7 +166,7 @@
                           />
                           <span class="create-record-shell__processing-item-name">{{ artifact.name }}</span>
                           <q-btn
-                            v-if="!artifact.processedArtifactId && !startingArtifactIds.includes(artifact.id)"
+                            v-if="artifact.processedArtifactId && !artifact.extractionStarted && !startingArtifactIds.includes(artifact.id)"
                             flat
                             dense
                             no-caps
@@ -184,7 +178,7 @@
                             Starting...
                           </span>
                           <span v-else class="create-record-shell__processing-item-status">
-                            Started
+                            {{ artifact.extractionStarted ? 'Started' : artifact.isLoading ? 'Loading…' : artifact.processedArtifactId ? 'Ready' : 'Waiting for LLM-ready' }}
                           </span>
                         </div>
                       </div>
@@ -640,6 +634,7 @@ const artifactDragOver = ref(false)
 const stagedArtifacts = ref([])
 const selectedArtifactIds = ref([])
 const startingArtifactIds = ref([])
+const artifactDropInFlight = ref(false)
 const intakeSessionId = ref('')
 const intakeReportId = ref('')
 const intakeDialogOpened = ref(false)
@@ -795,6 +790,17 @@ const dialogStyle = computed(() => ({
   height: `${dialogHeight.value}px`,
 }))
 
+function applyDefaultProjectSelection() {
+  if (selectedProjectIds.value.length) return
+  const defaults = projectOptions.value
+    .filter((option) => option.value === 'pipeline_default' || option.isDefault)
+    .map((option) => option.value)
+  if (defaults.length) {
+    selectedProjectIds.value = defaults
+    markDialogChanged()
+  }
+}
+
 async function ensureProjectsLoaded() {
   if (projectsLoaded.value) return
   if (!bridge.value?.projects?.list) return
@@ -808,13 +814,7 @@ async function ensureProjectsLoaded() {
         isDefault: Boolean(row?.is_default),
       }))
       .filter((option) => option.value && option.label)
-    if (!selectedProjectIds.value.length) {
-      const defaults = projectOptions.value.filter((option) => option.isDefault).map((option) => option.value)
-      if (defaults.length) {
-        selectedProjectIds.value = defaults
-        markDialogChanged()
-      }
-    }
+    applyDefaultProjectSelection()
   } finally {
     projectsLoaded.value = true
   }
@@ -872,7 +872,7 @@ function restoreUndoSnapshot(snapshot) {
     ? snapshot.stagedArtifacts.map((artifact) => ({ ...artifact }))
     : []
   selectedArtifactIds.value = Array.isArray(snapshot?.selectedArtifactIds) ? [...snapshot.selectedArtifactIds] : []
-  autoProcessArtifacts.value = Boolean(snapshot?.autoProcessArtifacts)
+  autoProcessArtifacts.value = false
   selectedProjectIds.value = Array.isArray(snapshot?.selectedProjectIds) ? [...snapshot.selectedProjectIds] : []
   supportResourcesCollapsed.value = Boolean(snapshot?.supportResourcesCollapsed)
   recordDataCollapsed.value = Boolean(snapshot?.recordDataCollapsed)
@@ -987,6 +987,7 @@ watch(
   (nextOpen) => {
     if (nextOpen) {
       startUndoKeyListener()
+      applyDefaultProjectSelection()
       return
     }
     stopUndoKeyListener()
@@ -1301,57 +1302,115 @@ function openFieldParentRecord(token) {
 }
 
 async function onArtifactDrop(event) {
-  pushUndoSnapshot()
-  artifactDragOver.value = false
-  const files = Array.from(event?.dataTransfer?.files || [])
-  if (!files.length) return
-
-  const normalized = files
-    .map((file) => normalizeArtifactFile(file))
-    .filter((file) => file.path || file.name)
-  if (!normalized.length) return
-
-  const nextArtifacts = []
-  for (const artifact of normalized) {
-    try {
-      const persisted = await persistDroppedArtifact(artifact)
-      nextArtifacts.push(persisted || artifact)
-    } catch (error) {
-      nextArtifacts.push({
-        ...artifact,
-        ingestError: error?.message || 'Could not ingest artifact.',
-      })
+  if (artifactDropInFlight.value) return
+  artifactDropInFlight.value = true
+  try {
+    pushUndoSnapshot()
+    artifactDragOver.value = false
+    autoProcessArtifacts.value = false
+    const dataTransfer = event?.dataTransfer
+    let files = Array.from(dataTransfer?.files || [])
+    if (!files.length && dataTransfer?.items) {
+      files = Array.from(dataTransfer.items)
+        .map((item) => (item?.kind === 'file' ? item.getAsFile() : null))
+        .filter(Boolean)
+    }
+    if (!files.length) {
       $q.notify({
         type: 'negative',
-        message: error?.message || `Could not ingest ${artifact.name || 'artifact'}.`,
+        message: 'Drop received, but no files were detected.',
+      })
+      return
+    }
+    $q.notify({
+      type: 'info',
+      message: `Drop detected (${files.length} file${files.length === 1 ? '' : 's'}).`,
+    })
+
+    const normalized = files
+      .map((file) => normalizeArtifactFile(file))
+      .filter((file) => file.path || file.name)
+    if (!normalized.length) return
+
+    const uniqueNormalized = []
+    const seenKeys = new Set()
+    normalized.forEach((file) => {
+      const key = file.path || file.name
+      if (!key || seenKeys.has(key)) return
+      seenKeys.add(key)
+      uniqueNormalized.push(file)
+    })
+
+    const existingKeys = new Set(
+      stagedArtifacts.value.map((artifact) => artifact.path || artifact.name).filter(Boolean),
+    )
+    const nextCandidates = uniqueNormalized.filter((file) => !existingKeys.has(file.path || file.name))
+    if (!nextCandidates.length) {
+      $q.notify({ type: 'info', message: 'That file is already staged.' })
+      return
+    }
+
+    const missingPath = normalized.filter((file) => !file.path)
+    if (missingPath.length) {
+      $q.notify({
+        type: 'negative',
+        message: `Drop received but no OS path was resolved for ${missingPath.length} file${missingPath.length === 1 ? '' : 's'}.`,
+      })
+    } else {
+      $q.notify({
+        type: 'positive',
+        message: `Resolved file path for ${normalized.length} file${normalized.length === 1 ? '' : 's'}.`,
       })
     }
+
+    const existingByPath = new Map(
+      stagedArtifacts.value.map((artifact) => [artifact.path || artifact.name, artifact]),
+    )
+
+    const placeholders = nextCandidates.map((artifact) => ({
+      ...artifact,
+      isLoading: true,
+      ingestError: '',
+    }))
+
+    placeholders.forEach((artifact) => {
+      const key = artifact.path || artifact.name
+      existingByPath.set(key, artifact)
+    })
+
+    stagedArtifacts.value = Array.from(existingByPath.values())
+    selectedArtifactIds.value = Array.from(
+      new Set(selectedArtifactIds.value.filter((id) => existingByPath.has(id))),
+    )
+    markDialogChanged()
+
+    void Promise.all(
+      placeholders.map(async (artifact) => {
+        try {
+          const persisted = await persistDroppedArtifact(artifact)
+          stagedArtifacts.value = stagedArtifacts.value.map((entry) =>
+            entry.id === artifact.id ? { ...entry, ...persisted, isLoading: false } : entry,
+          )
+        } catch (error) {
+          const message = error?.message || `Could not ingest ${artifact.name || 'artifact'}.`
+          $q.notify({ type: 'negative', message })
+          stagedArtifacts.value = stagedArtifacts.value.map((entry) =>
+            entry.id === artifact.id ? { ...entry, ingestError: message, isLoading: false } : entry,
+          )
+        }
+      }),
+    )
+  } finally {
+    artifactDropInFlight.value = false
   }
-
-  if (!nextArtifacts.length) return
-
-  const existingByPath = new Map(
-    stagedArtifacts.value.map((artifact) => [artifact.path || artifact.name, artifact]),
-  )
-
-  nextArtifacts.forEach((artifact) => {
-    const key = artifact.path || artifact.name
-    existingByPath.set(key, artifact)
-  })
-
-  stagedArtifacts.value = Array.from(existingByPath.values())
-  selectedArtifactIds.value = Array.from(
-    new Set([
-      ...selectedArtifactIds.value,
-      ...nextArtifacts.map((artifact) => artifact.id),
-    ]),
-  )
-  markDialogChanged()
 }
 
 function normalizeArtifactFile(file) {
   const name = String(file?.name || '').trim()
-  const path = String(file?.path || file?.webkitRelativePath || '').trim()
+  const resolvedPath = bridge.value?.files?.getPathForFile
+    ? bridge.value.files.getPathForFile(file)
+    : null
+  const path = String(resolvedPath || file?.path || file?.webkitRelativePath || '').trim()
   const size = Number(file?.size || 0)
   return {
     id: path || `${name}:${size}:${Date.now()}:${Math.random().toString(36).slice(2, 8)}`,
@@ -1360,6 +1419,8 @@ function normalizeArtifactFile(file) {
     size,
     artifactId: '',
     processedArtifactId: '',
+    extractionStarted: false,
+    isLoading: false,
   }
 }
 
@@ -1377,6 +1438,8 @@ function normalizeInitialArtifacts(artifacts = []) {
         size,
         artifactId: String(artifact?.artifactId || artifact?.id || '').trim(),
         processedArtifactId: String(artifact?.processedArtifactId || '').trim(),
+        extractionStarted: Boolean(artifact?.extractionStarted),
+        isLoading: Boolean(artifact?.isLoading),
       }
     })
     .filter(Boolean)
@@ -1438,26 +1501,42 @@ async function persistDroppedArtifact(artifact) {
     throw new Error('Artifact ingestion requires the Electron runtime bridge.')
   }
   try {
+    artifact.isLoading = true
     const result = await bridge.value.artifacts.ingest({
       filePaths: [artifact.path],
       opportunityId: resolveArtifactContextOpportunityId() || undefined,
       duplicateStrategy: 'rename',
     })
     const persistedId = String(result?.results?.[0]?.raw?.artifact_id || '').trim()
+    const rawRelPath = String(result?.results?.[0]?.raw?.fs_path || '').trim()
+    const processedId = String(result?.results?.[0]?.llm_ready?.artifact_id || '').trim()
+    if (rawRelPath && bridge.value?.fs?.workspaceRoot && bridge.value?.path?.join) {
+      const root = await bridge.value.fs.workspaceRoot()
+      const rootPath = String(root?.rootPath || '').trim()
+      if (rootPath) {
+        const absolutePath = bridge.value.path.join(rootPath, rawRelPath)
+        $q.notify({ type: 'positive', message: `Artifact saved to: ${absolutePath}` })
+      }
+    }
     if (!persistedId) {
       throw new Error(`Ingest returned no artifact id for "${artifact.name || 'file'}".`)
     }
     return {
       ...artifact,
       artifactId: persistedId,
+      rawRelPath: rawRelPath || artifact.rawRelPath || '',
+      processedArtifactId: processedId || artifact.processedArtifactId || '',
+      isLoading: false,
     }
   } catch (error) {
+    artifact.isLoading = false
     throw new Error(error?.message || String(error || 'Could not ingest artifact.'))
   }
 }
 
 async function ensureProcessedArtifactForSelection(artifactId) {
   const artifact = stagedArtifacts.value.find((entry) => entry.id === artifactId)
+  if (!autoProcessArtifacts.value) return
   if (!artifact || artifact.processedArtifactId || !bridge.value?.intake?.create) return
 
   let workingArtifact = artifact
@@ -1497,13 +1576,20 @@ async function startArtifactProcessing(artifactId) {
   if (startingArtifactIds.value.includes(artifactId)) return
   startingArtifactIds.value = [...startingArtifactIds.value, artifactId]
   try {
-    const persistedArtifact = await persistDroppedArtifact(artifact)
-    stagedArtifacts.value = stagedArtifacts.value.map((entry) =>
-      entry.id === artifactId
-        ? { ...entry, ...persistedArtifact }
-        : entry,
-    )
-    const workingArtifactId = String(persistedArtifact?.artifactId || artifact.artifactId || artifact.id || '').trim()
+    let workingArtifact = artifact
+    if (!String(workingArtifact.artifactId || '').trim() || !String(workingArtifact.rawRelPath || '').trim()) {
+      const persistedArtifact = await persistDroppedArtifact(workingArtifact)
+      workingArtifact = { ...workingArtifact, ...persistedArtifact }
+      stagedArtifacts.value = stagedArtifacts.value.map((entry) =>
+        entry.id === artifactId
+          ? { ...entry, ...workingArtifact }
+          : entry,
+      )
+    }
+    if (!String(workingArtifact.processedArtifactId || '').trim()) {
+      throw new Error('LLM-ready file not available yet. Wait for loading to finish.')
+    }
+    const workingArtifactId = String(workingArtifact.artifactId || workingArtifact.id || '').trim()
     if (!workingArtifactId) {
       throw new Error('Artifact record was not created.')
     }
@@ -1529,9 +1615,10 @@ async function startArtifactProcessing(artifactId) {
 
     stagedArtifacts.value = stagedArtifacts.value.map((entry) =>
       entry.id === artifactId
-        ? { ...entry, processedArtifactId: intakeSessionId.value || entry.processedArtifactId }
+        ? { ...entry, processedArtifactId: intakeSessionId.value || entry.processedArtifactId, extractionStarted: true }
         : entry,
     )
+    $q.notify({ type: 'positive', message: 'Extraction started for this artifact.' })
 
     if (intakeSessionId.value && !intakeDialogOpened.value) {
       intakeDialogOpened.value = true

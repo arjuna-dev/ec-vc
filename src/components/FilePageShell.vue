@@ -89,6 +89,54 @@
         @update:view-mode="viewMode = $event"
       >
         <template #primary-trailing>
+          <div v-if="draftCount" class="file-shell__draft-chip">
+            <button
+              type="button"
+              class="file-shell__draft-chip-btn"
+              :aria-label="`Drafts (${draftCount})`"
+            >
+              <q-icon name="edit_note" size="16px" />
+              <span>Drafts ({{ draftCount }})</span>
+              <q-menu
+                anchor="bottom left"
+                self="top left"
+                class="file-shell__draft-menu"
+                content-class="file-shell__draft-menu-content"
+              >
+                <div class="file-shell__draft-menu-panel">
+                  <div class="file-shell__draft-menu-tabs">
+                    <button
+                      v-for="tab in draftTabs"
+                      :key="`draft-tab:${tab.key}`"
+                      type="button"
+                      class="file-shell__draft-menu-tab"
+                      :class="{ 'file-shell__draft-menu-tab--active': tab.key === draftTabKey }"
+                      @click="draftTabKey = tab.key"
+                    >
+                      <span class="file-shell__draft-menu-tab-label">{{ tab.label }}</span>
+                      <span class="file-shell__draft-menu-tab-count">{{ tab.count }}</span>
+                    </button>
+                  </div>
+
+                  <div class="file-shell__draft-menu-rows">
+                    <div v-if="!draftRowsForActiveTab.length" class="file-shell__draft-menu-empty">
+                      No draft rows in this file yet.
+                    </div>
+                    <button
+                      v-for="row in draftRowsForActiveTab"
+                      :key="`draft-row:${draftTabKey}:${row.recordId}`"
+                      type="button"
+                      class="file-shell__draft-menu-row"
+                      @click="openDraftRow(draftTabKey, row)"
+                    >
+                      <span class="file-shell__draft-menu-row-label">{{ getDraftRowLabel(row, draftTabKey) }}</span>
+                      <q-icon name="open_in_new" size="14px" />
+                    </button>
+                  </div>
+                </div>
+              </q-menu>
+            </button>
+          </div>
           <div v-if="isBbFileSource && activeBbFilterGroup" class="bb-shell-toolbar-filter">
             <button
               type="button"
@@ -1615,17 +1663,17 @@ function resolveCreateDialogOptionValue(token, rawValue) {
       ? `${branchLabelRaw} `
       : ''
     const rows = getOptionRowsForSource(normalizedSourceKey)
-    const nonDiscardedRows = (Array.isArray(rows) ? rows : []).filter((row) => {
+    const draftRows = (Array.isArray(rows) ? rows : []).filter((row) => {
       const statusValue = stringifyValue(row?.Status || row?.status || row?.raw?.Status || row?.raw?.status)
         .toLowerCase()
-      return statusValue !== 'discarded'
+      return statusValue === 'draft'
     })
     const existingNames = new Set(
-      nonDiscardedRows
+      draftRows
         .map((row) => stringifyValue(titleToken ? getCanonicalTokenValue(row, titleToken) : null).toLowerCase())
         .filter(Boolean),
     )
-    let counter = nonDiscardedRows.length + 1
+    let counter = draftRows.length + 1
     let candidate = `New ${branchLabel}${singularLabel} #${counter}`
     while (existingNames.has(candidate.toLowerCase())) {
       counter += 1
@@ -2017,6 +2065,44 @@ const governanceViewRows = computed(() =>
     tokenCount: fileTokens.value.filter((token) => token.parentKey === view.key).length,
   })),
 )
+const draftTabKey = ref('')
+const draftSourceEntries = computed(() =>
+  FILE_SOURCE_REGISTRY.filter((entry) => entry?.key && entry?.entityName),
+)
+const draftRowsBySource = computed(() => {
+  const result = {}
+  draftSourceEntries.value.forEach((entry) => {
+    const sourceKey = String(entry.key || '').trim()
+    if (!sourceKey) return
+    const rows = getOptionRowsForSource(sourceKey)
+    const draftRows = (Array.isArray(rows) ? rows : []).filter((row) => {
+      const statusValue = stringifyValue(row?.Status || row?.status || row?.raw?.Status || row?.raw?.status)
+        .toLowerCase()
+      return statusValue === 'draft'
+    })
+    if (draftRows.length) {
+      result[sourceKey] = draftRows
+    }
+  })
+  return result
+})
+const draftTabs = computed(() =>
+  draftSourceEntries.value
+    .map((entry) => {
+      const key = String(entry.key || '').trim()
+      const rows = Array.isArray(draftRowsBySource.value[key]) ? draftRowsBySource.value[key] : []
+      return {
+        key,
+        label: entry.label || key,
+        count: rows.length,
+      }
+    })
+    .filter((entry) => entry.count > 0),
+)
+const draftCount = computed(() => draftTabs.value.reduce((sum, entry) => sum + entry.count, 0))
+const draftRowsForActiveTab = computed(() =>
+  Array.isArray(draftRowsBySource.value[draftTabKey.value]) ? draftRowsBySource.value[draftTabKey.value] : [],
+)
   const tokenGroupsByView = computed(() =>
     governanceViewRows.value.map((view) => ({
       key: view.key,
@@ -2064,11 +2150,45 @@ const miniToolbarViewMode = computed({
 })
 const miniToolbarViewOptions = computed(() => viewOptions)
 
+function isStatusToken(token) {
+  const role = String(token?.tokenRole || '').trim().toLowerCase()
+  if (role === 'status') return true
+  const tokenName = String(token?.tokenName || '').trim().toLowerCase()
+  if (tokenName === 'status') return true
+  const writeField = String(token?.dbWriteField || '').trim().toLowerCase()
+  if (writeField === 'status') return true
+  const aliases = Array.isArray(token?.dbFieldAliases)
+    ? token.dbFieldAliases.map((value) => String(value || '').trim().toLowerCase()).filter(Boolean)
+    : []
+  return aliases.includes('status')
+}
+
 function getDefaultActiveViewKey(views = []) {
   const normalizedViews = Array.isArray(views) ? views : []
   const generalView = normalizedViews.find((view) => String(view?.label || '').trim().toLowerCase() === 'general')
   if (generalView?.key) return generalView.key
   return normalizedViews[0]?.key || ''
+}
+
+function getDraftRowLabel(row, sourceKey) {
+  const normalizedSourceKey = String(sourceKey || '').trim().toLowerCase()
+  const titleToken = getRegistryTitleTokenForSource(normalizedSourceKey)
+  const label = titleToken ? getCanonicalTokenValue(row, titleToken) : row?.Name || row?.Title || ''
+  return String(label || '').trim() || 'Untitled Draft'
+}
+
+function openDraftRow(sourceKey, row) {
+  if (!row?.recordId) return
+  const registryEntry = getFilePageRegistryEntry(sourceKey)
+  const entityName = String(registryEntry?.entityName || '').trim()
+  if (!entityName) return
+  const location = buildRecordViewLocation({
+    tableName: entityName,
+    recordId: row.recordId,
+    returnTo: route.fullPath,
+  })
+  if (!location) return
+  router.push(location)
 }
 
 watch(
@@ -2086,6 +2206,33 @@ watch(
     await loadRows()
     await ensureLiveOptionRowsLoaded('file-system')
     activeViewKey.value = getDefaultActiveViewKey(fileViews.value)
+  },
+  { immediate: true },
+)
+
+watch(
+  draftSourceEntries,
+  async (entries) => {
+    await Promise.all(
+      (Array.isArray(entries) ? entries : [])
+        .map((entry) => String(entry?.key || '').trim())
+        .filter(Boolean)
+        .map((sourceKey) => ensureLiveOptionRowsLoaded(sourceKey)),
+    )
+  },
+  { immediate: true },
+)
+
+watch(
+  draftTabs,
+  (tabs) => {
+    if (!tabs.length) {
+      draftTabKey.value = ''
+      return
+    }
+    if (!tabs.some((tab) => tab.key === draftTabKey.value)) {
+      draftTabKey.value = tabs[0].key
+    }
   },
   { immediate: true },
 )
@@ -3622,7 +3769,8 @@ function requestEditRecordShell(row, options = {}) {
     allTokens.forEach((token) => {
       const key = String(token?.key || '').trim()
       if (!key || String(baseValues[key] || '').trim()) return
-      const defaultValue = getDefaultTokenCreateValue(token)
+      const roleDefault = getDefaultTokenCreateValue(token)
+      const defaultValue = roleDefault != null ? roleDefault : isStatusToken(token) ? 'Draft' : null
       if (defaultValue != null) {
         baseValues[key] = defaultValue
       }
@@ -3885,14 +4033,9 @@ async function handleCreateDialogClose(snapshot) {
     removeLocalDraftRow(createDialogDraftSourceKey.value, createDialogDraftRecordId.value)
     resetCreateDialogAutosaveState()
   } else if (snapshot?.hasUserChanges) {
-    setPendingAddEditShellRequest({
-      sourceKey: activeSourceKey.value,
-      initialValues: snapshot?.values || {},
-      initialFieldMeta: snapshot?.verification?.changes || {},
-      snapshot,
-    })
     createDialogOpen.value = false
-    return
+  } else {
+    createDialogOpen.value = false
   }
   createDialogMode.value = 'create'
   createDialogPreferAddLayout.value = false
@@ -4136,6 +4279,14 @@ function buildLocalDraftRowPayload(values = {}) {
   }
 }
 
+function buildLocalDraftRowPayloadForDraft(draftId, values = {}) {
+  const payload = buildCreatePayload(values)
+  return {
+    id: draftId,
+    ...payload,
+  }
+}
+
 function upsertLocalDraftRow(sourceKey, draftId, values = {}) {
   const normalizedSourceKey = String(sourceKey || '').trim().toLowerCase()
   const normalizedDraftId = String(draftId || '').trim()
@@ -4168,12 +4319,12 @@ function removeLocalDraftRow(sourceKey, draftId) {
   removeDraftRegistryEntry(normalizedSourceKey, normalizedDraftId)
 }
 
-function hasPersistableDraftContent(snapshot) {
-  const values = snapshot?.values && typeof snapshot.values === 'object'
-    ? snapshot.values
+function hasPersistableDraftContent(values) {
+  const resolvedValues = values && typeof values === 'object'
+    ? values
     : {}
 
-  return Object.values(values).some((value) => {
+  return Object.values(resolvedValues).some((value) => {
     if (Array.isArray(value)) {
       return value.some((item) => String(item ?? '').trim().length > 0)
     }
@@ -4184,15 +4335,18 @@ function hasPersistableDraftContent(snapshot) {
 
 function updateLocalDraftRowFromSnapshot(snapshot) {
   if (createDialogMode.value !== 'create') return
-  if (!hasPersistableDraftContent(snapshot)) {
+  const values = snapshot?.values && typeof snapshot.values === 'object'
+    ? snapshot.values
+    : (createDialogInitialValues.value || {})
+  if (!hasPersistableDraftContent(values)) {
     removeLocalDraftRow(createDialogDraftSourceKey.value, createDialogDraftRecordId.value)
     return
   }
-  upsertLocalDraftRow(createDialogDraftSourceKey.value, createDialogDraftRecordId.value, snapshot?.values || createDialogInitialValues.value)
+  upsertLocalDraftRow(createDialogDraftSourceKey.value, createDialogDraftRecordId.value, values)
   upsertDraftRegistryEntry(
     createDialogDraftSourceKey.value,
     createDialogDraftRecordId.value,
-    snapshot?.values || createDialogInitialValues.value,
+    values,
   )
 }
 
@@ -4755,8 +4909,15 @@ async function handleSelectedRowsDelete() {
     error.value = ''
 
     try {
+      const contentSourceKey = String(activeContentSourceKey.value || '').trim()
+
       for (const row of selectedRows.value) {
         await deleteFn(row.recordId)
+
+        if (contentSourceKey && row?.recordId) {
+          removeDraftRegistryEntry(contentSourceKey, row.recordId)
+          removeLocalDraftRow(contentSourceKey, row.recordId)
+        }
       }
 
       selectedRowIds.value = []
@@ -5008,6 +5169,118 @@ function isBbGraphLinkToken(tokenRow) {
   background: transparent;
   color: rgba(17, 17, 17, 0.68);
   cursor: pointer;
+}
+
+.file-shell__draft-chip {
+  display: flex;
+  align-items: center;
+  margin-right: 10px;
+}
+
+.file-shell__draft-chip-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(15, 23, 42, 0.18);
+  background: #0f172a;
+  color: #f8fafc;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.file-shell__draft-chip-btn :deep(.q-icon) {
+  color: #f8fafc;
+}
+
+.file-shell__draft-menu-content {
+  padding: 0;
+}
+
+.file-shell__draft-menu-panel {
+  min-width: 320px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.file-shell__draft-menu-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.file-shell__draft-menu-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  background: #f8fafc;
+  color: #0f172a;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.file-shell__draft-menu-tab--active {
+  background: #0f172a;
+  color: #f8fafc;
+  border-color: #0f172a;
+}
+
+.file-shell__draft-menu-tab-label {
+  white-space: nowrap;
+}
+
+.file-shell__draft-menu-tab-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.12);
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.file-shell__draft-menu-tab--active .file-shell__draft-menu-tab-count {
+  background: rgba(248, 250, 252, 0.2);
+}
+
+.file-shell__draft-menu-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.file-shell__draft-menu-empty {
+  padding: 8px 6px;
+  font-size: 0.8rem;
+  color: rgba(15, 23, 42, 0.6);
+}
+
+.file-shell__draft-menu-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 6px 8px;
+  border-radius: 10px;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  background: #f8fafc;
+  font-size: 0.85rem;
+  color: #0f172a;
+}
+
+.file-shell__draft-menu-row-label {
+  text-align: left;
+  font-weight: 600;
+  color: inherit;
 }
 
 

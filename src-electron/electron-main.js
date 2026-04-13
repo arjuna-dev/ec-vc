@@ -11,6 +11,7 @@ import { createProjectStructure, DEFAULT_PROJECT_ROOT_NAME } from './services/pr
 import { closeDb, dbAll, dbRun, getDbInfo, initDb } from './services/sqlite-db.js'
 import { mirrorPipelineToFs, removePipelineFromFs } from './services/pipeline-mirror.js'
 import { ingestArtifactsFromPaths } from './services/artifact-ingestion.js'
+import { getArtifactRawPath } from './services/workspace-structure.js'
 import { previewAutofillFromFiles } from './services/autofill-extraction.js'
 import {
   getNetworkDatabasesPath,
@@ -92,8 +93,11 @@ function toDirName(value, fallback = 'project') {
 }
 
 async function ensureWorkspace() {
-  const baseDirPath = app.getPath('userData')
-  return createProjectStructure(baseDirPath, DEFAULT_PROJECT_ROOT_NAME, undefined)
+  const database = initDb()
+  const overrideRoot = normalizeNullableString(getAppSetting(database, APP_SETTING_KEYS.workspaceRoot))
+  const baseDirPath = overrideRoot ? path.dirname(overrideRoot) : app.getPath('userData')
+  const rootName = overrideRoot ? path.basename(overrideRoot) : DEFAULT_PROJECT_ROOT_NAME
+  return createProjectStructure(baseDirPath, rootName, undefined)
 }
 
 async function syncWorkspaceWorkbooksSafe() {}
@@ -813,6 +817,9 @@ function createCompany(payload = {}) {
   const existing = database
     .prepare('SELECT id, Company_Name FROM Companies WHERE Company_Name = ? LIMIT 1')
     .get(name)
+  const statusValue = existing
+    ? resolveRecordStatus(payload, null)
+    : resolveRecordStatus(payload, 'Draft')
 
   const mainFields = {
     Company_Name: name,
@@ -822,6 +829,7 @@ function createCompany(payload = {}) {
     Description: normalizeNullableString(payload.Description),
     Notable_News: normalizeNullableString(payload.Notable_News),
     Updates: normalizeNullableString(payload.Updates),
+    Status: statusValue,
     created_by: actor.user_id,
   }
   const explicitId = normalizeNullableIntegerId(payload.id)
@@ -836,10 +844,10 @@ function createCompany(payload = {}) {
               `
               INSERT INTO Companies (
                 id, Company_Name, Short_Name, Website, One_Liner, Description, Notable_News,
-                Updates, created_by
+                Updates, Status, created_by
               ) VALUES (
                 @id, @Company_Name, @Short_Name, @Website, @One_Liner, @Description, @Notable_News,
-                @Updates, @created_by
+                @Updates, @Status, @created_by
               )
             `,
             )
@@ -849,10 +857,10 @@ function createCompany(payload = {}) {
               `
               INSERT INTO Companies (
                 Company_Name, Short_Name, Website, One_Liner, Description, Notable_News,
-                Updates, created_by
+                Updates, Status, created_by
               ) VALUES (
                 @Company_Name, @Short_Name, @Website, @One_Liner, @Description, @Notable_News,
-                @Updates, @created_by
+                @Updates, @Status, @created_by
               )
             `,
             )
@@ -869,6 +877,7 @@ function createCompany(payload = {}) {
             Description = COALESCE(@Description, Description),
             Notable_News = COALESCE(@Notable_News, Notable_News),
             Updates = COALESCE(@Updates, Updates),
+            Status = COALESCE(@Status, Status),
             updated_at = datetime('now')
           WHERE id = @id
         `,
@@ -1256,15 +1265,16 @@ function createMarket(payload = {}) {
     normalizeNullableString(payload?.Market_Summary) ||
     normalizeNullableString(payload?.Summary) ||
     normalizeNullableString(payload?.description)
+  const statusValue = resolveRecordStatus(payload, 'Draft')
 
   database
     .prepare(
       `
-      INSERT INTO Markets (id, Market_Name, Market_Summary, created_at, updated_at)
-      VALUES (?, ?, ?, datetime('now'), datetime('now'))
+      INSERT INTO Markets (id, Market_Name, Market_Summary, Status, created_at, updated_at)
+      VALUES (?, ?, ?, ?, datetime('now'), datetime('now'))
     `,
     )
-    .run(id, name, summary)
+    .run(id, name, summary, statusValue)
 
   return { id }
 }
@@ -1297,15 +1307,16 @@ function createSecurity(payload = {}) {
     normalizeNullableString(payload?.Security_Summary) ||
     normalizeNullableString(payload?.Summary) ||
     normalizeNullableString(payload?.description)
+  const statusValue = resolveRecordStatus(payload, 'Draft')
 
   database
     .prepare(
       `
-      INSERT INTO Securities (id, Security_Name, Security_Summary, created_at, updated_at)
-      VALUES (?, ?, ?, datetime('now'), datetime('now'))
+      INSERT INTO Securities (id, Security_Name, Security_Summary, Status, created_at, updated_at)
+      VALUES (?, ?, ?, ?, datetime('now'), datetime('now'))
     `,
     )
-    .run(id, name, summary)
+    .run(id, name, summary, statusValue)
 
   return { id }
 }
@@ -1331,18 +1342,20 @@ function createUser(payload = {}) {
       .get(userEmail)
     : null
   const userId = explicitId || existing?.id || `user:${crypto.randomUUID()}`
+  const statusValue = existing ? resolveRecordStatus(payload, null) : resolveRecordStatus(payload, 'Draft')
 
   database
     .prepare(
       `
       INSERT INTO Users (
-        id, User_Name, User_PEmail, created_at, updated_at
+        id, User_Name, User_PEmail, Status, created_at, updated_at
       ) VALUES (
-        @id, @User_Name, @User_PEmail, datetime('now'), datetime('now')
+        @id, @User_Name, @User_PEmail, @Status, datetime('now'), datetime('now')
       )
       ON CONFLICT(id) DO UPDATE SET
         User_Name = excluded.User_Name,
         User_PEmail = excluded.User_PEmail,
+        Status = COALESCE(excluded.Status, Status),
         updated_at = datetime('now')
     `,
     )
@@ -1350,6 +1363,7 @@ function createUser(payload = {}) {
       id: userId,
       User_Name: userName,
       User_PEmail: userEmail || null,
+      Status: statusValue,
     })
 
   ensureUserRoleAssignmentRow(database, userId)
@@ -1406,16 +1420,17 @@ function createNote(payload = {}) {
   if (!noteName) throw new Error('Note name is required')
   const noteContent =
     normalizeNullableString(payload?.Note_Content) || normalizeNullableString(payload?.content) || ''
+  const statusValue = resolveRecordStatus(payload, 'Draft')
 
   const id = normalizeNullableString(payload?.id) || `note:${crypto.randomUUID()}`
   database
     .prepare(
       `
-      INSERT INTO Notes (id, created_by, Note_Name, Note_Content, created_at, updated_at)
-      VALUES (?, ?, ?, ?, datetime('now'), datetime('now'))
+      INSERT INTO Notes (id, created_by, Note_Name, Note_Content, Status, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?, datetime('now'), datetime('now'))
     `,
     )
-    .run(id, actor.user_id, noteName, noteContent)
+    .run(id, actor.user_id, noteName, noteContent, statusValue)
   return { id }
 }
 
@@ -1500,12 +1515,13 @@ function createTask(payload = {}) {
   const taskName = normalizeNullableString(payload?.Task_Name)
   if (!taskName) throw new Error('Task name is required')
   const taskId = normalizeNullableString(payload?.id) || `task:${crypto.randomUUID()}`
+  const statusValue = resolveRecordStatus(payload, 'Draft')
 
   database
     .prepare(
       `
-      INSERT INTO Tasks (id, created_by, Task_Name, created_at, updated_at)
-      VALUES (?, ?, ?, datetime('now'), datetime('now'))
+      INSERT INTO Tasks (id, created_by, Task_Name, Status, created_at, updated_at)
+      VALUES (?, ?, ?, ?, datetime('now'), datetime('now'))
     `,
     )
     .run(
@@ -1514,6 +1530,7 @@ function createTask(payload = {}) {
         normalizeNullableString(payload?.created_by) ||
         actor.user_id,
       taskName,
+      statusValue,
     )
 
   upsertTaskOverview(database, taskId, payload)
@@ -1539,14 +1556,16 @@ function upsertTasks(rows = []) {
       }
       const taskId = normalizeNullableString(r?.id) || `task:${crypto.randomUUID()}`
       const exists = database.prepare('SELECT 1 FROM Tasks WHERE id = ? LIMIT 1').get(taskId)
+      const statusValue = exists ? resolveRecordStatus(r, null) : resolveRecordStatus(r, 'Draft')
       database
         .prepare(
           `
-          INSERT INTO Tasks (id, created_by, Task_Name, created_at, updated_at)
-          VALUES (@id, @created_by, @Task_Name, datetime('now'), datetime('now'))
+          INSERT INTO Tasks (id, created_by, Task_Name, Status, created_at, updated_at)
+          VALUES (@id, @created_by, @Task_Name, @Status, datetime('now'), datetime('now'))
           ON CONFLICT(id) DO UPDATE SET
             created_by = excluded.created_by,
             Task_Name = excluded.Task_Name,
+            Status = COALESCE(excluded.Status, Status),
             updated_at = datetime('now')
         `,
         )
@@ -1557,6 +1576,7 @@ function upsertTasks(rows = []) {
             normalizeNullableString(r?.created_by) ||
             actor.user_id,
           Task_Name: taskName,
+          Status: statusValue,
         })
 
       upsertTaskOverview(database, taskId, r)
@@ -5049,14 +5069,15 @@ function createContact(payload = {}) {
   const personalEmail =
     normalizeNullableString(payload.Personal_Email) || normalizeNullableString(payload.Email)
   const professionalEmail = normalizeNullableString(payload.Professional_Email)
+  const statusValue = resolveRecordStatus(payload, 'Draft')
 
   database
     .prepare(
       `
       INSERT INTO Contacts (
-        id, Name, Personal_Email, Professional_Email, Phone, Country_based, LinkedIn, linked_user_id, created_by, created_at, updated_at
+        id, Name, Personal_Email, Professional_Email, Phone, Country_based, LinkedIn, linked_user_id, Status, created_by, created_at, updated_at
       ) VALUES (
-        @id, @Name, @Personal_Email, @Professional_Email, @Phone, @Country_based, @LinkedIn, @linked_user_id, @created_by, datetime('now'), datetime('now')
+        @id, @Name, @Personal_Email, @Professional_Email, @Phone, @Country_based, @LinkedIn, @linked_user_id, @Status, @created_by, datetime('now'), datetime('now')
       )
     `,
     )
@@ -5069,6 +5090,7 @@ function createContact(payload = {}) {
       LinkedIn: normalizeNullableString(payload.LinkedIn),
       Country_based: normalizeNullableString(payload.Country_based),
       linked_user_id: normalizeNullableString(payload.linked_user_id),
+      Status: statusValue,
       created_by: normalizeNullableString(payload.created_by) || actor.user_id,
     })
 
@@ -5092,6 +5114,7 @@ function listArtifacts() {
       a.created_by,
       a.created_at
     FROM Artifact_Details a
+    WHERE a.artifact_type = 'raw'
     ORDER BY a.created_at DESC
   `,
   )
@@ -5141,14 +5164,15 @@ function createArtifact(payload = {}) {
     normalizeNullableString(payload?.summary)
   const fsHash = normalizeNullableString(payload?.fs_hash)
   const fsSizeBytes = normalizeNullableNumber(payload?.fs_size_bytes) ?? normalizeNullableNumber(payload?.size)
+  const statusValue = resolveRecordStatus(payload, 'Draft')
 
   database
     .prepare(
       `
       INSERT INTO Artifacts (
-        artifact_id, round_id, fund_id, created_by, artifact_format, type, title, description, created_at, updated_at
+        artifact_id, round_id, fund_id, created_by, artifact_format, type, title, description, Status, created_at, updated_at
       ) VALUES (
-        @artifact_id, NULL, NULL, @created_by, @artifact_format, NULL, @title, @description, datetime('now'), datetime('now')
+        @artifact_id, NULL, NULL, @created_by, @artifact_format, NULL, @title, @description, @Status, datetime('now'), datetime('now')
       )
     `,
     )
@@ -5158,6 +5182,7 @@ function createArtifact(payload = {}) {
       artifact_format: artifactFormat,
       title,
       description,
+      Status: statusValue,
     })
 
   database
@@ -5224,6 +5249,7 @@ function createIntake(payload = {}) {
     : normalizeNullableString(payload?.Created_Files_JSON) || null
   const workingValue =
     payload?.Working === true || String(payload?.Working || '').trim() === '1' ? 1 : 0
+  const statusValue = resolveRecordStatus(payload, 'Draft')
 
   database
     .prepare(
@@ -5235,6 +5261,7 @@ function createIntake(payload = {}) {
         Original_Artifact_Id,
         Created_Files_JSON,
         Working,
+        Status,
         created_by,
         created_at,
         updated_at
@@ -5245,6 +5272,7 @@ function createIntake(payload = {}) {
         @Original_Artifact_Id,
         @Created_Files_JSON,
         @Working,
+        @Status,
         @created_by,
         datetime('now'),
         datetime('now')
@@ -5258,6 +5286,7 @@ function createIntake(payload = {}) {
       Original_Artifact_Id: originalArtifactId,
       Created_Files_JSON: createdFilesValue,
       Working: workingValue,
+      Status: statusValue,
       created_by: actor.user_id,
     })
 
@@ -5655,6 +5684,18 @@ function normalizeNullableString(value) {
   const v = value === undefined || value === null ? '' : String(value)
   const t = v.trim()
   return t.length ? t : null
+}
+
+function resolveRecordStatus(payload, fallback = null) {
+  const raw = normalizeNullableString(
+    payload?.Status ??
+      payload?.status ??
+      payload?.Record_Status ??
+      payload?.record_status ??
+      payload?.recordStatus,
+  )
+  if (raw) return raw
+  return fallback
 }
 
 function normalizeNullableNumber(value) {
@@ -6177,6 +6218,7 @@ const APP_SETTING_KEYS = {
   geminiApiKey: 'gemini_api_key',
   userId: 'user_id',
   userContactId: 'user_contact_id',
+  workspaceRoot: 'workspace_root',
 }
 
 function setAppSetting(database, key, value) {
@@ -8137,6 +8179,35 @@ function assertUniqueOpportunityName(database, name, kind) {
   if (existingFund?.id) throw new Error(`Opportunity name already exists: ${normalizedName}`)
 }
 
+function resolveUniqueOpportunityName(database, name, kind) {
+  const normalizedName = normalizeNullableString(name)
+  if (!normalizedName) throw new Error(`${kind} name is required`)
+
+  try {
+    assertUniqueOpportunityName(database, normalizedName, kind)
+    return normalizedName
+  } catch (error) {
+    const message = String(error?.message || '')
+    const autoPattern = /^New\s+.*#\d+$/i
+    if (!autoPattern.test(normalizedName)) {
+      throw error
+    }
+    const match = normalizedName.match(/^(.*#)(\d+)$/)
+    const base = match ? match[1] : `${normalizedName} #`
+    const start = match ? Number(match[2]) : 1
+    for (let counter = start + 1; counter < start + 200; counter += 1) {
+      const candidate = `${base}${counter}`
+      try {
+        assertUniqueOpportunityName(database, candidate, kind)
+        return candidate
+      } catch {
+        // keep searching
+      }
+    }
+    throw new Error(message || `Opportunity name already exists: ${normalizedName}`)
+  }
+}
+
 function createFund(payload = {}) {
   const database = initDb()
   const actor = getAuditActor(database, { requireUser: true })
@@ -8153,17 +8224,18 @@ function createFund(payload = {}) {
     normalizeNullableString(payload?.company?.Company_Name) ||
     normalizeNullableString(payload?.primary_contact?.Name) ||
     fundId
-  assertUniqueOpportunityName(database, fundName, 'Fund')
+  const uniqueFundName = resolveUniqueOpportunityName(database, fundName, 'Fund')
+  const statusValue = resolveRecordStatus(payload, 'Draft')
 
   const tx = database.transaction(() => {
     database
       .prepare(
         `
-        INSERT INTO Funds (id, Fund_Name, created_by, created_at, updated_at)
-        VALUES (?, ?, ?, datetime('now'), datetime('now'))
+        INSERT INTO Funds (id, Fund_Name, Status, created_by, created_at, updated_at)
+        VALUES (?, ?, ?, ?, datetime('now'), datetime('now'))
       `,
       )
-      .run(fundId, fundName, actor.user_id)
+      .run(fundId, uniqueFundName, statusValue, actor.user_id)
 
     database
       .prepare(
@@ -8220,17 +8292,18 @@ function createRound(payload = {}) {
     normalizeNullableString(payload?.Venture_Oppty_Name) ||
     normalizeNullableString(payload?.company?.Company_Name) ||
     roundId
-  assertUniqueOpportunityName(database, roundName, 'Round')
+  const uniqueRoundName = resolveUniqueOpportunityName(database, roundName, 'Round')
+  const statusValue = resolveRecordStatus(payload, 'Draft')
 
   const tx = database.transaction(() => {
     database
       .prepare(
         `
-        INSERT INTO Rounds (id, Round_Name, created_by, created_at, updated_at)
-        VALUES (?, ?, ?, datetime('now'), datetime('now'))
+        INSERT INTO Rounds (id, Round_Name, Status, created_by, created_at, updated_at)
+        VALUES (?, ?, ?, ?, datetime('now'), datetime('now'))
       `,
       )
-      .run(roundId, roundName, actor.user_id)
+      .run(roundId, uniqueRoundName, statusValue, actor.user_id)
 
     database
       .prepare(
@@ -8391,12 +8464,14 @@ function createOpportunity(payload = {}) {
     contactName: primaryContactName,
     fundingSeries: normalizeNullableString(payload.Round_Stage),
   })
+  const statusValue = resolveRecordStatus(payload, 'Draft')
 
   const fields = {
     id: opportunityId,
     kind,
     company_id: companyId,
     Venture_Oppty_Name: derivedOpportunityName || opportunityId,
+    Status: statusValue,
     Round_Stage: normalizeNullableString(payload.Round_Stage),
     Type_of_Security: normalizeNullableString(payload.Type_of_Security),
     Investment_Ask: normalizeNullableNumber(payload.Investment_Ask),
@@ -8543,12 +8618,14 @@ function updateOpportunity(payload = {}) {
     contactName: primaryContactName,
     fundingSeries: normalizeNullableString(payload.Round_Stage),
   })
+  const statusValue = resolveRecordStatus(payload, null)
 
   const fields = {
     id: opportunityId,
     kind,
     company_id: companyId,
     Venture_Oppty_Name: derivedOpportunityName || opportunityId,
+    Status: statusValue,
     Round_Stage: normalizeNullableString(payload.Round_Stage),
     Type_of_Security: normalizeNullableString(payload.Type_of_Security),
     Investment_Ask: normalizeNullableNumber(payload.Investment_Ask),
@@ -8590,6 +8667,7 @@ function updateOpportunity(payload = {}) {
             kind = @kind,
             company_id = @company_id,
             Venture_Oppty_Name = @Venture_Oppty_Name,
+            Status = COALESCE(@Status, Status),
             Round_Stage = @Round_Stage,
             Type_of_Security = @Type_of_Security,
             Investment_Ask = @Investment_Ask,
@@ -8904,6 +8982,21 @@ function registerIpc() {
   ipcMain.handle('workspace:getRoot', async () => {
     const result = await ensureWorkspace()
     await syncWorkspaceWorkbooksSafe(result.rootPath)
+    return { rootPath: result.rootPath }
+  })
+
+  ipcMain.handle('workspace:setRoot', async (_event, { rootPath } = {}) => {
+    const database = initDb()
+    const normalized = normalizeNullableString(rootPath)
+    setAppSetting(database, APP_SETTING_KEYS.workspaceRoot, normalized || null)
+    const result = await ensureWorkspace()
+    await syncWorkspaceWorkbooksSafe(result.rootPath)
+    return { rootPath: result.rootPath }
+  })
+
+  ipcMain.handle('workspace:openRoot', async () => {
+    const result = await ensureWorkspace()
+    await shell.openPath(result.rootPath)
     return { rootPath: result.rootPath }
   })
 
@@ -9720,6 +9813,14 @@ function registerIpc() {
     return { absolutePath: artifact.absolutePath, copied: true }
   })
 
+  ipcMain.handle('artifacts:openRawFolder', async () => {
+    const workspace = await ensureWorkspace()
+    const rawDir = getArtifactRawPath(workspace.rootPath)
+    await fse.ensureDir(rawDir)
+    await shell.openPath(rawDir)
+    return { path: rawDir }
+  })
+
   ipcMain.handle(
     'artifacts:linkToOpportunity',
     async (_event, { artifactIds, opportunityId, pipelineId } = {}) => {
@@ -9750,6 +9851,9 @@ function registerIpc() {
       pipelineId: payload?.pipelineId,
       createdBy: payload?.createdBy,
       duplicateStrategy: payload?.duplicateStrategy,
+      skipProcessing: payload?.skipProcessing,
+      pathsAreWorkspaceRelative: payload?.pathsAreWorkspaceRelative,
+      rawArtifactMap: payload?.rawArtifactMap,
       emitStatus,
       apiKeys: {
         openai: apiSettings.openaiApiKey,

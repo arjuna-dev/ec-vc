@@ -33,6 +33,8 @@ const api = {
     mkdirp: (dirPath) => ipcRenderer.invoke('fs:mkdirp', dirPath),
     createProjectStructure: (baseDirPath) => ipcRenderer.invoke('project:createStructure', baseDirPath),
     workspaceRoot: () => ipcRenderer.invoke('workspace:getRoot'),
+    setWorkspaceRoot: (rootPath) => ipcRenderer.invoke('workspace:setRoot', { rootPath }),
+    openWorkspaceRoot: () => ipcRenderer.invoke('workspace:openRoot'),
   },
   docs: {
     read: (relativePath) => ipcRenderer.invoke('docs:read', { relativePath }),
@@ -209,6 +211,7 @@ const api = {
     download: ({ artifactId } = {}) => ipcRenderer.invoke('artifacts:download', { artifactId }),
     preview: ({ artifactId } = {}) => ipcRenderer.invoke('artifacts:preview', { artifactId }),
     share: ({ artifactId } = {}) => ipcRenderer.invoke('artifacts:share', { artifactId }),
+    openRawFolder: () => ipcRenderer.invoke('artifacts:openRawFolder'),
     linkToOpportunity: ({ artifactIds, opportunityId, pipelineId } = {}) =>
       ipcRenderer.invoke('artifacts:linkToOpportunity', { artifactIds, opportunityId, pipelineId }),
     ingest: ({ filePaths, files, opportunityId, pipelineId, createdBy, duplicateStrategy } = {}) =>

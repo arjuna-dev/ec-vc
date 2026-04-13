@@ -765,7 +765,8 @@ async function refreshDashboard() {
   })
 
   try {
-    workspaceRoot.value = (await bridge.value.fs.workspaceRoot()) || ''
+    const result = await bridge.value.fs.workspaceRoot()
+    workspaceRoot.value = String(result?.rootPath || '').trim()
   } catch (error) {
     workspaceRoot.value = ''
     nextErrors.workspaceRoot = extractErrorMessage(error)

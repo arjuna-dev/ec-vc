@@ -314,6 +314,42 @@
                     label="Workspace Intent"
                   />
                 </div>
+                <div class="col-12">
+                  <div class="settings-form-card__section-title">Workspace storage</div>
+                </div>
+                <div class="col-12 col-md-8">
+                  <q-input
+                    v-model="workspaceRootPath"
+                    outlined
+                    dense
+                    label="Workspace root path"
+                    :error="Boolean(workspaceRootError)"
+                    :error-message="workspaceRootError"
+                    placeholder="C:\\Workspace\\ECVC"
+                    @update:model-value="workspaceRootError = ''"
+                  />
+                </div>
+                <div class="col-12 col-md-4 settings-form-card__workspace-actions">
+                  <B10Button
+                    variant="subtle"
+                    icon-start="folder_open"
+                    label="Open Folder"
+                    :disable="workspaceRootLoading"
+                    @click="openWorkspaceRoot"
+                  />
+                  <B10Button
+                    variant="primary"
+                    icon-start="save"
+                    label="Apply Root"
+                    :loading="workspaceRootSaving"
+                    @click="applyWorkspaceRoot"
+                  />
+                </div>
+                <div class="col-12">
+                  <div class="settings-form-card__caption">
+                    This controls where raw artifacts and workspace files are saved.
+                  </div>
+                </div>
               </div>
             </q-card-section>
 
@@ -557,6 +593,10 @@ const loading = ref(false)
 const saving = ref(false)
 const savingWorkspaceSettings = ref(false)
 const error = ref('')
+const workspaceRootPath = ref('')
+const workspaceRootLoading = ref(false)
+const workspaceRootSaving = ref(false)
+const workspaceRootError = ref('')
 const ownerSubmitAttempted = ref(false)
 const showOwnerManualDialog = ref(false)
 const ownerManualLoading = ref(false)
@@ -642,6 +682,49 @@ function normalizeIpcErrorMessage(err) {
 
 function normalizeInput(value) {
   return String(value || '').trim()
+}
+
+async function loadWorkspaceRoot() {
+  if (!bridge.value?.fs?.workspaceRoot) return
+  workspaceRootLoading.value = true
+  workspaceRootError.value = ''
+  try {
+    const result = await bridge.value.fs.workspaceRoot()
+    workspaceRootPath.value = String(result?.rootPath || '').trim()
+  } catch (error) {
+    workspaceRootError.value = normalizeIpcErrorMessage(error)
+  } finally {
+    workspaceRootLoading.value = false
+  }
+}
+
+async function applyWorkspaceRoot() {
+  if (!bridge.value?.fs?.setWorkspaceRoot) return
+  const nextPath = normalizeInput(workspaceRootPath.value)
+  if (!nextPath) {
+    workspaceRootError.value = 'Enter a workspace root path to apply.'
+    return
+  }
+  workspaceRootSaving.value = true
+  workspaceRootError.value = ''
+  try {
+    const result = await bridge.value.fs.setWorkspaceRoot(nextPath)
+    workspaceRootPath.value = String(result?.rootPath || nextPath).trim()
+    $q.notify({ type: 'positive', message: 'Workspace root updated.' })
+  } catch (error) {
+    workspaceRootError.value = normalizeIpcErrorMessage(error)
+  } finally {
+    workspaceRootSaving.value = false
+  }
+}
+
+async function openWorkspaceRoot() {
+  if (!bridge.value?.fs?.openWorkspaceRoot) return
+  try {
+    await bridge.value.fs.openWorkspaceRoot()
+  } catch (error) {
+    workspaceRootError.value = normalizeIpcErrorMessage(error)
+  }
 }
 
 async function copyTextValue(value, successMessage) {
@@ -1043,6 +1126,7 @@ function selectOwnerDocument(documentId) {
 
 onMounted(() => {
   loadWorkspaceSettings()
+  loadWorkspaceRoot()
   if (!hasBridge.value) return
   loadUserSettings()
 })
@@ -1145,6 +1229,21 @@ watch(activeOwnerDocumentId, () => {
   font-family: var(--font-body);
   font-size: 0.94rem;
   line-height: 1.65;
+}
+
+.settings-form-card__section-title {
+  color: #0f172a;
+  font-family: var(--font-title);
+  font-size: 0.95rem;
+  font-weight: var(--font-weight-bold);
+  margin-bottom: 6px;
+}
+
+.settings-form-card__workspace-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
 }
 
 .settings-shell__hero-actions {

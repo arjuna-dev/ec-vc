@@ -82,6 +82,7 @@ import {
 } from 'src/utils/structureRegistry'
 import { buildDialogViews, groupDialogViews, splitDialogViews } from 'src/utils/dialogShellPayload'
 import { buildTokenUpdateChanges, normalizeTokenWriteValue } from 'src/utils/tokenWriteChanges'
+import { removeDraftRegistryEntry, upsertDraftRegistryEntry } from 'src/utils/draftRegistry'
 import { submitSharedRecordEditSession } from 'src/utils/sharedRecordEditSession'
 
 function isRelationshipView(sectionOrLabel) {
@@ -119,6 +120,8 @@ let runtimeStructureUnsub = null
 const draftCreateInFlight = ref(false)
 const autoDraftRecordId = ref('')
 const autoDraftSourceKey = ref('')
+const dialogDraftId = ref('')
+const dialogDraftSourceKey = ref('')
 
 const dialogShellSourceKey = ref(resolveValidShellSection(route.query.section, route.query.entity))
 const activeSourceKey = computed(() => dialogShellSourceKey.value)
@@ -366,40 +369,51 @@ watch(
   [activeSourceKey, createPrimaryTokens, createViewGroups, () => route.query.edit, () => route.query.entity, () => route.query.editSection, () => route.query.kind],
   async ([, , , editRecordId, editEntityName, editSection]) => {
     const normalizedRecordId = String(editRecordId || '').trim()
-    if (!normalizedRecordId) {
-      const pending = consumePendingAddEditShellRequest(activeSourceKey.value)
-      dialogMode.value = 'create'
-      dialogRecordId.value = ''
-      dialogEntityName.value = ''
+  if (!normalizedRecordId) {
+    const pending = consumePendingAddEditShellRequest(activeSourceKey.value)
+    dialogMode.value = 'create'
+    dialogRecordId.value = ''
+    dialogEntityName.value = ''
       dialogHistoryItems.value = []
       dialogHistoryLoading.value = false
-      dialogInitialValues.value = buildCreateDialogInitialValues(pending)
+      dialogInitialValues.value = await buildCreateDialogInitialValues(pending)
       dialogInitialFieldMeta.value = buildCreateDialogInitialFieldMeta(pending)
       dialogInitialSnapshot.value = pending?.snapshot || null
       dialogInitialSectionKey.value = 'general'
-      if (!pending) {
-        setPendingAddEditShellRequest({
-          sourceKey: activeSourceKey.value,
-          initialValues: dialogInitialValues.value,
-          initialFieldMeta: dialogInitialFieldMeta.value,
-          snapshot: {
-            values: dialogInitialValues.value,
-            verification: { changes: dialogInitialFieldMeta.value },
-            hasUserChanges: true,
-          },
-        })
-      }
-      dialogOpen.value = true
-      void ensureDraftRecord({
-        values: dialogInitialValues.value,
-        verification: { changes: dialogInitialFieldMeta.value },
-        hasUserChanges: true,
+    if (!pending) {
+      setPendingAddEditShellRequest({
+        sourceKey: activeSourceKey.value,
+        initialValues: dialogInitialValues.value,
+        initialFieldMeta: dialogInitialFieldMeta.value,
+        snapshot: {
+          values: dialogInitialValues.value,
+          verification: { changes: dialogInitialFieldMeta.value },
+          hasUserChanges: true,
+        },
       })
-      return
     }
+    if (!dialogDraftId.value) {
+      dialogDraftId.value = `draft:${Date.now()}:${Math.random().toString(36).slice(2, 8)}`
+    }
+    const resolvedTarget = resolveCreateTarget(dialogInitialValues.value)
+    dialogDraftSourceKey.value =
+      resolvedTarget?.branchEntry?.targetSourceKey ||
+      resolvedTarget?.createTargetSourceKey ||
+      activeSourceKey.value
+    upsertDraftRegistryEntry(dialogDraftSourceKey.value, dialogDraftId.value, dialogInitialValues.value)
+    dialogOpen.value = true
+    void ensureDraftRecord({
+      values: dialogInitialValues.value,
+      verification: { changes: dialogInitialFieldMeta.value },
+      hasUserChanges: true,
+    })
+    return
+  }
 
-    dialogMode.value = 'edit'
-    dialogRecordId.value = normalizedRecordId
+  dialogMode.value = 'edit'
+  dialogRecordId.value = normalizedRecordId
+  dialogDraftId.value = ''
+  dialogDraftSourceKey.value = ''
     dialogEntityName.value = String(editEntityName || activeRegistryEntry.value?.entityName || '').trim()
     dialogInitialSectionKey.value = isRelationshipView(editSection) ? dialogLdbSectionKey.value : 'general'
     dialogInitialValues.value = {}
@@ -420,7 +434,7 @@ watch(
   { immediate: true },
 )
 
-function buildCreateDialogInitialValues(pending = null) {
+async function buildCreateDialogInitialValues(pending = null) {
   const nextInitialValues = {}
   if (pending?.snapshot?.values && typeof pending.snapshot.values === 'object') {
     Object.assign(nextInitialValues, pending.snapshot.values)
@@ -452,18 +466,21 @@ function buildCreateDialogInitialValues(pending = null) {
     const branchLabel = branchLabelRaw && branchLabelRaw.toLowerCase() !== sourceLabel.toLowerCase()
       ? `${branchLabelRaw} `
       : ''
+    if (!liveOptionRowsBySource.value[targetSourceKey]) {
+      await loadLiveOptionRowsForSource(targetSourceKey)
+    }
     const liveRows = Array.isArray(liveOptionRowsBySource.value[targetSourceKey])
       ? liveOptionRowsBySource.value[targetSourceKey]
       : []
     const titleToken = getRegistryTitleTokenForSource(targetSourceKey)
-    const nonDiscardedRows = liveRows.filter((row) => {
+    const draftRows = liveRows.filter((row) => {
       const statusValue = String(row?.Status || row?.status || row?.raw?.Status || row?.raw?.status || '')
         .trim()
         .toLowerCase()
-      return statusValue !== 'discarded'
+      return statusValue === 'draft'
     })
     const existingNames = new Set(
-      nonDiscardedRows
+      draftRows
         .map((row) =>
           String(titleToken ? getCanonicalTokenValue(row, titleToken) : '')
             .trim()
@@ -471,7 +488,7 @@ function buildCreateDialogInitialValues(pending = null) {
         )
         .filter(Boolean),
     )
-    let counter = nonDiscardedRows.length + 1
+    let counter = draftRows.length + 1
     let nameSeed = `New ${branchLabel}${sourceLabel} #${counter}`
     while (existingNames.has(nameSeed.toLowerCase())) {
       counter += 1
@@ -481,14 +498,22 @@ function buildCreateDialogInitialValues(pending = null) {
   }
 
   const allTokens = [...createPrimaryTokens.value, ...createViewGroups.value.flatMap((section) => section.tokens)]
-  const statusToken = allTokens.find(
-    (token) => String(token?.tokenRole || '').trim().toLowerCase() === 'status',
-  )
+  const statusToken = allTokens.find((token) => {
+    const role = String(token?.tokenRole || '').trim().toLowerCase()
+    if (role === 'status') return true
+    const tokenName = String(token?.tokenName || '').trim().toLowerCase()
+    if (tokenName === 'status') return true
+    const writeField = String(token?.dbWriteField || '').trim().toLowerCase()
+    if (writeField === 'status') return true
+    const aliases = Array.isArray(token?.dbFieldAliases)
+      ? token.dbFieldAliases.map((value) => String(value || '').trim().toLowerCase()).filter(Boolean)
+      : []
+    return aliases.includes('status')
+  })
   if (statusToken?.key && !String(nextInitialValues[statusToken.key] || '').trim()) {
-    const defaultValue = getDefaultTokenCreateValue(statusToken)
-    if (defaultValue != null) {
-      nextInitialValues[statusToken.key] = defaultValue
-    }
+    const roleDefault = getDefaultTokenCreateValue(statusToken)
+    const defaultValue = roleDefault != null ? roleDefault : 'Draft'
+    nextInitialValues[statusToken.key] = defaultValue
   }
 
   return nextInitialValues
@@ -527,6 +552,7 @@ async function ensureDraftRecord(snapshot) {
   if (!Object.keys(payload).length) return
 
   const { branchEntry, createTargetSourceKey, createEntityName, createBridge } = resolveCreateTarget(snapshot.values)
+  if (createTargetSourceKey === 'artifacts') return
   if (!createBridge) return
 
   draftCreateInFlight.value = true
@@ -570,10 +596,33 @@ function handleDialogChange(snapshot) {
       snapshot,
     })
   }
+  if (dialogMode.value === 'create') {
+    if (!dialogDraftId.value) {
+      dialogDraftId.value = `draft:${Date.now()}:${Math.random().toString(36).slice(2, 8)}`
+    }
+    const values = snapshot?.values && typeof snapshot.values === 'object'
+      ? snapshot.values
+      : dialogInitialValues.value
+    const resolvedTarget = resolveCreateTarget(values)
+    const nextSourceKey =
+      resolvedTarget?.branchEntry?.targetSourceKey ||
+      resolvedTarget?.createTargetSourceKey ||
+      activeSourceKey.value
+    if (dialogDraftSourceKey.value && dialogDraftSourceKey.value !== nextSourceKey) {
+      removeDraftRegistryEntry(dialogDraftSourceKey.value, dialogDraftId.value)
+    }
+    dialogDraftSourceKey.value = nextSourceKey
+    upsertDraftRegistryEntry(nextSourceKey, dialogDraftId.value, values)
+  }
   void ensureDraftRecord(snapshot)
 }
 
 function handleDialogClose(snapshot) {
+  if (dialogMode.value === 'create' && snapshot?.closeReason === 'discard' && dialogDraftId.value) {
+    removeDraftRegistryEntry(dialogDraftSourceKey.value || activeSourceKey.value, dialogDraftId.value)
+    dialogDraftId.value = ''
+    dialogDraftSourceKey.value = ''
+  }
   if (snapshot?.closeReason === 'discard' || !snapshot?.hasUserChanges) {
     if (snapshot?.closeReason === 'discard'
       && autoDraftRecordId.value
@@ -1016,6 +1065,10 @@ async function submitCreateRecord(values = {}) {
   try {
     let result = null
     const { branchEntry, createEntityName, createBridge } = resolveCreateTarget(values)
+    if (createEntityName === 'Artifacts' && !payload.fs_path && !payload.path) {
+      $q.notify({ type: 'negative', message: 'Add a file in Resources before creating an artifact.' })
+      return
+    }
     if (branchSelectorTokenKey.value) {
       const branchLabel = String(activeRegistryEntry.value?.createBranchLabel || 'Fork').trim()
       if (!branchEntry?.targetSourceKey) {
@@ -1041,6 +1094,11 @@ async function submitCreateRecord(values = {}) {
 
     autoDraftRecordId.value = ''
     autoDraftSourceKey.value = ''
+    if (dialogDraftId.value) {
+      removeDraftRegistryEntry(dialogDraftSourceKey.value || activeSourceKey.value, dialogDraftId.value)
+      dialogDraftId.value = ''
+      dialogDraftSourceKey.value = ''
+    }
     dialogOpen.value = false
     $q.notify({ type: 'positive', message: `${activeRegistryEntry.value?.singularLabel || 'Missing record type'} created.` })
   } catch (error) {
@@ -1070,6 +1128,11 @@ async function submitEditRecord(values = {}) {
     }
     autoDraftRecordId.value = ''
     autoDraftSourceKey.value = ''
+    if (dialogDraftId.value) {
+      removeDraftRegistryEntry(dialogDraftSourceKey.value || activeSourceKey.value, dialogDraftId.value)
+      dialogDraftId.value = ''
+      dialogDraftSourceKey.value = ''
+    }
     dialogOpen.value = false
     $q.notify({ type: 'positive', message: `${activeRegistryEntry.value?.singularLabel || 'Missing record type'} updated.` })
   } catch (error) {

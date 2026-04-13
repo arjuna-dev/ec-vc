@@ -153,187 +153,6 @@
       <router-view />
     </q-page-container>
 
-    <div
-      v-if="draftTrayVisible"
-      class="ec-draft-tray"
-      :class="{ 'ec-draft-tray--minimized': draftTrayMinimized }"
-      :style="draftTrayStyle"
-    >
-      <div class="ec-draft-tray__header" @pointerdown="onDraftTrayPointerDown">
-          <div class="ec-draft-tray__title">
-            Drafts
-            <span class="ec-draft-tray__count">
-              {{ draftEntries.length + (pendingIntakeRequest ? 1 : 0) + (pendingAddEditRequest ? 1 : 0) }}
-            </span>
-          </div>
-        <div class="ec-draft-tray__actions">
-          <q-btn
-            flat
-            dense
-            round
-            :icon="draftTrayMinimized ? 'expand_less' : 'expand_more'"
-            aria-label="Toggle drafts"
-            @click="toggleDraftTray"
-          />
-          <q-btn
-            flat
-            dense
-            round
-            icon="close"
-            aria-label="Close drafts"
-            @click="closeDraftTray"
-          />
-        </div>
-      </div>
-      <div v-if="!draftTrayMinimized" class="ec-draft-tray__body">
-        <q-list dense class="ec-draft-tray__list">
-          <q-item v-if="pendingAddEditTrayEntry" class="ec-draft-tray__row">
-            <q-item-section side class="ec-draft-tray__select">
-              <q-checkbox v-model="selectedDraftIds" :val="pendingAddEditTrayEntry.id" />
-            </q-item-section>
-            <q-item-section>
-              <q-item-label>{{ pendingAddEditTrayEntry.label }}</q-item-label>
-            </q-item-section>
-            <q-item-section side>
-              <q-btn
-                flat
-                dense
-                round
-                icon="open_in_new"
-                aria-label="Open draft"
-                @click="resumePendingAddEdit"
-              />
-            </q-item-section>
-          </q-item>
-
-          <q-item v-if="pendingIntakeRequest" class="ec-draft-tray__row">
-            <q-item-section side class="ec-draft-tray__select">
-              <q-checkbox v-model="selectedDraftIds" val="pending:intake" />
-            </q-item-section>
-            <q-item-section>
-              <q-item-label>Intake Draft</q-item-label>
-            </q-item-section>
-            <q-item-section side>
-              <q-btn
-                flat
-                dense
-                round
-                icon="open_in_new"
-                aria-label="Open intake draft"
-                @click="openIntakeDraftFromTray"
-              />
-            </q-item-section>
-          </q-item>
-
-          <template v-for="group in draftGroups" :key="`tray-group-${group.key}`">
-            <div class="ec-draft-tray__group-label">{{ group.label }}</div>
-            <q-item
-              v-for="draft in group.items"
-              :key="`tray-${draft.sourceKey}:${draft.id}`"
-              class="ec-draft-tray__row"
-            >
-              <q-item-section side class="ec-draft-tray__select">
-                <q-checkbox v-model="selectedDraftIds" :val="`${draft.sourceKey}:${draft.id}`" />
-              </q-item-section>
-              <q-item-section>
-                <q-item-label>{{ draft.label }}</q-item-label>
-              </q-item-section>
-              <q-item-section side>
-                <q-btn
-                  flat
-                  dense
-                  round
-                  icon="open_in_new"
-                  aria-label="Open draft"
-                  @click="openDraftEntry(draft)"
-                />
-              </q-item-section>
-            </q-item>
-          </template>
-        </q-list>
-      </div>
-    </div>
-
-    <q-chip
-      v-if="draftTrayVisible"
-      clickable
-      class="ec-draft-tray-chip"
-      icon="view_list"
-      label="Active Drafts"
-      @click="toggleDraftTray"
-    />
-
-    <q-dialog v-model="draftsDialogOpen">
-      <q-card class="ec-drafts-dialog">
-        <q-card-section class="ec-drafts-dialog__body">
-          <RecordFeedPanel
-            v-model="draftFeedTab"
-            title="Active Drafts"
-            :tabs="draftFeedTabs"
-            :groups="draftFeedGroups"
-            :items="draftFeedItems"
-            :add-button-tabs="[]"
-            empty-message="No active drafts yet."
-            @open-log="openDraftFeedItem"
-          />
-        </q-card-section>
-        <q-card-actions align="right">
-          <q-btn flat no-caps label="Close" @click="draftsDialogOpen = false" />
-        </q-card-actions>
-      </q-card>
-    </q-dialog>
-
-    <div
-      v-if="intakeDraftCount > 0 && !draftTrayDismissed"
-      class="ec-intake-drafts"
-    >
-      <div class="ec-intake-drafts__header">
-        <div>
-          <div class="ec-intake-drafts__eyebrow">Draft Files</div>
-          <div class="ec-intake-drafts__title">{{ intakeDraftCount }} active</div>
-        </div>
-        <q-btn
-          flat
-          dense
-          round
-          icon="close"
-          aria-label="Hide draft files"
-          @click="draftTrayDismissed = true"
-        />
-      </div>
-
-      <div class="ec-intake-drafts__list">
-        <div
-          v-for="draft in intakeDrafts"
-          :key="draft.id"
-          class="ec-intake-drafts__item"
-        >
-          <div class="ec-intake-drafts__item-copy">
-            <div class="ec-intake-drafts__item-title">{{ draftPrimaryLabel(draft) }}</div>
-            <div class="ec-intake-drafts__item-meta">
-              {{ draft.stage || 'Draft' }} • {{ draft.droppedFiles?.length || 0 }} files
-            </div>
-            <div v-if="draftSecondaryLabel(draft)" class="ec-intake-drafts__item-subtitle">
-              {{ draftSecondaryLabel(draft) }}
-            </div>
-          </div>
-
-          <div class="ec-intake-drafts__item-actions">
-            <q-btn flat dense no-caps label="Resume" @click="resumeDraft(draft.id)" />
-            <q-btn
-              flat
-              dense
-              round
-              icon="delete"
-              color="negative"
-              aria-label="Discard draft"
-              @click="discardDraft(draft.id)"
-            />
-          </div>
-        </div>
-      </div>
-    </div>
-
     <div class="ec-quick-widget" :style="quickWidgetStyle">
       <div
         v-for="(action, index) in quickWidgetRingActions"
@@ -474,7 +293,7 @@
 </template>
 
 <script setup>
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import lottie from 'lottie-web'
 import widgetBackAnimationData from 'src/assets/lottie/widget-back.json'
@@ -489,20 +308,13 @@ import WidgetSettingsMenu from 'src/components/WidgetSettingsMenu.vue'
 import B10Logo from 'src/components/B10Logo.vue'
 
 import ArtifactAddDialog from 'components/ArtifactAddDialog.vue'
-import {
-  removeIntakeDraft,
-  setActiveIntakeDraft,
-  updateIntakeDraft,
-  useIntakeDraftState,
-} from 'src/utils/intakeDraftState'
+import { updateIntakeDraft, useIntakeDraftState } from 'src/utils/intakeDraftState'
 import { useBreadcrumbActionsState } from 'src/utils/breadcrumbActionsState'
 import { RECORD_VIEW_ROUTE_NAME } from 'src/utils/recordViewNavigation'
 import {
   getCreateBranchEntry,
   getCreateBranches,
   getFilePageRegistryEntry,
-  getRegistryTitleTokenForSource,
-  getCanonicalTokenValue,
   setRuntimeFileStructures,
   TEST_SHELL_SECTION_OPTIONS,
   WORKSPACE_FILE_NAV_ITEMS,
@@ -513,9 +325,7 @@ import {
   resolveIntakeReviewItem,
   useIntakeReviewQueueState,
 } from 'src/utils/intakeReviewQueueState'
-import { getPendingAddEditShellRequest, setPendingAddEditShellRequest } from 'src/utils/addEditShellState'
-import { getPendingIntakeShellRequest } from 'src/utils/intakeShellState'
-import { getDraftRegistryEntries } from 'src/utils/draftRegistry'
+import { setPendingAddEditShellRequest } from 'src/utils/addEditShellState'
 
 const leftDrawerOpen = ref(false)
 const quickActionsOpen = ref(false)
@@ -534,13 +344,6 @@ const quickWidgetSettingsSectionOpen = ref({
   files: true,
   'local-dbs': true,
 })
-const draftTrayDismissed = ref(false)
-const draftTrayMinimized = ref(false)
-const draftTrayPosition = ref({ x: null, y: null })
-const draftTrayIsDragging = ref(false)
-const draftTrayPointerOffset = ref({ x: 0, y: 0 })
-const draftsDialogOpen = ref(false)
-const selectedDraftIds = ref([])
 const intakeQueueDialogOpen = ref(false)
 const intakeQueueFieldEdits = ref({})
 const ownerSetupRequired = ref(false)
@@ -643,72 +446,6 @@ let quickWidgetIconAnimation = null
 let quickWidgetDragState = null
 let quickWidgetSettingsDragState = null
 const intakeDraftCount = computed(() => intakeDraftState.draftOrder.length)
-const intakeDrafts = computed(() =>
-  intakeDraftState.draftOrder.map((draftId) => intakeDraftState.drafts[draftId]).filter(Boolean),
-)
-const pendingAddEditRequest = computed(() => getPendingAddEditShellRequest())
-const pendingIntakeRequest = computed(() => getPendingIntakeShellRequest())
-const draftTrayVisible = computed(() =>
-  Boolean(draftEntries.value.length || pendingIntakeRequest.value || pendingAddEditRequest.value),
-)
-const draftEntries = computed(() => {
-  const entries = getDraftRegistryEntries()
-  return entries
-    .map((entry) => {
-      const sourceKey = String(entry?.sourceKey || '').trim().toLowerCase()
-      const registryEntry = getFilePageRegistryEntry(sourceKey)
-      const titleToken = getRegistryTitleTokenForSource(sourceKey)
-      const rawValue = titleToken ? getCanonicalTokenValue(entry?.values || {}, titleToken) : null
-      const label = rawValue != null && String(rawValue).trim()
-        ? String(rawValue).trim()
-        : 'Untitled draft'
-      return {
-        ...entry,
-        sourceKey,
-        sourceLabel: String(registryEntry?.label || sourceKey || '').trim(),
-        label,
-      }
-    })
-    .filter((entry) => entry.sourceKey)
-})
-const pendingAddEditTrayEntry = computed(() => {
-  const pending = pendingAddEditRequest.value
-  if (!pending?.sourceKey) return null
-  const sourceKey = String(pending.sourceKey || '').trim().toLowerCase()
-  const entry = getFilePageRegistryEntry(sourceKey)
-  const titleToken = getRegistryTitleTokenForSource(sourceKey)
-  const values = pending.snapshot?.values || pending.initialValues || {}
-  const rawValue = titleToken ? getCanonicalTokenValue(values, titleToken) : null
-  const label = String(rawValue || '').trim() || 'Untitled draft'
-  return {
-    id: `pending:${sourceKey}`,
-    sourceKey,
-    sourceLabel: String(entry?.label || sourceKey || '').trim(),
-    label,
-  }
-})
-const draftGroups = computed(() => {
-  const grouped = new Map()
-  draftEntries.value.forEach((entry) => {
-    const key = String(entry.sourceKey || '').trim()
-    if (!key) return
-    if (!grouped.has(key)) {
-      grouped.set(key, { key, label: entry.sourceLabel || key, items: [] })
-    }
-    grouped.get(key).items.push(entry)
-  })
-  return Array.from(grouped.values())
-})
-const draftTrayStyle = computed(() => {
-  const position = draftTrayPosition.value
-  if (position.x == null || position.y == null) return {}
-  return {
-    left: `${position.x}px`,
-    top: `${position.y}px`,
-    right: 'auto',
-    bottom: 'auto',
-  }
-})
 const activeIntakeQueueItem = computed(() => {
   const activeId = String(intakeReviewQueueState.activeItemId || '').trim()
   return intakeReviewQueueState.items.find((item) => String(item?.id || '').trim() === activeId) || null
@@ -1069,7 +806,6 @@ async function syncUserNavState() {
 }
 
 function openArtifactDialog() {
-  draftTrayDismissed.value = false
   artifactDialogOpen.value = true
 }
 
@@ -1311,113 +1047,6 @@ function dismissActiveIntakeFieldBundle() {
   closeActiveIntakeQueueItem('dismissed')
 }
 
-function draftPrimaryLabel(draft = {}) {
-  return String(draft?.droppedFiles?.[0]?.name || '').trim() || 'Untitled draft'
-}
-
-function draftSecondaryLabel(draft = {}) {
-  const opportunityId = String(draft?.opportunityId || '').trim()
-  return opportunityId ? `Linked opportunity: ${opportunityId}` : ''
-}
-
-function resumeDraft(draftId) {
-  setActiveIntakeDraft(draftId)
-  const draft = intakeDraftState.drafts[String(draftId || '').trim()] || null
-  if (String(draft?.resumeMode || '').trim() === 'existing-artifact-link') {
-    openArtifactDialog()
-    return
-  }
-
-  const kind = String(draft?.opportunityForm?.kind || '').trim().toLowerCase() === 'fund' ? 'fund' : 'round'
-  const eventName = kind === 'fund' ? 'ecvc:open-fund-dialog' : 'ecvc:open-round-dialog'
-  const routeName = kind === 'fund' ? 'funds' : 'rounds'
-  const flagName = kind === 'fund' ? '__ecvcOpenFundDialog' : '__ecvcOpenRoundDialog'
-
-  draftTrayDismissed.value = false
-  globalThis[flagName] = true
-  router.push({ name: routeName, query: { create: kind } }).finally(async () => {
-    await nextTick()
-    globalThis?.dispatchEvent?.(new Event(eventName))
-    setTimeout(() => {
-      globalThis?.dispatchEvent?.(new Event(eventName))
-    }, 80)
-  })
-}
-
-function resumePendingAddEdit() {
-  const pending = pendingAddEditRequest.value
-  const sourceKey = String(pending?.sourceKey || '').trim()
-  if (!sourceKey) return
-  router.push({
-    name: 'dialog-shell',
-    query: {
-      section: sourceKey,
-      create: '1',
-      open: String(Date.now()),
-    },
-  })
-}
-
-function resumePendingIntake() {
-  if (!pendingIntakeRequest.value) return
-  router.push({
-    name: 'intake-shell',
-    query: {
-      create: '1',
-      open: String(Date.now()),
-    },
-  })
-}
-
-function openIntakeDraftFromTray() {
-  draftsDialogOpen.value = false
-  draftTrayMinimized.value = false
-  resumePendingIntake()
-}
-
-function openDraftEntry(draft) {
-  const sourceKey = String(draft?.sourceKey || '').trim().toLowerCase()
-  if (!sourceKey) return
-  const values = draft?.values && typeof draft.values === 'object' ? { ...draft.values } : {}
-  setPendingAddEditShellRequest({
-    sourceKey,
-    initialValues: values,
-    snapshot: {
-      values,
-      hasUserChanges: true,
-      uiState: {
-        activeSectionKey: 'general',
-      },
-    },
-  })
-  draftsDialogOpen.value = false
-  draftTrayMinimized.value = false
-  router.push({
-    name: 'dialog-shell',
-    query: {
-      section: sourceKey,
-      create: '1',
-      open: String(Date.now()),
-    },
-  })
-}
-
-
-function toggleDraftTray() {
-  draftTrayMinimized.value = !draftTrayMinimized.value
-}
-
-function closeDraftTray() {
-  draftTrayMinimized.value = true
-}
-
-function discardDraft(draftId) {
-  removeIntakeDraft(draftId)
-  if (intakeDraftState.draftOrder.length === 0) {
-    draftTrayDismissed.value = false
-  }
-}
-
 function clampQuickWidgetPosition(x, y) {
   if (typeof window === 'undefined') return { x, y }
   const triggerRadius = QUICK_WIDGET_TRIGGER_SIZE / 2
@@ -1435,47 +1064,6 @@ function clampQuickWidgetPosition(x, y) {
     x: clampedX,
     y: clampedY,
   }
-}
-
-function clampDraftTrayPosition(x, y) {
-  if (typeof window === 'undefined') return { x, y }
-  const trayWidth = 320
-  const trayHeight = 240
-  const minX = 12
-  const minY = 12
-  const maxX = Math.max(minX, window.innerWidth - trayWidth - 12)
-  const maxY = Math.max(minY, window.innerHeight - trayHeight - 12)
-  return {
-    x: Math.min(Math.max(x, minX), maxX),
-    y: Math.min(Math.max(y, minY), maxY),
-  }
-}
-
-function onDraftTrayPointerDown(event) {
-  if (!event || event.button !== 0) return
-  draftTrayIsDragging.value = true
-  const startX = Number(event.clientX || 0)
-  const startY = Number(event.clientY || 0)
-  const rect = event.currentTarget?.closest?.('.ec-draft-tray')?.getBoundingClientRect?.()
-  if (rect) {
-    draftTrayPointerOffset.value = {
-      x: startX - rect.left,
-      y: startY - rect.top,
-    }
-  }
-  const handlePointerMove = (moveEvent) => {
-    if (!draftTrayIsDragging.value) return
-    const nextX = Number(moveEvent.clientX || 0) - draftTrayPointerOffset.value.x
-    const nextY = Number(moveEvent.clientY || 0) - draftTrayPointerOffset.value.y
-    draftTrayPosition.value = clampDraftTrayPosition(nextX, nextY)
-  }
-  const handlePointerUp = () => {
-    draftTrayIsDragging.value = false
-    window.removeEventListener('pointermove', handlePointerMove)
-    window.removeEventListener('pointerup', handlePointerUp)
-  }
-  window.addEventListener('pointermove', handlePointerMove)
-  window.addEventListener('pointerup', handlePointerUp)
 }
 
 function setDefaultQuickWidgetPosition() {
@@ -1995,13 +1583,6 @@ watch(
 )
 
 watch(
-  () => intakeDraftCount.value,
-  (count) => {
-    if (count > 0) draftTrayDismissed.value = false
-  },
-)
-
-watch(
   () => [activeIntakeQueueItem.value?.id || null, activeIntakeQueueItem.value?.updatedAt || null],
   () => {
     const item = activeIntakeQueueItem.value
@@ -2491,148 +2072,6 @@ function goBack() {
   font-size: 9px;
   line-height: 1.2;
 }
-
-
-  .ec-draft-tray {
-    position: fixed;
-    right: 20px;
-    bottom: 120px;
-    width: 320px;
-    max-width: calc(100vw - 40px);
-    background: #0b1120;
-    border-radius: 14px;
-    box-shadow: 0 18px 40px rgba(2, 6, 23, 0.5);
-    border: 1px solid rgba(148, 163, 184, 0.18);
-    z-index: 3000;
-    overflow: hidden;
-  }
-
-  .ec-draft-tray--minimized .ec-draft-tray__body {
-    display: none;
-  }
-
-  .ec-draft-tray--minimized {
-    border-radius: 10px;
-  }
-
-  .ec-draft-tray--minimized .ec-draft-tray__header {
-    padding: 8px 10px 8px 12px;
-    border-radius: 10px;
-  }
-
-  .ec-draft-tray--minimized .ec-draft-tray__actions {
-    gap: 2px;
-  }
-
-  .ec-draft-tray__header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 10px 12px 10px 14px;
-    background: rgba(15, 23, 42, 0.95);
-    cursor: grab;
-  }
-
-  .ec-draft-tray__header:active {
-    cursor: grabbing;
-  }
-
-  .ec-draft-tray__title {
-    font-size: 13px;
-    font-weight: 600;
-    color: #e2e8f0;
-    letter-spacing: 0.02em;
-    display: flex;
-    gap: 8px;
-    align-items: center;
-  }
-
-  .ec-draft-tray__count {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 22px;
-    height: 22px;
-    padding: 0 6px;
-    border-radius: 999px;
-    background: rgba(148, 163, 184, 0.2);
-    color: #e2e8f0;
-    font-size: 11px;
-  }
-
-  .ec-draft-tray__actions {
-    display: flex;
-    gap: 4px;
-  }
-
-  .ec-draft-tray__actions :deep(.q-btn) {
-    color: #e2e8f0;
-  }
-
-  .ec-draft-tray__body {
-    padding: 8px;
-    max-height: 320px;
-    overflow: auto;
-    color: #e2e8f0;
-  }
-
-  .ec-draft-tray__list {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-  }
-
-  .ec-draft-tray__row {
-    border-radius: 10px;
-    background: rgba(15, 23, 42, 0.7);
-  }
-
-  .ec-draft-tray__select {
-    min-width: 36px;
-  }
-
-  .ec-draft-tray :deep(.q-item__label) {
-    color: #e2e8f0;
-  }
-
-  .ec-draft-tray :deep(.q-checkbox__inner) {
-    color: rgba(226, 232, 240, 0.85);
-  }
-
-  .ec-draft-tray__group-label {
-    padding: 8px 10px 4px 10px;
-    font-size: 11px;
-    font-weight: 600;
-    color: rgba(148, 163, 184, 0.9);
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-  }
-
-  .ec-draft-tray-chip {
-    position: fixed;
-    right: 20px;
-    bottom: 80px;
-    z-index: 3001;
-    background: rgba(15, 23, 42, 0.96);
-    color: #e2e8f0;
-    border: 1px solid rgba(148, 163, 184, 0.25);
-    box-shadow: 0 12px 28px rgba(2, 6, 23, 0.45);
-  }
-
-  .ec-draft-tray :deep(.record-feed-panel) {
-    background: transparent;
-    border: none;
-  }
-
-  .ec-draft-tray :deep(.record-feed-panel__header--main) {
-    background: transparent;
-  }
-
-  .ec-draft-tray :deep(.record-feed-panel__entry) {
-    background: rgba(15, 23, 42, 0.7);
-    border-color: rgba(148, 163, 184, 0.2);
-  }
-
 .ec-quick-widget-settings-panel__list {
   display: flex;
   flex-direction: column;
@@ -2750,99 +2189,6 @@ function goBack() {
 
 .ec-quick-widget-settings-row__checkbox :deep(.q-checkbox__bg) {
   background: transparent !important;
-}
-
-.ec-intake-drafts {
-  position: fixed;
-  right: 20px;
-  bottom: 148px;
-  z-index: 1900;
-  width: min(360px, calc(100vw - 32px));
-  max-height: min(420px, calc(100vh - 220px));
-  overflow: hidden;
-  border: 1px solid rgba(15, 23, 42, 0.1);
-  border-radius: 20px;
-  background: rgba(255, 255, 255, 0.94);
-  box-shadow: 0 18px 44px rgba(15, 23, 42, 0.14);
-  backdrop-filter: blur(18px);
-}
-
-.ec-intake-drafts__header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 14px 16px 10px;
-  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
-}
-
-.ec-intake-drafts__eyebrow {
-  color: #64748b;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-}
-
-.ec-intake-drafts__title {
-  color: #0f172a;
-  font-size: 18px;
-  font-weight: 700;
-  line-height: 1.2;
-}
-
-.ec-intake-drafts__list {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  max-height: calc(min(420px, calc(100vh - 220px)) - 60px);
-  padding: 12px;
-  overflow: auto;
-}
-
-.ec-intake-drafts__item {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 12px 12px 10px;
-  border: 1px solid rgba(15, 23, 42, 0.08);
-  border-radius: 16px;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.98) 100%);
-}
-
-.ec-intake-drafts__item-copy {
-  min-width: 0;
-}
-
-.ec-intake-drafts__item-title {
-  color: #111827;
-  font-size: 14px;
-  font-weight: 700;
-  line-height: 1.35;
-  overflow-wrap: anywhere;
-}
-
-.ec-intake-drafts__item-meta,
-.ec-intake-drafts__item-subtitle {
-  color: #64748b;
-  font-size: 12px;
-  line-height: 1.45;
-}
-
-.ec-intake-drafts__item-meta {
-  margin-top: 4px;
-}
-
-.ec-intake-drafts__item-subtitle {
-  margin-top: 2px;
-}
-
-.ec-intake-drafts__item-actions {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  flex-shrink: 0;
 }
 
 .ec-quick-widget-trigger {
@@ -2981,12 +2327,6 @@ function goBack() {
 @media (max-width: 900px) {
   .ec-shell-version {
     display: none;
-  }
-
-  .ec-intake-drafts {
-    right: 12px;
-    bottom: 132px;
-    width: min(340px, calc(100vw - 24px));
   }
 }
 </style>
