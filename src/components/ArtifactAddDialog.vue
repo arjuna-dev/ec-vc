@@ -418,17 +418,43 @@ function summarizeDroppedFiles(files = []) {
   })
 }
 
-function stageDroppedFiles(files = []) {
-  const normalized = Array.from(files || [])
-  if (normalized.length === 0) return
-  const summaries = summarizeDroppedFiles(normalized)
-  step.value = 1
-  createIntakeDraft({
-    droppedFiles: summaries,
-    opportunityId: null,
-    stage: 'Dropped',
-  })
-}
+  function stageDroppedFiles(files = []) {
+    const normalized = Array.from(files || [])
+    if (normalized.length === 0) return
+    const summaries = summarizeDroppedFiles(normalized)
+    step.value = 1
+    const draft = createIntakeDraft({
+      droppedFiles: summaries,
+      opportunityId: null,
+      stage: 'Dropped',
+    })
+    void ingestDroppedFilesNow(draft?.id || '', summaries)
+  }
+
+  async function ingestDroppedFilesNow(draftId, summaries = []) {
+    if (!bridge.value?.artifacts?.ingest) return
+    if (!draftId || !summaries.length) return
+    try {
+      const existingCheck = await findExistingDroppedFiles(summaries)
+      const result = await ingestArtifactsWithDuplicateHandling({
+        filePaths: summaries.map((f) => f.path).filter(Boolean),
+        pipelineId: DEFAULT_PIPELINE_ID,
+      }, {
+        hasExistingConflict: existingCheck.existingNames.length > 0,
+      })
+      const rawIds = Array.isArray(result?.results)
+        ? result.results.map((r) => String(r?.raw?.artifact_id || '').trim()).filter(Boolean)
+        : []
+      if (rawIds.length) {
+        updateIntakeDraft(draftId, {
+          resumeArtifactIds: rawIds,
+          stage: 'Artifacts Saved',
+        })
+      }
+    } catch {
+      // Leave the draft staged if ingestion fails.
+    }
+  }
 
 function isDuplicateFilenameConflict(error) {
   const message = String(error?.message || error || '').toLowerCase()

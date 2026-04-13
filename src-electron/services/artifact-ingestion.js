@@ -548,6 +548,18 @@ export async function ingestArtifactsFromPaths({
     const llmMdFileName = `${baseName(storedRawFileName || originalFileName)}.md`
     let markdown = ''
 
+    if (!geminiApiKey && (originalExt === '.pdf' || isImageExt(originalExt))) {
+      emitStatus?.({
+        type: 'info',
+        message: `Saved "${originalFileName}". OCR skipped (Gemini key missing).`,
+      })
+      results.push({
+        source: sourceFilePath,
+        raw: { artifact_id: rawArtifactId, fs_path: rawRelPath },
+      })
+      continue
+    }
+
     try {
       if (originalExt === '.pdf') {
         emitStatus?.({
@@ -595,6 +607,17 @@ export async function ingestArtifactsFromPaths({
             message: `${originalFileName} markdown generated`,
           })
         } catch {
+          if (!geminiApiKey) {
+            emitStatus?.({
+              type: 'info',
+              message: `Saved "${originalFileName}". OCR skipped (Gemini key missing).`,
+            })
+            results.push({
+              source: sourceFilePath,
+              raw: { artifact_id: rawArtifactId, fs_path: rawRelPath },
+            })
+            continue
+          }
           emitStatus?.({
             type: 'info',
             message: 'OCR required. Using LLM to create LLM ready Markdown.',
