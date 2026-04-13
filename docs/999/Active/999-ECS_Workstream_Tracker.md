@@ -16,6 +16,7 @@ This tracker should stay aligned with:
 
 - `docs/010/Active/010-record-architecture-master-plan.md`
 - `docs/010/Draft/010-intake-architecture-plan.md`
+- `docs/999/Active/Intake_Project.md`
 
 ## Current Focus
 
@@ -79,6 +80,12 @@ This tracker should stay aligned with:
   - draft resume
   - staged review
   - visible tracker state
+- intake process stabilization:
+  - visible checkpoint ladder
+  - filesystem truth
+  - database truth
+  - explicit opportunity-link proof
+  - calmer inspection surface
 - `LDB` convergence with the normal file-shell contract
 - strict file-shell contract hardening:
   - fail closed on unmapped page routes
@@ -211,6 +218,36 @@ Key output metrics:
   - Step 6: rewire intake only after the prerequisite names, table, columns, records, and documents are in place
   - Working rule: keep this pass in small contained cycles and avoid bundling the whole migration into one long implementation loop
 
+- Milestone: `Intake Process Stabilization`
+  - Objective set:
+    - make intake progress visible
+    - prove filesystem truth
+    - prove database truth
+    - prove opportunity linking
+    - separate intake layers cleanly
+    - improve operator guidance surfaces
+    - lighten the working surface for longer debugging sessions
+  - Checkpoint ladder:
+    - `Input accepted`
+    - `Raw artifact saved`
+    - `LLM-ready output created`
+    - `Intake session created`
+    - `Opportunity linked`
+    - `Review state created`
+    - `Canonical creation completed`
+  - Step 1: define the visible checkpoint model in product language
+  - Step 2: compare current runtime behavior against each checkpoint
+  - Step 3: identify where UI success diverges from true filesystem success
+  - Step 4: identify where UI success diverges from true database success
+  - Step 5: prove whether opportunity linking is persisted or only implied
+  - Step 6: clarify the current role of `2_llm-generated` in the intake path
+  - Step 7: expose blockers, next action, and ids needed for debugging
+  - Step 8: make the intake inspection surface calmer and easier on the eyes without hiding failure states
+  - Working rule:
+    - move one checkpoint at a time
+    - do not treat plausible UI as proof of completion
+    - do not broaden the pass into a rewrite before the first broken checkpoint is proven
+
 - Project: `Building Blocks to Shell Contract Migration`
   - Task 1: finish mapping foundational building blocks:
     - fonts
@@ -284,6 +321,7 @@ Key output metrics:
 - Align company `Record View` tabs with workbook structural nodes
 - Decide which workbook labels stay technical and which get friendlier UI labels
 - Build a clearer intake tracker surface that shows stage, blockers, and next action per draft
+- make the intake checkpoint ladder visible in the product so filesystem truth, database truth, and linking truth can be inspected directly
 - Add a consistent resume affordance in both card and table views for unfinished artifacts
 - Define role ownership for intake stages under the new `Roles` / `Companion` direction
 - Decide which `Companion` and `Role` parameters belong in the tracker versus inside dedicated `Companion` / `Roles` views
