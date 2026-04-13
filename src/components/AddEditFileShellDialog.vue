@@ -128,12 +128,12 @@
 
     <div class="file-structure-shell__toolbar-row">
       <MiniToolbar
-        v-model="activeToolbarView"
+        v-model="miniToolbarActiveKey"
+        aria-label="Shell mini toolbar"
         :items="miniToolbarItems"
-        view-mode="card"
-        :view-options="viewOptions"
+        :view-mode="miniToolbarViewMode"
+        :view-options="miniToolbarViewOptions"
         :show-view-toggle="false"
-        aria-label="Add Edit File Mini Toolbar"
       />
       <q-input
         v-model="searchQuery"
@@ -264,6 +264,12 @@ const shellSelectorButton = ref(null)
 const shellSelectorMenu = ref(null)
 const pendingShellSelectorValue = ref('')
 const activeToolbarView = ref('')
+const miniToolbarActiveKey = computed({
+  get: () => activeToolbarView.value,
+  set: (value) => {
+    activeToolbarView.value = value
+  },
+})
 const boxesCollapsed = ref(false)
 const leafItemsCollapsed = ref(false)
 const activeSubgroupKey = ref('')
@@ -280,6 +286,8 @@ const viewOptions = [
   { label: '', value: 'card', icon: 'grid_view' },
   { label: '', value: 'table', icon: 'table_rows' },
 ]
+const miniToolbarViewMode = computed(() => 'card')
+const miniToolbarViewOptions = computed(() => viewOptions)
 const tokenTypeOptions = [
   { value: 'text', label: 'Text' },
   { value: 'long_text', label: 'Long Text' },

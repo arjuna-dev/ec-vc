@@ -402,12 +402,12 @@
           >
             <div class="create-record-shell__toolbar-slot-debug">
               <MiniToolbar
-                v-model="activeSectionKey"
+                v-model="miniToolbarActiveKey"
+                aria-label="Shell mini toolbar"
                 :items="miniToolbarItems"
-                view-mode="card"
-                :view-options="viewOptions"
+                :view-mode="miniToolbarViewMode"
+                :view-options="miniToolbarViewOptions"
                 :show-view-toggle="false"
-                aria-label="Add Edit Record Mini Toolbar"
               />
             </div>
 
@@ -1638,6 +1638,12 @@ const dialogPayloadResetSignature = computed(() => JSON.stringify({
 }))
 
 const activeSectionKey = ref('')
+const miniToolbarActiveKey = computed({
+  get: () => activeSectionKey.value,
+  set: (value) => {
+    activeSectionKey.value = value
+  },
+})
 const formValues = ref({})
 const stagedFieldValues = ref({})
 const artifactDragOver = ref(false)
@@ -1782,6 +1788,8 @@ const viewOptions = [
   { label: '', value: 'card', icon: 'grid_view' },
   { label: '', value: 'table', icon: 'table_rows' },
 ]
+const miniToolbarViewMode = computed(() => 'card')
+const miniToolbarViewOptions = computed(() => viewOptions)
 const tokenTypeOptions = [
   { value: 'text', label: 'Text' },
   { value: 'long_text', label: 'Long Text' },

@@ -57,14 +57,13 @@
       </RecordHero>
 
       <MiniToolbar
-        v-if="recordShellNavItems.length"
-        v-model="activeViewGroupKey"
-        aria-label="Record views"
-        :items="recordShellNavItems"
-        :view-mode="recordShellTopNavViewMode"
-        :view-options="CONTACT_LDB_VIEW_OPTIONS"
+        v-if="miniToolbarItems.length"
+        v-model="miniToolbarActiveKey"
+        aria-label="Shell mini toolbar"
+        :items="miniToolbarItems"
+        :view-mode="miniToolbarViewMode"
+        :view-options="miniToolbarViewOptions"
         :show-view-toggle="false"
-        @update:view-mode="recordShellTopNavViewMode = $event"
       />
 
       <section class="record-shell__panel">
@@ -764,6 +763,20 @@ const runtimeStructureVersion = ref(getRuntimeStructureVersion())
 let runtimeStructureUnsub = null
 const activeRecordFeedTab = ref('events')
 const recordShellTopNavViewMode = ref('grid')
+const miniToolbarItems = computed(() => recordShellNavItems.value)
+const miniToolbarActiveKey = computed({
+  get: () => activeViewGroupKey.value,
+  set: (value) => {
+    activeViewGroupKey.value = value
+  },
+})
+const miniToolbarViewMode = computed({
+  get: () => recordShellTopNavViewMode.value,
+  set: (value) => {
+    recordShellTopNavViewMode.value = value
+  },
+})
+const miniToolbarViewOptions = computed(() => CONTACT_LDB_VIEW_OPTIONS)
 const bridge = computed(() => (typeof window !== 'undefined' ? window.ecvc : null))
 const isElectronRuntime = computed(() => typeof window !== 'undefined')
 const hasBridge = computed(() => Boolean(bridge.value))

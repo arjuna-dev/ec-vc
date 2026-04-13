@@ -37,22 +37,20 @@
         <div>content: {{ activeContentSourceKey }}</div>
         <div>views: {{ fileViews.length }}</div>
         <div>tokens: {{ fileTokens.length }}</div>
-        <div>toolbar items: {{ eventShellNavItems.length }}</div>
+        <div>toolbar items: {{ miniToolbarItems.length }}</div>
         <div>raw rows: {{ rawRows.length }}</div>
         <div>display rows: {{ displayRows.length }}</div>
       </q-banner>
 
-      <div class="file-shell__toolbar-slot-debug">
-        <MiniToolbar
-          v-if="eventShellNavItems.length"
-        v-model="activeViewKey"
-          aria-label="File shell mini toolbar"
-          :items="eventShellNavItems"
-          :view-mode="viewMode"
-          :view-options="viewOptions"
-          :show-view-toggle="false"
-        />
-      </div>
+      <MiniToolbar
+        v-if="miniToolbarItems.length"
+        v-model="miniToolbarActiveKey"
+        aria-label="Shell mini toolbar"
+        :items="miniToolbarItems"
+        :view-mode="miniToolbarViewMode"
+        :view-options="miniToolbarViewOptions"
+        :show-view-toggle="false"
+      />
 
       <section v-if="activeGovernanceToolbarKey" class="event-shell__panel">
         <div class="event-shell__panel-head">
@@ -2008,6 +2006,20 @@ const eventShellNavItems = computed(() =>
     isRelationshipSectionLabel,
   }),
 )
+const miniToolbarItems = computed(() => eventShellNavItems.value)
+const miniToolbarActiveKey = computed({
+  get: () => activeViewKey.value,
+  set: (value) => {
+    activeViewKey.value = String(value || '').trim()
+  },
+})
+const miniToolbarViewMode = computed({
+  get: () => viewMode.value,
+  set: (value) => {
+    viewMode.value = value
+  },
+})
+const miniToolbarViewOptions = computed(() => viewOptions)
 
 function getDefaultActiveViewKey(views = []) {
   const normalizedViews = Array.isArray(views) ? views : []
