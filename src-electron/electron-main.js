@@ -6300,7 +6300,29 @@ function ensureDefaultCompanionRoles(database, actorUserId = null) {
     const existing = database
       .prepare('SELECT id FROM Companion_Roles WHERE lower(trim(Companion_Role_Name)) = lower(trim(?)) LIMIT 1')
       .get(role.name)
-    if (existing?.id) continue
+    if (existing?.id) {
+      database
+        .prepare(
+          `
+          UPDATE Companion_Roles
+          SET
+            Companion_Role_Summary = ?,
+            Companion_Role_Type = ?,
+            Companion_Role_Status = ?,
+            Companion_Role_Contract_Path = ?,
+            updated_at = datetime('now')
+          WHERE id = ?
+        `,
+        )
+        .run(
+          role.summary,
+          role.type,
+          role.status,
+          role.contractPath,
+          existing.id,
+        )
+      continue
+    }
 
     database
       .prepare(
