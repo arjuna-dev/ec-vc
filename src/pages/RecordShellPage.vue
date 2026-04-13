@@ -497,8 +497,8 @@
         initial-section-key="general"
         :initial-artifacts="[]"
         :artifact-context="null"
-        :initial-resources-collapsed="createDialogMode === 'edit'"
-        :initial-record-data-collapsed="false"
+        :initial-resources-collapsed="createDialogMode === 'edit' ? true : false"
+        :initial-record-data-collapsed="createDialogMode === 'edit' ? false : true"
         @change="handleDialogChange"
         @request-close="handleDialogClose"
         @submit="submitCreateRecord"
@@ -1245,8 +1245,28 @@ function setTokenSelected(tokenKey, isSelected) {
   selectedTokenKeys.value = Array.from(next)
 }
 
-function handleDialogChange() {}
-function handleDialogClose() { createDialogOpen.value = false }
+function handleDialogChange(snapshot) {
+  if (!snapshot?.hasUserChanges) return
+  setPendingAddEditShellRequest({
+    sourceKey: activeSourceKey.value,
+    initialValues: snapshot.values || {},
+    initialFieldMeta: snapshot?.verification?.changes || {},
+    snapshot,
+  })
+}
+function handleDialogClose(snapshot) {
+  if (snapshot?.closeReason === 'discard' || !snapshot?.hasUserChanges) {
+    setPendingAddEditShellRequest(null)
+  } else {
+    setPendingAddEditShellRequest({
+      sourceKey: activeSourceKey.value,
+      initialValues: snapshot?.values || {},
+      initialFieldMeta: snapshot?.verification?.changes || {},
+      snapshot,
+    })
+  }
+  createDialogOpen.value = false
+}
 
 function handleRecordFeedAdd(feedTab) {
   const normalizedFeedTab = String(feedTab || '').trim().toLowerCase()

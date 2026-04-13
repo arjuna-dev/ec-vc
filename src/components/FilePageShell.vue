@@ -696,8 +696,9 @@
         :initial-artifacts="createDialogInitialArtifacts"
         :artifact-context="createDialogArtifactContext"
         :prefer-add-layout="createDialogPreferAddLayout"
-        :initial-resources-collapsed="createDialogMode === 'edit'"
-        :initial-record-data-collapsed="false"
+        :initial-resources-collapsed="createDialogMode === 'edit' ? true : false"
+        :initial-record-data-collapsed="createDialogMode === 'edit' ? false : true"
+        :initial-snapshot="createDialogInitialSnapshot"
         @change="handleCreateDialogChange"
         @request-close="handleCreateDialogClose"
         @submit="submitCreateRecordShell"
@@ -805,6 +806,7 @@ const createDialogRenderKey = ref(0)
 const createDialogLoading = ref(false)
 const createDialogMode = ref('create')
 const createDialogPreferAddLayout = ref(false)
+const createDialogInitialSnapshot = ref(null)
 const editDialogRow = ref(null)
 const editDialogRecordPayload = ref(null)
 const createDialogDraftRecordId = ref('')
@@ -3783,6 +3785,7 @@ async function submitCreateRecordShell({ values, verification, artifacts } = {})
 
 function handleCreateDialogChange(snapshot) {
   createDialogLastChangeSnapshot.value = snapshot
+  createDialogInitialSnapshot.value = snapshot?.uiState ? snapshot : null
   updateLocalDraftRowFromSnapshot(snapshot)
   if (createDialogMode.value === 'create') return
   if (!snapshot?.hasUserChanges) return
@@ -3792,11 +3795,23 @@ function handleCreateDialogChange(snapshot) {
 async function handleCreateDialogClose(snapshot) {
   createDialogLastChangeSnapshot.value = snapshot
   updateLocalDraftRowFromSnapshot(snapshot)
-  if (createDialogMode.value !== 'create') {
+  if (snapshot?.closeReason === 'discard') {
+    removeLocalDraftRow(createDialogDraftSourceKey.value, createDialogDraftRecordId.value)
+    resetCreateDialogAutosaveState()
+  } else if (createDialogMode.value !== 'create') {
     await flushCreateDialogAutosave(snapshot, { immediate: true, reloadRows: true })
+    removeLocalDraftRow(createDialogDraftSourceKey.value, createDialogDraftRecordId.value)
+    resetCreateDialogAutosaveState()
+  } else if (snapshot?.hasUserChanges) {
+    setPendingAddEditShellRequest({
+      sourceKey: activeSourceKey.value,
+      initialValues: snapshot?.values || {},
+      initialFieldMeta: snapshot?.verification?.changes || {},
+      snapshot,
+    })
+    createDialogOpen.value = false
+    return
   }
-  removeLocalDraftRow(createDialogDraftSourceKey.value, createDialogDraftRecordId.value)
-  resetCreateDialogAutosaveState()
   createDialogMode.value = 'create'
   createDialogPreferAddLayout.value = false
   editDialogRow.value = null
@@ -3805,6 +3820,7 @@ async function handleCreateDialogClose(snapshot) {
   createDialogPrefillValues.value = {}
   createDialogFieldMeta.value = {}
   createDialogInitialArtifacts.value = []
+  createDialogInitialSnapshot.value = null
 }
 
 function queueCreateDialogAutosave(snapshot) {

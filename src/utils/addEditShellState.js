@@ -12,6 +12,9 @@ export function setPendingAddEditShellRequest(request = null) {
         initialFieldMeta: request.initialFieldMeta && typeof request.initialFieldMeta === 'object'
           ? { ...request.initialFieldMeta }
           : {},
+        snapshot: request.snapshot && typeof request.snapshot === 'object'
+          ? { ...request.snapshot }
+          : null,
       }
     : null
 }

@@ -29,8 +29,9 @@
       :shell-selector-value="activeSourceKey"
       :shell-selector-options="TEST_SHELL_SECTION_OPTIONS"
       :prefer-add-layout="isAddAction"
-      :initial-resources-collapsed="dialogMode === 'edit'"
-      :initial-record-data-collapsed="false"
+      :initial-resources-collapsed="dialogMode === 'edit' ? true : false"
+      :initial-record-data-collapsed="dialogMode === 'edit' ? false : true"
+      :initial-snapshot="dialogInitialSnapshot"
       :loading="dialogLoading"
       :submit-disabled="dialogMode === 'edit' ? !canEditWithShell : !canCreateWithShell"
       :initial-values="dialogInitialValues"
@@ -45,7 +46,7 @@
       @update:shell-selector-value="updateShellSelector"
       @toggle-general-settings-group="toggleGeneralSettingsGroup"
       @toggle-general-settings-item="toggleGeneralSettingsItem"
-      @request-close="dialogOpen = false"
+      @request-close="handleDialogClose"
       @submit="submitDialogRecord"
     />
   </q-page>
@@ -56,7 +57,7 @@ import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useQuasar } from 'quasar'
 import { useRoute } from 'vue-router'
 import AddEditRecordShellDialog from 'src/components/AddEditRecordShellDialog.vue'
-import { consumePendingAddEditShellRequest } from 'src/utils/addEditShellState'
+import { consumePendingAddEditShellRequest, setPendingAddEditShellRequest } from 'src/utils/addEditShellState'
 import { getLdbRelationshipContractForToken, getLdbRelationshipContractsForEntity } from 'src/shared/ldbRelationshipContracts'
 import { loadShellFieldSelectionMap, persistShellFieldSelectionMap } from 'src/utils/shellFieldSelection'
 import {
@@ -101,6 +102,7 @@ const liveOptionRowsBySource = ref({})
 const dialogMode = ref('create')
 const dialogInitialValues = ref({})
 const dialogInitialFieldMeta = ref({})
+const dialogInitialSnapshot = ref(null)
 const dialogInitialSectionKey = ref('general')
 const dialogRecordId = ref('')
 const dialogEntityName = ref('')
@@ -350,6 +352,7 @@ watch(
       dialogHistoryLoading.value = false
       dialogInitialValues.value = buildCreateDialogInitialValues(pending)
       dialogInitialFieldMeta.value = buildCreateDialogInitialFieldMeta(pending)
+      dialogInitialSnapshot.value = pending?.snapshot || null
       dialogInitialSectionKey.value = 'general'
       dialogOpen.value = true
       return
@@ -362,6 +365,7 @@ watch(
     dialogInitialValues.value = {}
     dialogInitialFieldMeta.value = {}
     dialogHistoryItems.value = []
+    dialogInitialSnapshot.value = null
 
     const payload = await loadEditDialogRecordPayload(dialogEntityName.value, dialogRecordId.value)
     if (!payload?.record) {
@@ -378,6 +382,9 @@ watch(
 
 function buildCreateDialogInitialValues(pending = null) {
   const nextInitialValues = {}
+  if (pending?.snapshot?.values && typeof pending.snapshot.values === 'object') {
+    Object.assign(nextInitialValues, pending.snapshot.values)
+  }
   if (pending?.initialValues && typeof pending.initialValues === 'object') {
     Object.assign(nextInitialValues, pending.initialValues)
   }
@@ -403,8 +410,24 @@ function buildCreateDialogInitialFieldMeta(pending = null) {
   if (pending?.initialFieldMeta && typeof pending.initialFieldMeta === 'object') {
     Object.assign(nextFieldMeta, pending.initialFieldMeta)
   }
+  if (pending?.snapshot?.verification?.changes && typeof pending.snapshot.verification.changes === 'object') {
+    Object.assign(nextFieldMeta, pending.snapshot.verification.changes)
+  }
   Object.assign(nextFieldMeta, buildContextRelationshipPrefill().initialFieldMeta)
   return nextFieldMeta
+}
+
+function handleDialogClose(snapshot) {
+  if (snapshot?.closeReason === 'discard' || !snapshot?.hasUserChanges) {
+    dialogInitialSnapshot.value = null
+    return
+  }
+  setPendingAddEditShellRequest({
+    sourceKey: activeSourceKey.value,
+    initialValues: snapshot?.values || {},
+    initialFieldMeta: snapshot?.verification?.changes || {},
+    snapshot,
+  })
 }
 
 function reopenDialogShell() {

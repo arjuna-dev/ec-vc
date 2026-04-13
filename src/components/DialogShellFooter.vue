@@ -12,7 +12,7 @@
     </div>
 
     <B10Button
-      label="Cancel"
+      :label="cancelLabel"
       variant="subtle"
       size="small"
       :disable="cancelDisabled"
@@ -54,6 +54,10 @@ const props = defineProps({
   saveLabel: {
     type: String,
     default: 'Save',
+  },
+  cancelLabel: {
+    type: String,
+    default: 'Cancel',
   },
 })
 

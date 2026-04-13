@@ -1013,7 +1013,8 @@
           :save-disabled="submitDisabled"
           :loading="loading"
           :save-label="submitLabel"
-          @cancel="open = false"
+          :cancel-label="cancelLabel"
+          @cancel="discardDialog"
           @save="submit"
         />
       </template>
@@ -1086,6 +1087,7 @@ const props = defineProps({
   preferAddLayout: { type: Boolean, default: false },
   initialResourcesCollapsed: { type: Boolean, default: false },
   initialRecordDataCollapsed: { type: Boolean, default: false },
+  initialSnapshot: { type: Object, default: null },
 })
 
 const emit = defineEmits([
@@ -1105,6 +1107,10 @@ const route = useRoute()
 const hasUserChanges = ref(false)
 const selectDraftValues = ref({})
 const inlineCreatingSelectKeys = ref([])
+const cancelLabel = computed(() => {
+  if (props.mode === 'create') return 'Discard'
+  return hasUserChanges.value ? 'Discard' : 'Close'
+})
 
 const INLINE_NAME_ONLY_CREATE_SOURCES = new Set([
   'companies',
@@ -1124,11 +1130,16 @@ const open = computed({
   get: () => props.modelValue,
   set: (value) => {
     if (!value) {
-      emit('request-close', buildDialogSnapshot())
+      if (!isDiscarding.value) {
+        emit('request-close', buildDialogSnapshot())
+      }
+      isDiscarding.value = false
     }
     emit('update:modelValue', value)
   },
 })
+
+const isDiscarding = ref(false)
 
 const dialogPayloadResetSignature = computed(() => JSON.stringify({
   mode: String(props.mode || '').trim(),
@@ -1604,8 +1615,8 @@ function initializeDialogState() {
   selectedUrlEntryIds.value = []
   selectedBlurbEntryIds.value = []
   expandedEntryIds.value = []
-  supportResourcesCollapsed.value = props.preferAddLayout ? true : Boolean(props.initialResourcesCollapsed)
-  recordDataCollapsed.value = props.preferAddLayout ? false : Boolean(props.initialRecordDataCollapsed)
+  supportResourcesCollapsed.value = props.preferAddLayout ? false : Boolean(props.initialResourcesCollapsed)
+  recordDataCollapsed.value = props.preferAddLayout ? true : Boolean(props.initialRecordDataCollapsed)
   dialogWidth.value = 760
   dialogHeight.value = 780
   formValues.value = Object.fromEntries(
@@ -1628,6 +1639,12 @@ function initializeDialogState() {
       ]),
   )
   syncUndoSignature()
+
+  if (props.initialSnapshot?.uiState) {
+    restoreUndoSnapshot(props.initialSnapshot.uiState)
+    hasUserChanges.value = Boolean(props.initialSnapshot.hasUserChanges)
+    syncUndoSignature()
+  }
 }
 
 watch(
@@ -1743,6 +1760,15 @@ function submit() {
   })
 }
 
+function discardDialog() {
+  isDiscarding.value = true
+  emit('request-close', {
+    ...buildDialogSnapshot(),
+    closeReason: 'discard',
+  })
+  open.value = false
+}
+
 function buildDialogSnapshot() {
   const contextDefaults = artifactContextNote.value
     ? stagedArtifacts.value
@@ -1778,6 +1804,7 @@ function buildDialogSnapshot() {
       urls: urlEntries.value.map((entry) => entry.value),
       guidance: blurbEntries.value.map((entry) => entry.value),
     },
+    uiState: createUndoSnapshot(),
     hasUserChanges: hasUserChanges.value,
   }
 }
