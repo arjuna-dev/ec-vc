@@ -20,6 +20,7 @@ This mission should stay aligned with:
 
 - `docs/999/Active/Intake_Governance.md`
 - `docs/999/Active/Intake_Rulings.md`
+- `docs/999/Active/Recipe.md`
 
 ## Mission
 
