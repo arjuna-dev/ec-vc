@@ -2278,25 +2278,25 @@ Working guidance:
   - `Notes`: `System`, `LDB`
   - `Roles`: `System`, `LDB`
 
-Grouped view rendering rule:
+Grouped subgroup rendering rule:
 
 - a grouped `L2` may collapse multiple canonical subsections into one toolbar item
 - that grouped toolbar item must not flatten those canonical subsection identities in the panel
-- when grouped subsection blocks render in the panel, each view must have its own collapse / expand control
+- when grouped subsection blocks render in the panel, each subgroup must have its own collapse / expand control
 - the same grouped subsection rule should hold in the shared create / edit dialog, not only in `Record View`
 - `Companies` should therefore render one `Business Overview` toolbar label while preserving:
   - `Ops Overview`
   - `Business Overview`
   - `Market Overview`
   - `Results Overview`
-  as view variants inside the panel
+  as subgroup variants inside the panel
 
-Canonical view rule:
+Canonical subgroup rule:
 
-- when view structure is necessary, it should be declared explicitly as `L2.a`, `L2.b`, `L2.c`, and so on
+- when subgroup structure is necessary, it should be declared explicitly as `L2.a`, `L2.b`, `L2.c`, and so on
 - this is not a hidden `L4`
 - `L3` remains the leaf layer
-- shells should not invent view structure that canon does not declare
+- shells should not invent subgroup structure that canon does not declare
 
 ## Execution Plan
 

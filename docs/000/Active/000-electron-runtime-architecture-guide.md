@@ -348,7 +348,7 @@ This file helps organize canonical structure into payload groups for the shared 
 It does things like:
 
 - group `L2` sections
-- preserve view structure
+- preserve view and subgroup structure
 - build LDB views like:
   - `First-Order`
   - `LDB`
@@ -360,7 +360,7 @@ It is part of the contract-preparation layer for the dialog shell.
 
 - preserve canonical grouping explicitly
 - prefer canon-driven grouping over ad hoc shell-only grouping
-- keep view identity visible
+- keep view and subgroup identity visible
 - do not flatten structure just because the UI is simpler that way
 
 ## What to be aware of

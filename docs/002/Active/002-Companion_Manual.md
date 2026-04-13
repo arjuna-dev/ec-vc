@@ -198,7 +198,7 @@ The companion's base rule is:
 
 ## Branch And View Rule
 
-Detailed branch and view rules belong in the file guide.
+Detailed branch, view, and subgroup rules belong in the file guide.
 
 The companion's base rule is:
 
