@@ -434,8 +434,11 @@ function buildCreateDialogInitialValues(pending = null) {
     const targetSourceKey = branchEntry?.targetSourceKey || activeSourceKey.value
     const targetEntry = getFilePageRegistryEntry(targetSourceKey) || activeRegistryEntry.value
     const sourceLabel = String(targetEntry?.singularLabel || targetEntry?.label || 'Record').trim()
-    const branchLabel = requestedBranch
-      ? `${requestedBranch.charAt(0).toUpperCase() + requestedBranch.slice(1)} `
+    const branchLabelRaw = requestedBranch
+      ? `${requestedBranch.charAt(0).toUpperCase() + requestedBranch.slice(1)}`
+      : ''
+    const branchLabel = branchLabelRaw && branchLabelRaw.toLowerCase() !== sourceLabel.toLowerCase()
+      ? `${branchLabelRaw} `
       : ''
     const liveRows = Array.isArray(liveOptionRowsBySource.value[targetSourceKey])
       ? liveOptionRowsBySource.value[targetSourceKey]

@@ -1608,8 +1608,11 @@ function resolveCreateDialogOptionValue(token, rawValue) {
 
     const singularLabel = String(entry.singularLabel || entry.label || 'Record').trim()
     const normalizedBranch = String(requestedBranch || '').trim()
-    const branchLabel = normalizedBranch
-      ? `${normalizedBranch.charAt(0).toUpperCase()}${normalizedBranch.slice(1)} `
+    const branchLabelRaw = normalizedBranch
+      ? `${normalizedBranch.charAt(0).toUpperCase()}${normalizedBranch.slice(1)}`
+      : ''
+    const branchLabel = branchLabelRaw && branchLabelRaw.toLowerCase() !== singularLabel.toLowerCase()
+      ? `${branchLabelRaw} `
       : ''
     const rows = getOptionRowsForSource(normalizedSourceKey)
     const nonDiscardedRows = (Array.isArray(rows) ? rows : []).filter((row) => {
