@@ -172,7 +172,7 @@
                           />
                           <span class="create-record-shell__processing-item-name">{{ artifact.name }}</span>
                           <q-btn
-                            v-if="!artifact.artifactId && !startingArtifactIds.includes(artifact.id)"
+                            v-if="!artifact.processedArtifactId && !startingArtifactIds.includes(artifact.id)"
                             flat
                             dense
                             no-caps
@@ -663,6 +663,8 @@ import { useQuasar } from 'quasar'
 import { useRoute, useRouter } from 'vue-router'
 import CollapsibleSectionShell from 'src/components/CollapsibleSectionShell.vue'
 import { buildRecordViewLocation } from 'src/utils/recordViewNavigation'
+import { getRuntimeTableNameForEntityName } from 'src/utils/structureRegistry'
+import { getLdbRelationshipContractForEntityPair } from 'src/shared/ldbRelationshipContracts'
 
 const props = defineProps({
   modelValue: { type: Boolean, default: false },
@@ -710,6 +712,8 @@ const artifactDragOver = ref(false)
 const stagedArtifacts = ref([])
 const selectedArtifactIds = ref([])
 const startingArtifactIds = ref([])
+const intakeSessionId = ref('')
+const intakeReportId = ref('')
 const autoProcessArtifacts = ref(false)
 const companionUrl = ref('')
 const companionBlurb = ref('')
@@ -1518,7 +1522,7 @@ async function ensureProcessedArtifactForSelection(artifactId) {
 async function startArtifactProcessing(artifactId) {
   pushUndoSnapshot()
   const artifact = stagedArtifacts.value.find((entry) => entry.id === artifactId)
-  if (!artifact || artifact.artifactId) return
+  if (!artifact) return
   if (startingArtifactIds.value.includes(artifactId)) return
   startingArtifactIds.value = [...startingArtifactIds.value, artifactId]
   try {
@@ -1526,6 +1530,32 @@ async function startArtifactProcessing(artifactId) {
     stagedArtifacts.value = stagedArtifacts.value.map((entry) =>
       entry.id === artifactId
         ? { ...entry, ...persistedArtifact }
+        : entry,
+    )
+    const workingArtifactId = String(persistedArtifact?.artifactId || artifact.artifactId || artifact.id || '').trim()
+    if (!workingArtifactId) {
+      throw new Error('Artifact record was not created.')
+    }
+
+    const opportunityId = resolveArtifactContextOpportunityId()
+    const intakeId = await ensureIntakeSession(workingArtifactId)
+    if (intakeId) {
+      await linkEntities('Intake', intakeId, 'Artifacts', workingArtifactId)
+    }
+    if (opportunityId) {
+      await linkEntities('Opportunities', opportunityId, 'Artifacts', workingArtifactId)
+      if (intakeId) {
+        await linkEntities('Intake', intakeId, 'Opportunities', opportunityId)
+      }
+      if (intakeReportId.value) {
+        await linkEntities('Intake', intakeReportId.value, 'Opportunities', opportunityId)
+        await linkEntities('Intake', intakeReportId.value, 'Artifacts', workingArtifactId)
+      }
+    }
+
+    stagedArtifacts.value = stagedArtifacts.value.map((entry) =>
+      entry.id === artifactId
+        ? { ...entry, processedArtifactId: intakeSessionId.value || entry.processedArtifactId }
         : entry,
     )
     markDialogChanged()
@@ -1537,6 +1567,70 @@ async function startArtifactProcessing(artifactId) {
   } finally {
     startingArtifactIds.value = startingArtifactIds.value.filter((id) => id !== artifactId)
   }
+}
+
+async function ensureIntakeSession(originalArtifactId = '') {
+  if (intakeSessionId.value) return intakeSessionId.value
+  if (!bridge.value?.intake?.create) return ''
+
+  const nameSeed = String(stagedArtifacts.value[0]?.name || '').trim() || 'New Intake'
+  const result = await bridge.value.intake.create({
+    Intake_Name: nameSeed,
+    Intake_Summary: '',
+    Original_Artifact_Id: originalArtifactId || null,
+    Working: 1,
+  })
+  intakeSessionId.value = String(result?.id || '').trim()
+  if (!intakeSessionId.value) return ''
+
+  const report = await bridge.value.intake.create({
+    Intake_Name: `${nameSeed} Report`,
+    Intake_Summary: '',
+    Original_Artifact_Id: originalArtifactId || null,
+    Working: 0,
+  })
+  intakeReportId.value = String(report?.id || '').trim()
+  if (intakeReportId.value) {
+    await bridge.value?.records?.update?.({
+      tableName: getRuntimeTableNameForEntityName('Intake'),
+      recordId: intakeSessionId.value,
+      changes: [
+        {
+          change_kind: 'field',
+          table_name: 'Intake',
+          record_id: intakeSessionId.value,
+          field_name: 'Created_Files_JSON',
+          new_value: JSON.stringify({ reportId: intakeReportId.value }),
+        },
+      ],
+      actionLabel: 'intake_report_seed',
+    })
+  }
+
+  return intakeSessionId.value
+}
+
+async function linkEntities(sourceEntity, sourceRecordId, targetEntity, targetRecordId) {
+  const contract = getLdbRelationshipContractForEntityPair(sourceEntity, targetEntity)
+  if (!contract) return
+  const tableName = getRuntimeTableNameForEntityName(sourceEntity)
+  if (!tableName) return
+  await bridge.value?.records?.update?.({
+    tableName,
+    recordId: sourceRecordId,
+    changes: [
+      {
+        change_kind: 'relationship',
+        table_name: tableName,
+        record_id: sourceRecordId,
+        field_name: contract.sourceToken,
+        relationship_token: contract.sourceToken,
+        target_entity: contract.targetEntity,
+        new_value: JSON.stringify([targetRecordId]),
+      },
+    ],
+    actionLabel: 'intake_link',
+  })
 }
 
 function resolveArtifactContextOpportunityId() {
