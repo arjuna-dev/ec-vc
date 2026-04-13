@@ -1754,6 +1754,16 @@ function ensureBaseStructureCompleteness(existing = null, base = null) {
   if (!base || typeof base !== 'object') return existing
   if (!existing || typeof existing !== 'object') return base
 
+  const resolveTokenIdentity = (token = {}) => {
+    const writeField = String(token?.dbWriteField || '').trim().toLowerCase()
+    if (writeField) return writeField
+    const alias = (Array.isArray(token?.dbFieldAliases) ? token.dbFieldAliases : [])
+      .map((value) => String(value || '').trim().toLowerCase())
+      .filter(Boolean)[0]
+    if (alias) return alias
+    return String(token?.tokenName || token?.key || token?.label || '').trim().toLowerCase()
+  }
+
   const baseSections = Array.isArray(base.sections) ? base.sections : []
   const existingSections = Array.isArray(existing.sections) ? existing.sections : []
   const normalizedExisting = existingSections.map((section) => ({
@@ -1784,12 +1794,10 @@ function ensureBaseStructureCompleteness(existing = null, base = null) {
     const existingSection = normalizedExisting[existingIndex]
     if (baseLabel.toLowerCase() === 'system') {
       const baseTokenKeys = new Set(
-        baseSection.tokens
-          .map((token) => String(token?.tokenName || token?.key || token?.label || '').trim().toLowerCase())
-          .filter(Boolean),
+        baseSection.tokens.map((token) => resolveTokenIdentity(token)).filter(Boolean),
       )
       const systemExtras = existingSection.tokens?.filter((token) => {
-        const tokenKey = String(token?.tokenName || token?.key || token?.label || '').trim().toLowerCase()
+        const tokenKey = resolveTokenIdentity(token)
         return tokenKey && !baseTokenKeys.has(tokenKey)
       }) || []
 
@@ -1806,12 +1814,12 @@ function ensureBaseStructureCompleteness(existing = null, base = null) {
           const generalTokens = Array.isArray(generalSection.tokens) ? generalSection.tokens : []
           const generalTokenMap = new Map(
             generalTokens.map((token) => [
-              String(token?.tokenName || token?.key || token?.label || '').trim().toLowerCase(),
+              resolveTokenIdentity(token),
               token,
             ]),
           )
           systemExtras.forEach((token) => {
-            const tokenKey = String(token?.tokenName || token?.key || token?.label || '').trim().toLowerCase()
+            const tokenKey = resolveTokenIdentity(token)
             if (!tokenKey) return
             if (generalTokenMap.has(tokenKey)) return
             const tokenRole = String(token?.tokenRole || '').trim().toLowerCase()
@@ -1837,12 +1845,12 @@ function ensureBaseStructureCompleteness(existing = null, base = null) {
     const existingTokens = Array.isArray(existingSection.tokens) ? existingSection.tokens : []
     const tokenMap = new Map(
       existingTokens.map((token) => [
-        String(token?.tokenName || token?.key || token?.label || '').trim().toLowerCase(),
+        resolveTokenIdentity(token),
         token,
       ]),
     )
     baseSection.tokens.forEach((baseToken) => {
-      const tokenNameKey = String(baseToken?.tokenName || baseToken?.key || baseToken?.label || '').trim().toLowerCase()
+      const tokenNameKey = resolveTokenIdentity(baseToken)
       if (!tokenNameKey) return
       if (tokenMap.has(tokenNameKey)) return
       const baseRole = String(baseToken?.tokenRole || '').trim().toLowerCase()
