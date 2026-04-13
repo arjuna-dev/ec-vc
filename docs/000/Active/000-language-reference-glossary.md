@@ -79,7 +79,6 @@
 | File Shell Lab | The strict shared file shell route used to test and exercise contract-driven page behavior. | Record Architecture |
 | Deprecated Record Surface | `RecordPage.vue`, the earlier shared record implementation. It is now a historical legacy surface and not the active shared record route target. | Record Architecture |
 | LDB | A reusable reference or processing file surface that may not be golden-tier in product importance, but still behaves like an `L1` in the shell and contract system. | Companion |
-| KDB | Legacy language for the relationship/local-database layer. The approved forward product language is `LDB` (`Local Data Base`). Avoid introducing new `KDB` language in live contracts. | Product Reference |
 | Field Label Row | The top row of a field block that carries the field label and any adjacent guidance or action control. | Working UI Language |
 | Token Label Row Editor | The label row control that edits token metadata directly in the UI (token type, option source, option entity/list, write field, field class). | Record Architecture |
 | Field Control Shell | The visible value/input box under a field label. It is the rendered shell around the actual field content, not the field contract itself. | Working UI Language |

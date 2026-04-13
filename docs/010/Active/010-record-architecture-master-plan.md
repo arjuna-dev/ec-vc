@@ -55,8 +55,7 @@ Reference inputs remain useful for:
 
 Legacy note:
 
-- treat any remaining runtime `KDB` names as legacy labels for `LDB` until the staged rename is complete
-- do not introduce new `KDB` language in active contracts
+- treat any remaining runtime legacy labels as `LDB` until the staged rename is complete
 
 ## Objective
 
@@ -845,7 +844,7 @@ Naming direction:
 
 - `LDB` means `Local DataBase`
 - the meaning is the local file-to-file and record-to-record relationship layer inside the owner's local system
-- current runtime names may still say `KDB` until a deliberate staged rename is performed
+- current runtime names may still use legacy labels until a deliberate staged rename is performed
 - do not rename docs, UI labels, sqlite tables, relationship contracts, and canonical sections independently
 - the rename should be treated as one architecture pass, not a piecemeal cleanup
 

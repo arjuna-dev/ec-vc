@@ -28,12 +28,12 @@ The live runtime contract now flows from:
 
 - drive live shell payloads
 - substitute for file-owned token/view contracts
-- introduce legacy `KDB` terms into new work
+- introduce legacy terms into new work
 
 ## Terminology
 
 - use `LDB` for the relationship layer
-- avoid introducing new `KDB` terms in active docs or runtime contracts
+- avoid introducing legacy terms in active docs or runtime contracts
 
 ## Next Step
 

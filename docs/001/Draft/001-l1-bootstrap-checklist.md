@@ -1,6 +1,6 @@
 # New File Bootstrap Implementation Checklist
 
-**Terminology update:** File = former `L1`, View = former `L2`, Token = former `L3`, and `LDB` replaces legacy `KDB` naming in runtime contracts.
+**Terminology update:** File = former `L1`, View = former `L2`, Token = former `L3`.
 
 ## Purpose
 

@@ -488,7 +488,6 @@ This name better describes the local relationship layer between:
 - records inside those files
 - local system files and their relationship paths
 
-Current implementation should avoid introducing new `KDB` names in live contracts, docs, or UI labels.
 Use `LDB` for all user-facing and documentation naming.
 
 Do not rename those pieces one by one.
