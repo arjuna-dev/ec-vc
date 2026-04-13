@@ -605,9 +605,6 @@
                                                  "subsection":  "Operations",
                                                  "subsection_address":  "4.6.0",
                                                  "structure_token":  "Company_Ops_Overview",
-                                                 "subgroup_key":  "business-overview",
-                                                 "subgroup_label":  "Overview",
-                                                 "subgroup_address":  "4.6.a",
                                                  "tokens":  [
                                                                 {
                                                                     "address":  "4.6.1",
@@ -694,9 +691,6 @@
                                                  "subsection":  "Business",
                                                  "subsection_address":  "4.7.0",
                                                  "structure_token":  "Company_Business_Overview",
-                                                 "subgroup_key":  "business-overview",
-                                                 "subgroup_label":  "Overview",
-                                                 "subgroup_address":  "4.7.b",
                                                  "tokens":  [
                                                                 {
                                                                     "address":  "4.7.2",
@@ -760,9 +754,6 @@
                                                  "subsection":  "Market",
                                                  "subsection_address":  "4.8.0",
                                                  "structure_token":  "Company_Market_Overview",
-                                                 "subgroup_key":  "business-overview",
-                                                 "subgroup_label":  "Overview",
-                                                 "subgroup_address":  "4.8.c",
                                                  "tokens":  [
                                                                 {
                                                                     "address":  "4.8.1",
@@ -786,9 +777,6 @@
                                                  "subsection":  "Results",
                                                  "subsection_address":  "4.9.0",
                                                  "structure_token":  "Company_Results_Overview",
-                                                 "subgroup_key":  "business-overview",
-                                                 "subgroup_label":  "Overview",
-                                                 "subgroup_address":  "4.9.d",
                                                  "tokens":  [
                                                                 {
                                                                     "address":  "4.9.1",

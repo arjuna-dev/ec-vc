@@ -198,12 +198,12 @@ The companion's base rule is:
 
 ## Branch And View Rule
 
-Detailed branch, view, and subgroup (visual-only) rules belong in the file guide.
+Detailed branch and view rules belong in the file guide.
 
 The companion's base rule is:
 
 - follow declared branch routing
-- follow declared `L2` and `L2.a-b-c-d` grouping
+- follow declared `L2` grouping
 - do not flatten a file's structure just to make work easier
 
 ## Approval Rule

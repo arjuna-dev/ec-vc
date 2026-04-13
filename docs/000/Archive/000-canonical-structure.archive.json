@@ -11,7 +11,7 @@
     "entity_address_pattern": "L1.0.0",
     "subsection_address_pattern": "L1.L2.0",
     "token_address_pattern": "L1.L2.L3",
-    "subgroup_address_pattern": "L1.L2.a"
+    "subsection_group_address_pattern": null
   },
   "base_l1_contract": {
     "description": "The shared starter contract for normal L1 files.",
@@ -43,7 +43,7 @@
       "rule": "Name and Summary are shared canonical fields and should not be renamed per entity when the meaning is shared."
     },
     "entity_extension_layers": {
-      "rule": "After the shared base, each L1 may add independent L2 sections and explicit L2.a-b-c-d subgrouping when canon declares it."
+      "rule": "After the shared base, each L1 may add independent L2 sections; no additional grouping layer is active."
     },
     "controlled_exception": {
       "entity": "Building_Blocks",

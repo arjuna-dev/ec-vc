@@ -91,11 +91,7 @@ Each view should contain its own explicit leaf items.
 
 The `File Steward` should treat this as a strict contract requirement, not as a rendering preference.
 
-When subgroup presentation is necessary inside a view:
-
-- it should be declared explicitly as `L2.a`, `L2.b`, `L2.c`, and so on
-- it should not be improvised in shell code only
-- it should preserve `L3` as the leaf layer
+Do not introduce view subdivision layers. Views remain flat and map directly to their tokens.
 
 ## Honest Birth Status Rule
 
