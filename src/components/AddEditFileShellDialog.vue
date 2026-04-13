@@ -202,14 +202,6 @@
         />
       </div>
 
-      <div v-else-if="viewSubtabs.length" class="file-structure-shell__subgroup-tabs">
-        <SectionTabs
-          v-model="activeSubgroupKey"
-          :left-tabs="viewSubtabs"
-          :right-tabs="[]"
-        />
-      </div>
-
       <div v-if="!isGovernanceToolbarActive" class="file-structure-shell__leaf-table-wrap ds-mini-scrollbar">
         <StructureGovernancePanel
           mode="data"
@@ -234,7 +226,6 @@ import MainMenuSubgroupRow from 'src/components/MainMenuSubgroupRow.vue'
 import PlusWithLabelButton from 'src/components/PlusWithLabelButton.vue'
 import RecordTitle from 'src/components/RecordTitle.vue'
 import RecordSummaryBox from 'src/components/RecordSummaryBox.vue'
-import SectionTabs from 'src/components/SectionTabs.vue'
 import MiniToolbar from 'src/components/MiniToolbar.vue'
 import StructureGovernancePanel from 'src/components/StructureGovernancePanel.vue'
 import { buildStructureToolbarItems } from 'src/utils/structureToolbarContract'
@@ -272,7 +263,6 @@ const miniToolbarActiveKey = computed({
 })
 const boxesCollapsed = ref(false)
 const leafItemsCollapsed = ref(false)
-const activeSubgroupKey = ref('')
 const draftLeafRowsBySource = ref({})
 const draftTokenRowsBySource = ref({})
 const leafFieldOverridesBySource = ref({})
@@ -335,8 +325,7 @@ const tokenGovernanceColumns = computed(() => [
   { key: 'writeTarget', label: 'Write Target / Alias', width: 220, headerClass: 'file-structure-shell__colhead--data', cellClass: 'file-structure-shell__cell--data', editable: true, kind: 'text' },
 ])
 const leafDataColumns = computed(() => [
-  { key: 'parentView', label: 'View', width: 92, headerClass: 'file-structure-shell__colhead--structure', cellClass: 'file-structure-shell__cell--structure' },
-  { key: 'parentSubgroup', label: 'View', width: 78, headerClass: 'file-structure-shell__colhead--structure', cellClass: 'file-structure-shell__cell--structure' },
+  { key: 'parentView', label: 'View', width: 140, headerClass: 'file-structure-shell__colhead--structure', cellClass: 'file-structure-shell__cell--structure' },
   { key: 'key', label: 'Token Key', width: 108, headerClass: 'file-structure-shell__colhead--structure', cellClass: 'file-structure-shell__cell--l3-key' },
   { key: 'order', label: 'Order', width: 54, headerClass: 'file-structure-shell__colhead--structure', cellClass: 'file-structure-shell__cell--structure' },
   { key: 'label', label: 'Label', width: 180, cellClass: 'file-structure-shell__cell--label', editable: true, kind: 'text' },
@@ -405,13 +394,6 @@ const activeViewSection = computed(
 const isRelationshipSettingsSection = computed(() =>
   isRelationshipSectionLabel(activeViewSection.value?.label),
 )
-const viewSubtabs = computed(() => {
-  if (isRelationshipSettingsSection.value) return []
-  return (Array.isArray(activeViewSection.value?.subgroups) ? activeViewSection.value.subgroups : []).map((group) => ({
-    key: group.key,
-    label: group.label,
-  }))
-})
 const governanceViewRows = computed(() =>
   [...toolbarViewSplit.value.leftSections, ...toolbarViewSplit.value.rightSections].map((section) => {
     const normalized = String(section.label || '').trim().toLowerCase()
@@ -420,7 +402,7 @@ const governanceViewRows = computed(() =>
       label: section.label,
       side: toolbarViewSplit.value.rightSections.some((entry) => entry.key === section.key) ? 'Right' : 'Left',
       tokenCount: Array.isArray(section.tokens) ? section.tokens.length : 0,
-      subgroupCount: Array.isArray(section.subgroups) ? section.subgroups.length : 0,
+      subgroupCount: 0,
       sortOrder: normalized,
     }
   }),
@@ -454,28 +436,20 @@ const sharedLdbLeafTokens = computed(() => {
     .filter(Boolean)
 })
 const activeLeafTokens = computed(() => {
-  const subgroupMap = new Map(
-    (Array.isArray(activeViewSection.value?.subgroups) ? activeViewSection.value.subgroups : []).map((group) => [group.key, group]),
-  )
   const deletedKeys = new Set(deletedTokenKeysBySource.value[activeSettingsSourceKey.value] || [])
   const sourceTokens = isRelationshipSettingsSection.value
     ? sharedLdbLeafTokens.value
-    : viewSubtabs.value.length
-    ? (subgroupMap.get(activeSubgroupKey.value)?.tokens || [])
     : (Array.isArray(activeViewSection.value?.tokens) ? activeViewSection.value.tokens : [])
   const draftTokens = draftLeafRowsBySource.value[activeSettingsSourceKey.value] || []
   const tokens = [...draftTokens, ...sourceTokens].filter((token) => !deletedKeys.has(token.key))
 
-    return tokens.map((token, index) => {
+  return tokens.map((token, index) => {
       const requiredKeys = new Set(requiredFieldKeysBySource.value[activeSettingsSourceKey.value] || [])
       const writeTarget = token.isDraft ? null : getCanonicalTokenWriteTarget(token, activeShellSelectorOption.value.label, 'id')
       return {
         key: token.key || '—',
         label: token.label || '—',
       parentView: token.parentLabel || activeViewSection.value?.label || '—',
-      parentSubgroup: isRelationshipSettingsSection.value
-        ? '—'
-        : token.draftParentSubgroup || subgroupMap.get(activeSubgroupKey.value)?.label || '—',
         type: token.tokenType || '—',
         optionSource: token.optionSource || '—',
         optionEntity: token.optionEntity || '—',
@@ -588,7 +562,6 @@ function addLeafElement() {
   const currentDrafts = draftLeafRowsBySource.value[sourceKey] || []
   const nextIndex = currentDrafts.length + 1
   const nextKey = `${sourceKey}-draft-leaf-${nextIndex}`
-  const parentSubgroup = viewSubtabs.value.find((tab) => tab.key === activeSubgroupKey.value)?.label || '—'
   draftLeafRowsBySource.value = {
     ...draftLeafRowsBySource.value,
     [sourceKey]: [
@@ -604,7 +577,6 @@ function addLeafElement() {
         dbFieldAliases: [],
         optionList: '',
         optionSource: '',
-        draftParentSubgroup: parentSubgroup,
       },
     ],
   }
@@ -803,14 +775,6 @@ watch(
   { immediate: true },
 )
 
-watch(
-  viewSubtabs,
-  (tabs) => {
-    if (tabs.some((tab) => tab.key === activeSubgroupKey.value)) return
-    activeSubgroupKey.value = tabs[0]?.key || ''
-  },
-  { immediate: true },
-)
 
 watch(
   fileStructureSnapshot,
@@ -1121,10 +1085,6 @@ watch(
   flex-direction: column;
   gap: 10px;
   padding: 0 16px 18px;
-}
-
-.file-structure-shell__subgroup-tabs {
-  padding-top: 2px;
 }
 
 .file-structure-shell__leaf-table-wrap {
