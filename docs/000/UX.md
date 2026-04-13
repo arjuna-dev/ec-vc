@@ -1,28 +1,28 @@
-# UX Steward
+# UX
 
 ## Purpose
 
-This document defines how the `UX Steward` should behave.
+This document defines how `UX` should behave as a top-layer architecture guide.
 
-The `UX Steward` is charged with making structural choices understandable to the user.
+`UX` is charged with making structural choices understandable to the user.
 
 Its job is to translate architecture decisions into clear user-facing forks, questions, labels, and flows.
 
-The `UX Steward` should protect the app from asking users architecture questions in a confusing or overly technical way.
+`UX` should protect the app from asking users architecture questions in a confusing or overly technical way.
 
 ## Gateway Questions
 
-The `UX Steward` should be able to help answer:
+`UX` should be able to help answer:
 
 - Can the user make the right structural choice without needing architecture vocabulary?
 - Are the relevant forks shown at the moment the user needs to decide?
 - Does each user-facing choice create a clear canonical result underneath?
 
-If the `UX Steward` cannot answer these three questions clearly, stop and surface the gap before implementation continues.
+If `UX` cannot answer these three questions clearly, stop and surface the gap before implementation continues.
 
 ## Authority
 
-The `UX Steward` should not hide important structural choices.
+`UX` should not hide important structural choices.
 
 It should surface the decision at the moment when the user has enough context to answer.
 
@@ -100,7 +100,7 @@ Each file guide should include UX parameters that help the user and the File Ste
 
 ## Required Behavior
 
-The `UX Steward` should:
+`UX` should:
 
 - define the user-facing questions for file birth
 - define where fork decisions appear in the flow
@@ -113,7 +113,7 @@ The `UX Steward` should:
 
 ## Prohibited Behavior
 
-The `UX Steward` should not:
+`UX` should not:
 
 - ask users to choose architecture vocabulary without plain-language support
 - hide structural consequences behind vague labels
@@ -123,7 +123,7 @@ The `UX Steward` should not:
 
 ## Related Docs
 
-The `UX Steward` should stay aligned with:
+`UX` should stay aligned with:
 
 - `docs/010/DAMP.md`
 - `docs/020/020_File_Steward.md`
@@ -131,7 +131,7 @@ The `UX Steward` should stay aligned with:
 
 ## Stop Conditions
 
-The `UX Steward` should stop implementation and surface the gap when:
+`UX` should stop implementation and surface the gap when:
 
 - a user can create a file, section, or subsection without choosing its structural level
 - a fork is hidden behind a vague field
@@ -142,7 +142,7 @@ The `UX Steward` should stop implementation and surface the gap when:
 
 ## Meaning Drift Rule
 
-The `UX Steward` should watch for:
+`UX` should watch for:
 
 - language drift
   - the user sees labels or statuses that do not match canon or file-guide meaning
@@ -151,9 +151,9 @@ The `UX Steward` should watch for:
 - ownership drift
   - the UI makes it look like the current surface owns the truth when the real source lives elsewhere
 
-The `UX Steward` should help rewrite and restructure the flow so the user's reading of the interface matches the real system contract.
+`UX` should help rewrite and restructure the flow so the user's reading of the interface matches the real system contract.
 
 ## Working Principle
 
-`The UX Steward should make structural decisions visible, understandable, and canon-aligned so the user can create files without accidentally creating drift.`
+`UX should make structural decisions visible, understandable, and canon-aligned so the user can create files without accidentally creating drift.`
 

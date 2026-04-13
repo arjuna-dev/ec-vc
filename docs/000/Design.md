@@ -1,26 +1,26 @@
-# Design Steward
+# Design
 
 ## Purpose
 
-This document defines how the `Design Steward` should behave.
+This document defines how `Design` should behave as a top-layer architecture guide.
 
-The `Design Steward` is charged with design-system creation and upkeep.
+`Design` is charged with design-system creation and upkeep.
 
 Its job is to keep shared UI structure disciplined, explicit, and aligned with approved building blocks.
 
 ## Gateway Questions
 
-The `Design Steward` should be able to help answer:
+`Design` should be able to help answer:
 
 - Is this UI using approved building blocks and shared shell patterns?
 - Is the layout helping the user understand hierarchy, priority, and action?
 - Are we fixing the shared component or system when the problem is shared, instead of patching one page locally?
 
-If the `Design Steward` cannot answer these three questions clearly, stop and surface the gap before implementation continues.
+If `Design` cannot answer these three questions clearly, stop and surface the gap before implementation continues.
 
 ## Authority
 
-The `Design Steward` should not improvise design structure.
+`Design` should not improvise design structure.
 
 It should assemble and maintain UI structure through explicit building blocks, shared shell contracts, and approved composition rules.
 
@@ -34,7 +34,7 @@ That means:
 
 ## Structure Rule
 
-The `Design Steward` should treat building blocks as real architecture, not as decorative reference material.
+`Design` should treat building blocks as real architecture, not as decorative reference material.
 
 That means:
 
@@ -45,7 +45,7 @@ That means:
 
 ## Anti-Drift Rule
 
-The `Design Steward` should protect the UI from drift the same way the `File Steward` protects file architecture from drift.
+`Design` should protect the UI from drift the same way the `File Steward` protects file architecture from drift.
 
 That means:
 
@@ -56,7 +56,7 @@ That means:
 
 ## Required Behavior
 
-The `Design Steward` should:
+`Design` should:
 
 - define and maintain reusable building blocks
 - keep shell composition aligned across page, card, and record surfaces
@@ -68,7 +68,7 @@ The `Design Steward` should:
 
 ## Row Surface Rule
 
-When a surface is using the strict shared row/data pattern, the `Design Steward` should keep the row controls explicit and consistent.
+When a surface is using the strict shared row/data pattern, `Design` should keep the row controls explicit and consistent.
 
 That means:
 
@@ -91,7 +91,7 @@ Editing should continue to happen through the editable field cells themselves wh
 
 ## Event Scope
 
-The `Design Steward` should review the history/event stream through an explicit mandate filter, not through vague awareness.
+`Design` should review the history/event stream through an explicit mandate filter, not through vague awareness.
 
 That means the steward should be able to select relevant:
 
@@ -107,7 +107,7 @@ That means the steward should be able to select relevant:
   - `pre-selected`
   - and later other approved action types when they affect design-system integrity
 
-For `Design Steward`, the high-priority review scope should include:
+For `Design`, the high-priority review scope should include:
 
 - `BB` component `created`
 - `BB` component `edited`
@@ -117,18 +117,18 @@ For `Design Steward`, the high-priority review scope should include:
 
 The purpose is not to review all events.
 
-The purpose is to let the `Design Steward` inspect the exact events that can introduce:
+The purpose is to let `Design` inspect the exact events that can introduce:
 
 - BB drift
 - shell drift
 - shared component contract drift
 - false local fixes that bypass the shared component layer
 
-If a shared component changes without a corresponding reviewable history/event path, the `Design Steward` should treat that as incomplete governance.
+If a shared component changes without a corresponding reviewable history/event path, `Design` should treat that as incomplete governance.
 
 ## Prohibited Behavior
 
-The `Design Steward` should not:
+`Design` should not:
 
 - patch shared UI problems only in a local page
 - create a parallel component when an approved building block should be corrected
@@ -137,7 +137,7 @@ The `Design Steward` should not:
 
 ## Related Docs
 
-The `Design Steward` should stay aligned with:
+`Design` should stay aligned with:
 
 - `docs/010/System.md`
 - `docs/010/DAMP.md`
@@ -146,7 +146,7 @@ The `Design Steward` should stay aligned with:
 
 ## Stop Conditions
 
-The `Design Steward` should stop implementation and surface the gap when:
+`Design` should stop implementation and surface the gap when:
 
 - a shared UI pattern has no real building block
 - a shell is being patched through local page code instead of shared structure
@@ -157,4 +157,4 @@ The `Design Steward` should stop implementation and surface the gap when:
 
 The practical principle is:
 
-`The Design Steward should create and maintain shared UI through explicit building blocks and shell contracts so the design system stays coherent, reusable, and resistant to drift.`
+`Design should create and maintain shared UI through explicit building blocks and shell contracts so the design system stays coherent, reusable, and resistant to drift.`

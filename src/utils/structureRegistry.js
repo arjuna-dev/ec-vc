@@ -14,9 +14,9 @@ const FILE_PAGE_ROUTE_META = Object.freeze({
     fileGuidePath: 'docs/100/Archive/100-BB_Shell.md',
     primaryStewardDoc: {
       id: 'design-steward',
-      label: 'Design Steward',
-      caption: 'docs/020/020_Design_Steward.md',
-      path: 'docs/020/020_Design_Steward.md',
+      label: 'Design',
+      caption: 'docs/000/Design.md',
+      path: 'docs/000/Design.md',
       icon: 'description',
     },
     requiredSubsections: ['General', 'Usage', 'Anatomy', 'Source', 'Reconstruction', 'Variants'],
@@ -589,9 +589,9 @@ export function getFilePageReferenceDocs(sourceKey = '') {
 
   docs.push({
     id: 'ux-steward',
-    label: 'UX Steward',
-    caption: 'docs/020/020_UX_Steward.md',
-    path: 'docs/020/020_UX_Steward.md',
+    label: 'UX',
+    caption: 'docs/000/UX.md',
+    path: 'docs/000/UX.md',
     icon: 'description',
   })
 
