@@ -537,15 +537,9 @@ export function getFilePageRegistryEntryByEntityReference(entityName) {
   const normalizedEntityName = String(entityName || '').trim()
   if (!normalizedEntityName) return null
 
-  const legacyEntityAliases = {
-    Intake: 'intake',
-    Roles: 'user-roles',
-    History: 'events',
-  }
-
   return (
     getFilePageRegistryEntryByEntityName(normalizedEntityName)
-    || getFilePageRegistryEntry(legacyEntityAliases[normalizedEntityName] || normalizedEntityName)
+    || getFilePageRegistryEntry(normalizedEntityName)
   )
 }
 
