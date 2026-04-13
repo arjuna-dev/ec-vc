@@ -22,7 +22,7 @@ Companion behavior and ingestion-side structural discipline should also stay ali
 - `docs/020/020_Provenance_Steward.md`
 - `docs/020/020_Runtime_Steward.md`
 - `docs/010/Archive/010-files-system-birth-audit.md`
-- `docs/999/999-ECS_Workstream_Tracker.md`
+- `docs/999/ECS_Tracker.md`
 
 Docs-domain rule:
 

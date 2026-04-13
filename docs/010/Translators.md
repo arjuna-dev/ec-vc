@@ -181,5 +181,4 @@ Stay aligned with:
 - `docs/010/DAMP.md`
 - `docs/010/LAMP.md`
 - `docs/010/Intake.md`
-- `docs/999/Recipe.md`
 - `docs/002/002-Companion_Manual.md`

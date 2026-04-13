@@ -37,4 +37,3 @@ That means this file should eventually help answer:
 - `docs/010/DAMP.md`
 - `docs/010/Recipe.md`
 - `docs/010/Translators.md`
-- `docs/999/Recipe.md`

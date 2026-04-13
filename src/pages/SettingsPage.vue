@@ -507,7 +507,7 @@ const companionDocumentMenu = [
     layer: '999 Other / Workstream',
     label: 'ECS Workstream Tracker',
     short: 'Active direction',
-    path: 'docs/999/999-ECS_Workstream_Tracker.md',
+    path: 'docs/999/ECS_Tracker.md',
     eyebrow: 'Tracker',
     heroTitle: 'Tracker',
   },

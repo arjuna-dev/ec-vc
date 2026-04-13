@@ -39,12 +39,11 @@ Typical examples:
 
 Stay aligned with:
 
-- `docs/999/Recipe.md`
 - `docs/010/Intake.md`
 - `docs/010/Translators.md`
 
 ## Current Accepted Entries
 
-Use `docs/999/Recipe.md` as the active maintained entry list for now.
+Use this file as the single current recipe source.
 
-This `010` file exists so the recipe concept also has a stable architecture-side home.
+This is now the maintained recipe list for tested patterns we want to preserve.
