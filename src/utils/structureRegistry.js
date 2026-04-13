@@ -440,9 +440,8 @@ function buildEntityRegistry(entityName) {
     .map((value) => String(value || '').trim())
     .filter(Boolean)
 
-  const sourceSubsections = customSubsections
   const tokenOverrides = meta.tokenOverrides && typeof meta.tokenOverrides === 'object' ? meta.tokenOverrides : {}
-  const subsections = sourceSubsections
+  const subsections = customSubsections
     .map((subsection, index) => ({
       key: String(subsection?.structure_token || subsection?.subsection || '').trim() || `${entityName}_${index + 1}`,
       subsectionOrder: String(subsection?.subsection_order ?? index + 1),
@@ -512,7 +511,7 @@ function buildEntityRegistry(entityName) {
       : [...DEFAULT_L1_REQUIRED_RUNTIME_CAPABILITIES],
     address: String(meta.address || '').trim(),
     structureToken: String(meta.structureToken || '').trim(),
-    subsections,
+    subsections: customSubsections,
   }
 }
 
