@@ -343,13 +343,6 @@ const FILE_PAGE_ENTITY_ORDER = [
   'Securities',
 ]
 
-function normalizeDbFieldAliases(token) {
-  const aliases = Array.isArray(token?.db_field_aliases) ? token.db_field_aliases : []
-  return aliases
-    .map((alias) => String(alias || '').trim())
-    .filter(Boolean)
-}
-
 function normalizeOptionItems(items) {
   if (!Array.isArray(items)) return []
   return items
@@ -379,10 +372,6 @@ function normalizeReferenceDoc(doc = {}) {
     path,
     icon: String(doc?.icon || 'description').trim() || 'description',
   }
-}
-
-function formatLabel(value) {
-  return formatSharedDisplayLabel(value)
 }
 
 const runtimeFileStructuresBySource = {}
