@@ -5,7 +5,7 @@
 - file name: `Users`
 - file guide: `docs/100/Draft/100-Users.md`
 - parent guide: `docs/001/Active/001-Files.md`
-- file class: `L1`
+- file class: `File`
 - canonical entity: `Users`
 - app-facing label: `Users`
 - canonical owner identity: `Owner`
@@ -78,11 +78,7 @@ The system should preserve user creation, user-contact linking, status changes, 
 - shell rendering path is declared: `yes`, route `/users`
 - events/provenance path is declared: `partial`
 
-## View Fork System
-
-Definition note:
-
-- view forks and subgroups are internal to a file, not separate file rows, unless `System Files` explicitly tracks them as such
+## View Structure
 
 ### System
 
