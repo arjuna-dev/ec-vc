@@ -1871,41 +1871,7 @@ function ensureBaseStructureCompleteness(existing = null, base = null) {
 }
 
 function buildDefinedStructureJson(entry) {
-  const rawSections = Array.isArray(entry?.subsections) ? entry.subsections : []
-  if (!rawSections.length) {
-    return JSON.stringify(buildBaseFileStructure(entry))
-  }
-  const sections = rawSections.map((section, index) => ({
-    key: String(section?.key || section?.structureToken || section?.label || `section-${index + 1}`).trim(),
-    label: String(section?.label || '').trim(),
-    address: String(section?.address || '').trim(),
-    structureToken: String(section?.structureToken || '').trim(),
-    subgroupKey: String(section?.subgroupKey || '').trim(),
-    subgroupLabel: String(section?.subgroupLabel || '').trim(),
-    subgroupAddress: String(section?.subgroupAddress || '').trim(),
-    displayGroup: String(section?.displayGroup || '').trim(),
-    tokens: (Array.isArray(section?.tokens) ? section.tokens : []).map((token, tokenIndex) => ({
-      key: String(token?.key || token?.tokenName || token?.address || `token-${tokenIndex + 1}`).trim(),
-      tokenName: String(token?.tokenName || '').trim(),
-      tokenRole: String(token?.tokenRole || '').trim(),
-      tokenOrder: String(token?.tokenOrder || '').trim(),
-      address: String(token?.address || '').trim(),
-      label: String(token?.label || '').trim(),
-      tokenType: String(token?.tokenType || '').trim(),
-      optionSource: String(token?.optionSource || '').trim(),
-      optionEntity: String(token?.optionEntity || '').trim(),
-      optionList: String(token?.optionList || '').trim(),
-      optionEntities: Array.isArray(token?.optionEntities) ? token.optionEntities : [],
-      dbFieldAliases: Array.isArray(token?.dbFieldAliases) ? token.dbFieldAliases : [],
-      dbWriteField: String(token?.dbWriteField || '').trim(),
-      relationshipGroup: String(token?.relationshipGroup || '').trim(),
-    })),
-  }))
-
-  return JSON.stringify({
-    version: 1,
-    sections,
-  })
+  return JSON.stringify(buildBaseFileStructure(entry))
 }
 
 function getFileRegistryForkMode(entry) {
