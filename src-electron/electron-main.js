@@ -8204,7 +8204,7 @@ function createRound(payload = {}) {
     companyId = createCompany(payload.company)?.id || null
   }
   if (!companyId) {
-    throw new Error('Company is required to create a round.')
+    companyId = null
   }
 
   maybeCreatePrimaryContact(payload.primary_contact)
