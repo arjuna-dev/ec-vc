@@ -343,13 +343,6 @@ const FILE_PAGE_ENTITY_ORDER = [
   'Securities',
 ]
 
-function normalizeSubsections(entity) {
-  const subsections = entity?.subsections
-  if (Array.isArray(subsections)) return subsections
-  if (subsections && typeof subsections === 'object') return Object.values(subsections)
-  return []
-}
-
 function normalizeTokens(subsection) {
   const tokens = Array.isArray(subsection?.tokens) ? subsection.tokens : []
   return tokens
@@ -424,7 +417,6 @@ function stripTokenEntityPrefix(tokenName = '', prefixes = []) {
   return rawTokenName
 }
 
-const canonicalEntitiesByName = Object.fromEntries((canonicalStructure?.entities || []).map((entity) => [entity.entity, entity]))
 const runtimeFileStructuresBySource = {}
 const runtimeStructureSubscribers = new Set()
 let runtimeStructureVersion = 0
@@ -440,18 +432,15 @@ function buildEntityRegistry(entityName) {
 
   const canonicalEntityName = String(meta.canonicalEntityName || entityName).trim()
   const runtimeEntityName = String(meta.runtimeEntityName || entityName).trim()
-  const sourceEntity = canonicalEntitiesByName[canonicalEntityName]
-  const customSubsections = Array.isArray(meta.customSubsections) ? meta.customSubsections : null
-  if (!sourceEntity && !customSubsections) return null
+  const customSubsections = Array.isArray(meta.customSubsections) ? meta.customSubsections : []
   const entityTokenPrefixes = [
-    String(sourceEntity?.structure_token?.token_name || '').trim(),
     String(meta.singularLabel || '').trim().replace(/\s+/g, '_'),
     canonicalEntityName.endsWith('s') ? canonicalEntityName.slice(0, -1) : canonicalEntityName,
   ]
     .map((value) => String(value || '').trim())
     .filter(Boolean)
 
-  const sourceSubsections = customSubsections || normalizeSubsections(sourceEntity)
+  const sourceSubsections = customSubsections
   const tokenOverrides = meta.tokenOverrides && typeof meta.tokenOverrides === 'object' ? meta.tokenOverrides : {}
   const subsections = sourceSubsections
     .map((subsection, index) => ({
@@ -521,8 +510,8 @@ function buildEntityRegistry(entityName) {
     requiredRuntimeCapabilities: Array.isArray(meta.requiredRuntimeCapabilities)
       ? meta.requiredRuntimeCapabilities
       : [...DEFAULT_L1_REQUIRED_RUNTIME_CAPABILITIES],
-    address: String(meta.address || sourceEntity?.entity_address || '').trim(),
-    structureToken: String(meta.structureToken || sourceEntity?.structure_token?.token_name || sourceEntity?.structure_token || '').trim(),
+    address: String(meta.address || '').trim(),
+    structureToken: String(meta.structureToken || '').trim(),
     subsections,
   }
 }

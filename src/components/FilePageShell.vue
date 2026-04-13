@@ -1742,8 +1742,8 @@ const heroPayload = computed(() => {
   )
   const remainingDriftPoints = Math.max(totalDriftPoints - activeDriftPoints, 0)
   const sharedText = isRecordShellMode.value
-    ? 'This is the shared record-create shell. The selected L1 sets the real source entity, while the active L2 section defines which L3 tune fields are visible in the row surface.'
-    : `This is the shared file shell for ${fileLabel}. The active L1 determines the local payload while the hero structure remains owned by bb:file-hero.`
+    ? 'This is the shared record-create shell. The selected file sets the real source entity, while the active view defines which token fields are visible in the row surface.'
+    : `This is the shared file shell for ${fileLabel}. The active file determines the local payload while the hero structure remains owned by bb:file-hero.`
 
   return {
     text: sharedText,

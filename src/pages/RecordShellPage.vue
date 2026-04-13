@@ -1243,7 +1243,7 @@ const feedItems = computed(() => {
       sourceLabel: 'Record Shell',
       meta: 'Now',
       title: 'Template feed lane',
-      content: 'This right-side black box is the dedicated feed surface for the selected L1 record skeleton.',
+      content: 'This right-side black box is the dedicated feed surface for the selected file record skeleton.',
       hasLogPage: false,
     },
     {
@@ -1252,8 +1252,8 @@ const feedItems = computed(() => {
       groupKey: 'actions',
       sourceLabel: 'Payload',
       meta: 'Live',
-      title: 'L1-driven structure',
-      content: 'Changing the L1 at the top swaps the canonical record skeleton underneath this template.',
+      title: 'File-driven structure',
+      content: 'Changing the file at the top swaps the canonical record skeleton underneath this template.',
       hasLogPage: false,
     },
   ]
