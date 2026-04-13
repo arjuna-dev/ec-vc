@@ -1783,11 +1783,50 @@ function ensureBaseStructureCompleteness(existing = null, base = null) {
 
     const existingSection = normalizedExisting[existingIndex]
     if (baseLabel.toLowerCase() === 'system') {
+      const baseTokenKeys = new Set(
+        baseSection.tokens.map((token) => String(token?.tokenName || token?.key || '').trim().toLowerCase()).filter(Boolean),
+      )
+      const systemExtras = existingSection.tokens?.filter((token) => {
+        const tokenKey = String(token?.tokenName || token?.key || '').trim().toLowerCase()
+        return tokenKey && !baseTokenKeys.has(tokenKey)
+      }) || []
+
       normalizedExisting[existingIndex] = {
         ...existingSection,
         tokens: baseSection.tokens,
       }
       if (existingSection.tokens?.length !== baseSection.tokens.length) mutated = true
+
+      if (systemExtras.length) {
+        const generalIndex = findSectionIndex(normalizedExisting, 'General')
+        if (generalIndex !== -1) {
+          const generalSection = normalizedExisting[generalIndex]
+          const generalTokens = Array.isArray(generalSection.tokens) ? generalSection.tokens : []
+          const generalTokenMap = new Map(
+            generalTokens.map((token) => [String(token?.tokenName || token?.key || '').trim().toLowerCase(), token]),
+          )
+          systemExtras.forEach((token) => {
+            const tokenKey = String(token?.tokenName || token?.key || '').trim().toLowerCase()
+            if (!tokenKey) return
+            if (generalTokenMap.has(tokenKey)) return
+            const tokenRole = String(token?.tokenRole || '').trim().toLowerCase()
+            const tokenLabel = String(token?.label || '').trim().toLowerCase()
+            const hasRoleMatch = tokenRole
+              ? generalTokens.some((entry) => String(entry?.tokenRole || '').trim().toLowerCase() === tokenRole)
+              : false
+            const hasLabelMatch = tokenLabel
+              ? generalTokens.some((entry) => String(entry?.label || '').trim().toLowerCase() === tokenLabel)
+              : false
+            if (hasRoleMatch || hasLabelMatch) return
+            generalTokenMap.set(tokenKey, token)
+            mutated = true
+          })
+          normalizedExisting[generalIndex] = {
+            ...generalSection,
+            tokens: Array.from(generalTokenMap.values()),
+          }
+        }
+      }
       return
     }
     const existingTokens = Array.isArray(existingSection.tokens) ? existingSection.tokens : []
