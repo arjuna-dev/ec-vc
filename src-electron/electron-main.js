@@ -2191,6 +2191,42 @@ function buildFilesAcceptanceValidation(rows = []) {
     })
   }
 
+  const parseDefinedStructure = (rawValue = '') => {
+    const raw = String(rawValue || '').trim()
+    if (!raw) return { parsed: null, error: 'missing' }
+    try {
+      const parsed = JSON.parse(raw)
+      if (!parsed || typeof parsed !== 'object') return { parsed: null, error: 'invalid' }
+      return { parsed, error: '' }
+    } catch {
+      return { parsed: null, error: 'invalid' }
+    }
+  }
+
+  const getSectionByLabel = (sections = [], label = '') => {
+    const normalized = String(label || '').trim().toLowerCase()
+    if (!normalized) return null
+    return (Array.isArray(sections) ? sections : []).find((section) =>
+      String(section?.label || '').trim().toLowerCase() === normalized,
+    ) || null
+  }
+
+  const tokenHasRole = (tokens = [], role = '') => {
+    const normalized = String(role || '').trim().toLowerCase()
+    if (!normalized) return false
+    return (Array.isArray(tokens) ? tokens : []).some(
+      (token) => String(token?.tokenRole || token?.token_role || '').trim().toLowerCase() === normalized,
+    )
+  }
+
+  const tokenHasType = (tokens = [], type = '') => {
+    const normalized = String(type || '').trim().toLowerCase()
+    if (!normalized) return false
+    return (Array.isArray(tokens) ? tokens : []).some(
+      (token) => String(token?.tokenType || token?.token_type || '').trim().toLowerCase() === normalized,
+    )
+  }
+
   FILE_PAGE_REGISTRY.forEach((entry, index) => {
     const sourceKey = String(entry?.key || '').trim()
     const row = rowsBySourceKey.get(sourceKey)
@@ -2217,6 +2253,88 @@ function buildFilesAcceptanceValidation(rows = []) {
         issue: 'Defined_Structure is missing for this file. Runtime shells cannot render views or tokens without it.',
         suggestedAction: 'Seed the base System/General/LDB structure for this file inside System Files.',
       })
+    } else {
+      const { parsed, error } = parseDefinedStructure(definedStructure)
+      if (error === 'invalid') {
+        addIssue({
+          severity: 'error',
+          sourceKey,
+          fileId: String(row?.id || '').trim(),
+          field: 'Defined_Structure',
+          issue: 'Defined_Structure is not valid JSON and cannot be parsed.',
+          suggestedAction: 'Rebuild the structure payload for this file before trusting runtime shells.',
+        })
+      } else if (parsed) {
+        const sections = Array.isArray(parsed.sections) ? parsed.sections : []
+        const systemSection = getSectionByLabel(sections, 'System')
+        const generalSection = getSectionByLabel(sections, 'General')
+
+        if (!systemSection) {
+          addIssue({
+            severity: 'error',
+            sourceKey,
+            fileId: String(row?.id || '').trim(),
+            field: 'Defined_Structure',
+            issue: 'Defined_Structure is missing the System section.',
+            suggestedAction: 'Restore the System section with ID + History tokens.',
+          })
+        } else {
+          const systemTokens = Array.isArray(systemSection.tokens) ? systemSection.tokens : []
+          if (!tokenHasRole(systemTokens, 'id')) {
+            addIssue({
+              severity: 'error',
+              sourceKey,
+              fileId: String(row?.id || '').trim(),
+              field: 'Defined_Structure',
+              issue: 'System section is missing the ID token (tokenRole: id).',
+              suggestedAction: 'Restore the ID token in the System section.',
+            })
+          }
+          if (!tokenHasType(systemTokens, 'event_log')) {
+            addIssue({
+              severity: 'error',
+              sourceKey,
+              fileId: String(row?.id || '').trim(),
+              field: 'Defined_Structure',
+              issue: 'System section is missing the History token (tokenType: event_log).',
+              suggestedAction: 'Restore the History token in the System section.',
+            })
+          }
+        }
+
+        if (!generalSection) {
+          addIssue({
+            severity: 'error',
+            sourceKey,
+            fileId: String(row?.id || '').trim(),
+            field: 'Defined_Structure',
+            issue: 'Defined_Structure is missing the General section.',
+            suggestedAction: 'Restore the General section with Name + Summary tokens.',
+          })
+        } else {
+          const generalTokens = Array.isArray(generalSection.tokens) ? generalSection.tokens : []
+          if (!tokenHasRole(generalTokens, 'title')) {
+            addIssue({
+              severity: 'error',
+              sourceKey,
+              fileId: String(row?.id || '').trim(),
+              field: 'Defined_Structure',
+              issue: 'General section is missing the Name token (tokenRole: title).',
+              suggestedAction: 'Restore the Name token in the General section.',
+            })
+          }
+          if (!tokenHasRole(generalTokens, 'summary')) {
+            addIssue({
+              severity: 'error',
+              sourceKey,
+              fileId: String(row?.id || '').trim(),
+              field: 'Defined_Structure',
+              issue: 'General section is missing the Summary token (tokenRole: summary).',
+              suggestedAction: 'Restore the Summary token in the General section.',
+            })
+          }
+        }
+      }
     }
 
     const fileId = String(row?.id || '').trim()
