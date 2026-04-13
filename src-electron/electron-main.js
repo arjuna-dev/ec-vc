@@ -1731,7 +1731,7 @@ function buildBaseFileStructure(entry) {
               tokenOrder: '3',
               address: '',
               label: 'Status',
-              tokenType: 'select',
+              tokenType: 'select_multi',
               optionSource: 'static',
               optionEntity: '',
               optionList: '',
@@ -1854,12 +1854,18 @@ function ensureBaseStructureCompleteness(existing = null, base = null) {
         token,
       ]),
     )
-    baseSection.tokens.forEach((baseToken) => {
-      const tokenNameKey = resolveTokenIdentity(baseToken)
-      if (!tokenNameKey) return
-      if (tokenMap.has(tokenNameKey)) return
-      const baseRole = String(baseToken?.tokenRole || '').trim().toLowerCase()
-      const baseLabel = String(baseToken?.label || '').trim().toLowerCase()
+      baseSection.tokens.forEach((baseToken) => {
+        const tokenNameKey = resolveTokenIdentity(baseToken)
+        if (!tokenNameKey) return
+        const baseRole = String(baseToken?.tokenRole || '').trim().toLowerCase()
+        if (tokenMap.has(tokenNameKey)) {
+          if (baseRole === 'status') {
+            tokenMap.set(tokenNameKey, baseToken)
+            mutated = true
+          }
+          return
+        }
+        const baseLabel = String(baseToken?.label || '').trim().toLowerCase()
       const hasRoleMatch = baseRole
         ? existingTokens.some((token) => String(token?.tokenRole || '').trim().toLowerCase() === baseRole)
         : false

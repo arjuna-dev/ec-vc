@@ -254,6 +254,15 @@
       </div>
     </div>
 
+    <q-chip
+      v-if="draftTrayVisible"
+      clickable
+      class="ec-draft-tray-chip"
+      icon="view_list"
+      label="Active Drafts"
+      @click="toggleDraftTray"
+    />
+
     <q-dialog v-model="draftsDialogOpen">
       <q-card class="ec-drafts-dialog">
         <q-card-section class="ec-drafts-dialog__body">
@@ -2597,6 +2606,17 @@ function goBack() {
     color: rgba(148, 163, 184, 0.9);
     text-transform: uppercase;
     letter-spacing: 0.08em;
+  }
+
+  .ec-draft-tray-chip {
+    position: fixed;
+    right: 20px;
+    bottom: 80px;
+    z-index: 3001;
+    background: rgba(15, 23, 42, 0.96);
+    color: #e2e8f0;
+    border: 1px solid rgba(148, 163, 184, 0.25);
+    box-shadow: 0 12px 28px rgba(2, 6, 23, 0.45);
   }
 
   .ec-draft-tray :deep(.record-feed-panel) {
