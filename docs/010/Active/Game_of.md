@@ -1,20 +1,22 @@
-# Games
+# Game_of
 
 ## Purpose
 
-This document is the single active Games guide.
+This document is the single active `Game_of` guide.
 
 It now carries:
 
-- root Games rules
-- Games operation
+- root `Game_of` rules
+- `Game_of` operation
 - the current concrete game rulebook
 
-The Games layer exists to make progress legible, motivating, and prioritized without weakening truth, ownership, verification, provenance, or canonical structure.
+The `Game_of` layer exists to invite users and companions into a structured objective path where they accumulate points by gathering correct information through governed processes.
+
+It should make progress legible, motivating, and prioritized without weakening truth, ownership, verification, provenance, or canonical structure.
 
 ## Authority Rule
 
-Games are a guidance layer.
+`Game_of` is a guidance layer.
 
 They should help humans, companions, and future bots understand:
 
@@ -24,7 +26,7 @@ They should help humans, companions, and future bots understand:
 - how progress is scored
 - which quests, boards, or priorities are active
 
-Games must not replace:
+`Game_of` must not replace:
 
 - canonical ownership
 - file birth rules
@@ -41,11 +43,11 @@ The `Game Steward` remains in `020` because it is a Companion Steward role. This
 
 ## Root Rules
 
-- Games should surface structure, not invent structure.
-- Games should make priorities clearer, not hide missing architecture.
-- Games may reward effort provisionally, but truth should only be fully rewarded after verification.
-- Games should make blockers visible when ownership, runtime, relationship, or provenance paths are incomplete.
-- Games should remain readable to the `Owner` and useful to companions without requiring architecture vocabulary.
+- `Game_of` should surface structure, not invent structure.
+- `Game_of` should make priorities clearer, not hide missing architecture.
+- `Game_of` may reward effort provisionally, but truth should only be fully rewarded after verification.
+- `Game_of` should make blockers visible when ownership, runtime, relationship, or provenance paths are incomplete.
+- `Game_of` should remain readable to the `Owner` and useful to companions without requiring architecture vocabulary.
 
 ## Operating Layer
 

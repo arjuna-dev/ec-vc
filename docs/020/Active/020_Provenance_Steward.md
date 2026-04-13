@@ -105,7 +105,7 @@ The `Provenance Steward` should stay aligned with:
 - `docs/020/Active/020_Runtime_Steward.md`
 - `docs/100/Active/100-Files.md`
 - `docs/100/Active/100-System_Files.md`
-- `docs/010/Active/Games.md`
+- `docs/010/Active/Game_of.md`
 
 ## Stop Conditions
 

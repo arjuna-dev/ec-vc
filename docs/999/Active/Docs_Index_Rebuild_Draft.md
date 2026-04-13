@@ -58,7 +58,7 @@ Proposed current files:
 - `docs/000/LAMP.md`
 - `docs/000/Recipe.md`
 - `docs/000/Translators.md`
-- `docs/000/Games.md`
+- `docs/000/Game_of.md`
 - `docs/000/Archive/*`
 
 Role of this layer:
@@ -184,7 +184,7 @@ Use the migration in short loops:
 
 ## Open Questions
 
-- should `Games`, `Game_Operation`, and `Game_Rulebook` stay in `000` permanently, or only while top-layer context is still converging?
+- should `Game_of` stay in `000` permanently, or only while top-layer context is still converging?
 - should `001` contain only user-layer overview docs, with all detailed file guides living in `100`?
 - should `003` remain mostly empty until context grows, or should we seed it early with a single root context guide?
 - should we rename `100-*` style files to drop numeric prefixes once the folder structure itself is doing the indexing work?
