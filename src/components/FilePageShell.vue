@@ -1612,8 +1612,18 @@ function resolveCreateDialogOptionValue(token, rawValue) {
       ? `${normalizedBranch.charAt(0).toUpperCase()}${normalizedBranch.slice(1)} `
       : ''
     const rows = getOptionRowsForSource(normalizedSourceKey)
-    const count = Array.isArray(rows) ? rows.length : 0
-    return `New ${branchLabel}${singularLabel} #${count + 1}`
+    const existingNames = new Set(
+      (Array.isArray(rows) ? rows : [])
+        .map((row) => stringifyValue(titleToken ? getCanonicalTokenValue(row, titleToken) : null).toLowerCase())
+        .filter(Boolean),
+    )
+    let counter = (Array.isArray(rows) ? rows.length : 0) + 1
+    let candidate = `New ${branchLabel}${singularLabel} #${counter}`
+    while (existingNames.has(candidate.toLowerCase())) {
+      counter += 1
+      candidate = `New ${branchLabel}${singularLabel} #${counter}`
+    }
+    return candidate
   }
 
 function normalizeEntitySourceKey(entityName) {

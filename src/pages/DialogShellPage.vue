@@ -440,7 +440,22 @@ function buildCreateDialogInitialValues(pending = null) {
     const liveRows = Array.isArray(liveOptionRowsBySource.value[targetSourceKey])
       ? liveOptionRowsBySource.value[targetSourceKey]
       : []
-    const nameSeed = `New ${branchLabel}${sourceLabel} #${liveRows.length + 1}`
+    const titleToken = getRegistryTitleTokenForSource(targetSourceKey)
+    const existingNames = new Set(
+      liveRows
+        .map((row) =>
+          String(titleToken ? getCanonicalTokenValue(row, titleToken) : '')
+            .trim()
+            .toLowerCase(),
+        )
+        .filter(Boolean),
+    )
+    let counter = liveRows.length + 1
+    let nameSeed = `New ${branchLabel}${sourceLabel} #${counter}`
+    while (existingNames.has(nameSeed.toLowerCase())) {
+      counter += 1
+      nameSeed = `New ${branchLabel}${sourceLabel} #${counter}`
+    }
     nextInitialValues[canonicalNameToken.value.key] = nameSeed
   }
 
