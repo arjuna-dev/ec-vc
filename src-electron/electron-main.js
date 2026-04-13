@@ -1588,7 +1588,8 @@ function listRoles() {
 }
 
 function listCompanionRoles() {
-  initDb()
+  const database = initDb()
+  ensureDefaultCompanionRoles(database)
   return dbAll(
     `
     SELECT
@@ -6257,6 +6258,78 @@ function ensureDefaultRoles(database, actorUserId = null) {
     .prepare("SELECT id FROM Roles WHERE lower(trim(Role_Name)) = 'owner' LIMIT 1")
     .get()
   return normalizeNullableString(ownerRow?.id) || 'role:owner'
+}
+
+function ensureDefaultCompanionRoles(database, actorUserId = null) {
+  const defaultCompanionRoles = [
+    {
+      id: 'companion-role:master-companion',
+      name: 'Master Companion',
+      summary: 'Bootstrap operator responsible for sequential genesis and contract alignment.',
+      type: 'Companion',
+      status: 'Active',
+      contractPath: 'docs/020/Active/020_Master_Companion.md',
+    },
+    {
+      id: 'companion-role:intake-steward',
+      name: 'Intake Steward',
+      summary: 'Steward role that governs intake extraction, logic, and proposal review.',
+      type: 'Companion',
+      status: 'Active',
+      contractPath: 'docs/020/Active/020_Intake_Steward.md',
+    },
+    {
+      id: 'companion-role:point-tracker',
+      name: 'Point Tracker',
+      summary: 'Maintains score, progress, and verification checkpoints for the game layer.',
+      type: 'Companion',
+      status: 'Draft',
+      contractPath: 'docs/020/Active/020_Point_Tracker.md',
+    },
+    {
+      id: 'companion-role:quest-builder',
+      name: 'Quest Builder',
+      summary: 'Defines and curates quests, tasks, and progression logic for game loops.',
+      type: 'Companion',
+      status: 'Draft',
+      contractPath: 'docs/020/Active/020_Quest_Builder.md',
+    },
+  ]
+
+  for (const role of defaultCompanionRoles) {
+    const existing = database
+      .prepare('SELECT id FROM Companion_Roles WHERE lower(trim(Companion_Role_Name)) = lower(trim(?)) LIMIT 1')
+      .get(role.name)
+    if (existing?.id) continue
+
+    database
+      .prepare(
+        `
+        INSERT INTO Companion_Roles (
+          id,
+          Companion_Role_Name,
+          Companion_Role_Summary,
+          Companion_Role_Type,
+          Companion_Role_Status,
+          Companion_Role_Contract_Path,
+          created_by,
+          created_at,
+          updated_at
+        ) VALUES (
+          ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now')
+        )
+      `,
+      )
+      .run(
+        role.id,
+        role.name,
+        role.summary,
+        role.type,
+        role.status,
+        role.contractPath,
+        normalizeNullableString(actorUserId),
+      )
+  }
 }
 
 function ensureOwnerDb(database, ownerUserId) {

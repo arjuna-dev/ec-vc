@@ -73,6 +73,21 @@ The intake steward should:
 - rank confidence when multiple possible destinations exist, especially during first-pass extraction
 - prefer the higher-confidence first-pass placement and leave weaker alternatives visible as proposals instead of duplicating them as parallel truth
 
+## Intake Steward Checkpoint
+
+The Intake Steward is the checkpoint between extraction and final proposal.
+
+Required checkpoints:
+
+1. **Extraction**
+   - capture what the artifact actually says without interpretation
+2. **Logic and Meaning**
+   - assess whether the extracted data makes sense for the target file and token
+   - validate that the mapping is structurally correct before proposing it
+3. **Proposal**
+   - promote the final suggestions as `pre-selected` or `suggested`
+   - route anything unclear back for clarification instead of forcing a guess
+
 ## Prohibited Behavior
 
 The intake steward should not:
