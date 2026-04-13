@@ -402,7 +402,6 @@ const governanceViewRows = computed(() =>
       label: section.label,
       side: toolbarViewSplit.value.rightSections.some((entry) => entry.key === section.key) ? 'Right' : 'Left',
       tokenCount: Array.isArray(section.tokens) ? section.tokens.length : 0,
-      subgroupCount: 0,
       sortOrder: normalized,
     }
   }),

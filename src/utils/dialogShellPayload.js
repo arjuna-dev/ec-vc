@@ -34,7 +34,7 @@ export function buildDialogViews({
 } = {}) {
   return (Array.isArray(groupedViews) ? groupedViews : [])
     .map((group) => {
-      const subgroupViews = (Array.isArray(group?.views) ? group.views : [])
+      const groupViews = (Array.isArray(group?.views) ? group.views : [])
         .map((view) => ({
           key: view.key,
           label: view.label,
@@ -42,7 +42,7 @@ export function buildDialogViews({
         }))
         .filter((view) => keepEmptySections || view.tokens.length)
 
-      const flatTokens = subgroupViews.flatMap((view) => view.tokens)
+      const flatTokens = groupViews.flatMap((view) => view.tokens)
       return {
         key: group.value,
         label: group.title,

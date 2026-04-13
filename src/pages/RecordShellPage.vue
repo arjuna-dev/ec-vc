@@ -617,7 +617,6 @@ const governanceViewRows = computed(() =>
       label: view.label,
       side: normalized === 'system' || isRelationshipViewLabel(normalized) ? 'Right' : 'Left',
       tokenCount: fileTokens.value.filter((token) => token.parentKey === view.key).length,
-      subgroupCount: Array.isArray(view.subgroups) ? view.subgroups.length : 0,
     }
   }),
 )

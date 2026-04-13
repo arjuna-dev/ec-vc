@@ -1358,7 +1358,6 @@ const governanceViewRows = computed(() =>
     label: section.label,
     side: rightSections.value.some((entry) => entry.key === section.key) ? 'Right' : 'Left',
     tokenCount: Array.isArray(section.tokens) ? section.tokens.length : 0,
-    subgroupCount: Array.isArray(section.subgroups) ? section.subgroups.length : 0,
   })),
 )
 const tokenGroupsByView = computed(() =>

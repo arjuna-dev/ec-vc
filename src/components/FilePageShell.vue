@@ -1974,7 +1974,6 @@ const governanceViewRows = computed(() =>
     label: view.label,
     side: toolbarRightViews.value.some((entry) => entry.key === view.key) ? 'Right' : 'Left',
     tokenCount: fileTokens.value.filter((token) => token.parentKey === view.key).length,
-    subgroupCount: 0,
   })),
 )
   const tokenGroupsByView = computed(() =>

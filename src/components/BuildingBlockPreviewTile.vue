@@ -1143,10 +1143,10 @@ const miniToolbarItems = buildStructureToolbarItems({
 })
 
 const governanceViewRowsSample = [
-  { key: 'general', label: 'General', side: 'Left', tokenCount: 2, subgroupCount: 0 },
-  { key: 'system', label: 'System', side: 'Right', tokenCount: 3, subgroupCount: 0 },
-  { key: 'ldb', label: 'LDB', side: 'Right', tokenCount: 4, subgroupCount: 2 },
-  { key: 'overview', label: 'Overview', side: 'Left', tokenCount: 3, subgroupCount: 1 },
+  { key: 'general', label: 'General', side: 'Left', tokenCount: 2 },
+  { key: 'system', label: 'System', side: 'Right', tokenCount: 3 },
+  { key: 'ldb', label: 'LDB', side: 'Right', tokenCount: 4 },
+  { key: 'overview', label: 'Overview', side: 'Left', tokenCount: 3 },
 ]
 
 const governanceTokenGroupsSample = [
