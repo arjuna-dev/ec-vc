@@ -680,6 +680,7 @@ const props = defineProps({
   initialFieldMeta: { type: Object, default: () => ({}) },
   initialSectionKey: { type: String, default: 'general' },
   initialArtifacts: { type: Array, default: () => [] },
+  initialSnapshot: { type: Object, default: null },
   artifactContext: { type: Object, default: null },
   branchSelectorTokenKey: { type: String, default: '' },
   showShellSelector: { type: Boolean, default: false },
@@ -1022,6 +1023,20 @@ function initializeDialogState() {
       ]),
   )
   syncUndoSignature()
+  if (props.initialSnapshot && typeof props.initialSnapshot === 'object') {
+    const mergedSnapshot = {
+      ...props.initialSnapshot,
+      formValues: {
+        ...formValues.value,
+        ...(props.initialSnapshot.formValues || {}),
+      },
+      fieldVerificationStates: {
+        ...fieldVerificationStates.value,
+        ...(props.initialSnapshot.fieldVerificationStates || {}),
+      },
+    }
+    restoreUndoSnapshot(mergedSnapshot)
+  }
 }
 
 watch(
@@ -1146,6 +1161,7 @@ function buildDialogSnapshot() {
       guidance: blurbEntries.value.map((entry) => entry.value),
     },
     hasUserChanges: hasUserChanges.value,
+    draftSnapshot: createUndoSnapshot(),
   }
 }
 
@@ -1368,6 +1384,10 @@ async function onArtifactDrop(event) {
       const persisted = await persistDroppedArtifact(artifact)
       nextArtifacts.push(persisted || artifact)
     } catch (error) {
+      nextArtifacts.push({
+        ...artifact,
+        ingestError: error?.message || 'Could not ingest artifact.',
+      })
       $q.notify({
         type: 'negative',
         message: error?.message || `Could not ingest ${artifact.name || 'artifact'}.`,

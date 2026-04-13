@@ -19,6 +19,9 @@ export function setPendingIntakeShellRequest(request = null) {
         artifactContext: request.artifactContext && typeof request.artifactContext === 'object'
           ? { ...request.artifactContext }
           : null,
+        snapshot: request.snapshot && typeof request.snapshot === 'object'
+          ? { ...request.snapshot }
+          : null,
       }
     : null
 }

@@ -33,8 +33,10 @@
       :initial-field-meta="dialogInitialFieldMeta"
       :initial-section-key="dialogInitialSectionKey"
       :initial-artifacts="dialogInitialArtifacts"
+      :initial-snapshot="dialogInitialSnapshot"
       :artifact-context="dialogArtifactContext"
-      @request-close="dialogOpen = false"
+      @request-close="handleDialogClose"
+      @change="handleDialogChange"
       @submit="submitDialogRecord"
     />
   </q-page>
@@ -63,7 +65,7 @@ import {
 } from 'src/utils/structureRegistry'
 import { buildDialogViews, groupDialogViews, splitDialogViews } from 'src/utils/dialogShellPayload'
 import { normalizeTokenWriteValue } from 'src/utils/tokenWriteChanges'
-import { consumePendingIntakeShellRequest } from 'src/utils/intakeShellState'
+import { consumePendingIntakeShellRequest, setPendingIntakeShellRequest } from 'src/utils/intakeShellState'
 import { submitSharedRecordEditSession } from 'src/utils/sharedRecordEditSession'
 
 const route = useRoute()
@@ -81,6 +83,7 @@ const dialogInitialSectionKey = ref('general')
 const dialogRecordId = ref('')
 const dialogEntityName = ref('')
 const dialogInitialArtifacts = ref([])
+const dialogInitialSnapshot = ref(null)
 const dialogArtifactContext = ref(null)
 const runtimeStructureVersion = ref(getRuntimeStructureVersion())
 let runtimeStructureUnsub = null
@@ -167,7 +170,11 @@ watch(
   () => {
     const pending = consumePendingIntakeShellRequest()
     if (!pending) return
-    dialogInitialArtifacts.value = Array.isArray(pending.initialArtifacts) ? pending.initialArtifacts : []
+    const pendingSnapshot = pending.snapshot && typeof pending.snapshot === 'object' ? pending.snapshot : null
+    dialogInitialSnapshot.value = pendingSnapshot
+    dialogInitialArtifacts.value = Array.isArray(pendingSnapshot?.stagedArtifacts)
+      ? pendingSnapshot.stagedArtifacts
+      : Array.isArray(pending.initialArtifacts) ? pending.initialArtifacts : []
     dialogArtifactContext.value = pending.artifactContext && typeof pending.artifactContext === 'object'
       ? pending.artifactContext
       : null
@@ -187,6 +194,7 @@ watch(
       dialogInitialValues.value = buildCreateDialogInitialValues()
       dialogInitialFieldMeta.value = {}
       dialogInitialSectionKey.value = 'general'
+      dialogInitialSnapshot.value = null
       dialogRenderKey.value += 1
       return
     }
@@ -197,6 +205,7 @@ watch(
     dialogInitialSectionKey.value = isRelationshipViewLabel(editSection) ? dialogLdbSectionKey.value : 'general'
     dialogInitialValues.value = {}
     dialogInitialFieldMeta.value = {}
+    dialogInitialSnapshot.value = null
 
     const payload = await loadEditDialogRecordPayload(dialogEntityName.value, dialogRecordId.value)
     if (!payload?.record) {
@@ -210,6 +219,32 @@ watch(
   },
   { immediate: true },
 )
+
+function buildPendingIntakeRequest(snapshot = null) {
+  if (!snapshot || typeof snapshot !== 'object') return null
+  const draftSnapshot = snapshot.draftSnapshot && typeof snapshot.draftSnapshot === 'object'
+    ? snapshot.draftSnapshot
+    : null
+  const stagedArtifacts = Array.isArray(draftSnapshot?.stagedArtifacts) ? draftSnapshot.stagedArtifacts : []
+  const hasDraft = Boolean(snapshot.hasUserChanges) || stagedArtifacts.length > 0
+  if (!hasDraft) return null
+  return {
+    initialArtifacts: stagedArtifacts.length ? stagedArtifacts : dialogInitialArtifacts.value,
+    artifactContext: dialogArtifactContext.value,
+    snapshot: draftSnapshot,
+  }
+}
+
+function handleDialogChange(snapshot) {
+  const pending = buildPendingIntakeRequest(snapshot)
+  setPendingIntakeShellRequest(pending)
+}
+
+function handleDialogClose(snapshot) {
+  dialogOpen.value = false
+  const pending = buildPendingIntakeRequest(snapshot)
+  setPendingIntakeShellRequest(pending)
+}
 
 function buildCreateDialogInitialValues() {
   const nextInitialValues = {}
