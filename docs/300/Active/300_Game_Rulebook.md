@@ -434,7 +434,7 @@ That means:
 - `directional_link`
   - score strongly when it establishes identity, authority, provenance, or parentage correctly
 
-- `kdb_relationship`
+- `ldb_relationship`
   - score by stage relevance and downstream value
 
 Working rule:
