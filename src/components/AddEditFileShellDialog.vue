@@ -135,6 +135,29 @@
         :show-view-toggle="false"
         aria-label="Add Edit File Mini Toolbar"
       />
+      <q-input
+        v-model="searchQuery"
+        dense
+        outlined
+        placeholder="Search"
+        class="file-structure-shell__toolbar-search"
+      />
+      <button
+        v-if="isTokensToolbarActive"
+        type="button"
+        class="file-structure-shell__delete-btn"
+        @click="addTokenElement"
+      >
+        Add Token
+      </button>
+      <button
+        v-if="!isGovernanceToolbarActive"
+        type="button"
+        class="file-structure-shell__delete-btn"
+        @click="addLeafElement"
+      >
+        Add Row
+      </button>
       <button
         v-if="isTokensToolbarActive && selectedTokenKeys.length"
         type="button"
@@ -245,11 +268,13 @@ const boxesCollapsed = ref(false)
 const leafItemsCollapsed = ref(false)
 const activeSubgroupKey = ref('')
 const draftLeafRowsBySource = ref({})
+const draftTokenRowsBySource = ref({})
 const leafFieldOverridesBySource = ref({})
 const tokenFieldOverridesBySource = ref({})
 const selectedLeafKeysBySource = ref({})
 const selectedTokenKeysBySource = ref({})
 const deletedTokenKeysBySource = ref({})
+const searchQuery = ref('')
 const requiredFieldKeysBySource = ref({})
 const viewOptions = [
   { label: '', value: 'card', icon: 'grid_view' },
@@ -463,17 +488,22 @@ const tokenGroupsByView = computed(() =>
   governanceViewRows.value.map((view) => {
     const section = fileViewGroups.value.find((entry) => entry.key === view.key)
     const deletedKeys = new Set(deletedTokenKeysBySource.value[activeSettingsSourceKey.value] || [])
-    const groupTokens = (Array.isArray(section?.tokens) ? section.tokens : []).filter(
+    const baseTokens = (Array.isArray(section?.tokens) ? section.tokens : []).filter(
       (token) => !deletedKeys.has(token.key),
     )
+    const draftTokens = draftTokenRowsBySource.value[activeSettingsSourceKey.value] || []
+    const groupTokens = [...draftTokens, ...baseTokens]
       const requiredKeys = new Set(requiredFieldKeysBySource.value[activeSettingsSourceKey.value] || [])
-      return {
-        key: view.key,
-        label: view.label,
-        tokens: groupTokens.map((token, index) => {
-          const writeTarget = getCanonicalTokenWriteTarget(token, activeShellSelectorOption.value.label, 'id')
-          const overrides = tokenFieldOverridesBySource.value[activeSettingsSourceKey.value]?.[token.key] || {}
-          return {
+    const filteredTokens = searchQuery.value
+      ? groupTokens.filter((token) => String(token.label || '').toLowerCase().includes(searchQuery.value.toLowerCase()))
+      : groupTokens
+    return {
+      key: view.key,
+      label: view.label,
+      tokens: filteredTokens.map((token, index) => {
+        const writeTarget = getCanonicalTokenWriteTarget(token, activeShellSelectorOption.value.label, 'id')
+        const overrides = tokenFieldOverridesBySource.value[activeSettingsSourceKey.value]?.[token.key] || {}
+        return {
             key: token.key || `token-${index}`,
             label: (overrides.label ?? token.label) || '—',
             type: (overrides.type ?? token.tokenType) || '—',
@@ -492,7 +522,12 @@ const tokenGroupsByView = computed(() =>
     }),
   )
 const displayLeafTokens = computed(() =>
-  activeLeafTokens.value.map((token) => {
+  activeLeafTokens.value
+    .filter((token) => {
+      if (!searchQuery.value) return true
+      return String(token.label || '').toLowerCase().includes(searchQuery.value.toLowerCase())
+    })
+    .map((token) => {
     const overrides = leafFieldOverridesBySource.value[activeSettingsSourceKey.value]?.[token.key] || {}
     return {
       ...token,
@@ -568,6 +603,36 @@ function addLeafElement() {
   selectedLeafKeysBySource.value = {
     ...selectedLeafKeysBySource.value,
     [sourceKey]: [...selectedLeafKeys.value, nextKey],
+  }
+}
+
+function addTokenElement() {
+  const sourceKey = activeSettingsSourceKey.value
+  const currentDrafts = draftTokenRowsBySource.value[sourceKey] || []
+  const nextIndex = currentDrafts.length + 1
+  const nextKey = `${sourceKey}-draft-token-${nextIndex}`
+  draftTokenRowsBySource.value = {
+    ...draftTokenRowsBySource.value,
+    [sourceKey]: [
+      ...currentDrafts,
+      {
+        isDraft: true,
+        key: nextKey,
+        label: `Draft Token ${nextIndex}`,
+        tokenType: 'text',
+        tokenOrder: String(nextIndex),
+        dbFieldAliases: [],
+        optionList: '',
+        optionSource: '',
+        optionEntity: '',
+        fieldClass: '',
+        editable: true,
+      },
+    ],
+  }
+  selectedTokenKeysBySource.value = {
+    ...selectedTokenKeysBySource.value,
+    [sourceKey]: [...selectedTokenKeys.value, nextKey],
   }
 }
 

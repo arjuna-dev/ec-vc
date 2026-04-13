@@ -360,6 +360,7 @@ function commitDataCellEdit(rowKey = '', columnKey = '', value = '') {
 
 function isTokenEditable(token = {}, column = {}) {
   const isRowEditable = String(token?.editable || '').trim().toLowerCase() !== 'no'
+  if (token?.isDraft) return true
   return Boolean(column?.editable) && column.kind !== 'checkbox' && isRowEditable
 }
 
