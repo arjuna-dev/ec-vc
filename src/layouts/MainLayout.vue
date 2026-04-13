@@ -186,54 +186,17 @@
         </div>
       </div>
       <div v-if="!draftTrayMinimized" class="ec-draft-tray__body">
-        <q-list dense class="ec-draft-tray__list">
-          <q-item
-            v-if="pendingAddEditTrayEntry"
-            clickable
-            class="ec-draft-tray__item"
-            @click="resumePendingAddEdit"
-          >
-            <q-item-section avatar>
-              <q-icon name="edit" />
-            </q-item-section>
-            <q-item-section>
-              <q-item-label>{{ pendingAddEditTrayEntry.label }}</q-item-label>
-              <q-item-label caption>{{ pendingAddEditTrayEntry.sourceLabel }}</q-item-label>
-            </q-item-section>
-          </q-item>
-          <q-item
-            v-if="pendingIntakeRequest"
-            clickable
-            class="ec-draft-tray__item ec-draft-tray__item--intake"
-            @click="openIntakeDraftFromTray"
-          >
-            <q-item-section avatar>
-              <q-icon name="hourglass_top" />
-            </q-item-section>
-            <q-item-section>
-              <q-item-label>Intake Draft</q-item-label>
-              <q-item-label caption>Resume the active intake flow.</q-item-label>
-            </q-item-section>
-          </q-item>
-
-          <template v-for="group in draftGroups" :key="`draft-group-${group.key}`">
-            <div class="ec-draft-tray__group-label">{{ group.label }}</div>
-            <q-item
-              v-for="draft in group.items"
-              :key="`tray-${draft.sourceKey}:${draft.id}`"
-              clickable
-              class="ec-draft-tray__item"
-              @click="openDraftEntry(draft)"
-            >
-              <q-item-section avatar>
-                <q-icon name="description" />
-              </q-item-section>
-              <q-item-section>
-                <q-item-label>{{ draft.label }}</q-item-label>
-              </q-item-section>
-            </q-item>
-          </template>
-        </q-list>
+        <RecordFeedPanel
+          v-model="draftFeedTab"
+          title="Active Drafts"
+          :tabs="draftFeedTabs"
+          :groups="draftFeedGroups"
+          :items="draftFeedItems"
+          :add-button-tabs="[]"
+          empty-message="No active drafts yet."
+          class="ec-draft-tray__feed"
+          @open-log="openDraftFeedItem"
+        />
       </div>
     </div>
 
@@ -1472,6 +1435,47 @@ function clampQuickWidgetPosition(x, y) {
   }
 }
 
+function clampDraftTrayPosition(x, y) {
+  if (typeof window === 'undefined') return { x, y }
+  const trayWidth = 320
+  const trayHeight = 240
+  const minX = 12
+  const minY = 12
+  const maxX = Math.max(minX, window.innerWidth - trayWidth - 12)
+  const maxY = Math.max(minY, window.innerHeight - trayHeight - 12)
+  return {
+    x: Math.min(Math.max(x, minX), maxX),
+    y: Math.min(Math.max(y, minY), maxY),
+  }
+}
+
+function onDraftTrayPointerDown(event) {
+  if (!event || event.button !== 0) return
+  draftTrayIsDragging.value = true
+  const startX = Number(event.clientX || 0)
+  const startY = Number(event.clientY || 0)
+  const rect = event.currentTarget?.closest?.('.ec-draft-tray')?.getBoundingClientRect?.()
+  if (rect) {
+    draftTrayPointerOffset.value = {
+      x: startX - rect.left,
+      y: startY - rect.top,
+    }
+  }
+  const handlePointerMove = (moveEvent) => {
+    if (!draftTrayIsDragging.value) return
+    const nextX = Number(moveEvent.clientX || 0) - draftTrayPointerOffset.value.x
+    const nextY = Number(moveEvent.clientY || 0) - draftTrayPointerOffset.value.y
+    draftTrayPosition.value = clampDraftTrayPosition(nextX, nextY)
+  }
+  const handlePointerUp = () => {
+    draftTrayIsDragging.value = false
+    window.removeEventListener('pointermove', handlePointerMove)
+    window.removeEventListener('pointerup', handlePointerUp)
+  }
+  window.addEventListener('pointermove', handlePointerMove)
+  window.addEventListener('pointerup', handlePointerUp)
+}
+
 function setDefaultQuickWidgetPosition() {
   if (typeof window === 'undefined') return
   quickWidgetPosition.value = clampQuickWidgetPosition(
@@ -2484,47 +2488,6 @@ function goBack() {
   color: rgba(255, 255, 255, 0.68);
   font-size: 9px;
   line-height: 1.2;
-}
-
-function clampDraftTrayPosition(x, y) {
-  if (typeof window === 'undefined') return { x, y }
-  const trayWidth = 320
-  const trayHeight = 240
-  const minX = 12
-  const minY = 12
-  const maxX = Math.max(minX, window.innerWidth - trayWidth - 12)
-  const maxY = Math.max(minY, window.innerHeight - trayHeight - 12)
-  return {
-    x: Math.min(Math.max(x, minX), maxX),
-    y: Math.min(Math.max(y, minY), maxY),
-  }
-}
-
-function onDraftTrayPointerDown(event) {
-  if (!event || event.button !== 0) return
-  draftTrayIsDragging.value = true
-  const startX = Number(event.clientX || 0)
-  const startY = Number(event.clientY || 0)
-  const rect = event.currentTarget?.closest?.('.ec-draft-tray')?.getBoundingClientRect?.()
-  if (rect) {
-    draftTrayPointerOffset.value = {
-      x: startX - rect.left,
-      y: startY - rect.top,
-    }
-  }
-  const handlePointerMove = (moveEvent) => {
-    if (!draftTrayIsDragging.value) return
-    const nextX = Number(moveEvent.clientX || 0) - draftTrayPointerOffset.value.x
-    const nextY = Number(moveEvent.clientY || 0) - draftTrayPointerOffset.value.y
-    draftTrayPosition.value = clampDraftTrayPosition(nextX, nextY)
-  }
-  const handlePointerUp = () => {
-    draftTrayIsDragging.value = false
-    window.removeEventListener('pointermove', handlePointerMove)
-    window.removeEventListener('pointerup', handlePointerUp)
-  }
-  window.addEventListener('pointermove', handlePointerMove)
-  window.addEventListener('pointerup', handlePointerUp)
 }
 
 
