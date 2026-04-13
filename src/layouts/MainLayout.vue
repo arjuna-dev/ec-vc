@@ -199,21 +199,23 @@
             </q-item-section>
           </q-item>
 
-          <q-item
-            v-for="draft in draftEntries"
-            :key="`tray-${draft.sourceKey}:${draft.id}`"
-            clickable
-            class="ec-draft-tray__item"
-            @click="openDraftEntry(draft)"
-          >
-            <q-item-section avatar>
-              <q-icon name="description" />
-            </q-item-section>
-            <q-item-section>
-              <q-item-label>{{ draft.label }}</q-item-label>
-              <q-item-label caption>{{ draft.sourceLabel }}</q-item-label>
-            </q-item-section>
-          </q-item>
+          <template v-for="group in draftGroups" :key="`draft-group-${group.key}`">
+            <div class="ec-draft-tray__group-label">{{ group.label }}</div>
+            <q-item
+              v-for="draft in group.items"
+              :key="`tray-${draft.sourceKey}:${draft.id}`"
+              clickable
+              class="ec-draft-tray__item"
+              @click="openDraftEntry(draft)"
+            >
+              <q-item-section avatar>
+                <q-icon name="description" />
+              </q-item-section>
+              <q-item-section>
+                <q-item-label>{{ draft.label }}</q-item-label>
+              </q-item-section>
+            </q-item>
+          </template>
         </q-list>
       </div>
     </div>
@@ -675,6 +677,18 @@ const draftEntries = computed(() => {
       }
     })
     .filter((entry) => entry.sourceKey)
+})
+const draftGroups = computed(() => {
+  const grouped = new Map()
+  draftEntries.value.forEach((entry) => {
+    const key = String(entry.sourceKey || '').trim()
+    if (!key) return
+    if (!grouped.has(key)) {
+      grouped.set(key, { key, label: entry.sourceLabel || key, items: [] })
+    }
+    grouped.get(key).items.push(entry)
+  })
+  return Array.from(grouped.values())
 })
 const activeIntakeQueueItem = computed(() => {
   const activeId = String(intakeReviewQueueState.activeItemId || '').trim()
@@ -2513,6 +2527,15 @@ function goBack() {
 
   .ec-draft-tray__item--intake {
     background: rgba(255, 247, 237, 0.8);
+  }
+
+  .ec-draft-tray__group-label {
+    padding: 8px 10px 4px 10px;
+    font-size: 11px;
+    font-weight: 600;
+    color: rgba(71, 85, 105, 0.9);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
   }
 
 .ec-quick-widget-settings-panel__list {
