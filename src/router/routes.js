@@ -26,8 +26,6 @@ const routes = [
       { path: 'industries', redirect: { name: 'markets' } },
       { path: 'securities', name: 'securities', component: () => import('pages/SecuritiesPage.vue') },
       { path: 'intake', name: 'intake', component: () => import('pages/IntakePage.vue') },
-      { path: 'ingestion', redirect: { name: 'intake' } },
-      { path: 'artifacts-processed', redirect: { name: 'intake' } },
       { path: 'notes', name: 'notes', component: () => import('pages/NotesPage.vue') },
       { path: 'tasks', name: 'tasks', component: () => import('pages/TasksPage.vue') },
       { path: 'test-shell', name: 'test-shell', component: () => import('pages/TestShellPage.vue') },
