@@ -2497,10 +2497,10 @@ function goBack() {
     bottom: 120px;
     width: 320px;
     max-width: calc(100vw - 40px);
-    background: #ffffff;
+    background: #0b1120;
     border-radius: 14px;
-    box-shadow: 0 18px 40px rgba(15, 23, 42, 0.18);
-    border: 1px solid rgba(15, 23, 42, 0.08);
+    box-shadow: 0 18px 40px rgba(2, 6, 23, 0.5);
+    border: 1px solid rgba(148, 163, 184, 0.18);
     z-index: 3000;
     overflow: hidden;
   }
@@ -2509,12 +2509,25 @@ function goBack() {
     display: none;
   }
 
+  .ec-draft-tray--minimized {
+    border-radius: 10px;
+  }
+
+  .ec-draft-tray--minimized .ec-draft-tray__header {
+    padding: 8px 10px 8px 12px;
+    border-radius: 10px;
+  }
+
+  .ec-draft-tray--minimized .ec-draft-tray__actions {
+    gap: 2px;
+  }
+
   .ec-draft-tray__header {
     display: flex;
     align-items: center;
     justify-content: space-between;
     padding: 10px 12px 10px 14px;
-    background: rgba(248, 250, 252, 0.95);
+    background: rgba(15, 23, 42, 0.95);
     cursor: grab;
   }
 
@@ -2525,7 +2538,7 @@ function goBack() {
   .ec-draft-tray__title {
     font-size: 13px;
     font-weight: 600;
-    color: #0f172a;
+    color: #e2e8f0;
     letter-spacing: 0.02em;
     display: flex;
     gap: 8px;
@@ -2540,8 +2553,8 @@ function goBack() {
     height: 22px;
     padding: 0 6px;
     border-radius: 999px;
-    background: rgba(15, 23, 42, 0.08);
-    color: #0f172a;
+    background: rgba(148, 163, 184, 0.2);
+    color: #e2e8f0;
     font-size: 11px;
   }
 
@@ -2550,10 +2563,15 @@ function goBack() {
     gap: 4px;
   }
 
+  .ec-draft-tray__actions :deep(.q-btn) {
+    color: #e2e8f0;
+  }
+
   .ec-draft-tray__body {
     padding: 8px;
     max-height: 320px;
     overflow: auto;
+    color: #e2e8f0;
   }
 
   .ec-draft-tray__list {
@@ -2567,16 +2585,30 @@ function goBack() {
   }
 
   .ec-draft-tray__item--intake {
-    background: rgba(255, 247, 237, 0.8);
+    background: rgba(30, 41, 59, 0.7);
   }
 
   .ec-draft-tray__group-label {
     padding: 8px 10px 4px 10px;
     font-size: 11px;
     font-weight: 600;
-    color: rgba(71, 85, 105, 0.9);
+    color: rgba(148, 163, 184, 0.9);
     text-transform: uppercase;
     letter-spacing: 0.08em;
+  }
+
+  .ec-draft-tray :deep(.record-feed-panel) {
+    background: transparent;
+    border: none;
+  }
+
+  .ec-draft-tray :deep(.record-feed-panel__header--main) {
+    background: transparent;
+  }
+
+  .ec-draft-tray :deep(.record-feed-panel__entry) {
+    background: rgba(15, 23, 42, 0.7);
+    border-color: rgba(148, 163, 184, 0.2);
   }
 
 .ec-quick-widget-settings-panel__list {
