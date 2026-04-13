@@ -275,7 +275,9 @@ This section should declare:
 
 - file name
 - file class:
-  - `L1`
+  - `File`
+  - `View`
+  - `Subgroup`
 - short purpose
 - canonical owner identity
 
@@ -299,9 +301,9 @@ It should define the key terms a person or companion needs before reading the re
 The glossary should include:
 
 - file-specific terms
-- important `View Fork` names
-- important `Subgroup` names
-- important `Token` names when they are not obvious
+- important view names
+- important subgroup names
+- important token names when they are not obvious
 - relationship terms
 - ownership terms
 
@@ -413,9 +415,9 @@ This section should declare:
 - what provenance should be preserved
 - how genesis or file creation should later be reconstructable
 
-### 12. View Fork System
+### 12. View Structure
 
-This section should declare the file's actual view-fork architecture.
+This section should declare the file's actual view architecture.
 
 It should always describe these base sections when they apply:
 
@@ -424,13 +426,7 @@ It should always describe these base sections when they apply:
 - `LDB`
 - `File Specific`
 
-Definition note:
-
-- view forks and subgroups are internal to a file, not separate file rows, unless `System Files` explicitly tracks them as such
-
-`File Specific` means any file-specific view forks, subgroups, and tokens that exist beyond the shared base.
-
-`File Specific` is governance metadata, not a user-facing fork, unless the file explicitly declares it as a visible fork.
+`File Specific` means any file-specific views, view subgroups, and token groups that exist beyond the shared base.
 
 ### 13. Open Questions
 
@@ -438,9 +434,9 @@ This section should list unresolved items that are not yet settled truth.
 
 This is where the file guide should preserve uncertainty instead of letting it become drift.
 
-## Shared View Fork Rules
+## Shared View Section Rules
 
-These rules explain how the shared view forks work for every file guide.
+These rules explain how the shared view sections work for every file guide.
 
 ### System
 
@@ -500,7 +496,7 @@ The rename should happen as a staged architecture pass so docs, canonical struct
 
 The `System Files` file/page should expose these file-definition properties for each file:
 
-- file class (`L1` for files, `View Fork` / `Subgroup` only when explicitly tracked)
+- is it a file, view, or subgroup
 - does it require `System`
 - does it require `LDB`
 - what ownership mode applies
@@ -554,7 +550,7 @@ Approved future canonical file:
 
 - `Access_Assignments`
 
-`Access_Assignments` should be its own `L1` because access needs to be browsed, audited, governed, and validated directly.
+`Access_Assignments` should be its own file because access needs to be browsed, audited, governed, and validated directly.
 
 It is not runtime-born yet.
 
@@ -618,30 +614,30 @@ The first structural fork should be:
 
 `Is this a new file the user should be able to find, govern, and open?`
 
-If yes, the structure should be created as `L1`.
+If yes, the structure should be created as a file.
 
 If no, the user should be guided toward:
 
-- `View Fork` when the concept is a major section inside an existing file
-- `Subgroup` when the concept is a subgroup inside an existing section
+- a view when the concept is a major section inside an existing file
+- a subgroup when the concept is a subgroup inside an existing view
 
 The default rule is:
 
-- when uncertain, begin as `L1`
-- demote to `View Fork` only when the concept is clearly a section inside an existing file
-- demote to `Subgroup` only when the concept is clearly a subgroup inside an existing section
+- when uncertain, begin as a file
+- demote to a view only when the concept is clearly a section inside an existing file
+- demote to a subgroup only when the concept is clearly a subgroup inside an existing section
 
 The `UX Steward` should define:
 
 - the plain-language question shown to the user
 - the canonical value created by each answer
 - the safe default
-- the parent selection required for `View Fork` and `Subgroup`
+- the parent selection required for view and subgroup
 - the stop condition when the user does not have enough context
 
-`File Specific` should not replace explicit named view forks.
+`File Specific` should not replace explicit named views.
 
-It should document the file's unique structure metadata while real user-facing sections remain explicit view forks.
+It should document the file's unique structure metadata while real user-facing sections remain explicit views.
 
 ## Canonical Loader Rule
 
@@ -698,7 +694,7 @@ Each file-specific guide can begin from this compact template:
 9. `UX Steward`
 10. `Governance`
 11. `Provenance / Events`
-12. `View Fork System`
+12. View structure
 13. `Open Questions`
 
 System file guides should live in `docs/100`.
