@@ -26,7 +26,7 @@ This tracker should stay aligned with:
 - keep the shared shell, edit dialog, and LDB relationship behavior aligned to canon
 - keep LDB linking, unlinking, and selector labels working through shared shell contracts instead of per-entity fixes
 - start applying birth-governance derivation in the shared create flow, beginning with the simplest visible defaults
-- document and maintain the naming direction from legacy `KDB` toward `LDB` while avoiding piecemeal runtime renames
+- keep the naming direction on `LDB` and avoid piecemeal runtime renames
 - keep pushing bootstrap/setup flows to follow the same `System Files` + `LDB` contract path as normal runtime behavior so bugs surface earlier and more honestly
 - adopt `Record Shell` as the shared `Record View` direction
 - turn the `Contact/User` lesson into a generalized `L1/L2/L3` field-class rule instead of a remembered exception
@@ -275,7 +275,7 @@ This tracker should stay aligned with:
   - declared in canon
   - runtime-backed underneath
   - bidirectionally visible
-- `Knowledge DBs` now behaves as a dedicated file branch and `Intake` remains reconnect-safe inside that same contract family
+- `LDB` now behaves as a dedicated file branch and `Intake` remains reconnect-safe inside that same contract family
 - owner identity now bootstraps into `Users`, with explicit runtime owner paths through:
   - `Owner_DB`
   - `Users_Roles`
