@@ -53,12 +53,12 @@ The `Runtime Steward` should not:
 The `Runtime Steward` should stay aligned with:
 
 - `docs/000-canonical-structure.json`
-- `docs/010/System.md`
-- `docs/010/DAMP.md`
+- `docs/000/System.md`
+- `docs/000/DAMP.md`
 - `docs/020/020_Architect_Steward.md`
 - `docs/020/020_File_Steward.md`
 - `docs/020/020_Provenance_Steward.md`
-- `docs/010/System.md`
+- `docs/000/System.md`
 
 ## Stop Conditions
 

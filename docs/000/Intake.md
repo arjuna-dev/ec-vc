@@ -27,9 +27,9 @@ Working posture:
 
 ## Related Docs
 
-- `docs/010/DAMP.md`
-- `docs/010/Recipe.md`
-- `docs/010/Translators.md`
+- `docs/000/DAMP.md`
+- `docs/000/Recipe.md`
+- `docs/000/Translators.md`
 - `docs/002/Companion.md`
 - `docs/020/020_Architect_Steward.md`
 - `docs/020/020_File_Steward.md`

@@ -23,7 +23,7 @@ The clean rule is:
 
 ## Related Docs
 
-- `docs/010/DAMP.md`
+- `docs/000/DAMP.md`
 - `docs/002/Companion.md`
 - `docs/020/020_Architect_Steward.md`
 - `docs/020/020_File_Steward.md`
@@ -200,7 +200,7 @@ Current map:
 
 | File | Birth Status | Guide Path | Steward | Notes |
 | --- | --- | --- | --- | --- |
-| `System / Files` | `partially born` | `docs/010/System.md` | `File Steward` | Canonical registry entity and app-facing system-file surface are both described here. |
+| `System / Files` | `partially born` | `docs/000/System.md` | `File Steward` | Canonical registry entity and app-facing system-file surface are both described here. |
 | `BB Shell` | `partially born` | `docs/100/Archive/100-BB_Shell.md` | `Design Steward` | Runtime table and shell exist; promotion review still pending. |
 | `Events` | `partially born` | `docs/100/Archive/100-Events.md` | `Provenance Steward` | Runtime event surface exists; promotion review still pending. |
 | `Users` | `partially born` | `docs/100/Archive/100-Users.md` | `File Steward` | Runtime surface exists; promotion review still pending. |

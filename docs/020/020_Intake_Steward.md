@@ -118,9 +118,9 @@ The `Intake Steward` should stay aligned with:
 - `docs/002/Companion.md`
 - `docs/010/Archive/010-intake-architecture-plan.md`
 - `docs/010/Archive/010-ingestion-reconnect-guide.md`
-- `docs/010/DAMP.md`
+- `docs/000/DAMP.md`
 - `docs/020/020_Provenance_Steward.md`
-- `docs/010/System.md`
+- `docs/000/System.md`
 
 ## Provenance Rule
 

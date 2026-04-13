@@ -34,6 +34,6 @@ That means this file should eventually help answer:
 
 ## Related Docs
 
-- `docs/010/DAMP.md`
-- `docs/010/Recipe.md`
-- `docs/010/Translators.md`
+- `docs/000/DAMP.md`
+- `docs/000/Recipe.md`
+- `docs/000/Translators.md`

@@ -50,7 +50,7 @@ When the active mission is intake-focused, the companion should also treat the a
 
 Current intake governing document:
 
-- `docs/010/Intake.md`
+- `docs/000/Intake.md`
 
 Working rule:
 
@@ -173,7 +173,7 @@ Instead, the companion should:
 
 - read the relevant file guide
 - read the declared token behavior when available
-- follow `docs/010/DAMP.md` when reviewing token behavior
+- follow `docs/000/DAMP.md` when reviewing token behavior
 - avoid turning file-specific rules into universal companion rules
 
 At minimum, the companion must preserve the distinction between:

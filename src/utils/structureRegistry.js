@@ -116,7 +116,7 @@ const FILE_PAGE_ROUTE_META = Object.freeze({
     showInWorkspaceNav: true,
     workspaceNavGroup: 'files',
     shellGroup: 'system_level',
-    fileGuidePath: 'docs/010/System.md',
+    fileGuidePath: 'docs/000/System.md',
     birthDefaults: {
       File_Owner: 'Owner',
       File_Steward: 'File Steward',

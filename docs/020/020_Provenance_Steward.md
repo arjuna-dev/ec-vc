@@ -98,12 +98,12 @@ The `Provenance Steward` should not:
 
 The `Provenance Steward` should stay aligned with:
 
-- `docs/010/System.md`
-- `docs/010/DAMP.md`
+- `docs/000/System.md`
+- `docs/000/DAMP.md`
 - `docs/010/Archive/010-ingestion-reconnect-guide.md`
 - `docs/020/020_Intake_Steward.md`
 - `docs/020/020_Runtime_Steward.md`
-- `docs/010/System.md`
+- `docs/000/System.md`
 - `docs/003/Games.md`
 
 ## Stop Conditions

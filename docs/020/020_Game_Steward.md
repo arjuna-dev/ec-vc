@@ -15,7 +15,7 @@ It should govern and explain the `Games` layer, but it should not be moved into 
 The `Game Steward` should stay aligned with:
 
 - `docs/003/Games.md`
-- `docs/010/DAMP.md`
+- `docs/000/DAMP.md`
 
 The `Game Steward` is the companion guide for `Games`.
 

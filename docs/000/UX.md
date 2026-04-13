@@ -125,9 +125,9 @@ Each file guide should include UX parameters that help the user and the File Ste
 
 `UX` should stay aligned with:
 
-- `docs/010/DAMP.md`
+- `docs/000/DAMP.md`
 - `docs/020/020_File_Steward.md`
-- `docs/010/System.md`
+- `docs/000/System.md`
 
 ## Stop Conditions
 

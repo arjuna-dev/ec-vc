@@ -39,8 +39,8 @@ Typical examples:
 
 Stay aligned with:
 
-- `docs/010/Intake.md`
-- `docs/010/Translators.md`
+- `docs/000/Intake.md`
+- `docs/000/Translators.md`
 
 ## Current Accepted Entries
 

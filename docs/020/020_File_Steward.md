@@ -261,11 +261,11 @@ The `File Steward` should not:
 
 The `File Steward` should stay aligned with:
 
-- `docs/010/System.md`
-- `docs/010/DAMP.md`
+- `docs/000/System.md`
+- `docs/000/DAMP.md`
 - `docs/020/020_Provenance_Steward.md`
 - `docs/020/020_Runtime_Steward.md`
-- `docs/010/System.md`
+- `docs/000/System.md`
 - `docs/000-canonical-structure.json`
 
 ## Stop Conditions

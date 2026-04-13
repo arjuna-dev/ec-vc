@@ -139,8 +139,8 @@ If a shared component changes without a corresponding reviewable history/event p
 
 `Design` should stay aligned with:
 
-- `docs/010/System.md`
-- `docs/010/DAMP.md`
+- `docs/000/System.md`
+- `docs/000/DAMP.md`
 - `docs/020/Archive/design-system/README.md`
 - `docs/020/Archive/design-system/tokens.json`
 
