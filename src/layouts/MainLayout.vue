@@ -157,8 +157,9 @@
       v-if="draftTrayVisible"
       class="ec-draft-tray"
       :class="{ 'ec-draft-tray--minimized': draftTrayMinimized }"
+      :style="draftTrayStyle"
     >
-      <div class="ec-draft-tray__header">
+      <div class="ec-draft-tray__header" @pointerdown="onDraftTrayPointerDown">
           <div class="ec-draft-tray__title">
             Drafts
             <span class="ec-draft-tray__count">
@@ -234,36 +235,6 @@
           </template>
         </q-list>
       </div>
-    </div>
-
-    <div
-      v-if="pendingAddEditRequest || pendingIntakeRequest || draftEntries.length"
-      class="ec-resume-chips"
-    >
-      <q-chip
-        v-if="pendingAddEditRequest"
-        clickable
-        class="ec-resume-chip"
-        icon="edit"
-        label="Resume Draft"
-        @click="resumePendingAddEdit"
-      />
-      <q-chip
-        v-if="pendingIntakeRequest"
-        clickable
-        class="ec-resume-chip ec-resume-chip--intake"
-        icon="hourglass_top"
-        label="Resume Intake"
-        @click="resumePendingIntake"
-      />
-      <q-chip
-        v-if="draftEntries.length || pendingIntakeRequest"
-        clickable
-        class="ec-resume-chip ec-resume-chip--drafts"
-        icon="view_list"
-        label="Drafts"
-        @click="draftsDialogOpen = true"
-      />
     </div>
 
     <q-dialog v-model="draftsDialogOpen">
@@ -540,6 +511,9 @@ const quickWidgetSettingsSectionOpen = ref({
 })
 const draftTrayDismissed = ref(false)
 const draftTrayMinimized = ref(false)
+const draftTrayPosition = ref({ x: null, y: null })
+const draftTrayIsDragging = ref(false)
+const draftTrayPointerOffset = ref({ x: 0, y: 0 })
 const draftsDialogOpen = ref(false)
 const draftFeedTab = ref('drafts')
 const intakeQueueDialogOpen = ref(false)
@@ -698,6 +672,16 @@ const draftGroups = computed(() => {
     grouped.get(key).items.push(entry)
   })
   return Array.from(grouped.values())
+})
+const draftTrayStyle = computed(() => {
+  const position = draftTrayPosition.value
+  if (position.x == null || position.y == null) return {}
+  return {
+    left: `${position.x}px`,
+    top: `${position.y}px`,
+    right: 'auto',
+    bottom: 'auto',
+  }
 })
 const draftFeedTabs = computed(() => [{ id: 'drafts', label: 'Drafts' }])
 const draftFeedGroups = computed(() =>
@@ -2502,29 +2486,47 @@ function goBack() {
   line-height: 1.2;
 }
 
-.ec-resume-chips {
-  position: fixed;
-  right: 18px;
-  bottom: 150px;
-  z-index: 4001;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.ec-resume-chip {
-  background: rgba(255, 255, 255, 0.96);
-  color: rgba(20, 27, 40, 0.92);
-  border: 1px solid rgba(20, 27, 40, 0.12);
-  box-shadow: var(--ds-shadow-floating-label);
-  font-weight: 600;
-}
-
-  .ec-resume-chip--intake {
-    background: rgba(214, 236, 255, 0.98);
-    border-color: rgba(64, 121, 210, 0.24);
-    color: rgba(24, 72, 144, 0.96);
+function clampDraftTrayPosition(x, y) {
+  if (typeof window === 'undefined') return { x, y }
+  const trayWidth = 320
+  const trayHeight = 240
+  const minX = 12
+  const minY = 12
+  const maxX = Math.max(minX, window.innerWidth - trayWidth - 12)
+  const maxY = Math.max(minY, window.innerHeight - trayHeight - 12)
+  return {
+    x: Math.min(Math.max(x, minX), maxX),
+    y: Math.min(Math.max(y, minY), maxY),
   }
+}
+
+function onDraftTrayPointerDown(event) {
+  if (!event || event.button !== 0) return
+  draftTrayIsDragging.value = true
+  const startX = Number(event.clientX || 0)
+  const startY = Number(event.clientY || 0)
+  const rect = event.currentTarget?.closest?.('.ec-draft-tray')?.getBoundingClientRect?.()
+  if (rect) {
+    draftTrayPointerOffset.value = {
+      x: startX - rect.left,
+      y: startY - rect.top,
+    }
+  }
+  const handlePointerMove = (moveEvent) => {
+    if (!draftTrayIsDragging.value) return
+    const nextX = Number(moveEvent.clientX || 0) - draftTrayPointerOffset.value.x
+    const nextY = Number(moveEvent.clientY || 0) - draftTrayPointerOffset.value.y
+    draftTrayPosition.value = clampDraftTrayPosition(nextX, nextY)
+  }
+  const handlePointerUp = () => {
+    draftTrayIsDragging.value = false
+    window.removeEventListener('pointermove', handlePointerMove)
+    window.removeEventListener('pointerup', handlePointerUp)
+  }
+  window.addEventListener('pointermove', handlePointerMove)
+  window.addEventListener('pointerup', handlePointerUp)
+}
+
 
   .ec-draft-tray {
     position: fixed;
@@ -2550,6 +2552,11 @@ function goBack() {
     justify-content: space-between;
     padding: 10px 12px 10px 14px;
     background: rgba(248, 250, 252, 0.95);
+    cursor: grab;
+  }
+
+  .ec-draft-tray__header:active {
+    cursor: grabbing;
   }
 
   .ec-draft-tray__title {
