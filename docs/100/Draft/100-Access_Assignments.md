@@ -5,7 +5,7 @@
 - file name: `Access Assignments`
 - file guide: `docs/100/Draft/100-Access_Assignments.md`
 - parent guide: `docs/001/Active/001-Files.md`
-- file class: `L1`
+- file class: `File`
 - canonical entity: `Access_Assignments`
 - app-facing label: `Access Assignments`
 - canonical owner identity: `Owner`
@@ -61,7 +61,7 @@ That means:
 
 ## Operating Rules
 
-- Treat `Access Assignments` as the approved future standalone `L1` for governed access.
+- Treat `Access Assignments` as the approved future standalone file for governed access.
 - Do not treat a flat `Users_Roles` assignment as the final access model when project scope matters.
 - Do not infer access from user status alone.
 - Do not infer access from contact existence alone.
@@ -98,7 +98,7 @@ The `Owner` should use `Access Assignments` to understand:
 
 The `File Steward` should validate:
 
-- whether `Access Assignments` has canonical `L1 / View Fork / Token` structure before runtime use
+- whether `Access Assignments` has canonical file/view/token structure before runtime use
 - whether every access record has a linked `User` or access-enabled `Contact`
 - whether every scoped access record declares the relevant `Project` or scope
 - whether every scoped access record declares the relevant `Role`
@@ -189,11 +189,7 @@ This means `Access Assignments` is architecturally approved but not fully born.
 
 Do not implement access behavior from this file until the missing birth-chain items are completed.
 
-## View Fork System
-
-Definition note:
-
-- view forks and subgroups are internal to a file, not separate file rows, unless `System Files` explicitly tracks them as such
+## View Structure
 
 ### System
 
