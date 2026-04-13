@@ -53,6 +53,7 @@ import {
   getCreateBranchTokenName,
   getCanonicalTokenFieldNames,
   getCanonicalTokenWriteFieldName,
+  getDefaultTokenCreateValue,
   getCanonicalTokenValue,
   getFilePageRegistryEntry,
   getFilePageRegistryEntryByEntityReference,
@@ -449,7 +450,12 @@ async function submitCreateRecord(values = {}) {
     [...createPrimaryTokens.value, ...createViewGroups.value.flatMap((section) => section.tokens)]
       .map((token) => {
         if (branchSelectorTokenKey.value && token.key === branchSelectorTokenKey.value) return null
-        const normalizedValue = normalizeTokenWriteValue(token, values?.[token.key])
+        const rawValue = values?.[token.key]
+        const defaultValue = getDefaultTokenCreateValue(token)
+        const effectiveValue = rawValue == null || String(rawValue).trim() === ''
+          ? defaultValue
+          : rawValue
+        const normalizedValue = normalizeTokenWriteValue(token, effectiveValue)
         if (normalizedValue == null) return null
         const writeField = getCanonicalTokenWriteFieldName(token)
         if (!writeField) return null

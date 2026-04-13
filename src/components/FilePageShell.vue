@@ -757,9 +757,10 @@ import SelectionActionBar from 'components/SelectionActionBar.vue'
     getRuntimeStructureVersion,
     subscribeRuntimeFileStructures,
     getRuntimeTableNameForEntityName,
-    getCanonicalTokenFieldNames,
-    getCanonicalTokenWriteFieldName,
-    getCanonicalTokenWriteTarget,
+  getCanonicalTokenFieldNames,
+  getCanonicalTokenWriteFieldName,
+  getCanonicalTokenWriteTarget,
+  getDefaultTokenCreateValue,
     getCanonicalTokenValue,
     resolveApprovedFileSectionKey,
     buildFileShellPayload,
@@ -4130,7 +4131,11 @@ function buildCreatePayload(values = {}) {
   allTokens.forEach((token) => {
     if (createDialogMode.value === 'create' && isAutomaticCreatorToken(token)) return
     const rawValue = values?.[token.key]
-    const normalizedValue = normalizeCreateFieldValue(token, rawValue)
+    const defaultValue = getDefaultTokenCreateValue(token)
+    const effectiveValue = rawValue == null || String(rawValue).trim() === ''
+      ? defaultValue
+      : rawValue
+    const normalizedValue = normalizeCreateFieldValue(token, effectiveValue)
     if (normalizedValue == null) return
     const fieldName = getCanonicalTokenWriteFieldName(token)
     if (!fieldName) return

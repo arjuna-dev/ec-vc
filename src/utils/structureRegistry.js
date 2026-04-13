@@ -736,6 +736,12 @@ export function getCanonicalTokenWriteFieldName(token = {}) {
   return ''
 }
 
+export function getDefaultTokenCreateValue(token = {}) {
+  const role = String(token?.tokenRole || '').trim().toLowerCase()
+  if (role === 'status') return 'Draft'
+  return null
+}
+
 export function getCanonicalTokenWriteTarget(token = {}, fallbackTableName = '', fallbackIdColumn = 'id') {
   const fieldName = getCanonicalTokenWriteFieldName(token)
   if (!fieldName) return null

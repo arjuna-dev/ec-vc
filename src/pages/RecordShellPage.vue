@@ -520,6 +520,7 @@ import { setPendingAddEditShellRequest } from 'src/utils/addEditShellState'
 import {
   getCanonicalTokenFieldNames,
   getCanonicalTokenWriteFieldName,
+  getDefaultTokenCreateValue,
   getCanonicalTokenValue,
   getFilePageRegistryEntry,
   getFilePageRegistryEntryByEntityReference,
@@ -1403,12 +1404,16 @@ function buildCreatePayload(values = {}) {
   return Object.fromEntries(
     allTokens
       .map((token) => {
-        const value = values?.[token.key]
-        if (Array.isArray(value) && !value.length) return null
-        if (!Array.isArray(value) && String(value ?? '').trim() === '') return null
+        const rawValue = values?.[token.key]
+        const defaultValue = getDefaultTokenCreateValue(token)
+        const effectiveValue = rawValue == null || String(rawValue ?? '').trim() === ''
+          ? defaultValue
+          : rawValue
+        if (Array.isArray(effectiveValue) && !effectiveValue.length) return null
+        if (!Array.isArray(effectiveValue) && String(effectiveValue ?? '').trim() === '') return null
         const writeField = resolveWriteField(token)
         if (!writeField) return null
-        return [writeField, value]
+        return [writeField, effectiveValue]
       })
       .filter(Boolean),
   )

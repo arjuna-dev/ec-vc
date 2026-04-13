@@ -138,6 +138,7 @@ import AddEditRecordShellDialog from './AddEditRecordShellDialog.vue'
     getCreateBranchTokenName,
     getCanonicalTokenValue,
     getCanonicalTokenWriteFieldName,
+    getDefaultTokenCreateValue,
     getFilePageRegistryEntryByEntityReference,
     getRegistrySummaryTokenForSource,
     getRegistryTitleTokenForSource,
@@ -370,12 +371,16 @@ async function submitOpportunityFromShell({ values } = {}) {
     [...opportunityKeyFieldTokens.value, ...opportunitySectionGroups.value.flatMap((section) => section.tokens)]
       .map((token) => {
         if (opportunityBranchSelectorTokenKey.value && token.key === opportunityBranchSelectorTokenKey.value) return null
-        const value = values?.[token.key]
-        if (Array.isArray(value) && !value.length) return null
-        if (!Array.isArray(value) && String(value ?? '').trim() === '') return null
+        const rawValue = values?.[token.key]
+        const defaultValue = getDefaultTokenCreateValue(token)
+        const effectiveValue = rawValue == null || String(rawValue ?? '').trim() === ''
+          ? defaultValue
+          : rawValue
+        if (Array.isArray(effectiveValue) && !effectiveValue.length) return null
+        if (!Array.isArray(effectiveValue) && String(effectiveValue ?? '').trim() === '') return null
         const writeField = getCanonicalTokenWriteFieldName(token)
         if (!writeField) return null
-        return [writeField, value]
+        return [writeField, effectiveValue]
       })
       .filter(Boolean),
   )
