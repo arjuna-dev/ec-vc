@@ -413,7 +413,7 @@ Working rule:
 - `Notes File` -> `Note Record`
 - `Roles File` -> `Role Record`
 
-Examples of current `Knowledge DB` files:
+Examples of current `LDB` files:
 
 - `Stages File` -> `Stage Record`
 - `Locations File` -> `Location Record`
@@ -423,7 +423,7 @@ Examples of current `Knowledge DB` files:
 
 Current frontend direction:
 
-- `Knowledge DB` files should reuse the same shared file shell path used for the shell standardization work
+- `LDB` files should reuse the same shared file shell path used for the shell standardization work
 - once promoted into real file surfaces, they should not live on a separate placeholder page design
 
 ## Shared File Shell
