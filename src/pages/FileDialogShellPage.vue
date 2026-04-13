@@ -36,8 +36,6 @@ const route = useRoute()
 const router = useRouter()
 const isElectronRuntime = computed(() => typeof window !== 'undefined')
 const fileStructureSessionsBySource = ref({})
-const saveTimersBySource = ref({})
-const lastSavedSignatureBySource = ref({})
 
 const activeSourceKey = computed(() => resolveValidShellSection(route.query.section, route.query.entity))
 const hasResolvedSourceKey = computed(() => Boolean(activeSourceKey.value))
@@ -65,34 +63,6 @@ async function updateFileStructureSession(snapshot = null) {
     [sourceKey]: {
       ...snapshot,
     },
-  }
-
-  if (!snapshot?.definedStructure || typeof snapshot.definedStructure !== 'object') return
-  const signature = JSON.stringify(snapshot.definedStructure)
-  if (lastSavedSignatureBySource.value[sourceKey] === signature) return
-
-  if (saveTimersBySource.value[sourceKey]) {
-    clearTimeout(saveTimersBySource.value[sourceKey])
-  }
-
-  saveTimersBySource.value = {
-    ...saveTimersBySource.value,
-    [sourceKey]: setTimeout(async () => {
-      const bridge = typeof window !== 'undefined' ? window.ecvc : null
-      if (!bridge?.['file-system']?.update) return
-      try {
-        await bridge['file-system'].update({
-          File_Source_Key: sourceKey,
-          Defined_Structure: signature,
-        })
-        lastSavedSignatureBySource.value = {
-          ...lastSavedSignatureBySource.value,
-          [sourceKey]: signature,
-        }
-      } catch {
-        // ignore save failures for now
-      }
-    }, 400),
   }
 }
 </script>
