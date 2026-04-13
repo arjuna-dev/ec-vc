@@ -441,8 +441,14 @@ function buildCreateDialogInitialValues(pending = null) {
       ? liveOptionRowsBySource.value[targetSourceKey]
       : []
     const titleToken = getRegistryTitleTokenForSource(targetSourceKey)
+    const nonDiscardedRows = liveRows.filter((row) => {
+      const statusValue = String(row?.Status || row?.status || row?.raw?.Status || row?.raw?.status || '')
+        .trim()
+        .toLowerCase()
+      return statusValue !== 'discarded'
+    })
     const existingNames = new Set(
-      liveRows
+      nonDiscardedRows
         .map((row) =>
           String(titleToken ? getCanonicalTokenValue(row, titleToken) : '')
             .trim()
@@ -450,7 +456,7 @@ function buildCreateDialogInitialValues(pending = null) {
         )
         .filter(Boolean),
     )
-    let counter = liveRows.length + 1
+    let counter = nonDiscardedRows.length + 1
     let nameSeed = `New ${branchLabel}${sourceLabel} #${counter}`
     while (existingNames.has(nameSeed.toLowerCase())) {
       counter += 1

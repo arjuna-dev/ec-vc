@@ -1612,12 +1612,17 @@ function resolveCreateDialogOptionValue(token, rawValue) {
       ? `${normalizedBranch.charAt(0).toUpperCase()}${normalizedBranch.slice(1)} `
       : ''
     const rows = getOptionRowsForSource(normalizedSourceKey)
+    const nonDiscardedRows = (Array.isArray(rows) ? rows : []).filter((row) => {
+      const statusValue = stringifyValue(row?.Status || row?.status || row?.raw?.Status || row?.raw?.status)
+        .toLowerCase()
+      return statusValue !== 'discarded'
+    })
     const existingNames = new Set(
-      (Array.isArray(rows) ? rows : [])
+      nonDiscardedRows
         .map((row) => stringifyValue(titleToken ? getCanonicalTokenValue(row, titleToken) : null).toLowerCase())
         .filter(Boolean),
     )
-    let counter = (Array.isArray(rows) ? rows.length : 0) + 1
+    let counter = nonDiscardedRows.length + 1
     let candidate = `New ${branchLabel}${singularLabel} #${counter}`
     while (existingNames.has(candidate.toLowerCase())) {
       counter += 1
