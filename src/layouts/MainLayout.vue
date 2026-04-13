@@ -186,17 +186,68 @@
         </div>
       </div>
       <div v-if="!draftTrayMinimized" class="ec-draft-tray__body">
-        <RecordFeedPanel
-          v-model="draftFeedTab"
-          title="Active Drafts"
-          :tabs="draftFeedTabs"
-          :groups="draftFeedGroups"
-          :items="draftFeedItems"
-          :add-button-tabs="[]"
-          empty-message="No active drafts yet."
-          class="ec-draft-tray__feed"
-          @open-log="openDraftFeedItem"
-        />
+        <q-list dense class="ec-draft-tray__list">
+          <q-item v-if="pendingAddEditTrayEntry" class="ec-draft-tray__row">
+            <q-item-section side class="ec-draft-tray__select">
+              <q-checkbox v-model="selectedDraftIds" :val="pendingAddEditTrayEntry.id" />
+            </q-item-section>
+            <q-item-section>
+              <q-item-label>{{ pendingAddEditTrayEntry.label }}</q-item-label>
+            </q-item-section>
+            <q-item-section side>
+              <q-btn
+                flat
+                dense
+                round
+                icon="open_in_new"
+                aria-label="Open draft"
+                @click="resumePendingAddEdit"
+              />
+            </q-item-section>
+          </q-item>
+
+          <q-item v-if="pendingIntakeRequest" class="ec-draft-tray__row">
+            <q-item-section side class="ec-draft-tray__select">
+              <q-checkbox v-model="selectedDraftIds" val="pending:intake" />
+            </q-item-section>
+            <q-item-section>
+              <q-item-label>Intake Draft</q-item-label>
+            </q-item-section>
+            <q-item-section side>
+              <q-btn
+                flat
+                dense
+                round
+                icon="open_in_new"
+                aria-label="Open intake draft"
+                @click="openIntakeDraftFromTray"
+              />
+            </q-item-section>
+          </q-item>
+
+          <q-item
+            v-for="draft in draftEntries"
+            :key="`tray-${draft.sourceKey}:${draft.id}`"
+            class="ec-draft-tray__row"
+          >
+            <q-item-section side class="ec-draft-tray__select">
+              <q-checkbox v-model="selectedDraftIds" :val="`${draft.sourceKey}:${draft.id}`" />
+            </q-item-section>
+            <q-item-section>
+              <q-item-label>{{ draft.label }}</q-item-label>
+            </q-item-section>
+            <q-item-section side>
+              <q-btn
+                flat
+                dense
+                round
+                icon="open_in_new"
+                aria-label="Open draft"
+                @click="openDraftEntry(draft)"
+              />
+            </q-item-section>
+          </q-item>
+        </q-list>
       </div>
     </div>
 
@@ -424,7 +475,6 @@ import ShellOpenDialogButton from 'src/components/ShellOpenDialogButton.vue'
 import FileShellTitleRow from 'src/components/FileShellTitleRow.vue'
 import WidgetSettingsMenu from 'src/components/WidgetSettingsMenu.vue'
 import B10Logo from 'src/components/B10Logo.vue'
-import RecordFeedPanel from 'src/components/RecordFeedPanel.vue'
 
 import ArtifactAddDialog from 'components/ArtifactAddDialog.vue'
 import {
@@ -478,7 +528,7 @@ const draftTrayPosition = ref({ x: null, y: null })
 const draftTrayIsDragging = ref(false)
 const draftTrayPointerOffset = ref({ x: 0, y: 0 })
 const draftsDialogOpen = ref(false)
-const draftFeedTab = ref('drafts')
+const selectedDraftIds = ref([])
 const intakeQueueDialogOpen = ref(false)
 const intakeQueueFieldEdits = ref({})
 const ownerSetupRequired = ref(false)
@@ -619,6 +669,7 @@ const pendingAddEditTrayEntry = computed(() => {
   const rawValue = titleToken ? getCanonicalTokenValue(values, titleToken) : null
   const label = String(rawValue || '').trim() || 'Untitled draft'
   return {
+    id: `pending:${sourceKey}`,
     sourceKey,
     sourceLabel: String(entry?.label || sourceKey || '').trim(),
     label,
@@ -645,52 +696,6 @@ const draftTrayStyle = computed(() => {
     right: 'auto',
     bottom: 'auto',
   }
-})
-const draftFeedTabs = computed(() => [{ id: 'drafts', label: 'Drafts' }])
-const draftFeedGroups = computed(() =>
-  draftGroups.value.map((group) => ({
-    id: group.key,
-    label: group.label,
-  })),
-)
-const draftFeedItems = computed(() => {
-  const items = []
-  if (pendingAddEditTrayEntry.value) {
-    items.push({
-      id: `pending:${pendingAddEditTrayEntry.value.sourceKey}`,
-      feedKey: 'drafts',
-      groupKey: pendingAddEditTrayEntry.value.sourceKey,
-      title: pendingAddEditTrayEntry.value.label,
-      meta: 'Draft',
-      hasLogPage: true,
-      sourceKey: pendingAddEditTrayEntry.value.sourceKey,
-      type: 'pending-add-edit',
-    })
-  }
-  if (pendingIntakeRequest.value) {
-    items.push({
-      id: 'pending:intake',
-      feedKey: 'drafts',
-      groupKey: 'intake',
-      title: 'Intake Draft',
-      meta: 'Draft',
-      hasLogPage: true,
-      type: 'pending-intake',
-    })
-  }
-  draftEntries.value.forEach((entry) => {
-    items.push({
-      id: `${entry.sourceKey}:${entry.id}`,
-      feedKey: 'drafts',
-      groupKey: entry.sourceKey,
-      title: entry.label,
-      meta: 'Draft',
-      hasLogPage: true,
-      type: 'draft',
-      draft: entry,
-    })
-  })
-  return items
 })
 const activeIntakeQueueItem = computed(() => {
   const activeId = String(intakeReviewQueueState.activeItemId || '').trim()
@@ -1385,21 +1390,6 @@ function openDraftEntry(draft) {
   })
 }
 
-function openDraftFeedItem(itemId) {
-  const item = draftFeedItems.value.find((entry) => entry.id === itemId)
-  if (!item) return
-  if (item.type === 'pending-intake') {
-    openIntakeDraftFromTray()
-    return
-  }
-  if (item.type === 'pending-add-edit') {
-    resumePendingAddEdit()
-    return
-  }
-  if (item.draft) {
-    openDraftEntry(item.draft)
-  }
-}
 
 function toggleDraftTray() {
   draftTrayMinimized.value = !draftTrayMinimized.value
@@ -2577,15 +2567,24 @@ function goBack() {
   .ec-draft-tray__list {
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: 4px;
   }
 
-  .ec-draft-tray__item {
+  .ec-draft-tray__row {
     border-radius: 10px;
+    background: rgba(15, 23, 42, 0.7);
   }
 
-  .ec-draft-tray__item--intake {
-    background: rgba(30, 41, 59, 0.7);
+  .ec-draft-tray__select {
+    min-width: 36px;
+  }
+
+  .ec-draft-tray :deep(.q-item__label) {
+    color: #e2e8f0;
+  }
+
+  .ec-draft-tray :deep(.q-checkbox__inner) {
+    color: rgba(226, 232, 240, 0.85);
   }
 
   .ec-draft-tray__group-label {
