@@ -1,4 +1,4 @@
-# Intake Steward
+# Intake
 
 ## Purpose
 
@@ -12,13 +12,13 @@ The goal is to make it disciplined, provenance-aware, and aligned with canonical
 
 ## Gateway Questions
 
-The `Intake Steward` should be able to help answer:
+`Intake` should be able to help answer:
 
 - Is the extracted or suggested information tied to a real source?
 - Are assumptions clearly marked as unverified until confirmed?
 - Are provenance, ownership, verification, and LDB relationship gaps surfaced before creating settled records?
 
-If the `Intake Steward` cannot answer these three questions clearly, stop and surface the gap before implementation continues.
+If `Intake` cannot answer these three questions clearly, stop and surface the gap before implementation continues.
 
 ## Current First Active Direction
 
@@ -75,9 +75,9 @@ The intake steward should:
 - help governed translators receive source material with enough context, intent, and provenance to distinguish upstream extraction mistakes from translator mistakes
 - treat contextualization and handoff into canonical file destinations as part of intake responsibility, not as decorative metadata
 
-## Intake Steward Checkpoint
+## Intake Checkpoint
 
-The Intake Steward is the checkpoint between extraction and final proposal.
+`Intake` is the checkpoint between extraction and final proposal.
 
 Required checkpoints:
 
@@ -113,14 +113,40 @@ The intake steward should not:
 
 ## Related Docs
 
-The `Intake Steward` should stay aligned with:
+`Intake` should stay aligned with:
 
 - `docs/002/Companion.md`
 - `docs/010/Archive/010-intake-architecture-plan.md`
 - `docs/010/Archive/010-ingestion-reconnect-guide.md`
-- `docs/000/DAMP.md`
-- `docs/020/020_Provenance_Steward.md`
-- `docs/000/System.md`
+- `docs/000/a. DAMP.md`
+- `docs/020/a. File.md`
+- `docs/000/c. System.md`
+
+## Provenance Discipline
+
+`Intake` also carries the provenance discipline for source, actor, event, and reconstruction trails during ingestion work.
+
+It should make sure the system can explain:
+
+- who acted
+- where the candidate input came from
+- what source was used
+- what changed
+- when it changed
+- whether the value is assumed, extracted, provisional, verified, or rejected
+
+It should preserve the difference between:
+
+- `actor`
+- `source`
+- `action`
+
+And it should stop when:
+
+- source, actor, or event path cannot be identified
+- a value is being treated as verified without verification evidence
+- an assumption is being saved as settled truth
+- file birth cannot be reconstructed from genesis or system events
 
 ## Provenance Rule
 
@@ -158,7 +184,7 @@ This should be treated as a guidance hint for interpretation, not as permission 
 
 ## Stop Conditions
 
-The `Intake Steward` should stop implementation and surface the gap when:
+`Intake` should stop implementation and surface the gap when:
 
 - a proposed value has no visible source
 - provenance cannot identify the acting user or source artifact

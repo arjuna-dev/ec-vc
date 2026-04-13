@@ -64,7 +64,7 @@ When the active mission is intake-focused, the companion should also treat the a
 
 Current intake governing document:
 
-- `docs/000/Intake.md`
+- `docs/000/d. Intake.md`
 
 Working rule:
 
@@ -187,7 +187,7 @@ Instead, the companion should:
 
 - read the relevant file guide
 - read the declared token behavior when available
-- follow `docs/000/DAMP.md` when reviewing token behavior
+- follow `docs/000/a. DAMP.md` when reviewing token behavior
 - avoid turning file-specific rules into universal companion rules
 
 At minimum, the companion must preserve the distinction between:
@@ -225,12 +225,12 @@ should remain visible as filterable event meaning so the Owner or another author
 
 ## Role-Specific Confidence Rule
 
-Detailed confidence behavior belongs in role guides such as `docs/020/020_Intake_Steward.md`.
+Detailed confidence behavior belongs in role guides such as `docs/020/b. Intake.md`.
 
 Verification and provenance discipline should also stay aligned with:
 
-- `docs/020/020_Provenance_Steward.md`
-- `docs/020/020_Runtime_Steward.md`
+- `docs/020/b. Intake.md`
+- `docs/000/c. System.md`
 
 The base companion rule is simple:
 
@@ -280,7 +280,7 @@ Detailed LDB relationship governance belongs in the file guide, LDB guide, or Fi
 
 Runtime support for those relationships belongs in the Runtime Steward layer:
 
-- `docs/020/020_Runtime_Steward.md`
+- `docs/000/c. System.md`
 
 The companion's base rule is:
 

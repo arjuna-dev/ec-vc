@@ -27,14 +27,13 @@ Working posture:
 
 ## Related Docs
 
-- `docs/000/DAMP.md`
-- `docs/000/Recipe.md`
-- `docs/000/Translators.md`
+- `docs/000/a. DAMP.md`
+- `docs/000/g. Recipe.md`
+- `docs/000/e. Translators.md`
 - `docs/002/Companion.md`
-- `docs/020/020_Architect_Steward.md`
-- `docs/020/020_File_Steward.md`
-- `docs/020/020_Intake_Steward.md`
-- `docs/000/Design.md`
+- `docs/020/a. File.md`
+- `docs/020/b. Intake.md`
+- `docs/000/h. Design.md`
 - `docs/999/ECS_Tracker.md`
 
 ## Current Understanding

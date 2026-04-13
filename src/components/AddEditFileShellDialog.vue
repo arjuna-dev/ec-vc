@@ -247,7 +247,7 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['update:shellSelectorValue', 'change'])
-const FILE_GUIDE_DOC_URL = 'file:///C:/Users/erikc/Coding_Repository/ec-vc/docs/000/System.md'
+const FILE_GUIDE_DOC_URL = 'file:///C:/Users/erikc/Coding_Repository/ec-vc/docs/000/c. System.md'
 const $q = useQuasar()
 
 const shellSelectorOpen = ref(false)

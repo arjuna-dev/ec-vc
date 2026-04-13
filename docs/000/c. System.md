@@ -23,11 +23,11 @@ The clean rule is:
 
 ## Related Docs
 
-- `docs/000/DAMP.md`
+- `docs/000/a. DAMP.md`
 - `docs/002/Companion.md`
-- `docs/020/020_Architect_Steward.md`
-- `docs/020/020_File_Steward.md`
-- `docs/000/UX.md`
+- `docs/020/a. File.md`
+- `docs/000/i. UX.md`
+- `docs/000/a. DAMP.md`
 - `docs/000-canonical-structure.json`
 
 ## Glossary
@@ -200,21 +200,21 @@ Current map:
 
 | File | Birth Status | Guide Path | Steward | Notes |
 | --- | --- | --- | --- | --- |
-| `System / Files` | `partially born` | `docs/000/System.md` | `File Steward` | Canonical registry entity and app-facing system-file surface are both described here. |
+| `System / Files` | `partially born` | `docs/000/c. System.md` | `File` | Canonical registry entity and app-facing system-file surface are both described here. |
 | `BB Shell` | `partially born` | `docs/100/Archive/100-BB_Shell.md` | `Design Steward` | Runtime table and shell exist; promotion review still pending. |
-| `Events` | `partially born` | `docs/100/Archive/100-Events.md` | `Provenance Steward` | Runtime event surface exists; promotion review still pending. |
-| `Users` | `partially born` | `docs/100/Archive/100-Users.md` | `File Steward` | Runtime surface exists; promotion review still pending. |
-| `Contacts` | `partially born` | `docs/100/Archive/100-Contacts.md` | `File Steward` | Runtime surface exists; promotion review still pending. |
-| `Companies` | `partially born` | `docs/100/Archive/100-Companies.md` | `File Steward` | Runtime surface exists; promotion review still pending. |
-| `Opportunities` | `partially born` | `docs/100/Archive/100-Opportunities.md` | `File Steward` | Branch-capable runtime surface exists; promotion review still pending. |
+| `Events` | `partially born` | `docs/100/Archive/a2. History.md` | `Intake` | Runtime event surface exists; promotion review still pending. |
+| `Users` | `partially born` | `docs/100/Archive/a5. Users.md` | `File` | Runtime surface exists; promotion review still pending. |
+| `Contacts` | `partially born` | `docs/100/Archive/a4. Contacts.md` | `File` | Runtime surface exists; promotion review still pending. |
+| `Companies` | `partially born` | `docs/100/Archive/c1. Companies.md` | `File` | Runtime surface exists; promotion review still pending. |
+| `Opportunities` | `partially born` | `docs/100/Archive/c2. Opportunities.md` | `File` | Branch-capable runtime surface exists; promotion review still pending. |
 | `Funds` | `partially born` | `docs/100/Archive/100-Funds.md` | `File Steward` | Runtime surface exists but is not workspace-visible yet. |
 | `Rounds` | `partially born` | `docs/100/Archive/100-Rounds.md` | `File Steward` | Runtime surface exists but is not workspace-visible yet. |
-| `Projects` | `partially born` | `docs/100/Archive/100-Projects.md` | `File Steward` | Runtime surface exists; promotion review still pending. |
-| `Tasks` | `partially born` | `docs/100/Archive/100-Tasks.md` | `File Steward` | Runtime surface exists; promotion review still pending. |
-| `Notes` | `partially born` | `docs/100/Archive/100-Notes.md` | `File Steward` | Runtime surface exists; promotion review still pending. |
-| `Artifacts` | `partially born` | `docs/100/Archive/100-Artifacts.md` | `Provenance Steward` | Runtime surface exists; promotion review still pending. |
-| `Intake` | `partially born` | `docs/100/Archive/100-Intake.md` | `Provenance Steward` | Runtime surface exists; promotion review still pending. |
-| `User Roles` | `partially born` | `docs/100/Archive/100-User_Roles.md` | `File Steward` | Runtime surface exists; promotion review still pending. |
+| `Projects` | `partially born` | `docs/100/Archive/c3. Projects.md` | `File` | Runtime surface exists; promotion review still pending. |
+| `Tasks` | `partially born` | `docs/100/Archive/c4. Tasks.md` | `File` | Runtime surface exists; promotion review still pending. |
+| `Notes` | `partially born` | `docs/100/Archive/c5. Notes.md` | `File` | Runtime surface exists; promotion review still pending. |
+| `Artifacts` | `partially born` | `docs/100/Archive/c6. Artifacts.md` | `Intake` | Runtime surface exists; promotion review still pending. |
+| `Intake` | `partially born` | `docs/100/Archive/b2. Intake.md` | `Intake` | Runtime surface exists; promotion review still pending. |
+| `User Roles` | `partially born` | `docs/100/Archive/a3. User_Roles.md` | `File` | Runtime surface exists; promotion review still pending. |
 | `Companion Roles` | `partially born` | `docs/100/Archive/100-Companion_Roles.md` | `File Steward` | Runtime surface exists; promotion review still pending. |
 | `Markets` | `partially born` | `docs/100/Archive/100-Markets.md` | `Glossary Steward` | Runtime surface exists; promotion review still pending. |
 | `Securities` | `partially born` | `docs/100/Archive/100-Securities.md` | `Glossary Steward` | Runtime surface exists; promotion review still pending. |

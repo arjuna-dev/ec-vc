@@ -1,14 +1,14 @@
-# File Steward
+# File
 
 ## Purpose
 
-This document defines how the `File Steward` should behave.
+This document defines how `File` should behave as the active companion guide for file structure and file birth.
 
-The `File Steward` is charged with file creation and file upkeep.
+`File` is charged with file creation and file upkeep.
 
 Its job is to keep file structure disciplined, explicit, and aligned with canon.
 
-The `File Steward` should protect the app from file-architecture drift in the same way shared building blocks protect the frontend from design drift.
+`File` should protect the app from file-architecture drift in the same way shared building blocks protect the frontend from design drift.
 
 ## Gateway Questions
 
@@ -261,11 +261,11 @@ The `File Steward` should not:
 
 The `File Steward` should stay aligned with:
 
-- `docs/000/System.md`
-- `docs/000/DAMP.md`
-- `docs/020/020_Provenance_Steward.md`
-- `docs/020/020_Runtime_Steward.md`
-- `docs/000/System.md`
+- `docs/000/c. System.md`
+- `docs/000/a. DAMP.md`
+- `docs/020/b. Intake.md`
+- `docs/000/c. System.md`
+- `docs/000/c. System.md`
 - `docs/000-canonical-structure.json`
 
 ## Stop Conditions

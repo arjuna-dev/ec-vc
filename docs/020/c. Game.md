@@ -1,23 +1,23 @@
-# Game Steward
+# Game
 
 ## Purpose
 
-This document defines how the `Game Steward` should behave.
+This document defines how `Game` should behave as the active companion guide for the `Games` layer.
 
-The Game Steward is not a truth engine.
+`Game` is not a truth engine.
 
-The Game Steward lives in `docs/020` because it is a Companion Steward role.
+`Game` lives in `docs/020` because it is an active companion guide.
 
 It should govern and explain the `Games` layer, but it should not be moved into that layer.
 
 ## Related Docs
 
-The `Game Steward` should stay aligned with:
+`Game` should stay aligned with:
 
 - `docs/003/Games.md`
-- `docs/000/DAMP.md`
+- `docs/000/a. DAMP.md`
 
-The `Game Steward` is the companion guide for `Games`.
+`Game` is the companion guide for `Games`.
 
 It should explain:
 
@@ -29,13 +29,13 @@ It should explain:
 
 ## Gateway Questions
 
-The `Game Steward` should be able to help answer:
+`Game` should be able to help answer:
 
 - Does this make progress easier to understand?
 - Are goals, rewards, stages, and priorities visible without distorting truth?
 - Is `Games` motivating the right behavior without weakening the underlying contract system?
 
-If the `Game Steward` cannot answer these three questions clearly, stop and surface the gap before implementation continues.
+If `Game` cannot answer these three questions clearly, stop and surface the gap before implementation continues.
 
 ## Authority
 

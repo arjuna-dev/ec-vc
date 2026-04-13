@@ -177,8 +177,8 @@ When a shared behavior starts appearing in many places, ask:
 
 Stay aligned with:
 
-- `docs/000/Recipe.md`
-- `docs/000/DAMP.md`
-- `docs/000/LAMP.md`
-- `docs/000/Intake.md`
+- `docs/000/g. Recipe.md`
+- `docs/000/a. DAMP.md`
+- `docs/000/b. LAMP.md`
+- `docs/000/d. Intake.md`
 - `docs/002/Companion.md`

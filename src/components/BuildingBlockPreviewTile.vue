@@ -942,9 +942,9 @@ const fileHeroPreviewSegments = [
 ]
 
 const fileHeroPreviewActionItems = [
-  { id: 'system-files-guide', label: 'System Guide', caption: 'docs/000/System.md' },
-  { id: 'file-steward', label: 'File Steward', caption: 'docs/020/020_File_Steward.md' },
-  { id: 'open-issues', label: 'Open Issues', caption: 'docs/000/System.md' },
+  { id: 'system-files-guide', label: 'System Guide', caption: 'docs/000/c. System.md' },
+  { id: 'file-steward', label: 'File', caption: 'docs/020/a. File.md' },
+  { id: 'open-issues', label: 'Open Issues', caption: 'docs/000/c. System.md' },
 ]
 const dialogFooterLegendItems = [
   { label: 'Pre-Selected', tone: 'default' },

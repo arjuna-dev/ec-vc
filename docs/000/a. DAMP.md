@@ -18,9 +18,9 @@ Companion behavior and ingestion-side structural discipline should also stay ali
 
 - `docs/002/Companion.md`
 - `docs/003/Games.md`
-- `docs/020/020_Game_Steward.md`
-- `docs/020/020_Provenance_Steward.md`
-- `docs/020/020_Runtime_Steward.md`
+- `docs/020/c. Game.md`
+- `docs/020/b. Intake.md`
+- `docs/000/c. System.md`
 - `docs/010/Archive/010-files-system-birth-audit.md`
 - `docs/999/ECS_Tracker.md`
 
@@ -28,7 +28,7 @@ Docs-domain rule:
 
 - `docs/003/Games.md` is the single active `Games` guide
 - it carries root `Games` rules, `Games` operation, and the current rulebook
-- `docs/020/020_Game_Steward.md` stays in Companion Stewards because it defines the companion role that explains and governs the game layer
+- `docs/020/c. Game.md` stays in Companion Stewards because it defines the companion role that explains and governs the game layer
 
 When decisions change:
 

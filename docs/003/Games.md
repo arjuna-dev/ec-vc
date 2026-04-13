@@ -36,8 +36,8 @@ They should help humans, companions, and future bots understand:
 
 ## Related Docs
 
-- `docs/000/DAMP.md`
-- `docs/020/020_Game_Steward.md`
+- `docs/000/a. DAMP.md`
+- `docs/020/c. Game.md`
 
 The `Game Steward` remains in `020` because it is a Companion Steward role. This file defines the `Games` layer itself.
 
