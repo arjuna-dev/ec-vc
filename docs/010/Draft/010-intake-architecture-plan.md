@@ -47,24 +47,11 @@ This first intake architecture pass is meant to define the first stable operatin
 
 For this phase:
 
-- intake behavior should be frontend-first
+- intake behavior should be inspection-first and checkpoint-first
 - the flow should remain draft-based until the user confirms creation
 - orchestration should be controlled and explainable
 - review surfaces should expose why suggestions appeared
-
-This does **not** mean the first intake implementation must be the final one.
-
-The intended long-term understanding is:
-
-- `controlled staged orchestration` first
-- `smarter adaptive intake behavior` later
-
-In other words:
-
-- right now, we want dependable continuity and visible staged progress
-- later, we can make the AI behavior richer and more adaptive once the system is trustworthy
-
-So the current goal is not maximum autonomy.
+- use short action loops and example-first validation while the surface is still being cleaned
 
 The current goal is a clear and resilient intake operating system.
 

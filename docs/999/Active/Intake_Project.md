@@ -19,6 +19,7 @@ This mission is about making the current intake process trustworthy enough that 
 This mission should stay aligned with:
 
 - `docs/999/Active/Intake_Governance.md`
+- `docs/999/Active/Intake_Rulings.md`
 
 ## Mission
 
@@ -200,6 +201,7 @@ That means:
 - do not call a step solved because the UI looks plausible
 - do not merge separate failures into one vague intake complaint
 - prefer proving one layer before touching the next
+- prefer short action loops and small examples over broad speculative implementation
 
 ## Immediate Work Sequence
 

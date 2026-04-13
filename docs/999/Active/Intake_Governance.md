@@ -20,6 +20,15 @@ The next mission is not to abandon that strictness.
 
 The next mission is to use it to make the intake process honest, visible, and dependable.
 
+We are also intentionally slowing down.
+
+Working rule:
+
+- use short action loops
+- prefer small examples over broad speculative changes
+- verify one thing at a time
+- clean the surface before increasing complexity
+
 ## What The Convergence Cleanup Achieved
 
 ### 1. Shared Frontend Language And Shell Discipline
@@ -190,6 +199,17 @@ As we move into the intake mission, keep these questions active:
 3. Did the runtime complete the step, or did local state only make it appear complete?
 4. Did the next stage begin because the previous one truly completed, or because the UI assumed it did?
 5. Are we keeping the process sequential, or are we creating hidden iteration loops?
+
+## Short-Loop Rule
+
+From this point forward, intake work should prefer:
+
+- short and precise testing
+- one visible step at a time
+- example-first validation
+- small corrective loops instead of broad bundled rewrites
+
+We should not try to solve the whole intake mission in one pass while the surface is still being cleaned.
 
 ## What We Want To Preserve
 
