@@ -77,11 +77,7 @@ The system should preserve vocabulary changes, promoted labels, and deprecations
 - shell rendering path is declared: `yes`, route `/markets`
 - events/provenance path is declared: `partial`
 
-## View Fork System
-
-Definition note:
-
-- view forks and subgroups are internal to a file, not separate file rows, unless `System Files` explicitly tracks them as such
+## View Structure
 
 ### System
 

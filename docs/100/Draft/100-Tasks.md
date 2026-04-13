@@ -77,11 +77,7 @@ The system should preserve task creation, status changes, assignment changes, an
 - shell rendering path is declared: `yes`, route `/tasks`
 - events/provenance path is declared: `partial`
 
-## View Fork System
-
-Definition note:
-
-- view forks and subgroups are internal to a file, not separate file rows, unless `System Files` explicitly tracks them as such
+## View Structure
 
 ### System
 

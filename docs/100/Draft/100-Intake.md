@@ -77,11 +77,7 @@ The system should preserve processing creation, stage changes, source artifact l
 - shell rendering path is declared: `yes`, route `/intake`
 - events/provenance path is declared: `partial`
 
-## View Fork System
-
-Definition note:
-
-- view forks and subgroups are internal to a file, not separate file rows, unless `System Files` explicitly tracks them as such
+## View Structure
 
 ### System
 

@@ -115,11 +115,7 @@ That event should read as a verification action by the owner, while still preser
 - shell rendering path is declared: `yes`, route `/events`
 - events/provenance path is declared: `yes`, this file is the provenance surface
 
-## View Fork System
-
-Definition note:
-
-- view forks and subgroups are internal to a file, not separate file rows, unless `System Files` explicitly tracks them as such
+## View Structure
 
 ### System
 

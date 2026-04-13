@@ -77,11 +77,7 @@ The system should preserve project creation, stage changes, ownership changes, a
 - shell rendering path is declared: `yes`, route `/projects`
 - events/provenance path is declared: `partial`
 
-## View Fork System
-
-Definition note:
-
-- view forks and subgroups are internal to a file, not separate file rows, unless `System Files` explicitly tracks them as such
+## View Structure
 
 ### System
 

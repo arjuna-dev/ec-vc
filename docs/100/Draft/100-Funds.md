@@ -77,11 +77,7 @@ The system should preserve fund creation, branch selection, fund status changes,
 - shell rendering path is declared: `partial`, route exists in registry but is not workspace-visible
 - events/provenance path is declared: `partial`
 
-## View Fork System
-
-Definition note:
-
-- view forks and subgroups are internal to a file, not separate file rows, unless `System Files` explicitly tracks them as such
+## View Structure
 
 ### System
 
