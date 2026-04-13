@@ -24,6 +24,7 @@ CREATE TABLE IF NOT EXISTS events (
   old_value TEXT,
   new_value TEXT,
   payload_json TEXT,
+  Status TEXT,
   edited_by TEXT NOT NULL,
   edited_at TEXT NOT NULL DEFAULT (datetime('now')),
   FOREIGN KEY (edited_by) REFERENCES Users(id) ON UPDATE CASCADE ON DELETE RESTRICT
@@ -85,6 +86,7 @@ CREATE TABLE IF NOT EXISTS Companies (
   Description TEXT,
   Notable_News TEXT,
   Updates TEXT,
+  Status TEXT,
   created_by TEXT,
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
   updated_at TEXT NOT NULL DEFAULT (datetime('now')),
@@ -153,6 +155,7 @@ CREATE TABLE IF NOT EXISTS Asset_Manager_Companies (
 CREATE TABLE IF NOT EXISTS Funds (
   id TEXT PRIMARY KEY,
   Fund_Name TEXT,
+  Status TEXT,
   created_by TEXT,
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
   updated_at TEXT NOT NULL DEFAULT (datetime('now')),
@@ -182,6 +185,7 @@ CREATE TABLE IF NOT EXISTS Opportunities (
   Pipeline_Stage TEXT,
   Pipeline_Status TEXT,
   Raising_Status TEXT,
+  Status TEXT,
   Board_Seats TEXT,
   Information_Rights TEXT,
   Voting_Rights TEXT,
@@ -336,6 +340,7 @@ CREATE TABLE IF NOT EXISTS Fund_Controls (
 CREATE TABLE IF NOT EXISTS Rounds (
   id TEXT PRIMARY KEY,
   Round_Name TEXT,
+  Status TEXT,
   created_by TEXT,
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
   updated_at TEXT NOT NULL DEFAULT (datetime('now')),
@@ -433,6 +438,7 @@ CREATE TABLE IF NOT EXISTS Users (
   id TEXT PRIMARY KEY,
   User_Name TEXT NOT NULL,
   User_PEmail TEXT UNIQUE,
+  Status TEXT,
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
   updated_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
@@ -448,6 +454,7 @@ CREATE TABLE IF NOT EXISTS Contacts (
   Phone TEXT,
   Country_based TEXT,
   LinkedIn TEXT,
+  Status TEXT,
   linked_user_id TEXT UNIQUE,
   FOREIGN KEY (linked_user_id) REFERENCES Users(id) ON UPDATE CASCADE ON DELETE SET NULL
 );
@@ -470,6 +477,7 @@ CREATE TABLE IF NOT EXISTS Projects (
   id TEXT PRIMARY KEY,
   created_by TEXT,
   Project_Name TEXT,
+  Status TEXT,
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
   updated_at TEXT NOT NULL DEFAULT (datetime('now')),
   FOREIGN KEY (created_by) REFERENCES Users(id) ON UPDATE CASCADE ON DELETE SET NULL
@@ -557,6 +565,7 @@ CREATE TABLE IF NOT EXISTS Tasks (
   id TEXT PRIMARY KEY,
   created_by TEXT,
   Task_Name TEXT,
+  Status TEXT,
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
   updated_at TEXT NOT NULL DEFAULT (datetime('now')),
   FOREIGN KEY (created_by) REFERENCES Users(id) ON UPDATE CASCADE ON DELETE SET NULL
@@ -639,6 +648,7 @@ CREATE TABLE IF NOT EXISTS Markets (
   id TEXT PRIMARY KEY,
   Market_Name TEXT,
   Market_Summary TEXT,
+  Status TEXT,
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
   updated_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
@@ -647,6 +657,7 @@ CREATE TABLE IF NOT EXISTS Securities (
   id TEXT PRIMARY KEY,
   Security_Name TEXT,
   Security_Summary TEXT,
+  Status TEXT,
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
   updated_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
@@ -745,6 +756,7 @@ CREATE TABLE IF NOT EXISTS Notes (
   created_by TEXT,
   Note_Name TEXT,
   Note_Content TEXT NOT NULL,
+  Status TEXT,
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
   updated_at TEXT NOT NULL DEFAULT (datetime('now')),
   FOREIGN KEY (created_by) REFERENCES Users(id) ON UPDATE CASCADE ON DELETE SET NULL
@@ -1456,6 +1468,7 @@ CREATE TABLE IF NOT EXISTS Roles (
   id TEXT PRIMARY KEY,
   Role_Name TEXT NOT NULL,
   Role_Summary TEXT,
+  Status TEXT,
   created_by TEXT,
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
   updated_at TEXT NOT NULL DEFAULT (datetime('now')),
@@ -1472,6 +1485,7 @@ CREATE TABLE IF NOT EXISTS Companion_Roles (
   Companion_Role_Type TEXT,
   Companion_Role_Status TEXT,
   Companion_Role_Contract_Path TEXT,
+  Status TEXT,
   created_by TEXT,
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
   updated_at TEXT NOT NULL DEFAULT (datetime('now')),
@@ -1641,9 +1655,10 @@ CREATE TABLE IF NOT EXISTS Artifacts (
     )
   ),
   type TEXT CHECK (type IN ('raising_pitch_deck','commercial_pitch_deck','messages','emails','historical_data','forecast','other')),
-  title TEXT,
-  description TEXT,
-  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    title TEXT,
+    description TEXT,
+    Status TEXT,
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
   updated_at TEXT NOT NULL DEFAULT (datetime('now')),
   CHECK (round_id IS NULL OR fund_id IS NULL),
   FOREIGN KEY (round_id) REFERENCES Rounds(id) ON DELETE SET NULL,
@@ -1956,6 +1971,7 @@ CREATE TABLE IF NOT EXISTS Intake (
   Original_Artifact_Id TEXT,
   Created_Files_JSON TEXT,
   Working INTEGER NOT NULL DEFAULT 0 CHECK (Working IN (0, 1)),
+  Status TEXT,
   created_by TEXT,
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
   updated_at TEXT NOT NULL DEFAULT (datetime('now')),

@@ -1607,29 +1607,33 @@ function listCompanionRoles() {
 }
 
 const BASE_FILE_TOKEN_FIELDS = Object.freeze({
-  'file-system': { nameField: 'File_Name', summaryField: 'File_Summary' },
-  companies: { nameField: 'Company_Name', summaryField: 'One_Liner' },
-  contacts: { nameField: 'Name', summaryField: '' },
-  users: { nameField: 'User_Name', summaryField: '' },
-  notes: { nameField: 'Note_Name', summaryField: 'Note_Content' },
-  tasks: { nameField: 'Task_Name', summaryField: 'Task_Summary' },
-  projects: { nameField: 'Project_Name', summaryField: '' },
-  artifacts: { nameField: 'title', summaryField: '' },
-  opportunities: { nameField: 'Venture_Oppty_Name', summaryField: '' },
-  funds: { nameField: 'Fund_Name', summaryField: '' },
-  rounds: { nameField: 'Round_Name', summaryField: '' },
-  markets: { nameField: 'Market_Name', summaryField: 'Market_Summary' },
-  securities: { nameField: 'Security_Name', summaryField: 'Security_Summary' },
-  events: { nameField: 'Event_Name', summaryField: 'Event_Summary' },
-  'bb-file': { nameField: 'Name', summaryField: 'Summary' },
+  'file-system': { nameField: 'File_Name', summaryField: 'File_Summary', statusField: 'File_Status' },
+  companies: { nameField: 'Company_Name', summaryField: 'One_Liner', statusField: 'Status' },
+  contacts: { nameField: 'Name', summaryField: '', statusField: 'Status' },
+  users: { nameField: 'User_Name', summaryField: '', statusField: 'Status' },
+  notes: { nameField: 'Note_Name', summaryField: 'Note_Content', statusField: 'Status' },
+  tasks: { nameField: 'Task_Name', summaryField: 'Task_Summary', statusField: 'Status' },
+  projects: { nameField: 'Project_Name', summaryField: '', statusField: 'Status' },
+  artifacts: { nameField: 'title', summaryField: '', statusField: 'Status' },
+  opportunities: { nameField: 'Venture_Oppty_Name', summaryField: '', statusField: 'Status' },
+  funds: { nameField: 'Fund_Name', summaryField: '', statusField: 'Status' },
+  rounds: { nameField: 'Round_Name', summaryField: '', statusField: 'Status' },
+  markets: { nameField: 'Market_Name', summaryField: 'Market_Summary', statusField: 'Status' },
+  securities: { nameField: 'Security_Name', summaryField: 'Security_Summary', statusField: 'Status' },
+  events: { nameField: 'Event_Name', summaryField: 'Event_Summary', statusField: 'Status' },
+  'bb-file': { nameField: 'Name', summaryField: 'Summary', statusField: 'Status' },
+  intake: { nameField: 'Intake_Name', summaryField: '', statusField: 'Status' },
+  'user-roles': { nameField: 'Role_Name', summaryField: 'Role_Summary', statusField: 'Status' },
+  'companion-roles': { nameField: 'Companion_Role_Name', summaryField: 'Companion_Role_Summary', statusField: 'Status' },
 })
 
 function buildBaseFileStructure(entry) {
   const sourceKey = String(entry?.key || '').trim().toLowerCase()
   const runtimeEntityName = String(entry?.entityName || '').trim()
-  const mapping = BASE_FILE_TOKEN_FIELDS[sourceKey] || { nameField: '', summaryField: '' }
+  const mapping = BASE_FILE_TOKEN_FIELDS[sourceKey] || { nameField: '', summaryField: '', statusField: 'Status' }
   const nameField = String(mapping.nameField || '').trim()
   const summaryField = String(mapping.summaryField || '').trim()
+  const statusField = String(mapping.statusField || 'Status').trim()
   const nameTokenName = nameField || 'Name'
   const summaryTokenName = summaryField || 'Summary'
   const makeWriteTarget = (fieldName) =>
@@ -1704,11 +1708,11 @@ function buildBaseFileStructure(entry) {
             ...makeWriteTarget(nameField),
             relationshipGroup: '',
           },
-          {
-            key: summaryTokenName,
-            tokenName: summaryTokenName,
-            tokenRole: 'summary',
-            tokenOrder: '2',
+            {
+              key: summaryTokenName,
+              tokenName: summaryTokenName,
+              tokenRole: 'summary',
+              tokenOrder: '2',
             address: '',
             label: 'Summary',
             tokenType: 'text',
@@ -1716,12 +1720,29 @@ function buildBaseFileStructure(entry) {
             optionEntity: '',
             optionList: '',
             optionEntities: [],
-            dbFieldAliases: summaryField ? [summaryField] : [],
-            ...makeWriteTarget(summaryField),
-            relationshipGroup: '',
-          },
-        ],
-      },
+              dbFieldAliases: summaryField ? [summaryField] : [],
+              ...makeWriteTarget(summaryField),
+              relationshipGroup: '',
+            },
+            {
+              key: statusField || 'Status',
+              tokenName: statusField || 'Status',
+              tokenRole: 'status',
+              tokenOrder: '3',
+              address: '',
+              label: 'Status',
+              tokenType: 'select',
+              optionSource: 'static',
+              optionEntity: '',
+              optionList: '',
+              optionEntities: [],
+              inputOptions: ['Draft', 'Saved', 'Discarded'],
+              dbFieldAliases: statusField ? [statusField] : [],
+              ...makeWriteTarget(statusField),
+              relationshipGroup: '',
+            },
+          ],
+        },
       {
         key: `${sourceKey}-ldb`,
         label: 'LDB',

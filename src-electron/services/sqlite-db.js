@@ -14,6 +14,7 @@ export function initDb() {
     ensureColumn(db, 'Companion_Roles', 'Companion_Role_Type', 'TEXT')
     ensureColumn(db, 'Companion_Roles', 'Companion_Role_Status', 'TEXT')
     ensureColumn(db, 'Companion_Roles', 'Companion_Role_Contract_Path', 'TEXT')
+    ensureStatusColumns(db)
     db.pragma('user_version = 1')
     return db
   }
@@ -33,6 +34,7 @@ export function initDb() {
   ensureColumn(db, 'Companion_Roles', 'Companion_Role_Type', 'TEXT')
   ensureColumn(db, 'Companion_Roles', 'Companion_Role_Status', 'TEXT')
   ensureColumn(db, 'Companion_Roles', 'Companion_Role_Contract_Path', 'TEXT')
+  ensureStatusColumns(db)
   db.pragma('user_version = 1')
 
   return db
@@ -163,6 +165,28 @@ function hasColumn(database, tableName, columnName) {
 function ensureColumn(database, tableName, columnName, columnSql) {
   if (hasColumn(database, tableName, columnName)) return
   database.exec(`ALTER TABLE ${String(tableName)} ADD COLUMN ${String(columnName)} ${String(columnSql)}`)
+}
+
+function ensureStatusColumns(database) {
+  const tables = [
+    'events',
+    'Users',
+    'Contacts',
+    'Companies',
+    'Opportunities',
+    'Funds',
+    'Rounds',
+    'Projects',
+    'Tasks',
+    'Notes',
+    'Artifacts',
+    'Markets',
+    'Securities',
+    'Roles',
+    'Companion_Roles',
+    'Intake',
+  ]
+  tables.forEach((tableName) => ensureColumn(database, tableName, 'Status', 'TEXT'))
 }
 
 function columnMeta(database, tableName, columnName) {
