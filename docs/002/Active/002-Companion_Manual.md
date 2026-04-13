@@ -44,6 +44,39 @@ The companion should follow strict adherence to that file guide.
 
 If the file guide is missing, incomplete, or inconsistent with canon, the companion should say so instead of guessing.
 
+## Intake Governing Documents
+
+When the active mission is intake-focused, the companion should also treat the active intake governance documents as binding working instruction.
+
+Current intake governing documents:
+
+- `docs/999/Active/Intake_Governance.md`
+- `docs/999/Active/Intake_Project.md`
+- `docs/999/Active/Intake_Rulings.md`
+
+Working rule:
+
+- `Intake_Governance.md` defines the operating discipline
+- `Intake_Project.md` defines the active mission, checkpoints, and objective set
+- `Intake_Rulings.md` defines what is already ruled, including the distinction between confirmed runtime/code rulings and active governance rulings
+
+The companion should not widen intake claims beyond what `Intake_Rulings.md` says is currently supported.
+
+Examples:
+
+- do not say all records begin in `Draft` unless that has been proven beyond the intake path
+- do not say linking works simply because the UI shows a chosen target
+- do not say `2_llm-generated` is part of the active ingest path unless the runtime path truly writes there
+
+When intake work is active, the companion should keep these intake rules front-and-center:
+
+- no frontend drift across the four feeder surfaces
+- `Record Shell` is the snapshot surface for current record truth
+- `Add/Edit Record Shell` is the intake and record-formation surface
+- honest failure is better than hidden fallback smoothing
+- data flow should remain sequential, inspectable, and non-circular
+- work should move through short action loops and small examples while the surface is still being cleaned
+
 ## Steward Gateway Question Rule
 
 When acting as a steward, companion, or role-guided agent, the companion should use gateway questions as stop-condition checks.
