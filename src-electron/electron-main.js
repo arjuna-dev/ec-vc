@@ -4215,7 +4215,7 @@ function buildLdbRelationshipFields(database, entityName, recordId, idColumn = '
     const relatedItems = listLdbRelationshipItems(database, contract, recordId).filter((item) => item.id)
     return {
       key: `${entityName}|${recordId}|${contract.sourceToken}`,
-      section: 'KDB',
+      section: 'LDB',
       label: formatRecordFieldLabel(contract.sourceToken),
       value: relatedItems.map((item) => item.label).join(', '),
       editable: true,
@@ -4572,8 +4572,8 @@ function buildCompanyRecordView(database, recordId) {
         items: fields,
       },
       {
-        id: 'kdb-relationships',
-        label: 'KDB',
+        id: 'ldb-relationships',
+        label: 'LDB',
         kind: 'relationships',
         items: relationshipFields,
       },
@@ -4706,8 +4706,8 @@ function buildUserRecordView(database, recordId) {
         items: metadataFields,
       },
       {
-        id: 'kdb-relationships',
-        label: 'KDB',
+        id: 'ldb-relationships',
+        label: 'LDB',
         kind: 'relationships',
         items: relationshipFields,
       },
@@ -4817,8 +4817,8 @@ function buildContactRecordView(database, recordId) {
         items: metadataFields,
       },
       {
-        id: 'kdb-relationships',
-        label: 'KDB',
+        id: 'ldb-relationships',
+        label: 'LDB',
         kind: 'relationships',
         items: relationshipFields,
       },
@@ -4888,8 +4888,8 @@ function getRecordView(tableName, recordId) {
         items: fields,
       },
       {
-        id: 'kdb-relationships',
-        label: 'KDB',
+        id: 'ldb-relationships',
+        label: 'LDB',
         kind: 'relationships',
         items: relationshipFields,
       },
