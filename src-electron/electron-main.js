@@ -1905,12 +1905,13 @@ function enforceUniqueTokenNames(structure = null, runtimeEntityName = '') {
     tokens.forEach((token) => {
       const nameKey = String(token?.tokenName || token?.key || token?.label || '').trim().toLowerCase()
       const labelKey = String(token?.label || '').trim().toLowerCase()
+      const labelFlat = labelKey.replace(/\s+/g, '')
       const rawRole = String(token?.tokenRole || '').trim().toLowerCase()
       const roleKey = rawRole === 'title' || rawRole === 'summary'
         ? rawRole
-        : labelKey === 'name'
+        : labelKey === 'name' || labelFlat.endsWith('name')
           ? 'title'
-          : labelKey === 'summary'
+          : labelKey === 'summary' || labelFlat.endsWith('summary')
             ? 'summary'
             : ''
       if (!nameKey) {
