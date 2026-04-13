@@ -1615,7 +1615,7 @@ const BASE_FILE_TOKEN_FIELDS = Object.freeze({
   tasks: { nameField: 'Task_Name', summaryField: 'Task_Summary' },
   projects: { nameField: 'Project_Name', summaryField: '' },
   artifacts: { nameField: 'title', summaryField: '' },
-  opportunities: { nameField: 'opportunity_name', summaryField: '' },
+  opportunities: { nameField: 'Venture_Oppty_Name', summaryField: '' },
   funds: { nameField: 'Fund_Name', summaryField: '' },
   rounds: { nameField: 'Round_Name', summaryField: '' },
   markets: { nameField: 'Market_Name', summaryField: 'Market_Summary' },
@@ -2691,6 +2691,18 @@ function ensureDefaultFiles(database) {
         section.tokens.forEach((token) => {
           if (!token || typeof token !== 'object') return
           const aliases = Array.isArray(token.dbFieldAliases) ? token.dbFieldAliases : []
+          if (runtimeEntityName === 'Opportunities') {
+            const normalizedAliases = new Set(aliases.map((value) => String(value || '').trim()).filter(Boolean))
+            const writeField = String(token.dbWriteField || '').trim()
+            const hasLegacyAlias = normalizedAliases.has('opportunity_name')
+            if (writeField === 'opportunity_name' || hasLegacyAlias) {
+              token.dbWriteField = 'Venture_Oppty_Name'
+              normalizedAliases.delete('opportunity_name')
+              normalizedAliases.add('Venture_Oppty_Name')
+              token.dbFieldAliases = Array.from(normalizedAliases)
+              mutated = true
+            }
+          }
           if (!String(token.dbWriteField || '').trim() && aliases.length) {
             token.dbWriteField = String(aliases[0] || '').trim()
             mutated = true

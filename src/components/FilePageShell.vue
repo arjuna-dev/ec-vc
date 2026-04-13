@@ -687,18 +687,18 @@
         :primary-tokens="createPrimaryTokens"
         :left-sections="createDialogLeftViews"
         :right-sections="createDialogRightViews"
-        :branch-selector-token-key="createDialogBranchSelectorTokenKey"
-        :loading="createDialogLoading"
-        :submit-disabled="createDialogSubmitDisabled"
-        :initial-values="createDialogInitialValues"
-        :initial-field-meta="createDialogInitialFieldMeta"
-        :initial-section-key="createDialogInitialSectionKey"
-        :initial-artifacts="createDialogInitialArtifacts"
-        :artifact-context="createDialogArtifactContext"
-        :prefer-add-layout="createDialogPreferAddLayout"
-        :initial-resources-collapsed="createDialogMode === 'edit' ? true : false"
-        :initial-record-data-collapsed="createDialogMode === 'edit' ? false : true"
-        :initial-snapshot="createDialogInitialSnapshot"
+      :branch-selector-token-key="createDialogBranchSelectorTokenKey"
+      :loading="createDialogLoading"
+      :submit-disabled="createDialogSubmitDisabled"
+      :initial-values="createDialogInitialValues"
+      :initial-field-meta="createDialogInitialFieldMeta"
+      :initial-section-key="createDialogInitialSectionKey"
+      :initial-artifacts="createDialogInitialArtifacts"
+      :artifact-context="createDialogArtifactContext"
+      :prefer-add-layout="createDialogPreferAddLayout"
+      :initial-resources-collapsed="createDialogResourcesCollapsed"
+      :initial-record-data-collapsed="createDialogRecordDataCollapsed"
+      :initial-snapshot="createDialogInitialSnapshot"
         @change="handleCreateDialogChange"
         @request-close="handleCreateDialogClose"
         @submit="submitCreateRecordShell"
@@ -807,6 +807,8 @@ const createDialogLoading = ref(false)
 const createDialogMode = ref('create')
 const createDialogPreferAddLayout = ref(false)
 const createDialogInitialSnapshot = ref(null)
+const createDialogResourcesCollapsed = ref(false)
+const createDialogRecordDataCollapsed = ref(true)
 const editDialogRow = ref(null)
 const editDialogRecordPayload = ref(null)
 const createDialogDraftRecordId = ref('')
@@ -3548,6 +3550,9 @@ function openCreateRecordShell(options = {}) {
   resetCreateDialogAutosaveState()
   createDialogMode.value = 'create'
   createDialogPreferAddLayout.value = true
+  const expandBothPanels = String(activeContentSourceKey.value || '').trim().toLowerCase() === 'opportunities'
+  createDialogResourcesCollapsed.value = !expandBothPanels
+  createDialogRecordDataCollapsed.value = !expandBothPanels
   createDialogDraftRecordId.value = `draft:${crypto.randomUUID()}`
   createDialogDraftSourceKey.value = activeContentSourceKey.value
   editDialogRow.value = null
@@ -3561,6 +3566,7 @@ function openCreateRecordShell(options = {}) {
     ? { ...options.initialFieldMeta }
     : {}
   createDialogInitialArtifacts.value = []
+  createDialogInitialSnapshot.value = { uiState: { activeSectionKey: createDialogInitialSectionKey.value }, hasUserChanges: true }
   upsertLocalDraftRow(activeContentSourceKey.value, createDialogDraftRecordId.value, createDialogInitialValues.value)
   createDialogRenderKey.value += 1
   createDialogOpen.value = true
@@ -3573,6 +3579,9 @@ async function openEditRecordShell(row) {
     resetCreateDialogAutosaveState()
     createDialogMode.value = 'create'
     createDialogPreferAddLayout.value = true
+    const expandBothPanels = String(activeContentSourceKey.value || '').trim().toLowerCase() === 'opportunities'
+    createDialogResourcesCollapsed.value = !expandBothPanels
+    createDialogRecordDataCollapsed.value = !expandBothPanels
     createDialogDraftRecordId.value = String(row.recordId || '').trim()
     createDialogDraftSourceKey.value = activeContentSourceKey.value
     editDialogRow.value = row
@@ -3581,6 +3590,7 @@ async function openEditRecordShell(row) {
     createDialogPrefillValues.value = buildDraftDialogInitialValuesFromRow(row)
     createDialogFieldMeta.value = {}
     createDialogInitialArtifacts.value = []
+    createDialogInitialSnapshot.value = { uiState: { activeSectionKey: createDialogInitialSectionKey.value }, hasUserChanges: true }
     createDialogRenderKey.value += 1
     createDialogOpen.value = true
     return
@@ -3588,6 +3598,9 @@ async function openEditRecordShell(row) {
   resetCreateDialogAutosaveState()
   createDialogMode.value = 'edit'
   createDialogPreferAddLayout.value = false
+  createDialogResourcesCollapsed.value = true
+  createDialogRecordDataCollapsed.value = false
+  createDialogInitialSnapshot.value = null
   editDialogRow.value = row
   editDialogRecordPayload.value = null
   createDialogDraftRecordId.value = String(row.recordId || '').trim()
@@ -3628,6 +3641,9 @@ async function openAddRelationShell(row) {
   resetCreateDialogAutosaveState()
   createDialogMode.value = 'edit'
   createDialogPreferAddLayout.value = false
+  createDialogResourcesCollapsed.value = true
+  createDialogRecordDataCollapsed.value = false
+  createDialogInitialSnapshot.value = null
   editDialogRow.value = row
   editDialogRecordPayload.value = null
   createDialogDraftRecordId.value = String(row.recordId || '').trim()
