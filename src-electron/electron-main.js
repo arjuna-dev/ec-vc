@@ -12,7 +12,6 @@ import { closeDb, dbAll, dbRun, getDbInfo, initDb } from './services/sqlite-db.j
 import { mirrorPipelineToFs, removePipelineFromFs } from './services/pipeline-mirror.js'
 import { ingestArtifactsFromPaths } from './services/artifact-ingestion.js'
 import { previewAutofillFromFiles } from './services/autofill-extraction.js'
-import { syncWorkspaceWorkbookMirror } from './services/workspace-workbook-mirror.js'
 import {
   getNetworkDatabasesPath,
   NETWORK_DATABASES_DIR,
@@ -97,14 +96,7 @@ async function ensureWorkspace() {
   return createProjectStructure(baseDirPath, DEFAULT_PROJECT_ROOT_NAME, undefined)
 }
 
-async function syncWorkspaceWorkbooksSafe(workspaceRootPath = null) {
-  try {
-    const workspace = workspaceRootPath ? { rootPath: workspaceRootPath } : await ensureWorkspace()
-    await syncWorkspaceWorkbookMirror(workspace.rootPath)
-  } catch (error) {
-    console.error('workspace workbook mirror failed:', error)
-  }
-}
+async function syncWorkspaceWorkbooksSafe() {}
 
 function listPipelines() {
   return dbAll(
