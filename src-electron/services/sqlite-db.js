@@ -77,7 +77,6 @@ function maybeRecreateDb(dbPath) {
     .get()?.c
 
   const hasCurrentSchema =
-    !hasLegacyUsersEmailConstraintArtifacts(probe) &&
     hasTable(probe, 'Projects') &&
     hasTable(probe, 'Project_Overview') &&
     hasTable(probe, 'Project_Stages') &&
@@ -177,15 +176,3 @@ function columnIsRequired(database, tableName, columnName) {
   return Boolean(meta && Number(meta.notnull || 0) === 1)
 }
 
-function hasLegacyUsersEmailConstraintArtifacts(database) {
-  if (hasTable(database, 'Users__legacy_required_email')) return true
-  const legacySqlRows = database
-    .prepare(`
-      SELECT sql
-      FROM sqlite_master
-      WHERE sql IS NOT NULL
-        AND sql LIKE '%Users__legacy_required_email%'
-    `)
-    .all()
-  return legacySqlRows.length > 0
-}
