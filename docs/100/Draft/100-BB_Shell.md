@@ -5,7 +5,7 @@
 - file name: `BB Shell`
 - file guide: `docs/100/Draft/100-BB_Shell.md`
 - parent guide: `docs/001/Active/001-Files.md`
-- file class: `L1`
+- file class: `File`
 - canonical entity: `Building_Blocks`
 - app-facing label: `BB Shell`
 - canonical owner identity: `Owner`
@@ -79,11 +79,7 @@ The system should preserve when a block guide was created, when source ownership
 - shell rendering path is declared: `yes`, route `/bb-file`
 - events/provenance path is declared: `partial`
 
-## View Fork System
-
-Definition note:
-
-- view forks and subgroups are internal to a file, not separate file rows, unless `System Files` explicitly tracks them as such
+## View Structure
 
 ### General
 
