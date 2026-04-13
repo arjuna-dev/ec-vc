@@ -1957,23 +1957,29 @@ function enforceUniqueTokenNames(structure = null, runtimeEntityName = '') {
     'activity',
     'activity log',
   ]
-  const systemRoleTokens = new Set()
+  const historyCandidates = []
   sections.forEach((section) => {
-    if (String(section?.label || '').trim().toLowerCase() !== 'system') return
+    const isSystemSection = String(section?.label || '').trim().toLowerCase() === 'system'
     const tokens = Array.isArray(section?.tokens) ? section.tokens : []
     tokens.forEach((token) => {
       const labelKey = String(token?.label || '').trim().toLowerCase()
       const tokenKey = String(token?.tokenName || token?.key || token?.label || '').trim().toLowerCase()
       if (tokenKey === 'history' || systemAliases.includes(labelKey)) {
-        systemRoleTokens.add(token)
+        historyCandidates.push({ token, isSystemSection })
       }
     })
   })
 
-  if (systemRoleTokens.size > 1) {
-    const ranked = Array.from(systemRoleTokens).sort((a, b) => selectScore(b) - selectScore(a))
-    const keep = ranked[0]
-    systemRoleTokens.forEach((token) => {
+  if (historyCandidates.length > 1) {
+    const ranked = historyCandidates
+      .slice()
+      .sort((a, b) => {
+        const aScore = selectScore(a.token) + (a.isSystemSection ? 3 : 0)
+        const bScore = selectScore(b.token) + (b.isSystemSection ? 3 : 0)
+        return bScore - aScore
+      })
+    const keep = ranked[0]?.token
+    historyCandidates.forEach(({ token }) => {
       if (token === keep) return
       selectedTokens.delete(token)
     })
