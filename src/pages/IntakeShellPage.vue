@@ -33,6 +33,7 @@
       :initial-field-meta="dialogInitialFieldMeta"
       :initial-section-key="dialogInitialSectionKey"
       :initial-artifacts="dialogInitialArtifacts"
+      :initial-project-ids="dialogInitialProjectIds"
       :initial-snapshot="dialogInitialSnapshot"
       :artifact-context="dialogArtifactContext"
       @request-close="handleDialogClose"
@@ -85,6 +86,7 @@ const dialogInitialSectionKey = ref('general')
 const dialogRecordId = ref('')
 const dialogEntityName = ref('')
 const dialogInitialArtifacts = ref([])
+const dialogInitialProjectIds = ref([])
 const dialogInitialSnapshot = ref(null)
 const dialogArtifactContext = ref(null)
 const runtimeStructureVersion = ref(getRuntimeStructureVersion())
@@ -177,6 +179,7 @@ watch(
     dialogInitialArtifacts.value = Array.isArray(pendingSnapshot?.stagedArtifacts)
       ? pendingSnapshot.stagedArtifacts
       : Array.isArray(pending.initialArtifacts) ? pending.initialArtifacts : []
+    dialogInitialProjectIds.value = Array.isArray(pending.projectIds) ? pending.projectIds : []
     dialogArtifactContext.value = pending.artifactContext && typeof pending.artifactContext === 'object'
       ? pending.artifactContext
       : null
@@ -196,6 +199,7 @@ watch(
       dialogInitialValues.value = buildCreateDialogInitialValues()
       dialogInitialFieldMeta.value = {}
       dialogInitialSectionKey.value = 'general'
+      dialogInitialProjectIds.value = []
       dialogInitialSnapshot.value = null
       dialogRenderKey.value += 1
       return
@@ -233,6 +237,7 @@ function buildPendingIntakeRequest(snapshot = null) {
   return {
     initialArtifacts: stagedArtifacts.length ? stagedArtifacts : dialogInitialArtifacts.value,
     artifactContext: dialogArtifactContext.value,
+    projectIds: Array.isArray(draftSnapshot?.selectedProjectIds) ? draftSnapshot.selectedProjectIds : [],
     snapshot: draftSnapshot,
   }
 }

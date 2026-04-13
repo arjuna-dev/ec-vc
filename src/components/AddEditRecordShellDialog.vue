@@ -160,49 +160,18 @@
                       </div>
                     </ProcessingBox>
 
-                    <ProcessingBox title="URLs" compact class="create-record-shell__processing-box create-record-shell__processing-box--compact">
-                      <template #actions>
-                        <button
-                          type="button"
-                          class="create-record-shell__processing-delete"
-                          :disabled="!selectedUrlEntryIds.length"
-                          @click="removeCompanionEntries('url')"
-                        >
-                          Delete
-                        </button>
-                      </template>
-                      <EntryInputListBox
-                        :input-value="companionUrl"
-                        :entries="urlEntries"
-                        :selected-ids="selectedUrlEntryIds"
-                        :expanded-ids="expandedEntryIds"
-                        @update:input-value="companionUrl = $event; markDialogChanged()"
-                        @submit="addCompanionEntry('url')"
-                        @toggle-select="toggleCompanionEntrySelection('url', $event[0], $event[1])"
-                        @toggle-expanded="toggleCompanionEntryExpanded"
-                      />
-                    </ProcessingBox>
-
-                    <ProcessingBox title="Blurbs" compact class="create-record-shell__processing-box create-record-shell__processing-box--compact">
-                      <template #actions>
-                        <button
-                          type="button"
-                          class="create-record-shell__processing-delete"
-                          :disabled="!selectedBlurbEntryIds.length"
-                          @click="removeCompanionEntries('blurb')"
-                        >
-                          Delete
-                        </button>
-                      </template>
-                      <EntryInputListBox
-                        :input-value="companionBlurb"
-                        :entries="blurbEntries"
-                        :selected-ids="selectedBlurbEntryIds"
-                        :expanded-ids="expandedEntryIds"
-                        @update:input-value="companionBlurb = $event; markDialogChanged()"
-                        @submit="addCompanionEntry('blurb')"
-                        @toggle-select="toggleCompanionEntrySelection('blurb', $event[0], $event[1])"
-                        @toggle-expanded="toggleCompanionEntryExpanded"
+                    <ProcessingBox title="Project Route" compact class="create-record-shell__processing-box create-record-shell__processing-box--compact">
+                      <q-select
+                        v-model="selectedProjectIds"
+                        dense
+                        outlined
+                        emit-value
+                        map-options
+                        use-chips
+                        multiple
+                        :options="projectOptions"
+                        class="create-record-shell__processing-placeholder-box create-record-shell__processing-placeholder-box--input"
+                        @update:model-value="markDialogChanged()"
                       />
                     </ProcessingBox>
 
@@ -340,49 +309,18 @@
                       </div>
                     </ProcessingBox>
 
-                    <ProcessingBox title="URLs" compact class="create-record-shell__processing-box create-record-shell__processing-box--compact">
-                      <template #actions>
-                        <button
-                          type="button"
-                          class="create-record-shell__processing-delete"
-                          :disabled="!selectedUrlEntryIds.length"
-                          @click="removeCompanionEntries('url')"
-                        >
-                          Delete
-                        </button>
-                      </template>
-                      <EntryInputListBox
-                        :input-value="companionUrl"
-                        :entries="urlEntries"
-                        :selected-ids="selectedUrlEntryIds"
-                        :expanded-ids="expandedEntryIds"
-                        @update:input-value="companionUrl = $event; markDialogChanged()"
-                        @submit="addCompanionEntry('url')"
-                        @toggle-select="toggleCompanionEntrySelection('url', $event[0], $event[1])"
-                        @toggle-expanded="toggleCompanionEntryExpanded"
-                      />
-                    </ProcessingBox>
-
-                    <ProcessingBox title="Blurbs" compact class="create-record-shell__processing-box create-record-shell__processing-box--compact">
-                      <template #actions>
-                        <button
-                          type="button"
-                          class="create-record-shell__processing-delete"
-                          :disabled="!selectedBlurbEntryIds.length"
-                          @click="removeCompanionEntries('blurb')"
-                        >
-                          Delete
-                        </button>
-                      </template>
-                      <EntryInputListBox
-                        :input-value="companionBlurb"
-                        :entries="blurbEntries"
-                        :selected-ids="selectedBlurbEntryIds"
-                        :expanded-ids="expandedEntryIds"
-                        @update:input-value="companionBlurb = $event; markDialogChanged()"
-                        @submit="addCompanionEntry('blurb')"
-                        @toggle-select="toggleCompanionEntrySelection('blurb', $event[0], $event[1])"
-                        @toggle-expanded="toggleCompanionEntryExpanded"
+                    <ProcessingBox title="Project Route" compact class="create-record-shell__processing-box create-record-shell__processing-box--compact">
+                      <q-select
+                        v-model="selectedProjectIds"
+                        dense
+                        outlined
+                        emit-value
+                        map-options
+                        use-chips
+                        multiple
+                        :options="projectOptions"
+                        class="create-record-shell__processing-placeholder-box create-record-shell__processing-placeholder-box--input"
+                        @update:model-value="markDialogChanged()"
                       />
                     </ProcessingBox>
 
@@ -1046,7 +984,6 @@ import StructureGovernancePanel from 'src/components/StructureGovernancePanel.vu
 import ProcessingBox from 'src/components/ProcessingBox.vue'
 import ShellSelector from 'src/components/ShellSelector.vue'
 import FieldMapRow from 'src/components/FieldMapRow.vue'
-import EntryInputListBox from 'src/components/EntryInputListBox.vue'
 import ViewSettingsMenu from 'src/components/ViewSettingsMenu.vue'
 import RecordHistoryBox from 'src/components/RecordHistoryBox.vue'
 import { buildStructureToolbarItems } from 'src/utils/structureToolbarContract'
@@ -1170,6 +1107,9 @@ const selectedArtifactIds = ref([])
 const tokenFieldOverrides = ref({})
 const startingArtifactIds = ref([])
 const autoProcessArtifacts = ref(false)
+const projectOptions = ref([])
+const selectedProjectIds = ref([])
+const projectsLoaded = ref(false)
 const companionUrl = ref('')
 const companionBlurb = ref('')
 const urlEntries = ref([])
@@ -1478,6 +1418,31 @@ const dialogStyle = computed(() => ({
   minHeight: `${resolvedDialogHeight.value}px`,
 }))
 
+async function ensureProjectsLoaded() {
+  if (projectsLoaded.value) return
+  if (!bridge.value?.projects?.list) return
+  try {
+    const result = await bridge.value.projects.list()
+    const rows = Array.isArray(result?.projects) ? result.projects : []
+    projectOptions.value = rows
+      .map((row) => ({
+        value: String(row?.id || row?.pipeline_id || '').trim(),
+        label: String(row?.Project_Name || row?.name || '').trim(),
+        isDefault: Boolean(row?.is_default),
+      }))
+      .filter((option) => option.value && option.label)
+    if (!selectedProjectIds.value.length) {
+      const defaults = projectOptions.value.filter((option) => option.isDefault).map((option) => option.value)
+      if (defaults.length) {
+        selectedProjectIds.value = defaults
+        markDialogChanged()
+      }
+    }
+  } finally {
+    projectsLoaded.value = true
+  }
+}
+
 function resolveInitialDialogSectionKey(initialKey = '') {
   const normalizedInitialKey = String(initialKey || '').trim()
   if (normalizedInitialKey && allSections.value.some((section) => section.key === normalizedInitialKey)) {
@@ -1517,6 +1482,7 @@ function createUndoSnapshot() {
     selectedUrlEntryIds: [...selectedUrlEntryIds.value],
     selectedBlurbEntryIds: [...selectedBlurbEntryIds.value],
     expandedEntryIds: [...expandedEntryIds.value],
+    selectedProjectIds: [...selectedProjectIds.value],
     supportResourcesCollapsed: supportResourcesCollapsed.value,
     recordDataCollapsed: recordDataCollapsed.value,
   }
@@ -1555,6 +1521,7 @@ function restoreUndoSnapshot(snapshot) {
   selectedUrlEntryIds.value = Array.isArray(snapshot?.selectedUrlEntryIds) ? [...snapshot.selectedUrlEntryIds] : []
   selectedBlurbEntryIds.value = Array.isArray(snapshot?.selectedBlurbEntryIds) ? [...snapshot.selectedBlurbEntryIds] : []
   expandedEntryIds.value = Array.isArray(snapshot?.expandedEntryIds) ? [...snapshot.expandedEntryIds] : []
+  selectedProjectIds.value = Array.isArray(snapshot?.selectedProjectIds) ? [...snapshot.selectedProjectIds] : []
   supportResourcesCollapsed.value = Boolean(snapshot?.supportResourcesCollapsed)
   recordDataCollapsed.value = Boolean(snapshot?.recordDataCollapsed)
   hasUserChanges.value = true
@@ -1616,6 +1583,9 @@ function initializeDialogState() {
   selectedUrlEntryIds.value = []
   selectedBlurbEntryIds.value = []
   expandedEntryIds.value = []
+  selectedProjectIds.value = Array.isArray(props.initialSnapshot?.selectedProjectIds)
+    ? [...props.initialSnapshot.selectedProjectIds]
+    : []
   supportResourcesCollapsed.value = props.preferAddLayout ? false : Boolean(props.initialResourcesCollapsed)
   recordDataCollapsed.value = props.preferAddLayout ? true : Boolean(props.initialRecordDataCollapsed)
   dialogWidth.value = 760
@@ -1653,6 +1623,7 @@ watch(
   (nextValue) => {
     if (!nextValue) return
     initializeDialogState()
+    void ensureProjectsLoaded()
   },
   { immediate: true },
 )
@@ -2371,6 +2342,7 @@ function openIntakeShell() {
   setPendingIntakeShellRequest({
     initialArtifacts: stagedArtifacts.value,
     artifactContext: props.artifactContext,
+    projectIds: selectedProjectIds.value,
   })
   router.push({
     name: 'intake-shell',

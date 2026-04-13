@@ -200,94 +200,20 @@
 
                     <section class="create-record-shell__processing-box create-record-shell__processing-box--compact">
                       <div class="create-record-shell__processing-box-head">
-                        <div class="create-record-shell__processing-box-title">URLs</div>
-                        <button
-                          type="button"
-                          class="create-record-shell__processing-delete"
-                          :disabled="!selectedUrlEntryIds.length"
-                          @click="removeCompanionEntries('url')"
-                        >
-                          Delete
-                        </button>
+                        <div class="create-record-shell__processing-box-title">Project Route</div>
                       </div>
-                      <input
-                        v-model="companionUrl"
-                        type="text"
+                      <q-select
+                        v-model="selectedProjectIds"
+                        dense
+                        outlined
+                        emit-value
+                        map-options
+                        use-chips
+                        multiple
+                        :options="projectOptions"
                         class="create-record-shell__processing-placeholder-box create-record-shell__processing-placeholder-box--input"
-                        @input="markDialogChanged"
-                        @keydown.enter.stop.prevent="addCompanionEntry('url')"
+                        @update:model-value="markDialogChanged"
                       />
-                      <div v-if="urlEntries.length" class="create-record-shell__processing-entry-list">
-                        <label
-                          v-for="entry in urlEntries"
-                          :key="entry.id"
-                          class="create-record-shell__processing-entry-row"
-                          :class="{ 'create-record-shell__processing-entry-row--expanded': expandedEntryIds.includes(entry.id) }"
-                        >
-                          <q-checkbox
-                            :model-value="selectedUrlEntryIds.includes(entry.id)"
-                            dense
-                            size="xs"
-                            checked-icon="check_box"
-                            unchecked-icon="check_box_outline_blank"
-                            class="create-record-shell__artifact-checkbox"
-                            @update:model-value="toggleCompanionEntrySelection('url', entry.id, $event)"
-                          />
-                          <button
-                            type="button"
-                            class="create-record-shell__processing-entry-toggle"
-                            @click="toggleCompanionEntryExpanded(entry.id)"
-                          >
-                            {{ entry.value }}
-                          </button>
-                        </label>
-                      </div>
-                    </section>
-
-                    <section class="create-record-shell__processing-box create-record-shell__processing-box--compact">
-                      <div class="create-record-shell__processing-box-head">
-                        <div class="create-record-shell__processing-box-title">Blurbs</div>
-                        <button
-                          type="button"
-                          class="create-record-shell__processing-delete"
-                          :disabled="!selectedBlurbEntryIds.length"
-                          @click="removeCompanionEntries('blurb')"
-                        >
-                          Delete
-                        </button>
-                      </div>
-                      <input
-                        v-model="companionBlurb"
-                        type="text"
-                        class="create-record-shell__processing-placeholder-box create-record-shell__processing-placeholder-box--input"
-                        @input="markDialogChanged"
-                        @keydown.enter.stop.prevent="addCompanionEntry('blurb')"
-                      />
-                      <div v-if="blurbEntries.length" class="create-record-shell__processing-entry-list">
-                        <label
-                          v-for="entry in blurbEntries"
-                          :key="entry.id"
-                          class="create-record-shell__processing-entry-row"
-                          :class="{ 'create-record-shell__processing-entry-row--expanded': expandedEntryIds.includes(entry.id) }"
-                        >
-                          <q-checkbox
-                            :model-value="selectedBlurbEntryIds.includes(entry.id)"
-                            dense
-                            size="xs"
-                            checked-icon="check_box"
-                            unchecked-icon="check_box_outline_blank"
-                            class="create-record-shell__artifact-checkbox"
-                            @update:model-value="toggleCompanionEntrySelection('blurb', entry.id, $event)"
-                          />
-                          <button
-                            type="button"
-                            class="create-record-shell__processing-entry-toggle"
-                            @click="toggleCompanionEntryExpanded(entry.id)"
-                          >
-                            {{ entry.value }}
-                          </button>
-                        </label>
-                      </div>
                     </section>
 
                   </div>
@@ -680,6 +606,7 @@ const props = defineProps({
   initialFieldMeta: { type: Object, default: () => ({}) },
   initialSectionKey: { type: String, default: 'general' },
   initialArtifacts: { type: Array, default: () => [] },
+  initialProjectIds: { type: Array, default: () => [] },
   initialSnapshot: { type: Object, default: null },
   artifactContext: { type: Object, default: null },
   branchSelectorTokenKey: { type: String, default: '' },
@@ -717,13 +644,9 @@ const intakeSessionId = ref('')
 const intakeReportId = ref('')
 const intakeDialogOpened = ref(false)
 const autoProcessArtifacts = ref(false)
-const companionUrl = ref('')
-const companionBlurb = ref('')
-const urlEntries = ref([])
-const blurbEntries = ref([])
-const selectedUrlEntryIds = ref([])
-const selectedBlurbEntryIds = ref([])
-const expandedEntryIds = ref([])
+const projectOptions = ref([])
+const selectedProjectIds = ref([])
+const projectsLoaded = ref(false)
 const supportResourcesCollapsed = ref(false)
 const recordDataCollapsed = ref(false)
 const dialogWidth = ref(760)
@@ -872,6 +795,31 @@ const dialogStyle = computed(() => ({
   height: `${dialogHeight.value}px`,
 }))
 
+async function ensureProjectsLoaded() {
+  if (projectsLoaded.value) return
+  if (!bridge.value?.projects?.list) return
+  try {
+    const result = await bridge.value.projects.list()
+    const rows = Array.isArray(result?.projects) ? result.projects : []
+    projectOptions.value = rows
+      .map((row) => ({
+        value: String(row?.id || row?.pipeline_id || '').trim(),
+        label: String(row?.Project_Name || row?.name || '').trim(),
+        isDefault: Boolean(row?.is_default),
+      }))
+      .filter((option) => option.value && option.label)
+    if (!selectedProjectIds.value.length) {
+      const defaults = projectOptions.value.filter((option) => option.isDefault).map((option) => option.value)
+      if (defaults.length) {
+        selectedProjectIds.value = defaults
+        markDialogChanged()
+      }
+    }
+  } finally {
+    projectsLoaded.value = true
+  }
+}
+
 function resolveInitialDialogSectionKey(initialKey = '') {
   const normalizedInitialKey = String(initialKey || '').trim()
   if (normalizedInitialKey && allSections.value.some((section) => section.key === normalizedInitialKey)) {
@@ -893,13 +841,7 @@ function createUndoSnapshot() {
     stagedArtifacts: stagedArtifacts.value.map((artifact) => ({ ...artifact })),
     selectedArtifactIds: [...selectedArtifactIds.value],
     autoProcessArtifacts: autoProcessArtifacts.value,
-    companionUrl: companionUrl.value,
-    companionBlurb: companionBlurb.value,
-    urlEntries: urlEntries.value.map((entry) => ({ ...entry })),
-    blurbEntries: blurbEntries.value.map((entry) => ({ ...entry })),
-    selectedUrlEntryIds: [...selectedUrlEntryIds.value],
-    selectedBlurbEntryIds: [...selectedBlurbEntryIds.value],
-    expandedEntryIds: [...expandedEntryIds.value],
+    selectedProjectIds: [...selectedProjectIds.value],
     supportResourcesCollapsed: supportResourcesCollapsed.value,
     recordDataCollapsed: recordDataCollapsed.value,
   }
@@ -931,13 +873,7 @@ function restoreUndoSnapshot(snapshot) {
     : []
   selectedArtifactIds.value = Array.isArray(snapshot?.selectedArtifactIds) ? [...snapshot.selectedArtifactIds] : []
   autoProcessArtifacts.value = Boolean(snapshot?.autoProcessArtifacts)
-  companionUrl.value = String(snapshot?.companionUrl || '')
-  companionBlurb.value = String(snapshot?.companionBlurb || '')
-  urlEntries.value = Array.isArray(snapshot?.urlEntries) ? snapshot.urlEntries.map((entry) => ({ ...entry })) : []
-  blurbEntries.value = Array.isArray(snapshot?.blurbEntries) ? snapshot.blurbEntries.map((entry) => ({ ...entry })) : []
-  selectedUrlEntryIds.value = Array.isArray(snapshot?.selectedUrlEntryIds) ? [...snapshot.selectedUrlEntryIds] : []
-  selectedBlurbEntryIds.value = Array.isArray(snapshot?.selectedBlurbEntryIds) ? [...snapshot.selectedBlurbEntryIds] : []
-  expandedEntryIds.value = Array.isArray(snapshot?.expandedEntryIds) ? [...snapshot.expandedEntryIds] : []
+  selectedProjectIds.value = Array.isArray(snapshot?.selectedProjectIds) ? [...snapshot.selectedProjectIds] : []
   supportResourcesCollapsed.value = Boolean(snapshot?.supportResourcesCollapsed)
   recordDataCollapsed.value = Boolean(snapshot?.recordDataCollapsed)
   hasUserChanges.value = true
@@ -994,13 +930,7 @@ function initializeDialogState() {
     .filter((artifact) => String(artifact?.processedArtifactId || '').trim())
     .map((artifact) => artifact.id)
   autoProcessArtifacts.value = false
-  companionUrl.value = ''
-  companionBlurb.value = ''
-  urlEntries.value = []
-  blurbEntries.value = []
-  selectedUrlEntryIds.value = []
-  selectedBlurbEntryIds.value = []
-  expandedEntryIds.value = []
+  selectedProjectIds.value = Array.isArray(props.initialProjectIds) ? props.initialProjectIds.map((id) => String(id || '').trim()).filter(Boolean) : []
   dialogWidth.value = 760
   dialogHeight.value = 780
   formValues.value = Object.fromEntries(
@@ -1037,6 +967,9 @@ function initializeDialogState() {
     }
     restoreUndoSnapshot(mergedSnapshot)
   }
+  if (!selectedProjectIds.value.length && Array.isArray(props.initialProjectIds)) {
+    selectedProjectIds.value = props.initialProjectIds.map((id) => String(id || '').trim()).filter(Boolean)
+  }
 }
 
 watch(
@@ -1044,6 +977,7 @@ watch(
   (nextValue) => {
     if (!nextValue) return
     initializeDialogState()
+    void ensureProjectsLoaded()
   },
   { immediate: true },
 )
@@ -1157,8 +1091,7 @@ function buildDialogSnapshot() {
       contextDefaults,
     },
     companion: {
-      urls: urlEntries.value.map((entry) => entry.value),
-      guidance: blurbEntries.value.map((entry) => entry.value),
+      projectIds: [...selectedProjectIds.value],
     },
     hasUserChanges: hasUserChanges.value,
     draftSnapshot: createUndoSnapshot(),
@@ -1663,6 +1596,14 @@ async function ensureIntakeSession(originalArtifactId = '') {
     })
   }
 
+  if (selectedProjectIds.value.length) {
+    await Promise.all(
+      selectedProjectIds.value.map((projectId) =>
+        linkEntities('Intake', intakeSessionId.value, 'Projects', projectId),
+      ),
+    )
+  }
+
   return intakeSessionId.value
 }
 
@@ -1718,69 +1659,21 @@ async function removeProcessedArtifactForSelection(artifactId) {
 }
 
 function addCompanionEntry(kind) {
-  pushUndoSnapshot()
-  const normalizedKind = String(kind || '').trim().toLowerCase()
-  const sourceRef = normalizedKind === 'url' ? companionUrl : companionBlurb
-  const nextValue = String(sourceRef.value || '').trim()
-  if (!nextValue) return
-
-  const nextEntry = {
-    id: `${normalizedKind}:${Date.now()}:${Math.random().toString(36).slice(2, 8)}`,
-    value: nextValue,
-  }
-
-  if (normalizedKind === 'url') {
-    urlEntries.value = [...urlEntries.value, nextEntry]
-    companionUrl.value = ''
-  } else {
-    blurbEntries.value = [...blurbEntries.value, nextEntry]
-    companionBlurb.value = ''
-  }
-
-  markDialogChanged()
+  void kind
 }
 
 function toggleCompanionEntrySelection(kind, entryId, nextValue) {
-  const normalizedKind = String(kind || '').trim().toLowerCase()
-  const targetRef = normalizedKind === 'url' ? selectedUrlEntryIds : selectedBlurbEntryIds
-  const normalizedId = String(entryId || '').trim()
-  if (!normalizedId) return
-
-  if (nextValue) {
-    if (!targetRef.value.includes(normalizedId)) {
-      targetRef.value = [...targetRef.value, normalizedId]
-    }
-    return
-  }
-
-  targetRef.value = targetRef.value.filter((id) => id !== normalizedId)
+  void kind
+  void entryId
+  void nextValue
 }
 
 function removeCompanionEntries(kind) {
-  pushUndoSnapshot()
-  const normalizedKind = String(kind || '').trim().toLowerCase()
-  if (normalizedKind === 'url') {
-    const selected = new Set(selectedUrlEntryIds.value)
-    urlEntries.value = urlEntries.value.filter((entry) => !selected.has(entry.id))
-    selectedUrlEntryIds.value = []
-    expandedEntryIds.value = expandedEntryIds.value.filter((id) => !selected.has(id))
-  } else {
-    const selected = new Set(selectedBlurbEntryIds.value)
-    blurbEntries.value = blurbEntries.value.filter((entry) => !selected.has(entry.id))
-    selectedBlurbEntryIds.value = []
-    expandedEntryIds.value = expandedEntryIds.value.filter((id) => !selected.has(id))
-  }
-  markDialogChanged()
+  void kind
 }
 
 function toggleCompanionEntryExpanded(entryId) {
-  const normalizedId = String(entryId || '').trim()
-  if (!normalizedId) return
-  if (expandedEntryIds.value.includes(normalizedId)) {
-    expandedEntryIds.value = expandedEntryIds.value.filter((id) => id !== normalizedId)
-    return
-  }
-  expandedEntryIds.value = [...expandedEntryIds.value, normalizedId]
+  void entryId
 }
 
 function startResize(event) {
