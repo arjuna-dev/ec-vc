@@ -510,9 +510,6 @@ export function getFilePageRegistryEntry(key) {
     roles: 'user-roles',
     'user roles': 'user-roles',
     intake: 'intake',
-    ingestion: 'intake',
-    'artifacts-processed': 'intake',
-    artifacts_processed: 'intake',
   }
   return FILE_PAGE_REGISTRY_BY_KEY[aliases[normalizedKey] || normalizedKey] || null
 }
@@ -689,12 +686,6 @@ export function getRuntimeTableNameForEntityName(entityName = '') {
     securities: 'Securities',
     security: 'Securities',
     intake: 'Intake',
-    ingestion: 'Intake',
-    artifact_processed: 'Intake',
-    'artifact-processed': 'Intake',
-    artifacts_processed: 'Intake',
-    'artifacts-processed': 'Intake',
-    'artifact processed': 'Intake',
   }
 
   const normalizedKey = normalized.toLowerCase()
