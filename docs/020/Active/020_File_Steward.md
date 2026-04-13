@@ -220,6 +220,8 @@ The `File Steward` should:
 - preserve event usefulness for collaboration and filtering:
   - normal lifecycle actions such as `created`, `modified`, and `deleted`
   - collaboration/review actions such as `pre-selected`, `suggested`, `verified`, and `rejected`
+- make sure governed translators and feeders receive canonical section data with enough file context, structure, and declared intent to do their job honestly
+- treat wrong or underspecified translator input as a file/context problem first when the canonical file contract is incomplete, ambiguous, or delivered incorrectly
 
 For strict shared row/data surfaces used in file governance and file editing, the `File Steward` should also keep row controls honest and consistent.
 

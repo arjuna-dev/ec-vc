@@ -205,6 +205,36 @@ The goal is a governed system where:
 
 all point to the same approved asset language.
 
+### Rule 1C. Inspectable Translator Rule
+
+Important governed translators and feeders must be inspectable enough that mistakes can be localized clearly.
+
+This matters because a translator should not feel like a hidden black box between canon and display.
+
+For an important translator or feeder, we should be able to inspect:
+
+- canonical input received
+- file or source context
+- purpose or intent when relevant
+- classification and filtering decisions
+- normalized output
+- final rendered result
+
+Working rule:
+
+- the translator should make it possible to tell whether a mistake came from upstream input, receiving/context, translator logic, builder logic, or renderer behavior
+- while the system is converging, renderer surfaces should stay simple enough that bugs surface naturally instead of being hidden by decorative complexity
+
+Minimum localization ladder:
+
+1. canonical input differs
+2. receiving or contextualization differs
+3. translator or feeder logic differs
+4. builder output differs
+5. renderer differs
+
+If a governed translator cannot support that ladder, it is not inspectable enough yet.
+
 ### Rule 2. Record Shell And Add/Edit Record Shell Have Different Jobs
 
 This distinction must remain explicit.

@@ -233,6 +233,36 @@ Convergence meaning:
 
 This helps backend, feeders/translators, and frontend point to the same approved unit instead of drifting into separate languages.
 
+### 11. Important governed translators should follow the Inspectable Translator Rule
+
+Current governing meaning:
+
+- an important translator or feeder should expose enough intermediate structure to localize where a mistake entered the chain
+- this is especially important where canonical input is being contextualized, classified, normalized, and then rendered through shared shells
+
+`Inspectable Translator Rule` means:
+
+- show canonical input
+- show receiving or source context
+- show classification and filtering decisions
+- show normalized output
+- keep rendered inspection surfaces simple enough that bugs surface naturally
+
+Primary localization ladder:
+
+1. canonical input
+2. receiving or contextualization
+3. translator or feeder logic
+4. builder output
+5. renderer
+
+Steward split:
+
+- `Architect Steward` owns the pattern and stop conditions
+- `File Steward` owns canonical section meaning and source correctness
+- `Intake Steward` owns contextualized ingestion and extraction handoff when source material is entering the system
+- `Design Steward` owns inspection-surface clarity, not translator truth itself
+
 ## Caution Against Overclaiming
 
 When updating this document, do not casually promote a direction into a confirmed runtime fact.

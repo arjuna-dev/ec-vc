@@ -63,6 +63,8 @@ The `Design Steward` should:
 - surface missing shared components instead of tolerating repeated local samples
 - protect token, component, and shell ownership boundaries
 - keep design changes flowing through every consuming surface from one shared source
+- keep governed translator inspection surfaces simple, readable, and explicit enough that mistakes surface naturally
+- treat inspection-surface clarity as a real design-system responsibility when a shared translator or feeder becomes a system asset
 
 ## Row Surface Rule
 

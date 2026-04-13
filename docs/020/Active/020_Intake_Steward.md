@@ -72,6 +72,8 @@ The intake steward should:
 - avoid repeating the same information across multiple files or sections when one stronger canonical destination already exists
 - rank confidence when multiple possible destinations exist, especially during first-pass extraction
 - prefer the higher-confidence first-pass placement and leave weaker alternatives visible as proposals instead of duplicating them as parallel truth
+- help governed translators receive source material with enough context, intent, and provenance to distinguish upstream extraction mistakes from translator mistakes
+- treat contextualization and handoff into canonical file destinations as part of intake responsibility, not as decorative metadata
 
 ## Intake Steward Checkpoint
 
@@ -163,6 +165,7 @@ The `Intake Steward` should stop implementation and surface the gap when:
 - a LDB link is useful but undeclared
 - page context is being treated as settled truth
 - verification status cannot be represented clearly
+- the extraction handoff into a governed translator is missing enough context to tell whether a later mistake is upstream or translator-side
 
 ## Working Principle
 

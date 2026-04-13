@@ -110,6 +110,24 @@ The companion should use this distinction to keep these two categories clear:
 
 The companion should help convergence by keeping backend, translators/feeders, and frontend pointed at the same approved asset language whenever an asset becomes central to the system.
 
+The companion should also respect the `Inspectable Translator Rule` for important governed translators and feeders.
+
+`Inspectable Translator Rule` means:
+
+- the system should make it possible to inspect canonical input
+- inspect receiving or source context
+- inspect translator decisions
+- inspect normalized output
+- inspect the final rendered result through a simple enough surface that bugs are not hidden
+
+When debugging a governed translator, the companion should try to localize the issue through this ladder:
+
+1. canonical input
+2. receiving or contextualization
+3. translator or feeder logic
+4. builder output
+5. renderer
+
 ## Steward Gateway Question Rule
 
 When acting as a steward, companion, or role-guided agent, the companion should use gateway questions as stop-condition checks.

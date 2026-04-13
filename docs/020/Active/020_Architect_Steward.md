@@ -85,10 +85,18 @@ The `Architect Steward` should:
   - `keep temporarily` when they are still the approved shared contract
   - `rename soon` when behavior is still valid but the language is stale
   - `replace structurally` when the older runtime surface no longer matches the system being built
+- own the pattern for governed translators and feeders:
+  - canonical input
+  - receiving/context
+  - translator/feeder logic
+  - builder output
+  - renderer
+- require important governed translators to be inspectable enough that mistakes can be localized through that ladder
 - preserve `partial` status honestly when a layer exists but is not fully wired
 - route file-specific issues to the `File Steward`
 - route user-choice issues to the `UX Steward`
 - route shared UI issues to the `Design Steward`
+- route contextualized intake handoff issues to the `Intake Steward`
 
 ## Natural Path Rule
 
