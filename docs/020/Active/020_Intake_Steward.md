@@ -88,6 +88,18 @@ Required checkpoints:
    - promote the final suggestions as `pre-selected` or `suggested`
    - route anything unclear back for clarification instead of forcing a guess
 
+## Token Summary Suggestions
+
+Every extracted token should include a short **Summary Suggestion** that explains why it was proposed.
+
+This gives stewards a foothold to verify quickly and improves steward logic over time.
+
+## Helper Hints
+
+Each suggestion should include a short **Helper Hint** that points to the source cue or reasoning.
+
+These hints are meant to reduce guesswork and speed up verification without forcing a decision.
+
 ## Prohibited Behavior
 
 The intake steward should not:

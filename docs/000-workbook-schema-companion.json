@@ -30,5 +30,20 @@
       "Tokens must exist in the file-owned structure; unknown tokens are rejected.",
       "Name token is required for new record creation."
     ]
+  },
+  "intake_report_contract": {
+    "status": "planned",
+    "notes": [
+      "Intake Report is owned by Intake and records the verification interaction.",
+      "Each extracted token must carry a Summary Suggestion and Helper Hint.",
+      "Steward review should drive which proposals become pre-selected vs suggested."
+    ],
+    "fields": [
+      "extracted_tokens",
+      "summary_suggestion",
+      "helper_hint",
+      "confidence_score",
+      "steward_comments"
+    ]
   }
 }
