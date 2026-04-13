@@ -16,7 +16,7 @@
           <th>View</th>
           <th>Side</th>
           <th>Tokens</th>
-          <th>Subgroups</th>
+          <th>Views</th>
         </tr>
       </thead>
       <tbody>

@@ -75,7 +75,7 @@ Use the following language repeatedly and consistently:
   - node creation should immediately produce a first `User` with role `Owner`
 
 - `Contact`
-  - person record inside the CRM/LDB layer
+  - person record inside the CRM/KDB layer
   - may correspond to a `User`
   - but not every `Contact` is a `User`
 
@@ -230,7 +230,7 @@ This should be treated as a universal shell rule:
 - not an `id` rule
 - not a `Record View`-only rule
 
-If a `Token` needs runtime mapping, that mapping should be declared once in canon and then shared by:
+If an `L3` token needs runtime mapping, that mapping should be declared once in canon and then shared by:
 
 - `File Shell`
 - `Record Shell`
@@ -246,7 +246,7 @@ Shared dialog rule:
 
 - opening `Add Record` or `Edit Record` from any `L1` should resolve into the same shared dialog shell behavior
 - the launching surface may choose the source `L1` or selected record
-- it should not reinterpret grouped view-fork structure before handing payload into the dialog
+- it should not reinterpret grouped `L2` structure before handing payload into the dialog
 - if the dialog behaves differently between `L1`s because of different shell-side payload shaping, that is a contract bug
 - when the shared dialog is exposed through its own shell route, that route should use the same shared top shell header and `L1` select as the other shell routes
 - the dialog shell route should not add a second page-level selector, launchpad, or top-row control if the shared shell header already provides that contract
@@ -263,8 +263,8 @@ New `L1` bootstrap rule:
   - shell
   - navigation
   - runtime ownership for `list/create/update/delete`
-  - default `System` / `LDB` / standard `General` subsection setup
-  - reciprocal LDB propagation to the other relevant `L1`s
+  - default `System` / `KDB` / standard `General` subsection setup
+  - reciprocal KDB propagation to the other relevant `L1`s
 - `Add Record` and shared dialog flows should work immediately for the new `L1`
 - if a source is visible in menus but not createable/editable, treat that as incomplete bootstrap work, not as an acceptable intermediate product state
 - future marketplace-delivered `L1`s must pass the same bootstrap contract as local owner-created `L1`s
@@ -276,7 +276,7 @@ New `L1` bootstrap rule:
 - it is not a standard app-data `L1`
 - it is the canonical registry for reusable UI building blocks, design primitives, shell parts, and reconstruction guidance
 - it conceptually renders before the operational files in `Owner Genesis` because it defines the visible building language of the app
-- it does not inherit the normal `System` / `LDB` subsection treatment used by standard files unless explicitly needed later
+- it does not inherit the normal `System` / `KDB` subsection treatment used by standard files unless explicitly needed later
 - this is a controlled exception and must not be used to weaken the normal file bootstrap contract
 
 `BB File` dependency rule:
@@ -346,14 +346,14 @@ Observed evidence rule:
 
 - when documenting shell drift, keep the observed behavior separate from the hypothesized cause
 - in this case, the direct observation was:
-  - the shared edit dialog rendered different subgroup behavior depending on the `L1` source it was launched from
+  - the shared edit dialog rendered different view behavior depending on the `L1` source it was launched from
 - that observation should be treated as evidence
 - the explanation of why it happened should only be promoted to fact after the payload path is verified
 
 Why a shared payload builder matters:
 
-- the app already has canonical `L1 / View Fork / Token` structure, but shells still need one shared translation layer that turns that structure into the exact payload consumed by the shell
-- when a section needs internal grouping for readability, canon may explicitly declare subgrouping (A/B/C) without replacing tokens as the leaf layer
+- the app already has canonical `L1-L2-L3` structure, but shells still need one shared translation layer that turns that structure into the exact payload consumed by the shell
+- when a subsection needs internal grouping for readability, canon may explicitly declare views as `L2.a`, `L2.b`, `L2.c`, and so on without replacing `L3` as the leaf layer
 - centralizing that translation improves:
   - consistency
   - speed of change
@@ -367,7 +367,7 @@ Why a shared payload builder matters:
 
 ## Token Behavior Language
 
-Canonical structure should keep moving toward explicit token behavior at the token level.
+Canonical structure should keep moving toward explicit token behavior at the `L3` level.
 
 The intended language is:
 
@@ -394,7 +394,7 @@ The intended language is:
 - `write_path`
   - direct owner field
   - join-owner contract
-  - generic LDB owner path
+  - generic KDB owner path
 
 Working rule:
 
@@ -563,7 +563,7 @@ That baseline is:
 - one preload/main bridge path with at least `list`, `create`, and `delete`
 - one canonical structure with:
   - `System`
-  - `LDB`
+  - `KDB`
   - `General`
 - `General` should at minimum include:
   - `Name`
@@ -585,23 +585,23 @@ This is the default contract for new `Knowledge DB` files such as:
 Shared base rule:
 
 - every normal `L1` should begin from the same starter structure
-- that starter structure should include shared `System`, shared `LDB`, and shared `General`
+- that starter structure should include shared `System`, shared `KDB`, and shared `General`
 - shared `System` parameters should be `ID`, `Creator`, `Datetime`, and `EventLog`
 - shared `General` parameters should be `Name` and `Summary`
-- shared `LDB` means every normal `L1` owns the linkage section, not that every `L1` uses one identical relationship leaf list
-- only after that shared base should an `L1` add its own independent view forks or explicit subgrouping
+- shared `KDB` means every normal `L1` owns the linkage section, not that every `L1` uses one identical relationship leaf list
+- only after that shared base should an `L1` add its own independent `L2`s or explicit `L2.a-b-c-d` views
 
 Why:
 
 - shared naming keeps shell behavior and activation paths clean
-- shared `LDB` ownership keeps relationship behavior structurally consistent without forcing every `L1` into one identical leaf set
+- shared `KDB` ownership keeps relationship behavior structurally consistent without forcing every `L1` into one identical leaf set
 - entity-specific sections should extend the base, not replace it
 
 Controlled exception:
 
 - `BB File` is not part of this standard baseline
 - `BB File` is a `System-Level File`, not a normal app-data `L1`
-- instead of `System` / `LDB`, its approved first-pass view-fork structure is:
+- instead of `System` / `KDB`, its approved first-pass `L2` structure is:
   - `General`
   - `Usage`
   - `Anatomy`
@@ -680,10 +680,10 @@ Current approved shell pattern:
 
 - base it on the current `User Record View` hero/dashboard
 - keep icon-only `settings` and `add record` controls beside `Name`
-- render selected token rows in the left middle column
+- render selected `L3` rows in the left middle column
 - render `Summary` as the first row in the right middle column
-- render each selected token row as:
-  - top row: label + view fork description
+- render each selected `L3` row as:
+  - top row: label + `L2` description
   - bottom row: value + status icon
 
 Interaction direction:
@@ -706,11 +706,11 @@ It should follow these rules:
 
 - `System` is always first on the left
 - file-specific sections go in the middle
-- `LDB` is always last on the right
+- `KDB` is always last on the right
 
-`LDB` is different from the other sections because it changes the interaction model of the page.
+`KDB` is different from the other sections because it changes the interaction model of the page.
 
-When the user opens `LDB`, that section can support:
+When the user opens `KDB`, that section can support:
 
 - labels
 - grouped relationship families
@@ -718,13 +718,13 @@ When the user opens `LDB`, that section can support:
 - grid/row toggles
 - relationship browsing
 
-So `LDB` is not just another content tab.
+So `KDB` is not just another content tab.
 
 It is a special section with its own browsing mode and should stay anchored on the far right.
 
 Current grouping rule:
 
-- `LDB` should group relationship tokens into:
+- `KDB` should group relationship tokens into:
   - `First-Order`
   - `Knowledge DB`
 
@@ -786,7 +786,7 @@ For the opportunity lane:
 - shared fields should be owned by `Opportunities`
 - diverging `Economics` and `Controls` structures should remain subtype-owned instead of being forced into one fake shared section
 - create/add-record should ask the user which subtype route to take before opening the shared record dialog
-- while this parent contract remains abstract in runtime record snapshots, direct live LDB links should target `Funds` and `Rounds`, not `Opportunities`
+- while this parent contract remains abstract in runtime record snapshots, direct live KDB links should target `Funds` and `Rounds`, not `Opportunities`
 
 For every first-level canonical table:
 
@@ -869,9 +869,9 @@ The target behavior is:
 - edit against the canonical linked record or join table
 - avoid creating duplicates by accident
 
-## LDB Relationship Rule
+## KDB Relationship Rule
 
-LDB relationships are not optional UI conveniences.
+KDB relationships are not optional UI conveniences.
 
 They are intended to be real information pipelines between linked `L1`s.
 
@@ -879,9 +879,9 @@ Current shared-shell launch rule:
 
 - card-view `Add Relation` should route into `dialog-shell`
 - that launch should carry the source `L1`, clicked record id, and canonical entity name
-- the shared `Add/Edit Record Shell` should open directly in `LDB`
+- the shared `Add/Edit Record Shell` should open directly in `KDB`
 
-That means if an LDB relationship is declared in canonical structure:
+That means if a KDB relationship is declared in canonical structure:
 
 - it should have a real owner path
 - it should have a real reverse-read path
@@ -894,7 +894,7 @@ Product rule:
 - the shell should never treat a relationship token like a normal writable column
 - if a relationship is declared but not yet backed, that is a product contract gap that should be surfaced honestly
 
-## Mandatory LDB Standard For New Connections
+## Mandatory KDB Standard For New Connections
 
 When a new connection is approved between two `L1`s, it should follow the same contract every time.
 
@@ -906,7 +906,7 @@ Required pieces:
 - one reverse-read path so the relationship is visible from both sides
 - one shared editing rule, not page-specific behavior
 
-This is the minimum standard for new LDB connections.
+This is the minimum standard for new KDB connections.
 
 Do not:
 
@@ -917,26 +917,26 @@ Do not:
 
 Current shared owner-path standard:
 
-- if a canon-declared LDB relationship already has an approved domain-specific join table, use that
-- otherwise use the shared `LDB_Relationships` runtime contract
+- if a canon-declared KDB relationship already has an approved domain-specific join table, use that
+- otherwise use the shared `KDB_Relationships` runtime contract
 
 This keeps even non-golden `L1`s and `Knowledge DB` files on the same relationship system instead of drifting into custom pair logic.
 
 Interpretation rule:
 
-- shared `LDB_Relationships` is the default place where a relationship can exist and make linked records callable by row
+- shared `KDB_Relationships` is the default place where a relationship can exist and make linked records callable by row
 - dedicated join tables are the promoted path when the relationship itself needs its own governed fields or access rules
-- do not require a dedicated join table just to let one `L1` call another linked record's tokens
+- do not require a dedicated join table just to let one `L1` call another linked record's `L3`s
 - promote to a dedicated join table when the relationship itself becomes a first-class managed object
 
 Birth rule for new normal `L1`s:
 
-- new normal `L1`s should be born with their reciprocal LDB relationship layer loaded
+- new normal `L1`s should be born with their reciprocal KDB relationship layer loaded
 - that birth step should include:
-  - reciprocal LDB declarations
+  - reciprocal KDB declarations
   - one approved owner path per relationship
   - one reverse-read path per relationship
-  - the bridge choice between dedicated join table and shared `LDB_Relationships`
+  - the bridge choice between dedicated join table and shared `KDB_Relationships`
 - if those pieces are missing, the `L1` bootstrap is incomplete even if the table, route, and shell already exist
 
 Practical birth sequence:
@@ -945,7 +945,7 @@ Practical birth sequence:
 2. create its real table/runtime owner
 3. load the shared base:
    - `System`
-   - `LDB`
+   - `KDB`
    - `General`
 4. load the shared base parameters:
    - `ID`
@@ -954,11 +954,11 @@ Practical birth sequence:
    - `EventLog`
    - `Name`
    - `Summary`
-5. add entity-specific view-fork structure
-6. load reciprocal LDB declarations against the approved active `L1` set
+5. add entity-specific `L2` structure
+6. load reciprocal KDB declarations against the approved active `L1` set
 7. decide relationship ownership:
    - dedicated join table
-   - shared `LDB_Relationships`
+   - shared `KDB_Relationships`
 8. load reverse-read support
 9. add route/registry/shell ownership
 10. verify the file is truly createable/editable/browsable

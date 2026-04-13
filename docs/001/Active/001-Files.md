@@ -302,7 +302,7 @@ The glossary should include:
 
 - file-specific terms
 - important view names
-- important subgroup names
+- important view names
 - important token names when they are not obvious
 - relationship terms
 - ownership terms
@@ -426,7 +426,7 @@ It should always describe these base sections when they apply:
 - `LDB`
 - `File Specific`
 
-`File Specific` means any file-specific views, view subgroups, and token groups that exist beyond the shared base.
+`File Specific` means any file-specific views and token groups that exist beyond the shared base.
 
 ### 13. Open Questions
 
@@ -496,7 +496,7 @@ The rename should happen as a staged architecture pass so docs, canonical struct
 
 The `System Files` file/page should expose these file-definition properties for each file:
 
-- is it a file, view, or subgroup
+- is it a file or view
 - does it require `System`
 - does it require `LDB`
 - what ownership mode applies
@@ -619,20 +619,20 @@ If yes, the structure should be created as a file.
 If no, the user should be guided toward:
 
 - a view when the concept is a major section inside an existing file
-- a subgroup when the concept is a subgroup inside an existing view
+- a view when the concept is a view inside an existing section
 
 The default rule is:
 
 - when uncertain, begin as a file
 - demote to a view only when the concept is clearly a section inside an existing file
-- demote to a subgroup only when the concept is clearly a subgroup inside an existing section
+- demote to a view only when the concept is clearly a view inside an existing section
 
 The `UX Steward` should define:
 
 - the plain-language question shown to the user
 - the canonical value created by each answer
 - the safe default
-- the parent selection required for view and subgroup
+- the parent selection required for a view
 - the stop condition when the user does not have enough context
 
 `File Specific` should not replace explicit named views.

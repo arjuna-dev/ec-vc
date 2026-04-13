@@ -16,7 +16,7 @@ The `File Steward` should be able to help answer:
 
 - Is this file born correctly?
 - Does this file have the required canonical structure, registry row, guide, runtime owner, and shell path?
-- Are its shared sections and file-specific responsibilities clearly separated by `Defined Structure`?
+- Are its `System`, `General`, `LDB`, and `File Specific` responsibilities clearly separated?
 
 If the `File Steward` cannot answer these three questions clearly, stop and surface the gap before implementation continues.
 
@@ -59,10 +59,8 @@ Examples of drift to avoid:
 
 After that shared base is declared, the `L1` may add:
 
-- its own independent view forks
-- its own explicit subgrouping
-
-These are internal to the file, not separate file rows, unless the file-definition contract explicitly promotes them.
+- its own independent `L2`s
+- its own explicit `L2.a`, `L2.b`, `L2.c`, `L2.d` views
 
 This keeps every file compatible with the same shell activation paths while still allowing entity-specific structure.
 
@@ -70,12 +68,12 @@ This keeps every file compatible with the same shell activation paths while stil
 
 The `File Steward` should not improvise file structure.
 
-It should assemble and maintain file structure through explicit canonical building blocks and approved subgroup contracts.
+It should assemble and maintain file structure through explicit canonical building blocks and approved view contracts.
 
 That means:
 
 - use canon
-- use explicit file subgroup contracts
+- use explicit file view contracts
 - use approved runtime ownership
 - do not borrow structure loosely from a nearby entity
 - do not create a table first and hope the structure is clarified later
@@ -89,15 +87,15 @@ Unless an approved exception is declared, a file entity should own:
 - `LDB`
 - `General`
 
-Each subgroup should contain its own explicit leaf items.
+Each view should contain its own explicit leaf items.
 
 The `File Steward` should treat this as a strict contract requirement, not as a rendering preference.
 
-When subgrouping is structurally necessary inside a subsection:
+When view structure is necessary inside a subsection:
 
-- it should be declared explicitly as subgroup A/B/C (or similar explicit labels)
+- it should be declared explicitly as `L2.a`, `L2.b`, `L2.c`, and so on
 - it should not be improvised in shell code only
-- it should preserve tokens as the leaf layer
+- it should preserve `L3` as the leaf layer
 
 ## Honest Birth Status Rule
 
@@ -135,7 +133,8 @@ A file is only fully born when the file birth checklist is honestly satisfied:
 - UX fork questions are declared
 - create-branch instructions are declared when the file can birth into child branches
 - view-fork instructions are declared when the file page must switch payload by fork
-- shared sections are declared in `Defined Structure`
+- `System` requirement is declared
+- `LDB` requirement is declared
 - runtime/sqlite ownership is declared
 - shell rendering path is declared
 - events/provenance path is declared
@@ -153,7 +152,7 @@ The same anti-drift discipline used for shared UI building blocks should apply t
 That means:
 
 - reuse explicit structure patterns
-- keep subgroup ownership explicit
+- keep view ownership explicit
 - keep leaf ownership explicit
 - do not patch missing structure with local guesses
 - do not let one file entity silently inherit another file entity's contract unless canon explicitly declares that inheritance
@@ -164,15 +163,15 @@ That means:
 
 The `File Steward` should:
 
-- create new file entities only after their canonical subgroup contract is explicit
+- create new file entities only after their canonical view contract is explicit
 - create new normal `L1`s from the shared base structure before adding entity-specific extensions
 - maintain existing file entities so runtime, shell, and sqlite ownership stay aligned
 - flag when a declared file surface has no real backend/runtime owner
 - flag when a runtime table exists without its own explicit canonical contract
-- protect the consistency of `System`, `LDB`, and `General` subgrouping
+- protect the consistency of `System`, `LDB`, and `General` views
 - protect shared base field names from drifting into unnecessary entity-specific aliases
 - protect `LDB` as the required shared linkage section without pretending every `L1` must own a bespoke relationship leaf list
-- treat future token field-definition governance as explicit contract work:
+- treat future `L3` field-definition governance as explicit contract work:
   - field type
   - required-at-birth
   - conditional-required rules
@@ -181,9 +180,9 @@ The `File Steward` should:
 - use each file guide's `UX Steward` section to guide the user through structural forks
 - declare whether a file uses create branches, view forks, or no forks before exposing fork controls in shared shells
 - make sure `System Files` records declare `fork_mode` and `fork_enabled` before fork behavior is treated as real
-- ask whether a new structure is an `L1`, `View Fork`, or `Subgroup` before accepting it as born
-- require parent file selection before creating a `View Fork`
-- require parent file and parent view-fork selection before creating a `Subgroup`
+- ask whether a new structure is an `L1`, `L2`, or `L2.a` before accepting it as born
+- require parent file selection before creating an `L2`
+- require parent file and parent `L2` selection before creating an `L2.a`
 - treat `L1` as the safe default when the user is unsure whether something is a standalone file
 - act as the LDB orchestrator for file birth and file upkeep
 - make sure files are born correctly
@@ -218,7 +217,7 @@ The `File Steward` should:
   - real table/runtime owner
   - shared base subsections
   - shared base parameters
-  - entity-specific view-fork structure
+  - entity-specific `L2` structure
   - reciprocal LDB declarations
   - bridge owner-path choice
   - reverse-read path
@@ -259,7 +258,7 @@ The `File Steward` should not:
 - let a file guide move to `Active` when canon, registry, runtime, shell, or provenance is missing
 - create an `L1` without the shared `System`, `LDB`, and `General` base unless an approved exception exists
 - invent LDB bridge ownership after file birth instead of declaring it during bootstrap
-- bypass UX fork guidance when the user is choosing between `L1`, `View Fork`, and `Subgroup`
+- bypass UX fork guidance when the user is choosing between `L1`, `L2`, and `L2.a`
 - accept global role shortcuts when the required access rule depends on `Project x Role`
 
 ## Related Docs
@@ -281,7 +280,7 @@ The `File Steward` should stop implementation and surface the gap when:
 
 - a file entity has no explicit canonical contract
 - a new normal `L1` is being created without the shared base structure first
-- subgroup ownership is being guessed
+- view ownership is being guessed
 - runtime ownership and canonical ownership do not match
 - a file surface is borrowing another entity's structure without explicit approval
 - branch behavior is being implemented without explicit canonical branch metadata
@@ -313,4 +312,4 @@ The `File Steward` should repair the contract, not only the wording.
 
 The practical principle is:
 
-`The File Steward should create and maintain file entities through explicit canonical building blocks and subgroup contracts so file architecture stays stable, reusable, and drift-resistant.`
+`The File Steward should create and maintain file entities through explicit canonical building blocks and view contracts so file architecture stays stable, reusable, and drift-resistant.`

@@ -36,9 +36,9 @@
 | Legacy Surface | A frontend page or dialog that is no longer route-mounted or no longer part of the approved shared shell set. Once proven unused, it should be removed rather than kept as silent drift. | Legacy Surface Audit |
 | Fixed Shell Styling | The rule that shell visuals stay fixed at shell level. `L1` may change payload, labels, section membership, and explicitly approved capabilities, but should not silently restyle the shell. | Product Reference |
 | Shared Middle-Field Selection | The rule that the selected middle fields for a given `L1` are remembered once and reused by both `File Shell` cards and `Record Shell` hero rows. | Product Reference |
-| Business Overview | The grouped `L2` used in `Companies` to collect overview-style subsections under one toolbar item while preserving the prior overview subsections as subgroup variants inside the panel. | Record Architecture |
-| Grouped Subsection | A preserved canonical subsection rendered inside a grouped `L2` panel. Grouped subsections should keep their own title and should be individually collapsible. | Record Architecture |
-| Grouped Dialog Section | A grouped `L2` rendered inside the shared create / edit dialog. It should preserve subgroup identity and collapse / expand behavior instead of flattening subgrouped fields into one undifferentiated section. | Record Architecture |
+| Business Overview | The grouped `L2` used in `Companies` to collect overview-style subsections under one toolbar item while preserving the prior overview subsections as view variants inside the panel. | Record Architecture |
+| Grouped View | A preserved canonical subsection rendered inside a grouped `L2` panel. Grouped views should keep their own title and should be individually collapsible. | Record Architecture |
+| Grouped Dialog Section | A grouped `L2` rendered inside the shared create / edit dialog. It should preserve view identity and collapse / expand behavior instead of flattening grouped fields into one undifferentiated section. | Record Architecture |
 | Record View | The eye-opened detailed surface for one selected record. Route-level `record-view` should now resolve into `Record Shell`. | Product Reference |
 | Hero Dashboard | The top shell block for card or record presentation. In `Record Shell`, it is based on the current `User Record View` hero/dashboard pattern. | Record Architecture |
 | L2 Toolbar | The section bar below the hero/dashboard that renders the selected `L1`'s subsection groups. It places normal sections on the left and `LDB` / `System` on the right. | Product Reference |
@@ -60,8 +60,8 @@
 | Promoted Relationship Owner | A dedicated join table used once the relationship itself needs its own governed fields, access-control rules, activation logic, or audit meaning. | Record Architecture |
 | Loaded At Birth | The rule that a new normal `L1` should be born with its reciprocal LDB bridge layer already decided and declared as part of bootstrap, rather than relying on manual back-wiring later. | Product Reference |
 | Transitional Manual Bridge | A temporary repair where a missing LDB bridge contract is wired after file birth. This may be needed while architecture is converging, but it should not be treated as the intended steady-state rule. | Record Architecture |
-| Entity Extension Layer | The independent structure a specific `L1` adds after the shared base, including its own extra view forks and any explicit subgrouping. | File Steward Contract |
-| Token | The leaf token level in canonical structure. It is where field behavior, alias mapping, and write-path expectations should be declared. | Record Architecture |
+| Entity Extension Layer | The independent structure a specific `L1` adds after the shared base, including its own extra `L2`s and any explicit `L2.a-b-c-d` views. | File Steward Contract |
+| L3 Token | The leaf token level in canonical structure. It is where field behavior, alias mapping, and write-path expectations should be declared. | Record Architecture |
 | Owned Field | A value owned by the current record or its approved owned subtable. It writes through that owner path only. | Companion |
 | Directional Link | A root-established or rule-bearing path such as identity, authority, provenance, or parentage. It should not be treated like generic LDB. | Record Architecture |
 | LDB Relationship | A link between records that must have a declared relationship path, owner path, reverse-read path, and bidirectional visibility. In the current shared-shell flow, relation editing should open the shared `Add/Edit Record Shell` in `LDB` with the clicked source record context. | Companion |

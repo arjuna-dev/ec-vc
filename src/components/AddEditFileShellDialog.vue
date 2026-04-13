@@ -336,7 +336,7 @@ const tokenGovernanceColumns = computed(() => [
 ])
 const leafDataColumns = computed(() => [
   { key: 'parentView', label: 'View', width: 92, headerClass: 'file-structure-shell__colhead--structure', cellClass: 'file-structure-shell__cell--structure' },
-  { key: 'parentSubgroup', label: 'Sub', width: 78, headerClass: 'file-structure-shell__colhead--structure', cellClass: 'file-structure-shell__cell--structure' },
+  { key: 'parentSubgroup', label: 'View', width: 78, headerClass: 'file-structure-shell__colhead--structure', cellClass: 'file-structure-shell__cell--structure' },
   { key: 'key', label: 'Token Key', width: 108, headerClass: 'file-structure-shell__colhead--structure', cellClass: 'file-structure-shell__cell--l3-key' },
   { key: 'order', label: 'Order', width: 54, headerClass: 'file-structure-shell__colhead--structure', cellClass: 'file-structure-shell__cell--structure' },
   { key: 'label', label: 'Label', width: 180, cellClass: 'file-structure-shell__cell--label', editable: true, kind: 'text' },

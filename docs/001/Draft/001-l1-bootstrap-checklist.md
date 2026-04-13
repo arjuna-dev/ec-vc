@@ -26,7 +26,7 @@ Primary files:
 Current status:
 
 - this already exists as the canonical source of truth
-- explicit view subgrouping is now supported
+- explicit view structure is now supported
 - shared-base guidance is documented
 
 Implementation need:
@@ -74,7 +74,7 @@ Minimum required input:
      - `Summary`
 5. entity-specific extension structure
    - entity-specific view list
-   - approved view subgrouping
+   - approved view structure
 6. LDB declaration set
    - target file
    - source token
@@ -114,7 +114,7 @@ This contract does not allow:
 - creating a visible shell before runtime ownership exists
 - adding LDB tokens without reverse-read planning
 - assuming every relationship deserves a dedicated join table
-- inventing subgroup structure later in shell code
+- inventing view structure later in shell code
 
 File Steward rule:
 
@@ -209,7 +209,7 @@ Current status:
 Implementation need:
 
 - make entity extension a distinct post-base step
-- ensure view subgrouping is loaded only after the shared base is present
+- ensure view structure is loaded only after the shared base is present
 
 ### 6. Reciprocal LDB declarations
 

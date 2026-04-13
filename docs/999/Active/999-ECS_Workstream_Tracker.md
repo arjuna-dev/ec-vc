@@ -163,7 +163,7 @@ This tracker should stay aligned with:
   - Step 1A: define steward contracts that protect file and design structure from drift:
     - `File Steward`
     - `Design Steward`
-  - Step 1B: update the structure docs so branch-capable `L1`s, explicit `L2.a-b-c-d` subgrouping, and first-class `Events` are declared in canon before more runtime normalization
+  - Step 1B: update the structure docs so branch-capable `L1`s, explicit `L2.a-b-c-d` views, and first-class `Events` are declared in canon before more runtime normalization
   - Step 2: add standalone `Companion Roles` as a real first-class table
   - Step 3: add the initial required `Companion Roles` columns
   - Step 4: create the first-pass `Companion Roles` records:
@@ -198,7 +198,7 @@ This tracker should stay aligned with:
     - plus icon
     - plus with label
     - main menu row
-    - main menu subgroup row
+    - main menu view row
     - `BB Tile Header`
     - `L2 Settings Menu`
     - `Widget Settings Menu`

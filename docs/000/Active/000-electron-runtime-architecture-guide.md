@@ -343,21 +343,24 @@ Important caution:
 
 ## Use
 
-This file helps organize file-owned token/view payloads into grouped sections for the shared create/edit dialog shell.
+This file helps organize canonical structure into payload groups for the shared create/edit dialog shell.
 
 It does things like:
 
-- group file-owned view forks
-- preserve explicit subgroup structure
+- group `L2` sections
+- preserve view structure
+- build LDB views like:
+  - `First-Order`
+  - `Knowledge DB`
 - split sections into left/right shell placement
 
-It is part of the contract-preparation layer for the dialog shell while the file-owned token/view contract finishes converging.
+It is part of the contract-preparation layer for the dialog shell.
 
 ## Guiding principles
 
-- preserve file-owned grouping explicitly
-- prefer file-owned view forks over canonical scaffolding
-- keep subgroup identity visible when it is explicitly defined by the file-owned payload
+- preserve canonical grouping explicitly
+- prefer canon-driven grouping over ad hoc shell-only grouping
+- keep view identity visible
 - do not flatten structure just because the UI is simpler that way
 
 ## What to be aware of
@@ -368,7 +371,7 @@ It is part of the contract-preparation layer for the dialog shell while the file
 
 Important rule:
 
-- this file should help render the file-owned payload cleanly, not reinterpret canon loosely
+- this file should help render canon cleanly, not reinterpret canon loosely
 
 ## How They Work Together
 
@@ -392,7 +395,7 @@ For the shared shell path, there is then an additional layer:
 7. `FilePageShell.vue`
    - renders the file surface
 8. `dialogShellPayload.js`
-   - prepares grouped dialog payloads from file-owned tokens and view forks
+   - prepares canonical grouped dialog payloads
 
 If one step is missing, the feature is incomplete.
 
@@ -415,7 +418,7 @@ When creating a new normal `L1`, these files usually map to different parts of t
 - `FilePageShell.vue`
   - proof that the shared file shell can actually use the new source
 - `dialogShellPayload.js`
-  - proof that grouped dialog payloads still follow the file-owned payload for that source
+  - proof that grouped dialog payloads still follow canon for that source
 
 So if a new `L1` feels "half-real," it is usually because one or more of these files was skipped.
 
@@ -436,7 +439,7 @@ If something is not working, check in this order:
 6. `FilePageShell.vue`
    - is the shared shell consuming the data correctly?
 7. `dialogShellPayload.js`
-   - is the dialog grouping preserving the file-owned payload correctly?
+   - is the dialog grouping preserving canon correctly?
 
 If you are doing architecture work, review in this order instead:
 
@@ -472,4 +475,4 @@ If you want one sentence for each file:
 - `electron-preload.js` = the safe API bridge the frontend is allowed to use
 - `ldbRelationshipContracts.js` = how declared LDB links are actually owned and read
 - `FilePageShell.vue` = the main shared file-shell surface that proves whether the runtime path is usable
-- `dialogShellPayload.js` = the dialog grouping helper that should preserve file-owned grouping instead of inventing it
+- `dialogShellPayload.js` = the dialog grouping helper that should preserve canon instead of inventing it

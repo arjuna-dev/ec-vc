@@ -38,7 +38,7 @@ It is the file-definition layer that helps the system know:
 | `System Files` | The app-facing file-definition surface. |
 | `Files` | The canonical entity behind the `System Files` surface. |
 | `File Guide` | The `.md` guide that explains and governs a specific file. |
-| `File Class` | Whether a file is a file, view, or subgroup. |
+| `File Class` | Whether a file is a file or view. |
 | `Ownership Mode` | The declared ownership rule for a file or field. |
 | `Steward` | The companion or role responsible for keeping a file correct. |
 | `System` | The shared provenance and runtime-control view. |
@@ -135,7 +135,7 @@ That means:
 - it should have its own file guide
 - it should expose the file-definition fields needed to guide future file birth
 
-The safe default for new user-created concepts is also a file until the user or steward confirms the concept is only a view or subgroup inside an existing file.
+The safe default for new user-created concepts is also a file until the user or steward confirms the concept is only a view inside an existing file.
 
 ## File Birth Checklist
 
@@ -146,7 +146,7 @@ For `System Files`, the initial checklist is:
 - file guide exists: `yes`, `docs/100/Active/100-System_Files.md`
 - owner is declared: `yes`, `Owner`
 - steward is declared: `yes`, `File Steward`
-- UX fork questions are declared: `yes`, this guide defines the initial file/view/subgroup fork
+- UX fork questions are declared: `yes`, this guide defines the initial file/view fork
 - create-branch instructions are declared: `yes`, branchable files must declare them in canon/registry before create flows depend on them
 - view-fork instructions are declared: `yes`, branchable files must declare them in canon/registry before toolbar/tune payload depends on them
 - `System` requirement is declared: `yes`

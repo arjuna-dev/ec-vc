@@ -96,7 +96,7 @@
         <button type="button" class="components-shell-page__inspect-btn" aria-label="View component details" @click="openComponentDetail('main-menu-subgroup-row')">
           <q-icon name="visibility" />
         </button>
-        <div class="components-shell-page__card-label">Main Menu Subgroup Row</div>
+        <div class="components-shell-page__card-label">Main Menu View Row</div>
         <div class="components-shell-page__card-status" :class="componentStatusClass('main-menu-subgroup-row')">{{ componentStatusLabel('main-menu-subgroup-row') }}</div>
         <div class="components-shell-page__card-stage">
           <MainMenuSubgroupRow label="Shells" :expanded="true" />
