@@ -226,7 +226,7 @@ Key output metrics:
   - Step 2: add standalone `Companion Roles` as a real first-class table
   - Step 3: add the initial required `Companion Roles` columns
   - Step 4: create the first-pass `Companion Roles` records:
-    - `Master Companion`
+    - `Companion`
     - `Intake Steward`
     - `Point Tracker`
     - `Quest Builder`
@@ -320,7 +320,7 @@ Key output metrics:
   - create the base `Owner Intake` project space
   - create the base `User Roles` set
   - create the base `Companion Roles` set
-  - create `Master Companion Role` as the first base `Companion Role`
+  - create `Companion Role` as the first base `Companion Role`
   - create the `User Set-up` project and its default tasks
   - allow task completion to be skipped without skipping record/project/task creation
 - Define the first runtime-backed `BB File` contract and decide whether it stays documentation-backed first or becomes a true file source next

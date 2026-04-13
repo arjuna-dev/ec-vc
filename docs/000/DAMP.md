@@ -675,7 +675,7 @@ Branch capability rule:
 
 Working rule:
 
-- `Master Companion` is the acting bootstrap operator for sequential genesis creation
+- `Companion` is the acting bootstrap operator for sequential genesis creation
 - the first paired bootstrap items should be:
   - `File Folder`
   - `File Registry`
@@ -1347,14 +1347,14 @@ Before the broader normal `File` set is born, the system should support a small 
 Current intended priority order:
 
 1. `User Basics`
-2. `Master Companion`
+2. `Companion`
 3. `File Steward`
 4. `Game Packs`
 
 Working interpretation:
 
 - `User Basics` should establish the first network/team foundation
-- `Master Companion` should establish orchestration authority
+- `Companion` should establish orchestration authority
 - `File Steward` should load before the first game pack so file/game structure can be created and kept disciplined
 - `Game Packs` should load after that steward layer is present
 
@@ -2172,7 +2172,7 @@ Current working rule:
   - `Owner Ingestion`
 - owner bootstrap should assign the base `User Roles` set
 - owner bootstrap should assign the base `Companion Roles` set
-- owner bootstrap should create the `Master Companion Role` record
+- owner bootstrap should create the `Companion Role` record
 - owner bootstrap should create the `User Set-up` project and its base tasks
 - those setup records should still be created even if the user later skips guided task completion
 

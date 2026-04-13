@@ -713,7 +713,7 @@ const activeCompanionDocument = computed(
 )
 const companionRoleToolbarItems = computed(() => [
   {
-    title: 'Master Companion Role',
+    title: 'Companion Role',
     value: 'master-companion-role',
   },
 ])

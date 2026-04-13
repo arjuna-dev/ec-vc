@@ -115,12 +115,12 @@ That means:
 - assign the owner a base `Owner Ingestion Project Space`
 - assign the owner a base set of `User Roles`
 - assign the owner a base set of `Companion Roles`
-- create `Master Companion Role` during `Owner Genesis`
+- create `Companion Role` during `Owner Genesis`
 
 Genesis operator rule:
 
-- `Master Companion` should be the acting bootstrap operator during `Owner Genesis`
-- `Master Companion` should create the base files in sequence before file-owned bootstrap records are written into them
+- `Companion` should be the acting bootstrap operator during `Owner Genesis`
+- `Companion` should create the base files in sequence before file-owned bootstrap records are written into them
 
 System-level exception rule:
 

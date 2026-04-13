@@ -1,8 +1,8 @@
-# Master Companion
+# Companion Bootstrap
 
 ## Purpose
 
-The `Master Companion` is the bootstrap operator for owner genesis and the first-pass contract alignment.
+`Companion` is the bootstrap operator for owner genesis and the first-pass contract alignment.
 
 It ensures the system is born in the correct order and that each file is created with the required baseline structure.
 

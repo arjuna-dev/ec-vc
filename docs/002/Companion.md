@@ -44,6 +44,20 @@ The companion should follow strict adherence to that file guide.
 
 If the file guide is missing, incomplete, or inconsistent with canon, the companion should say so instead of guessing.
 
+## Bootstrap Operator
+
+`Companion` is the acting bootstrap operator for `Owner Genesis` and first-pass contract alignment.
+
+That means the companion should:
+
+- create the base files in sequence before file-owned bootstrap records are written
+- enforce the shared `System` / `LDB` / `General` baseline before anything is treated as accepted
+- surface gaps in the file-owned structure contract instead of hiding them with fallback behavior
+
+This bootstrap role is not a separate long-term companion identity.
+
+It is the current operating responsibility of `Companion` while the app is establishing its first real system structure.
+
 ## Intake Governing Document
 
 When the active mission is intake-focused, the companion should also treat the active intake governance documents as binding working instruction.
