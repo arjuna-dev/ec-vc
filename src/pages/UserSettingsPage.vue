@@ -780,7 +780,7 @@ const ownerDocumentMenu = [
     layer: '000 Owner / Root Authority',
     label: 'Owner',
     short: 'Pause menu',
-    path: 'docs/000/Owner.md',
+    path: 'docs/001/Owner.md',
     eyebrow: 'Owner',
     heroTitle: 'Owner',
   },
