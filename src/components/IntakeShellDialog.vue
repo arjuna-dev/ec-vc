@@ -714,6 +714,7 @@ const selectedArtifactIds = ref([])
 const startingArtifactIds = ref([])
 const intakeSessionId = ref('')
 const intakeReportId = ref('')
+const intakeDialogOpened = ref(false)
 const autoProcessArtifacts = ref(false)
 const companionUrl = ref('')
 const companionBlurb = ref('')
@@ -1558,6 +1559,19 @@ async function startArtifactProcessing(artifactId) {
         ? { ...entry, processedArtifactId: intakeSessionId.value || entry.processedArtifactId }
         : entry,
     )
+
+    if (intakeSessionId.value && !intakeDialogOpened.value) {
+      intakeDialogOpened.value = true
+      router.push({
+        name: 'dialog-shell',
+        query: {
+          section: 'intake',
+          edit: intakeSessionId.value,
+          entity: 'Intake',
+          open: String(Date.now()),
+        },
+      })
+    }
     markDialogChanged()
   } catch (error) {
     $q.notify({
