@@ -1444,14 +1444,23 @@ const bbGraphRowColumns = computed(() => {
     { key: '__bb_children__', tokenName: '__bb_children__', label: 'Children' },
   ]
 })
+const isHistorySystemToken = (token = {}) => {
+  const tokenType = String(token?.tokenType || '').trim().toLowerCase()
+  const tokenName = String(token?.tokenName || '').trim().toLowerCase()
+  const label = String(token?.label || '').trim().toLowerCase()
+  return tokenType === 'event_log' || tokenName === 'history' || label === 'history'
+}
 const tableViewTokens = computed(() => {
   const baseTokens = (
     isLdbViewActive.value
       ? sharedLdbViewTokens.value
       : activeViewTokens.value.filter((token) => token.key !== canonicalTitleToken.value?.key)
   )
-  if (!isBbFileSource.value) return baseTokens
-  return [...bbGraphRowColumns.value, ...baseTokens]
+  const filteredTokens = isSystemViewActive.value
+    ? baseTokens.filter((token) => !isHistorySystemToken(token))
+    : baseTokens
+  if (!isBbFileSource.value) return filteredTokens
+  return [...bbGraphRowColumns.value, ...filteredTokens]
 })
 
 const displayRows = computed(() => {
