@@ -22,7 +22,7 @@ It exists to keep security naming explicit and aligned instead of scattered acro
 | --- | --- |
 | `Security` | A governed security concept. |
 | `Security Type` | The security classification used by rounds. |
-| `Knowledge DB` | The controlled vocabulary file for shared options. |
+| `LDB` | The controlled vocabulary file for shared options. |
 
 ## Referenced Documents
 
