@@ -343,22 +343,6 @@ const FILE_PAGE_ENTITY_ORDER = [
   'Securities',
 ]
 
-function normalizeTokens(subsection) {
-  const tokens = Array.isArray(subsection?.tokens) ? subsection.tokens : []
-  return tokens
-    .map((token, index) => {
-      const explicitRole = String(token?.token_role || token?.field_role || '').trim()
-      const legacyRole = String(token?.role || '').trim()
-      const inferredRole = explicitRole || legacyRole
-
-      return {
-        ...token,
-        tokenRole: inferredRole,
-        tokenOrder: String(token?.token_order ?? index + 1),
-      }
-    })
-}
-
 function normalizeDbFieldAliases(token) {
   const aliases = Array.isArray(token?.db_field_aliases) ? token.db_field_aliases : []
   return aliases
@@ -401,22 +385,6 @@ function formatLabel(value) {
   return formatSharedDisplayLabel(value)
 }
 
-function stripTokenEntityPrefix(tokenName = '', prefixes = []) {
-  const rawTokenName = String(tokenName || '').trim()
-  if (!rawTokenName) return ''
-
-  const normalizedPrefixes = (Array.isArray(prefixes) ? prefixes : [])
-    .map((prefix) => String(prefix || '').trim())
-    .filter(Boolean)
-
-  for (const prefix of normalizedPrefixes) {
-    const candidate = `${prefix}_`
-    if (rawTokenName.startsWith(candidate)) return rawTokenName.slice(candidate.length)
-  }
-
-  return rawTokenName
-}
-
 const runtimeFileStructuresBySource = {}
 const runtimeStructureSubscribers = new Set()
 let runtimeStructureVersion = 0
@@ -433,69 +401,6 @@ function buildEntityRegistry(entityName) {
   const canonicalEntityName = String(meta.canonicalEntityName || entityName).trim()
   const runtimeEntityName = String(meta.runtimeEntityName || entityName).trim()
   const customSubsections = Array.isArray(meta.customSubsections) ? meta.customSubsections : []
-  const entityTokenPrefixes = [
-    String(meta.singularLabel || '').trim().replace(/\s+/g, '_'),
-    canonicalEntityName.endsWith('s') ? canonicalEntityName.slice(0, -1) : canonicalEntityName,
-  ]
-    .map((value) => String(value || '').trim())
-    .filter(Boolean)
-
-  const tokenOverrides = meta.tokenOverrides && typeof meta.tokenOverrides === 'object' ? meta.tokenOverrides : {}
-  const subsections = customSubsections.map((subsection, index) => ({
-      key: String(subsection?.structure_token || subsection?.subsection || '').trim() || `${entityName}_${index + 1}`,
-      subsectionOrder: String(subsection?.subsection_order ?? index + 1),
-      address: String(subsection?.subsection_address || '').trim(),
-      label: formatLabel(subsection?.subsection),
-      structureToken: String(subsection?.structure_token || '').trim(),
-      subgroupKey: String(subsection?.subgroup_key || '').trim(),
-      subgroupLabel: String(subsection?.subgroup_label || '').trim(),
-      subgroupAddress: String(subsection?.subgroup_address || '').trim(),
-      displayGroup: String(subsection?.display_group || '').trim(),
-      tokens: normalizeTokens(subsection).map((token) => {
-        const tokenName = String(token?.token_name || '').trim()
-        const override = tokenOverrides[tokenName] && typeof tokenOverrides[tokenName] === 'object'
-          ? tokenOverrides[tokenName]
-          : {}
-
-        return {
-          key: String(token?.token_name || token?.address || '').trim(),
-          tokenRole: String(token?.tokenRole || '').trim(),
-          tokenOrder: String(token?.tokenOrder || '').trim(),
-          address: String(token?.address || '').trim(),
-          tokenName,
-          dbFieldAliases: normalizeDbFieldAliases(token),
-          dbWriteField: String(token?.db_write_field || '').trim(),
-          dbWriteTable: String(token?.db_write_table || '').trim(),
-          dbWriteIdColumn: String(token?.db_write_id_column || '').trim(),
-          tokenType: String(override.token_type ?? token?.token_type ?? '').trim(),
-          inputSource: String(override.input_source ?? token?.input_source ?? '').trim(),
-          optionSource: String(override.option_source ?? token?.option_source ?? '').trim(),
-          optionList: String(override.option_list ?? token?.option_list ?? '').trim(),
-          optionEntity: String(override.option_entity ?? token?.option_entity ?? '').trim(),
-          optionValueMode: String(override.option_value_mode ?? token?.option_value_mode ?? '').trim(),
-          optionEntities: Array.isArray(override.option_entities)
-            ? override.option_entities.map((value) => String(value || '').trim()).filter(Boolean)
-            : Array.isArray(token?.option_entities)
-              ? token.option_entities.map((value) => String(value || '').trim()).filter(Boolean)
-              : [],
-          optionSubset: override.option_subset && typeof override.option_subset === 'object'
-            ? { ...override.option_subset }
-            : token?.option_subset && typeof token.option_subset === 'object'
-              ? { ...token.option_subset }
-              : null,
-          subsetEntity: String(override.subset_entity ?? token?.subset_entity ?? '').trim(),
-          subsetShape: Array.isArray(override.subset_shape)
-            ? override.subset_shape.map((value) => String(value || '').trim()).filter(Boolean)
-            : Array.isArray(token?.subset_shape)
-              ? token.subset_shape.map((value) => String(value || '').trim()).filter(Boolean)
-              : [],
-          relationshipGroup: String(override.relationship_group ?? token?.relationship_group ?? '').trim(),
-          label: formatLabel(
-            stripTokenEntityPrefix(String(override.label ?? token?.label ?? token?.token_name ?? '').trim(), entityTokenPrefixes),
-          ),
-        }
-      }),
-    }))
 
   return {
     ...meta,
@@ -510,7 +415,7 @@ function buildEntityRegistry(entityName) {
       : [...DEFAULT_L1_REQUIRED_RUNTIME_CAPABILITIES],
     address: String(meta.address || '').trim(),
     structureToken: String(meta.structureToken || '').trim(),
-    subsections,
+    subsections: customSubsections,
   }
 }
 
