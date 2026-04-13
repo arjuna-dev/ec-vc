@@ -903,6 +903,20 @@ export function getFilePageEditSurface(sourceKey = '') {
 }
 
 export function getCanonicalTokenFieldNames(token = {}) {
+  const explicitWriteField = String(token?.dbWriteField || '').trim()
+  if (explicitWriteField) {
+    return Array.from(
+      new Set(
+        [
+          explicitWriteField,
+          ...(Array.isArray(token.dbFieldAliases) ? token.dbFieldAliases : []),
+          token.tokenName,
+        ]
+          .map((value) => String(value || '').trim())
+          .filter(Boolean),
+      ),
+    )
+  }
   return Array.from(
     new Set(
       [token.tokenName, ...(Array.isArray(token.dbFieldAliases) ? token.dbFieldAliases : [])]
