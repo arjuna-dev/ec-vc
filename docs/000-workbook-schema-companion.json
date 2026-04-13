@@ -1,15 +1,34 @@
 {
   "version": 1,
   "status": "active",
-  "purpose": "Minimal workbook companion reference for the current file-owned runtime model.",
+  "purpose": "Workbook import/export contract reference for the current file-owned runtime model.",
   "notes": [
-    "This file is intentionally minimal and should not be treated as a live payload source.",
+    "This file documents the intended import/export schema and should not be treated as a live payload source.",
     "System Files owns the complete file structure and token registry at runtime.",
-    "If workbook export/import is reintroduced, define a dedicated schema in /docs/000/Active before wiring runtime."
+    "Export/import behavior must read from the file-owned structure contract (Defined_Structure) rather than legacy canon."
   ],
   "export_contract": {
     "format": "csv",
     "mode": "manual",
-    "status": "not active"
+    "status": "planned",
+    "source_of_truth": "System Files / Defined_Structure",
+    "naming": {
+      "file_label": "File_Name",
+      "file_source_key": "File_Source_Key",
+      "record_id": "id",
+      "token_label": "label",
+      "token_name": "tokenName",
+      "db_write_field": "dbWriteField"
+    }
+  },
+  "import_contract": {
+    "format": "csv",
+    "mode": "manual",
+    "status": "planned",
+    "validation": [
+      "File_Source_Key must map to an existing System Files row.",
+      "Tokens must exist in the file-owned structure; unknown tokens are rejected.",
+      "Name token is required for new record creation."
+    ]
   }
 }
