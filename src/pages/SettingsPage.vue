@@ -516,7 +516,7 @@ const companionDocumentMenu = [
     layer: '300 Game Guides',
     label: 'Game Rulebook',
     short: 'Boards + points',
-    path: 'docs/010/Archive/Game_Rulebook.md',
+    path: 'docs/003/Games.md',
     eyebrow: 'Game Rulebook',
     heroTitle: 'Game',
   },

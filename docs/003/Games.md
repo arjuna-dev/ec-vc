@@ -1,22 +1,22 @@
-# Game_of
+# Games
 
 ## Purpose
 
-This document is the single active `Game_of` guide.
+This document is the single active `Games` guide.
 
 It now carries:
 
-- root `Game_of` rules
-- `Game_of` operation
+- root `Games` rules
+- `Games` operation
 - the current concrete game rulebook
 
-The `Game_of` layer exists to invite users and companions into a structured objective path where they accumulate points by gathering correct information through governed processes.
+The `Games` layer exists to invite users and companions into a structured objective path where they accumulate points by gathering correct information through governed processes.
 
 It should make progress legible, motivating, and prioritized without weakening truth, ownership, verification, provenance, or canonical structure.
 
 ## Authority Rule
 
-`Game_of` is a guidance layer.
+`Games` is a guidance layer.
 
 They should help humans, companions, and future bots understand:
 
@@ -26,7 +26,7 @@ They should help humans, companions, and future bots understand:
 - how progress is scored
 - which quests, boards, or priorities are active
 
-`Game_of` must not replace:
+`Games` must not replace:
 
 - canonical ownership
 - file birth rules
@@ -39,19 +39,19 @@ They should help humans, companions, and future bots understand:
 - `docs/010/DAMP.md`
 - `docs/020/020_Game_Steward.md`
 
-The `Game Steward` remains in `020` because it is a Companion Steward role. This file defines the `Game_of` layer itself.
+The `Game Steward` remains in `020` because it is a Companion Steward role. This file defines the `Games` layer itself.
 
 ## Root Rules
 
-- `Game_of` should surface structure, not invent structure.
-- `Game_of` should make priorities clearer, not hide missing architecture.
-- `Game_of` may reward effort provisionally, but truth should only be fully rewarded after verification.
-- `Game_of` should make blockers visible when ownership, runtime, relationship, or provenance paths are incomplete.
-- `Game_of` should remain readable to the `Owner` and useful to companions without requiring architecture vocabulary.
+- `Games` should surface structure, not invent structure.
+- `Games` should make priorities clearer, not hide missing architecture.
+- `Games` may reward effort provisionally, but truth should only be fully rewarded after verification.
+- `Games` should make blockers visible when ownership, runtime, relationship, or provenance paths are incomplete.
+- `Games` should remain readable to the `Owner` and useful to companions without requiring architecture vocabulary.
 
 ## Operating Layer
 
-`Game_of` operation should convert approved structure into visible guidance.
+`Games` operation should convert approved structure into visible guidance.
 
 It should explain:
 
@@ -67,7 +67,7 @@ It should not create structure that canon, file guides, stewards, or runtime own
 ### Current Operating Model
 
 1. A file, record, task, or relationship exposes an approved objective.
-2. The `Game_of` layer translates that objective into a visible quest, board position, or priority.
+2. The `Games` layer translates that objective into a visible quest, board position, or priority.
 3. The user or companion performs the work.
 4. The system records whether the work is provisional, verified, blocked, or complete.
 5. Points and rankings explain relevance without replacing verification.
@@ -85,7 +85,7 @@ Stop before treating game output as settled truth when:
 
 ## Concrete Rulebook
 
-This section defines the current concrete `Game_of` rulebook.
+This section defines the current concrete `Games` rulebook.
 
 ### Owner Genesis
 
@@ -183,7 +183,7 @@ Working rule:
 
 ### First Board
 
-The purpose of the `Game_of` layer is:
+The purpose of the `Games` layer is:
 
 - to help users and companions focus on the right objectives
 - to make progress visible
@@ -197,14 +197,14 @@ Current first board:
 
 ### Governing Rule
 
-The `Game_of` layer must sit above the contract layer.
+The `Games` layer must sit above the contract layer.
 
 That means:
 
 - canon still decides what is allowed
 - runtime ownership still decides where data writes
 - verification still decides what becomes trusted
-- the `Game_of` layer only decides:
+- the `Games` layer only decides:
   - priority
   - progress
   - points
@@ -214,7 +214,7 @@ That means:
 
 Working rule:
 
-- `Game_of` should guide
+- `Games` should guide
 - contract should govern
 
 ### Core Objects
@@ -414,7 +414,7 @@ Working rule:
 
 Quests should be ranked by relevance, not just by difficulty.
 
-That means the `Game_of` layer should prioritize:
+That means the `Games` layer should prioritize:
 
 - required information before optional information
 - blocking fields before decorative fields
@@ -423,12 +423,12 @@ That means the `Game_of` layer should prioritize:
 
 Working rule:
 
-- the `Game_of` layer should surface what matters most now
+- the `Games` layer should surface what matters most now
 - not merely what is easiest to score
 
 ### Human-System Relevance
 
-The `Game_of` layer should repeatedly reinforce the human-system distinction:
+The `Games` layer should repeatedly reinforce the human-system distinction:
 
 - `Owner`
   - system authority
@@ -487,7 +487,7 @@ The board should help the user understand:
 
 ### Companion Role
 
-The `Companion` should help the user navigate the `Game_of` layer and score points in a useful way.
+The `Companion` should help the user navigate the `Games` layer and score points in a useful way.
 
 That means the Companion may:
 
@@ -510,8 +510,8 @@ This is a first-pass rulebook.
 
 Current rule:
 
-- the `Game_of` layer may help surface issues
-- the `Game_of` layer must not distract from getting the ownership and runtime structure correct underneath
+- the `Games` layer may help surface issues
+- the `Games` layer must not distract from getting the ownership and runtime structure correct underneath
 
 ## Open Questions
 
