@@ -441,7 +441,6 @@ function buildEntityRegistry(entityName) {
     .filter(Boolean)
 
   const tokenOverrides = meta.tokenOverrides && typeof meta.tokenOverrides === 'object' ? meta.tokenOverrides : {}
-  const subsections = customSubsections
     .map((subsection, index) => ({
       key: String(subsection?.structure_token || subsection?.subsection || '').trim() || `${entityName}_${index + 1}`,
       subsectionOrder: String(subsection?.subsection_order ?? index + 1),
