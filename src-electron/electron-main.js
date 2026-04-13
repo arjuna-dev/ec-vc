@@ -2692,6 +2692,27 @@ function createFile(payload = {}) {
   return { id }
 }
 
+function updateFileStructure(payload = {}) {
+  const database = initDb()
+  ensureDefaultFiles(database)
+  const sourceKey = normalizeNullableString(payload?.File_Source_Key || payload?.sourceKey)
+  if (!sourceKey) throw new Error('File source key is required')
+  const definedStructure = normalizeNullableString(payload?.Defined_Structure || payload?.definedStructure || '')
+  if (!definedStructure) throw new Error('Defined_Structure is required')
+
+  const result = database
+    .prepare(
+      `
+      UPDATE Files
+      SET Defined_Structure = ?, updated_at = datetime('now')
+      WHERE File_Source_Key = ?
+    `,
+    )
+    .run(definedStructure, sourceKey)
+
+  return { updated: result.changes || 0 }
+}
+
 function toFileSourceKey(value) {
   return String(value || '')
     .trim()
@@ -8735,6 +8756,13 @@ function registerIpc() {
     initDb()
     const result = createFile(payload)
     auditCreatedRecord('Files', result, payload)
+    await syncWorkspaceWorkbooksSafe()
+    return result
+  })
+
+  ipcMain.handle('file-system:update', async (_event, payload = {}) => {
+    initDb()
+    const result = updateFileStructure(payload)
     await syncWorkspaceWorkbooksSafe()
     return result
   })

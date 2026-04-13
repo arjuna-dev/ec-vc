@@ -84,6 +84,7 @@ const api = {
   'file-system': {
     list: () => ipcRenderer.invoke('file-system:list'),
     create: (payload) => ipcRenderer.invoke('file-system:create', payload),
+    update: (payload) => ipcRenderer.invoke('file-system:update', payload),
     delete: (fileId) => ipcRenderer.invoke('file-system:delete', { fileId }),
   },
   companies: {
