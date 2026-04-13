@@ -1,14 +1,16 @@
-# New `L1` Bootstrap Implementation Checklist
+# New File Bootstrap Implementation Checklist
+
+**Terminology update:** File = former `L1`, View = former `L2`, Token = former `L3`, and `LDB` replaces legacy `KDB` naming in runtime contracts.
 
 ## Purpose
 
-This checklist translates the approved `new normal L1 birth sequence` into the current codebase.
+This checklist translates the approved new file birth sequence into the current codebase.
 
 It is meant to answer:
 
 - what already exists
 - what is only partial
-- what must be implemented before opening a test branch for `L1` birth automation
+- what must be implemented before opening a test branch for file birth automation
 
 The target is strict bootstrap behavior, not a heuristic helper.
 
@@ -24,21 +26,21 @@ Primary files:
 Current status:
 
 - this already exists as the canonical source of truth
-- explicit subgrouping inside a section is now supported
+- explicit view subgrouping is now supported
 - shared-base guidance is documented
 
 Implementation need:
 
-- define the exact canonical minimum payload required for a new normal `L1`
+- define the exact canonical minimum payload required for a new file
 - make sure the canonical format can declare:
   - shared base sections
-  - entity-specific sections
+  - entity-specific views
   - LDB tokens
   - relationship ownership decision when explicitly promoted
 
 ### Canonical birth input contract
 
-A new normal `L1` should not begin birth unless this input contract is complete.
+A new file should not begin birth unless this input contract is complete.
 
 If any required part is missing, the correct action is:
 
@@ -54,8 +56,8 @@ Minimum required input:
    - plural label
    - route key
 2. entity class
-   - normal `L1`
-   - branch-capable `L1`
+   - normal file
+   - branch-capable file
    - approved exception
 3. shared base confirmation
    - `System`
@@ -71,10 +73,10 @@ Minimum required input:
      - `Name`
      - `Summary`
 5. entity-specific extension structure
-   - entity-specific section list
-   - approved subgrouping inside a section when needed
+   - entity-specific view list
+   - approved view subgrouping
 6. LDB declaration set
-   - target `L1`
+   - target file
    - source token
    - expected reverse target
 7. relationship owner-path decision set
@@ -99,7 +101,7 @@ Compact check:
 2. is it normal, branch-capable, or an approved exception?
 3. does it own the shared base?
 4. does it use the shared base parameters correctly?
-5. what are its entity-specific sections?
+5. what are its entity-specific views?
 6. what LDB links does it declare?
 7. which links stay in `LDB_Relationships`?
 8. which links are explicitly promoted to dedicated join tables?
