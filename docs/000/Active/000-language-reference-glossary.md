@@ -36,9 +36,9 @@
 | Legacy Surface | A frontend page or dialog that is no longer route-mounted or no longer part of the approved shared shell set. Once proven unused, it should be removed rather than kept as silent drift. | Legacy Surface Audit |
 | Fixed Shell Styling | The rule that shell visuals stay fixed at shell level. `L1` may change payload, labels, section membership, and explicitly approved capabilities, but should not silently restyle the shell. | Product Reference |
 | Shared Middle-Field Selection | The rule that the selected middle fields for a given `L1` are remembered once and reused by both `File Shell` cards and `Record Shell` hero rows. | Product Reference |
-| Business Overview | The grouped `L2` used in `Companies` to collect overview-style subsections under one toolbar item while preserving the prior overview subsections as subgroup variants inside the panel. | Record Architecture |
-| Subgroup | A preserved canonical subsection rendered inside a grouped `L2` panel. Subgroups should keep their own title and should be individually collapsible. | Record Architecture |
-| Grouped Dialog Section | A grouped `L2` rendered inside the shared create / edit dialog. It should preserve subgroup identity and collapse / expand behavior instead of flattening grouped fields into one undifferentiated section. | Record Architecture |
+| Business Overview | The grouped `L2` used in `Companies` to collect overview-style subsections under one toolbar item while preserving the prior overview subsections as visual subgroup variants inside the panel. | Record Architecture |
+| Subgroup (UI Only) | A visual-only grouping inside a view. It must not change payload ownership, token grouping, or data contracts. | Record Architecture |
+| Grouped Dialog Section | A grouped `L2` rendered inside the shared create / edit dialog. It should preserve subgroup identity and collapse / expand behavior for visual clarity only. | Record Architecture |
 | Record View | The eye-opened detailed surface for one selected record. Route-level `record-view` should now resolve into `Record Shell`. | Product Reference |
 | Hero Dashboard | The top shell block for card or record presentation. In `Record Shell`, it is based on the current `User Record View` hero/dashboard pattern. | Record Architecture |
 | L2 Toolbar | The section bar below the hero/dashboard that renders the selected `L1`'s subsection groups. It places normal sections on the left and `LDB` / `System` on the right. | Product Reference |
