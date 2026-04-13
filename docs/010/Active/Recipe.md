@@ -40,9 +40,8 @@ Typical examples:
 Stay aligned with:
 
 - `docs/999/Active/Recipe.md`
-- `docs/999/Active/Translators_Draft.md`
-- `docs/999/Active/Intake_Governance.md`
-- `docs/999/Active/Intake_Rulings.md`
+- `docs/010/Active/Intake.md`
+- `docs/010/Active/Translators.md`
 
 ## Current Accepted Entries
 

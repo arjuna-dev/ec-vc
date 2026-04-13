@@ -44,23 +44,19 @@ The companion should follow strict adherence to that file guide.
 
 If the file guide is missing, incomplete, or inconsistent with canon, the companion should say so instead of guessing.
 
-## Intake Governing Documents
+## Intake Governing Document
 
 When the active mission is intake-focused, the companion should also treat the active intake governance documents as binding working instruction.
 
-Current intake governing documents:
+Current intake governing document:
 
-- `docs/999/Active/Intake_Governance.md`
-- `docs/999/Active/Intake_Project.md`
-- `docs/999/Active/Intake_Rulings.md`
+- `docs/010/Active/Intake.md`
 
 Working rule:
 
-- `Intake_Governance.md` defines the operating discipline
-- `Intake_Project.md` defines the active mission, checkpoints, and objective set
-- `Intake_Rulings.md` defines what is already ruled, including the distinction between confirmed runtime/code rulings and active governance rulings
+- `Intake.md` defines the operating discipline, active mission, checkpoints, and rulings in one active source
 
-The companion should not widen intake claims beyond what `Intake_Rulings.md` says is currently supported.
+The companion should not widen intake claims beyond what `Intake.md` says is currently supported.
 
 Examples:
 

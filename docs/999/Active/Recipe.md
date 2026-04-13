@@ -32,7 +32,7 @@ This recipe should only collect:
 
 Drafting note:
 
-- use `docs/999/Active/Translators_Draft.md` for in-progress translator thinking and cleanup tracking
+- use `docs/010/Active/Translators.md` for active translator architecture direction
 - move only tested and approved patterns back into this recipe
 
 Do not add:
@@ -100,9 +100,9 @@ Each entry should try to answer:
 
 `Where it currently lives`
 
-- `docs/999/Active/Intake_Governance.md`
-- `docs/999/Active/Intake_Rulings.md`
+- `docs/010/Active/Intake.md`
 - `docs/002/Active/002-Companion_Manual.md`
+ 
 
 ### 2. Two-Layer Asset Rule
 
@@ -138,10 +138,9 @@ Each entry should try to answer:
 
 `Where it currently lives`
 
-- `docs/999/Active/Intake_Governance.md`
-- `docs/999/Active/Intake_Rulings.md`
+- `docs/010/Active/Intake.md`
 - `docs/002/Active/002-Companion_Manual.md`
-- `docs/000/Active/000-language-reference-glossary.md`
+- `docs/010/Active/DAMP.md`
 
 ### 3. Inspectable Translator Rule
 
@@ -180,8 +179,7 @@ Each entry should try to answer:
 
 `Where it currently lives`
 
-- `docs/999/Active/Intake_Governance.md`
-- `docs/999/Active/Intake_Rulings.md`
+- `docs/010/Active/Intake.md`
 - `docs/002/Active/002-Companion_Manual.md`
 - steward docs in `docs/020/Active`
 
@@ -217,9 +215,7 @@ Each entry should try to answer:
 
 `Where it currently lives`
 
-- `docs/999/Active/Intake_Governance.md`
-- `docs/999/Active/Intake_Project.md`
-- `docs/999/Active/Intake_Rulings.md`
+- `docs/010/Active/Intake.md`
 
 ## Entry Gate
 

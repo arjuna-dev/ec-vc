@@ -55,6 +55,7 @@ This becomes the top architecture layer.
 Proposed current files:
 
 - `docs/000/DAMP.md`
+- `docs/000/Intake.md`
 - `docs/000/LAMP.md`
 - `docs/000/Recipe.md`
 - `docs/000/Translators.md`

@@ -15,8 +15,8 @@ This is meant to reduce context loss while we move together between product, sch
 This tracker should stay aligned with:
 
 - `docs/010/Active/DAMP.md`
+- `docs/010/Active/Intake.md`
 - `docs/010/Draft/010-intake-architecture-plan.md`
-- `docs/999/Active/Intake_Project.md`
 
 ## Governing Note
 
