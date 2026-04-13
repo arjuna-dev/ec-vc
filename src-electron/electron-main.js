@@ -1897,14 +1897,38 @@ function enforceUniqueTokenNames(structure = null, runtimeEntityName = '') {
   }
 
   const selectedByName = new Map()
+  const selectedByRole = new Map()
   const selectedTokens = new Set()
 
   sections.forEach((section) => {
     const tokens = Array.isArray(section?.tokens) ? section.tokens : []
     tokens.forEach((token) => {
       const nameKey = String(token?.tokenName || token?.key || token?.label || '').trim().toLowerCase()
+      const labelKey = String(token?.label || '').trim().toLowerCase()
+      const rawRole = String(token?.tokenRole || '').trim().toLowerCase()
+      const roleKey = rawRole === 'title' || rawRole === 'summary'
+        ? rawRole
+        : labelKey === 'name'
+          ? 'title'
+          : labelKey === 'summary'
+            ? 'summary'
+            : ''
       if (!nameKey) {
         selectedTokens.add(token)
+        return
+      }
+      if (roleKey) {
+        const existingRole = selectedByRole.get(roleKey)
+        if (!existingRole) {
+          selectedByRole.set(roleKey, token)
+          selectedTokens.add(token)
+          return
+        }
+        if (selectScore(token) > selectScore(existingRole)) {
+          selectedTokens.delete(existingRole)
+          selectedByRole.set(roleKey, token)
+          selectedTokens.add(token)
+        }
         return
       }
       const existing = selectedByName.get(nameKey)
