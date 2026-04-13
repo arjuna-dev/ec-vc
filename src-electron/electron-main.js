@@ -1878,6 +1878,67 @@ function ensureBaseStructureCompleteness(existing = null, base = null) {
   }
 }
 
+function enforceUniqueTokenNames(structure = null, runtimeEntityName = '') {
+  if (!structure || typeof structure !== 'object') return structure
+  const sections = Array.isArray(structure.sections) ? structure.sections : []
+  if (!sections.length) return structure
+
+  const normalizedEntity = String(runtimeEntityName || '').trim().toLowerCase()
+  const selectScore = (token) => {
+    if (!token || typeof token !== 'object') return 0
+    let score = 0
+    if (String(token?.dbWriteField || '').trim()) score += 4
+    const tokenTable = String(token?.dbWriteTable || '').trim().toLowerCase()
+    if (tokenTable && normalizedEntity && tokenTable === normalizedEntity) score += 2
+    const role = String(token?.tokenRole || '').trim().toLowerCase()
+    if (role === 'title' || role === 'summary') score += 1
+    if (String(token?.tokenType || '').trim()) score += 1
+    return score
+  }
+
+  const selectedByName = new Map()
+  const selectedTokens = new Set()
+
+  sections.forEach((section) => {
+    const tokens = Array.isArray(section?.tokens) ? section.tokens : []
+    tokens.forEach((token) => {
+      const nameKey = String(token?.tokenName || token?.key || token?.label || '').trim().toLowerCase()
+      if (!nameKey) {
+        selectedTokens.add(token)
+        return
+      }
+      const existing = selectedByName.get(nameKey)
+      if (!existing) {
+        selectedByName.set(nameKey, token)
+        selectedTokens.add(token)
+        return
+      }
+      if (selectScore(token) > selectScore(existing)) {
+        selectedTokens.delete(existing)
+        selectedByName.set(nameKey, token)
+        selectedTokens.add(token)
+      }
+    })
+  })
+
+  let mutated = false
+  const normalizedSections = sections.map((section) => {
+    const tokens = Array.isArray(section?.tokens) ? section.tokens : []
+    const filtered = tokens.filter((token) => selectedTokens.has(token))
+    if (filtered.length !== tokens.length) mutated = true
+    return {
+      ...section,
+      tokens: filtered,
+    }
+  })
+
+  if (!mutated) return structure
+  return {
+    ...structure,
+    sections: normalizedSections,
+  }
+}
+
 function buildDefinedStructureJson(entry) {
   return JSON.stringify(buildBaseFileStructure(entry))
 }
@@ -2482,8 +2543,11 @@ function ensureDefaultFiles(database) {
       const completed = ensureBaseStructureCompleteness(parsed, baseStructure)
       if (completed !== parsed) mutated = true
 
+      const deduped = enforceUniqueTokenNames(completed, runtimeEntityName)
+      if (deduped !== completed) mutated = true
+
       if (!mutated) return
-      normalizeStructureRow.run(JSON.stringify(completed), row.id)
+      normalizeStructureRow.run(JSON.stringify(deduped), row.id)
     })
   })
 
