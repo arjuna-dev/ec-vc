@@ -127,7 +127,7 @@ The `UX Steward` should stay aligned with:
 
 - `docs/010/DAMP.md`
 - `docs/020/020_File_Steward.md`
-- `docs/100/100-Files.md`
+- `docs/010/System.md`
 
 ## Stop Conditions
 

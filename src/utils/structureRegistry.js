@@ -116,21 +116,13 @@ const FILE_PAGE_ROUTE_META = Object.freeze({
     showInWorkspaceNav: true,
     workspaceNavGroup: 'files',
     shellGroup: 'system_level',
-    fileGuidePath: 'docs/100/100-System_Files.md',
+    fileGuidePath: 'docs/010/System.md',
     birthDefaults: {
       File_Owner: 'Owner',
       File_Steward: 'File Steward',
       Ownership_Mode: 'root_owned',
     },
-    extraReferenceDocs: [
-      {
-        id: 'open-issues',
-        label: 'Open Issues',
-        caption: 'docs/100/100-System_Files_Open_Issues.md',
-        path: 'docs/100/100-System_Files_Open_Issues.md',
-        icon: 'description',
-      },
-    ],
+    extraReferenceDocs: [],
   },
   Users: { key: 'users', label: 'Users', singularLabel: 'User', routeName: 'users', path: '/users', icon: 'badge', showInWorkspaceNav: true, workspaceNavGroup: 'files', shellGroup: 'first_order', fileGuidePath: 'docs/100/Archive/100-Users.md' },
   Artifacts: {

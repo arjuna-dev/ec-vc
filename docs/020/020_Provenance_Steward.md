@@ -103,8 +103,7 @@ The `Provenance Steward` should stay aligned with:
 - `docs/010/Archive/010-ingestion-reconnect-guide.md`
 - `docs/020/020_Intake_Steward.md`
 - `docs/020/020_Runtime_Steward.md`
-- `docs/100/100-Files.md`
-- `docs/100/100-System_Files.md`
+- `docs/010/System.md`
 - `docs/010/Game_of.md`
 
 ## Stop Conditions

@@ -120,7 +120,7 @@ The `Intake Steward` should stay aligned with:
 - `docs/010/Archive/010-ingestion-reconnect-guide.md`
 - `docs/010/DAMP.md`
 - `docs/020/020_Provenance_Steward.md`
-- `docs/100/100-Files.md`
+- `docs/010/System.md`
 
 ## Provenance Rule
 

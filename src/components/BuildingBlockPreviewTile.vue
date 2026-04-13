@@ -896,6 +896,7 @@ import ValueChipSurface from 'src/components/ValueChipSurface.vue'
 import WidgetSettingsMenu from 'src/components/WidgetSettingsMenu.vue'
 import DialogShellFooter from 'src/components/DialogShellFooter.vue'
 import { buildStructureToolbarItems } from 'src/utils/structureToolbarContract'
+import { buildShellToolbarFeed } from 'src/utils/shellToolbarFeeder'
 const l2SettingsSampleGroups = [
   {
     key: 'general',
@@ -941,9 +942,9 @@ const fileHeroPreviewSegments = [
 ]
 
 const fileHeroPreviewActionItems = [
-  { id: 'system-files-guide', label: 'System Files Guide', caption: 'docs/100/Active/100-System_Files.md' },
-  { id: 'file-steward', label: 'File Steward', caption: 'docs/020/Active/020_File_Steward.md' },
-  { id: 'open-issues', label: 'Open Issues', caption: 'docs/100/Active/100-System_Files_Open_Issues.md' },
+  { id: 'system-files-guide', label: 'System Guide', caption: 'docs/010/System.md' },
+  { id: 'file-steward', label: 'File Steward', caption: 'docs/020/020_File_Steward.md' },
+  { id: 'open-issues', label: 'Open Issues', caption: 'docs/010/System.md' },
 ]
 const dialogFooterLegendItems = [
   { label: 'Pre-Selected', tone: 'default' },
@@ -1127,20 +1128,19 @@ const l2ToolbarItems = [
   { value: 'system', title: 'System', isKdb: false, isSystem: true, pushRight: false },
 ]
 
-const miniToolbarItems = buildStructureToolbarItems({
-  leftItems: [
-    { value: 'general', title: 'General' },
-  ],
-  rightItems: [
-    { value: 'system', title: 'System', label: 'System' },
-    { value: 'ldb', title: 'LDB', label: 'LDB' },
+const miniToolbarFeed = buildShellToolbarFeed({
+  sections: [
+    { key: 'general', label: 'General' },
+    { key: 'system', label: 'System' },
+    { key: 'ldb', label: 'LDB' },
   ],
   governanceItems: [
     { value: 'tokens', title: 'Tokens' },
     { value: 'views', title: 'Views' },
   ],
-  isRelationshipSectionLabel: (label) => String(label || '').trim().toLowerCase() === 'ldb',
 })
+
+const miniToolbarItems = buildStructureToolbarItems(miniToolbarFeed)
 
 const governanceViewRowsSample = [
   { key: 'general', label: 'General', side: 'Left', tokenCount: 2 },

@@ -2164,7 +2164,7 @@ const PROTECTED_BOOTSTRAP_FILE_SOURCE_KEYS = new Set(['file-system', 'events', '
 const FILE_GUIDE_PATH_BY_SOURCE_KEY = Object.freeze({
   'bb-file': 'docs/100/Archive/100-BB_Shell.md',
   events: 'docs/100/Archive/100-Events.md',
-  'file-system': 'docs/100/100-System_Files.md',
+  'file-system': 'docs/010/System.md',
   users: 'docs/100/Archive/100-Users.md',
   artifacts: 'docs/100/Archive/100-Artifacts.md',
   contacts: 'docs/100/Archive/100-Contacts.md',
@@ -2662,7 +2662,7 @@ function ensureDefaultFiles(database) {
       File_Status = excluded.File_Status,
       File_Guide_Path = CASE
         WHEN excluded.File_Guide_Path IS NOT NULL THEN excluded.File_Guide_Path
-        WHEN Files.File_Guide_Path = 'docs/100/100-System_Files.md' THEN NULL
+        WHEN Files.File_Guide_Path = 'docs/010/System.md' THEN NULL
         ELSE Files.File_Guide_Path
       END,
       File_Class = COALESCE(NULLIF(Files.File_Class, ''), excluded.File_Class),
