@@ -1428,33 +1428,6 @@ const activeFieldEntries = computed(() => {
 
   return [...nameEntries, ...summaryEntries, ...alternatingEntries]
 })
-function buildFieldEntries(tokens = []) {
-  const nameEntries = []
-  const summaryEntries = []
-  const remainingEntries = []
-
-  tokens.forEach((token, tokenIndex) => {
-    const entry = { token, tokenIndex, column: 'left' }
-    if (isNameField(token)) {
-      nameEntries.push({ ...entry, column: 'left' })
-      return
-    }
-    if (isSummaryField(token)) {
-      summaryEntries.push({ ...entry, column: 'left' })
-      return
-    }
-    remainingEntries.push(entry)
-  })
-
-  let nextColumn = 'left'
-  const alternatingEntries = remainingEntries.map((entry) => {
-    const assigned = { ...entry, column: nextColumn }
-    nextColumn = nextColumn === 'left' ? 'right' : 'left'
-    return assigned
-  })
-
-  return [...nameEntries, ...summaryEntries, ...alternatingEntries]
-}
 const leftFieldEntries = computed(() => {
   const pinned = activeFieldEntries.value.filter((entry) => entry.column === 'left' && isNameField(entry.token))
   const remainder = activeFieldEntries.value.filter((entry) => entry.column === 'left' && !isNameField(entry.token))
