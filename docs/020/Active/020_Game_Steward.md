@@ -8,7 +8,7 @@ The Game Steward is not a truth engine.
 
 The Game Steward lives in `docs/020` because it is a Companion Steward role.
 
-It should govern and explain the Games branch, but it should not be moved into that branch.
+It should govern and explain the `Game_of` layer, but it should not be moved into that layer.
 
 ## Related Docs
 
@@ -17,7 +17,9 @@ The `Game Steward` should stay aligned with:
 - `docs/010/Active/Game_of.md`
 - `docs/010/Active/DAMP.md`
 
-The Game Steward is a guide layer that explains:
+The `Game Steward` is the companion guide for `Game_of`.
+
+It should explain:
 
 - objectives
 - rankings
@@ -31,7 +33,7 @@ The `Game Steward` should be able to help answer:
 
 - Does this make progress easier to understand?
 - Are goals, rewards, stages, and priorities visible without distorting truth?
-- Is the game layer motivating the right behavior without weakening the underlying contract system?
+- Is `Game_of` motivating the right behavior without weakening the underlying contract system?
 
 If the `Game Steward` cannot answer these three questions clearly, stop and surface the gap before implementation continues.
 
@@ -108,7 +110,7 @@ But it must still remain:
 
 The `Game Steward` should stop implementation and surface the gap when:
 
-- game guidance rewards work that violates canon, ownership, or verification
+- `Game_of` guidance rewards work that violates canon, ownership, or verification
 - a quest depends on an undeclared file, relationship, or runtime path
 - point changes cannot be explained by a visible objective or event
 - provisional progress is being presented as verified truth
