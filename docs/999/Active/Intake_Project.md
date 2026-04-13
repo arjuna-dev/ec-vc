@@ -16,6 +16,10 @@ This mission is not about pretending intake is fully solved.
 
 This mission is about making the current intake process trustworthy enough that failures, drift, and false-success states become obvious.
 
+This mission should stay aligned with:
+
+- `docs/999/Active/Intake_Governance.md`
+
 ## Mission
 
 Stabilize the real intake process so we can see:
