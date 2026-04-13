@@ -21,7 +21,6 @@ export function initDb() {
   const dbPath = path.join(app.getPath('userData'), 'ecvc.sqlite3')
   fse.ensureDirSync(path.dirname(dbPath))
 
-  migrateLegacyDbIfNeeded(dbPath)
   maybeRecreateDb(dbPath)
 
   db = new Database(dbPath)
@@ -148,78 +147,6 @@ function maybeRecreateDb(dbPath) {
   fse.removeSync(dbPath)
   fse.removeSync(`${dbPath}-wal`)
   fse.removeSync(`${dbPath}-shm`)
-}
-
-function migrateLegacyDbIfNeeded(dbPath) {
-  const appDataRoot = app.getPath('appData')
-  const legacyPath = path.join(appDataRoot, 'Electron', 'ecvc.sqlite3')
-  if (!fse.pathExistsSync(legacyPath)) return
-
-  const hasTables = (probePath) => {
-    const probe = new Database(probePath, { readonly: true })
-    const tablesCount = probe
-      .prepare(
-        "SELECT COUNT(*) AS c FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'",
-      )
-      .get()?.c
-    probe.close()
-    return Number(tablesCount || 0) > 0
-  }
-
-  const hasAnyRows = (probePath, tableName) => {
-    const probe = new Database(probePath, { readonly: true })
-    const exists = probe
-      .prepare("SELECT 1 FROM sqlite_master WHERE type='table' AND name=? LIMIT 1")
-      .get(String(tableName))
-    if (!exists) {
-      probe.close()
-      return false
-    }
-    const row = probe.prepare(`SELECT 1 FROM ${String(tableName)} LIMIT 1`).get()
-    probe.close()
-    return Boolean(row)
-  }
-
-  const legacyHasTables = hasTables(legacyPath)
-  if (!legacyHasTables) return
-
-  if (!fse.pathExistsSync(dbPath)) {
-    fse.ensureDirSync(path.dirname(dbPath))
-    copyLegacyDb(legacyPath, dbPath)
-    return
-  }
-
-  if (!hasTables(dbPath)) {
-    copyLegacyDb(legacyPath, dbPath)
-    return
-  }
-
-  const currentHasRows =
-    hasAnyRows(dbPath, 'Files') ||
-    hasAnyRows(dbPath, 'Companies') ||
-    hasAnyRows(dbPath, 'Users') ||
-    hasAnyRows(dbPath, 'Notes')
-  const legacyHasRows =
-    hasAnyRows(legacyPath, 'Files') ||
-    hasAnyRows(legacyPath, 'Companies') ||
-    hasAnyRows(legacyPath, 'Users') ||
-    hasAnyRows(legacyPath, 'Notes')
-
-  if (!currentHasRows && legacyHasRows) {
-    copyLegacyDb(legacyPath, dbPath)
-  }
-}
-
-function copyLegacyDb(legacyPath, dbPath) {
-  fse.copySync(legacyPath, dbPath, { overwrite: true })
-  const walPath = `${legacyPath}-wal`
-  const shmPath = `${legacyPath}-shm`
-  if (fse.pathExistsSync(walPath)) {
-    fse.copySync(walPath, `${dbPath}-wal`, { overwrite: true })
-  }
-  if (fse.pathExistsSync(shmPath)) {
-    fse.copySync(shmPath, `${dbPath}-shm`, { overwrite: true })
-  }
 }
 
 function hasTable(database, tableName) {
