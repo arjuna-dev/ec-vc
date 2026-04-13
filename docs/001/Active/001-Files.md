@@ -159,7 +159,9 @@ With a parent file-guide rule, the system can say clearly for each file:
 
 - what the file is
 - how it should be born
-- what sections it should expose through `Defined Structure`
+- what sections it should expose
+- whether `System` applies
+- whether `LDB` applies
 - who governs it
 - what rulebooks it depends on
 - what events should prove it was born correctly
@@ -486,7 +488,8 @@ This name better describes the local relationship layer between:
 - records inside those files
 - local system files and their relationship paths
 
-Current implementation should avoid introducing legacy `KDB` names in live contracts, docs, or UI labels.
+Current implementation should avoid introducing new `KDB` names in live contracts, docs, or UI labels.
+Use `LDB` for all user-facing and documentation naming.
 
 Do not rename those pieces one by one.
 
