@@ -108,7 +108,7 @@
           <tr v-for="token in group.tokens" :key="token.key">
             <td class="structure-governance-panel__cell--data">
               <SettingsCheckbox
-                :model-value="true"
+                :model-value="selectedTokenKeySet.has(token.key)"
                 tone="light"
                 @update:model-value="$emit('toggle-token-select', token.key, $event)"
               />
@@ -276,6 +276,7 @@ const props = defineProps({
   dataColumns: { type: Array, default: () => [] },
   dataRows: { type: Array, default: () => [] },
   selectedRowKeys: { type: Array, default: () => [] },
+  selectedTokenKeys: { type: Array, default: () => [] },
   showWriteTarget: { type: Boolean, default: false },
   interactiveRequired: { type: Boolean, default: false },
   emptyViewsLabel: { type: String, default: 'No views declared.' },
@@ -288,6 +289,7 @@ const expandedGroupKeys = ref([])
 const editingCell = ref({ rowKey: '', columnKey: '' })
 const editingCellValue = ref('')
 const selectedRowKeySet = computed(() => new Set((Array.isArray(props.selectedRowKeys) ? props.selectedRowKeys : []).map((key) => String(key || '').trim())))
+const selectedTokenKeySet = computed(() => new Set((Array.isArray(props.selectedTokenKeys) ? props.selectedTokenKeys : []).map((key) => String(key || '').trim())))
 const resolvedTokenColumns = computed(() => {
   if (Array.isArray(props.tokenColumns) && props.tokenColumns.length) return props.tokenColumns
   const columns = [

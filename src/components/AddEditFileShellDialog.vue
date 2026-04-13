@@ -136,6 +136,14 @@
         aria-label="Add Edit File Mini Toolbar"
       />
       <button
+        v-if="isTokensToolbarActive && selectedTokenKeys.length"
+        type="button"
+        class="file-structure-shell__delete-btn"
+        @click="deleteSelectedTokens"
+      >
+        Delete Selected
+      </button>
+      <button
         type="button"
         class="file-structure-shell__chevron-button file-structure-shell__chevron-button--toolbar"
         :aria-label="leafItemsCollapsed ? 'Expand leaf items' : 'Collapse leaf items'"
@@ -163,8 +171,10 @@
           :token-columns="tokenGovernanceColumns"
           :show-write-target="true"
           :interactive-required="true"
+          :selected-token-keys="selectedTokenKeys"
           empty-tokens-label="No tokens declared in this view."
           @toggle-required="toggleRequiredField"
+          @toggle-token-select="toggleTokenSelection"
           @update-token-cell="updateTokenCell"
         />
       </div>
@@ -238,6 +248,8 @@ const draftLeafRowsBySource = ref({})
 const leafFieldOverridesBySource = ref({})
 const tokenFieldOverridesBySource = ref({})
 const selectedLeafKeysBySource = ref({})
+const selectedTokenKeysBySource = ref({})
+const deletedTokenKeysBySource = ref({})
 const requiredFieldKeysBySource = ref({})
 const viewOptions = [
   { label: '', value: 'card', icon: 'grid_view' },
@@ -412,13 +424,14 @@ const activeLeafTokens = computed(() => {
   const subgroupMap = new Map(
     (Array.isArray(activeViewSection.value?.subgroups) ? activeViewSection.value.subgroups : []).map((group) => [group.key, group]),
   )
+  const deletedKeys = new Set(deletedTokenKeysBySource.value[activeSettingsSourceKey.value] || [])
   const sourceTokens = isRelationshipSettingsSection.value
     ? sharedLdbLeafTokens.value
     : viewSubtabs.value.length
     ? (subgroupMap.get(activeSubgroupKey.value)?.tokens || [])
     : (Array.isArray(activeViewSection.value?.tokens) ? activeViewSection.value.tokens : [])
   const draftTokens = draftLeafRowsBySource.value[activeSettingsSourceKey.value] || []
-  const tokens = [...draftTokens, ...sourceTokens]
+  const tokens = [...draftTokens, ...sourceTokens].filter((token) => !deletedKeys.has(token.key))
 
     return tokens.map((token, index) => {
       const requiredKeys = new Set(requiredFieldKeysBySource.value[activeSettingsSourceKey.value] || [])
@@ -446,10 +459,13 @@ const activeLeafTokens = computed(() => {
       }
   })
 })
-  const tokenGroupsByView = computed(() =>
-    governanceViewRows.value.map((view) => {
-      const section = fileViewGroups.value.find((entry) => entry.key === view.key)
-      const groupTokens = Array.isArray(section?.tokens) ? section.tokens : []
+const tokenGroupsByView = computed(() =>
+  governanceViewRows.value.map((view) => {
+    const section = fileViewGroups.value.find((entry) => entry.key === view.key)
+    const deletedKeys = new Set(deletedTokenKeysBySource.value[activeSettingsSourceKey.value] || [])
+    const groupTokens = (Array.isArray(section?.tokens) ? section.tokens : []).filter(
+      (token) => !deletedKeys.has(token.key),
+    )
       const requiredKeys = new Set(requiredFieldKeysBySource.value[activeSettingsSourceKey.value] || [])
       return {
         key: view.key,
@@ -493,6 +509,7 @@ const displayLeafTokens = computed(() =>
   }),
 )
 const selectedLeafKeys = computed(() => selectedLeafKeysBySource.value[activeSettingsSourceKey.value] || [])
+const selectedTokenKeys = computed(() => selectedTokenKeysBySource.value[activeSettingsSourceKey.value] || [])
 const activeRequiredFieldKeys = computed(() => requiredFieldKeysBySource.value[activeSettingsSourceKey.value] || [])
 const fileStructureSnapshot = computed(() =>
   buildFileStructureSessionSnapshot({
@@ -504,6 +521,7 @@ const fileStructureSnapshot = computed(() =>
     leafRows: displayLeafTokens.value,
     selectedLeafKeys: selectedLeafKeys.value,
     requiredFieldKeys: activeRequiredFieldKeys.value,
+    deletedTokenKeys: deletedTokenKeysBySource.value[activeSettingsSourceKey.value] || [],
   }),
 )
 
@@ -618,6 +636,39 @@ function toggleRequiredField(tokenKey, value) {
   requiredFieldKeysBySource.value = {
     ...requiredFieldKeysBySource.value,
     [sourceKey]: Array.from(current),
+  }
+}
+
+function toggleTokenSelection(tokenKey, value) {
+  const sourceKey = activeSettingsSourceKey.value
+  const current = new Set(selectedTokenKeysBySource.value[sourceKey] || [])
+  if (value) current.add(tokenKey)
+  else current.delete(tokenKey)
+  selectedTokenKeysBySource.value = {
+    ...selectedTokenKeysBySource.value,
+    [sourceKey]: Array.from(current),
+  }
+}
+
+function deleteSelectedTokens() {
+  const sourceKey = activeSettingsSourceKey.value
+  const selected = selectedTokenKeysBySource.value[sourceKey] || []
+  if (!selected.length) return
+  const deleted = new Set(deletedTokenKeysBySource.value[sourceKey] || [])
+  selected.forEach((key) => deleted.add(key))
+  deletedTokenKeysBySource.value = {
+    ...deletedTokenKeysBySource.value,
+    [sourceKey]: Array.from(deleted),
+  }
+  const required = new Set(requiredFieldKeysBySource.value[sourceKey] || [])
+  selected.forEach((key) => required.delete(key))
+  requiredFieldKeysBySource.value = {
+    ...requiredFieldKeysBySource.value,
+    [sourceKey]: Array.from(required),
+  }
+  selectedTokenKeysBySource.value = {
+    ...selectedTokenKeysBySource.value,
+    [sourceKey]: [],
   }
 }
 
