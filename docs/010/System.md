@@ -59,6 +59,26 @@ This is not just a menu list.
 
 It is the file-definition governance surface.
 
+## Parent File Guide Rule
+
+`System.md` now carries the parent file-guide rule for the system-file layer.
+
+Every file should be born with its own accompanying `.md`.
+
+That file-level guide should:
+
+- explain the file to the `Owner`
+- explain the file to the `File Steward`
+- stay local to the file
+- be visible from `System`
+- be visible from the `Add/Edit File Shell`
+
+This means:
+
+- one file record
+- one file guide
+- one stable guide surface for governance, rendering, `LDB`, stewardship, and provenance
+
 ## Core Operating Rules
 
 - Treat `Files` as the canonical registry entity for file-definition records.
@@ -110,6 +130,30 @@ For system-file acceptance, the honest checklist is:
 - events/provenance path is declared
 
 If any item is `no`, `partial`, or `unclear`, the file should not be treated as fully born.
+
+## Bootstrap Rule
+
+`System.md` also carries the system-side bootstrap rule.
+
+The intended birth chain is:
+
+1. `System` registry row
+2. file guide
+3. file-owned tokens and views
+4. runtime/sqlite table and shell rendering
+
+System-side working rule:
+
+- bootstrap should derive creator, owner, steward defaults, and first governance context from the birth path whenever that path already determines them
+- bootstrap should not rely on remembered exceptions when the system path can declare the answer
+- if a runtime file, table, or shell exists without the matching system-row path, the file is not fully born
+
+Reference inputs:
+
+- `docs/000-canonical-structure.json`
+- `docs/000-workbook-schema-companion.json`
+
+These remain reference inputs, not live shell payload truth.
 
 ## Acceptance Contract
 

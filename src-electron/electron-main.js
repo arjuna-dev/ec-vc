@@ -2100,7 +2100,7 @@ function buildDefaultFileRegistryRow(entry, index) {
     Ownership_Mode: 'root_owned',
     File_Owner: 'Owner',
     File_Steward: 'File Steward',
-    Rulebook_Dependencies: 'docs/001/Archive/001-Files.md',
+    Rulebook_Dependencies: 'docs/010/System.md',
     Fork_Mode: getFileRegistryForkMode(entry),
     Fork_Enabled: getFileRegistryForkEnabled(entry),
     Create_Fork_Instructions: buildCreateForkInstructions(entry),

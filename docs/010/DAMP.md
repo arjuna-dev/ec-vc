@@ -260,6 +260,27 @@ If the honest status is `partial`, preserve the note explaining what exists and 
 
 If the honest status is `unclear` or `no`, implementation should pause until the gap is resolved or deliberately accepted as an open item.
 
+### Bootstrap Checklist Authority
+
+`DAMP` now also carries the active bootstrap checklist authority that used to live in the separate bootstrap checklist.
+
+That means `DAMP` is the architecture-side place to govern:
+
+- canonical birth input contract
+- shared base confirmation
+- shared base parameters
+- entity-specific extension structure
+- reciprocal `LDB` declarations
+- owner-path choice
+- reverse-read planning
+- validation target for completed birth
+
+Working rule:
+
+- new `File` bootstrap should be treated as strict architecture work
+- missing bootstrap input is a stop condition
+- the system should not invent missing birth structure later in shell code
+
 ### Parent / Child Guide Rule
 
 `DAMP.md` now carries the parent guide rule.
@@ -327,6 +348,14 @@ Files may provide different hero payload values, but they must not switch to dif
 ## Field Classification Layer
 
 This document now also carries the active field-class layer that used to live in the separate field classification map.
+
+That means `DAMP` is the active architecture authority for:
+
+- field classes
+- ownership mode
+- cardinality
+- reverse visibility
+- write-path review
 
 ### Working Rule
 

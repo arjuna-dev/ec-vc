@@ -131,7 +131,7 @@ The `Architect Steward` should not:
 The `Architect Steward` should stay aligned with:
 
 - `docs/000-00.md`
-- `docs/001/Archive/001-Files.md`
+- `docs/010/System.md`
 - `docs/010/DAMP.md`
 - `docs/020/020_Provenance_Steward.md`
 - `docs/020/020_Runtime_Steward.md`

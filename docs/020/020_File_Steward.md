@@ -261,7 +261,7 @@ The `File Steward` should not:
 
 The `File Steward` should stay aligned with:
 
-- `docs/001/Archive/001-Files.md`
+- `docs/010/System.md`
 - `docs/010/DAMP.md`
 - `docs/020/020_Provenance_Steward.md`
 - `docs/020/020_Runtime_Steward.md`

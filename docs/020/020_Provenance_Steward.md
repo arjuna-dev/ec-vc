@@ -98,7 +98,7 @@ The `Provenance Steward` should not:
 
 The `Provenance Steward` should stay aligned with:
 
-- `docs/001/Archive/001-Files.md`
+- `docs/010/System.md`
 - `docs/010/DAMP.md`
 - `docs/010/Archive/010-ingestion-reconnect-guide.md`
 - `docs/020/020_Intake_Steward.md`

@@ -489,7 +489,7 @@ const companionDocumentMenu = [
     layer: '001 System',
     label: 'Field Class Map',
     short: 'Token behavior',
-    path: 'docs/001/Archive/001-field-classification-map.md',
+    path: 'docs/010/DAMP.md',
     eyebrow: 'Field Class Map',
     heroTitle: 'Field Class',
   },

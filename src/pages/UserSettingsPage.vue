@@ -789,7 +789,7 @@ const ownerDocumentMenu = [
     layer: '001 System',
     label: 'Files',
     short: 'File guide rules',
-    path: 'docs/001/Archive/001-Files.md',
+    path: 'docs/010/System.md',
     eyebrow: 'Files',
     heroTitle: 'Files',
   },
