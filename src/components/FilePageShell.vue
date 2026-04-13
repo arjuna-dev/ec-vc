@@ -4279,14 +4279,6 @@ function buildLocalDraftRowPayload(values = {}) {
   }
 }
 
-function buildLocalDraftRowPayloadForDraft(draftId, values = {}) {
-  const payload = buildCreatePayload(values)
-  return {
-    id: draftId,
-    ...payload,
-  }
-}
-
 function upsertLocalDraftRow(sourceKey, draftId, values = {}) {
   const normalizedSourceKey = String(sourceKey || '').trim().toLowerCase()
   const normalizedDraftId = String(draftId || '').trim()
