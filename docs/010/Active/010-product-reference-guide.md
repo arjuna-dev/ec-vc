@@ -230,7 +230,7 @@ This should be treated as a universal shell rule:
 - not an `id` rule
 - not a `Record View`-only rule
 
-If an `L3` token needs runtime mapping, that mapping should be declared once in canon and then shared by:
+If a `Token` needs runtime mapping, that mapping should be declared once in canon and then shared by:
 
 - `File Shell`
 - `Record Shell`
@@ -244,19 +244,19 @@ Working rule:
 
 Shared dialog rule:
 
-- opening `Add Record` or `Edit Record` from any `L1` should resolve into the same shared dialog shell behavior
-- the launching surface may choose the source `L1` or selected record
-- it should not reinterpret grouped `L2` structure before handing payload into the dialog
-- if the dialog behaves differently between `L1`s because of different shell-side payload shaping, that is a contract bug
-- when the shared dialog is exposed through its own shell route, that route should use the same shared top shell header and `L1` select as the other shell routes
+- opening `Add Record` or `Edit Record` from any `File` should resolve into the same shared dialog shell behavior
+- the launching surface may choose the source `File` or selected record
+- it should not reinterpret grouped `View` structure before handing payload into the dialog
+- if the dialog behaves differently between `File`s because of different shell-side payload shaping, that is a contract bug
+- when the shared dialog is exposed through its own shell route, that route should use the same shared top shell header and `File` select as the other shell routes
 - the dialog shell route should not add a second page-level selector, launchpad, or top-row control if the shared shell header already provides that contract
 
-New `L1` bootstrap rule:
+New `File` bootstrap rule:
 
-- a new `L1` must be treated as a full product/runtime/bootstrap task, not as a label or route-only task
-- new `L1` bootstrap is `Owner`-only authority work, not a normal user create action
+- a new `File` must be treated as a full product/runtime/bootstrap task, not as a label or route-only task
+- new `File` bootstrap is `Owner`-only authority work, not a normal user create action
 - the highest-priority architecture workflow is to consolidate this bootstrap into one canonical contract with strict validation
-- adding a new `L1` should include:
+- adding a new `File` should include:
   - canonical entity
   - route
   - registry
@@ -264,16 +264,16 @@ New `L1` bootstrap rule:
   - navigation
   - runtime ownership for `list/create/update/delete`
   - default `System` / `LDB` / standard `General` subsection setup
-  - reciprocal LDB propagation to the other relevant `L1`s
-- `Add Record` and shared dialog flows should work immediately for the new `L1`
+  - reciprocal LDB propagation to the other relevant `File`s
+- `Add Record` and shared dialog flows should work immediately for the new `File`
 - if a source is visible in menus but not createable/editable, treat that as incomplete bootstrap work, not as an acceptable intermediate product state
-- future marketplace-delivered `L1`s must pass the same bootstrap contract as local owner-created `L1`s
+- future marketplace-delivered `File`s must pass the same bootstrap contract as local owner-created `File`s
 
 `BB File` rule:
 
 - `BB File` means `Building Blocks File`
 - it is a special `System-Level File`
-- it is not a standard app-data `L1`
+- it is not a standard app-data `File`
 - it is the canonical registry for reusable UI building blocks, design primitives, shell parts, and reconstruction guidance
 - it conceptually renders before the operational files in `Owner Genesis` because it defines the visible building language of the app
 - it does not inherit the normal `System` / `LDB` subsection treatment used by standard files unless explicitly needed later
@@ -321,9 +321,9 @@ Dependency direction:
 Fork shell rule:
 
 - `Fork Shell` is an independent shared shell route, not an `Opportunities` page extension
-- a branchable `L1` may supply branch metadata, but it must not replace the `Fork Shell` renderer or shell behavior with entity-specific UI
+- a branchable `File` may supply branch metadata, but it must not replace the `Fork Shell` renderer or shell behavior with entity-specific UI
 - closing `Fork Shell` should leave the user on the blank shell route, the same way closing `Add/Edit Record Shell` leaves the user on the blank dialog shell route
-- `Fork Shell` should use the same shared top-row shell contract as the other shell routes and should only swap explicit branchable `L1` payload underneath it
+- `Fork Shell` should use the same shared top-row shell contract as the other shell routes and should only swap explicit branchable `File` payload underneath it
 
 Branch selector rule:
 
@@ -339,21 +339,20 @@ Current approved example:
 - choosing `Fund` or `Round` decides whether the create flow should continue as `Funds` or `Rounds`
 - the selector should steer structure first and should not later be written back as if it were a normal field on the subtype record
 - `Opportunities` may declare the available branch routes, but the route-owned branch-choice surface is still `Fork Shell`
-- branch capability should be treated as a normal architecture feature any `L1` may support when canon declares it
+- branch capability should be treated as a normal architecture feature any `File` may support when canon declares it
 - `Funds` and `Rounds` are intentionally separate concrete tables, not one blended subset table
 
 Observed evidence rule:
 
 - when documenting shell drift, keep the observed behavior separate from the hypothesized cause
 - in this case, the direct observation was:
-  - the shared edit dialog rendered different view behavior depending on the `L1` source it was launched from
+- the shared edit dialog rendered different view behavior depending on the `File` source it was launched from
 - that observation should be treated as evidence
 - the explanation of why it happened should only be promoted to fact after the payload path is verified
 
 Why a shared payload builder matters:
 
-- the app already has canonical `L1-L2-L3` structure, but shells still need one shared translation layer that turns that structure into the exact payload consumed by the shell
-- when a subsection needs internal grouping for readability, canon may explicitly declare views as `L2.a`, `L2.b`, `L2.c`, and so on without replacing `L3` as the leaf layer
+- the app already has canonical `File/View/Token` structure, but shells still need one shared translation layer that turns that structure into the exact payload consumed by the shell
 - centralizing that translation improves:
   - consistency
   - speed of change
@@ -367,7 +366,7 @@ Why a shared payload builder matters:
 
 ## Token Behavior Language
 
-Canonical structure should keep moving toward explicit token behavior at the `L3` level.
+Canonical structure should keep moving toward explicit token behavior at the `Token` level.
 
 The intended language is:
 
@@ -434,7 +433,7 @@ Current implementation:
 
 - shared shell source: `src/components/FilePageShell.vue`
 - page files are thin wrappers
-- file routes still own their own `L1`
+- file routes still own their own `File`
 
 That means:
 
@@ -444,7 +443,7 @@ That means:
 - `Securities` should load `Securities`
 - `Ingestion` should load `Ingestion`
 
-Only the literal `File Shell` lab route should switch `L1` through the shell selector.
+Only the literal `File Shell` lab route should switch `File` through the shell selector.
 
 Normal file pages should not inherit the last chosen shell source from the `File Shell` lab.
 
@@ -454,11 +453,11 @@ Shared shell visuals should be fixed at shell level.
 
 That means:
 
-- `L1` should not control shell theme changes
-- `L1` should not control avatar color changes
+- `File` should not control shell theme changes
+- `File` should not control avatar color changes
 - shell styling should come from one shell contract
 
-`L1` is allowed to change only:
+`File` is allowed to change only:
 
 - payload
 - labels
@@ -467,7 +466,7 @@ That means:
 
 Working rule:
 
-- if switching `L1` changes shell visuals, treat that as contract drift unless it was explicitly approved as a shell capability
+- if switching `File` changes shell visuals, treat that as contract drift unless it was explicitly approved as a shell capability
 
 ## Game Layer
 
@@ -509,7 +508,7 @@ Current scope:
 
 The shared edit dialog should read the true current record through:
 
-- `active L1 entity`
+- `active File entity`
 - selected `recordId`
 - `databooks.view(activeL1Entity, recordId)`
 
@@ -584,24 +583,24 @@ This is the default contract for new `LDB` files such as:
 
 Shared base rule:
 
-- every normal `L1` should begin from the same starter structure
+- every normal `File` should begin from the same starter structure
 - that starter structure should include shared `System`, shared `LDB`, and shared `General`
 - shared `System` parameters should be `ID`, `Creator`, `Datetime`, and `EventLog`
 - shared `General` parameters should be `Name` and `Summary`
-- shared `LDB` means every normal `L1` owns the linkage section, not that every `L1` uses one identical relationship leaf list
-- only after that shared base should an `L1` add its own independent `L2`s or explicit `L2.a-b-c-d` views
+- shared `LDB` means every normal `File` owns the linkage section, not that every `File` uses one identical relationship leaf list
+- only after that shared base should a `File` add its own independent `View`s
 
 Why:
 
 - shared naming keeps shell behavior and activation paths clean
-- shared `LDB` ownership keeps relationship behavior structurally consistent without forcing every `L1` into one identical leaf set
+- shared `LDB` ownership keeps relationship behavior structurally consistent without forcing every `File` into one identical leaf set
 - entity-specific sections should extend the base, not replace it
 
 Controlled exception:
 
 - `BB File` is not part of this standard baseline
-- `BB File` is a `System-Level File`, not a normal app-data `L1`
-- instead of `System` / `LDB`, its approved first-pass `L2` structure is:
+- `BB File` is a `System-Level File`, not a normal app-data `File`
+- instead of `System` / `LDB`, its approved first-pass `View` structure is:
   - `General`
   - `Usage`
   - `Anatomy`
@@ -680,10 +679,10 @@ Current approved shell pattern:
 
 - base it on the current `User Record View` hero/dashboard
 - keep icon-only `settings` and `add record` controls beside `Name`
-- render selected `L3` rows in the left middle column
+- render selected `Token` rows in the left middle column
 - render `Summary` as the first row in the right middle column
-- render each selected `L3` row as:
-  - top row: label + `L2` description
+- render each selected `Token` row as:
+  - top row: label + `View` description
   - bottom row: value + status icon
 
 Interaction direction:
@@ -694,9 +693,9 @@ Interaction direction:
 
 Shared middle-field rule:
 
-- the selected middle fields should be remembered per `L1`
+- the selected middle fields should be remembered per `File`
 - that remembered selection should be shared between `File Shell` card settings and `Record Shell` hero settings
-- both shells should show the same chosen middle-field set for the same `L1`
+- both shells should show the same chosen middle-field set for the same `File`
 
 ## Record View Section Bar
 
@@ -873,12 +872,12 @@ The target behavior is:
 
 LDB relationships are not optional UI conveniences.
 
-They are intended to be real information pipelines between linked `L1`s.
+They are intended to be real information pipelines between linked `File`s.
 
 Current shared-shell launch rule:
 
 - card-view `Add Relation` should route into `dialog-shell`
-- that launch should carry the source `L1`, clicked record id, and canonical entity name
+- that launch should carry the source `File`, clicked record id, and canonical entity name
 - the shared `Add/Edit Record Shell` should open directly in `LDB`
 
 That means if a LDB relationship is declared in canonical structure:
@@ -896,7 +895,7 @@ Product rule:
 
 ## Mandatory LDB Standard For New Connections
 
-When a new connection is approved between two `L1`s, it should follow the same contract every time.
+When a new connection is approved between two `File`s, it should follow the same contract every time.
 
 Required pieces:
 
@@ -913,35 +912,35 @@ Do not:
 - add a relationship token without planning the owner path
 - fake reverse appearance in only one surface
 - patch a single page to behave as if the relationship were complete
-- treat manual back-wiring after file birth as the normal way new `L1` relationships should be introduced
+- treat manual back-wiring after file birth as the normal way new `File` relationships should be introduced
 
 Current shared owner-path standard:
 
 - if a canon-declared LDB relationship already has an approved domain-specific join table, use that
 - otherwise use the shared `LDB_Relationships` runtime contract
 
-This keeps even non-golden `L1`s and `LDB` files on the same relationship system instead of drifting into custom pair logic.
+This keeps even non-golden `File`s and `LDB` files on the same relationship system instead of drifting into custom pair logic.
 
 Interpretation rule:
 
 - shared `LDB_Relationships` is the default place where a relationship can exist and make linked records callable by row
 - dedicated join tables are the promoted path when the relationship itself needs its own governed fields or access rules
-- do not require a dedicated join table just to let one `L1` call another linked record's `L3`s
+- do not require a dedicated join table just to let one `File` call another linked record's `Token`s
 - promote to a dedicated join table when the relationship itself becomes a first-class managed object
 
-Birth rule for new normal `L1`s:
+Birth rule for new normal `File`s:
 
-- new normal `L1`s should be born with their reciprocal LDB relationship layer loaded
+- new normal `File`s should be born with their reciprocal LDB relationship layer loaded
 - that birth step should include:
   - reciprocal LDB declarations
   - one approved owner path per relationship
   - one reverse-read path per relationship
   - the bridge choice between dedicated join table and shared `LDB_Relationships`
-- if those pieces are missing, the `L1` bootstrap is incomplete even if the table, route, and shell already exist
+- if those pieces are missing, the `File` bootstrap is incomplete even if the table, route, and shell already exist
 
 Practical birth sequence:
 
-1. define the new canonical `L1`
+1. define the new canonical `File`
 2. create its real table/runtime owner
 3. load the shared base:
    - `System`
@@ -954,8 +953,8 @@ Practical birth sequence:
    - `EventLog`
    - `Name`
    - `Summary`
-5. add entity-specific `L2` structure
-6. load reciprocal LDB declarations against the approved active `L1` set
+5. add entity-specific `View` structure
+6. load reciprocal LDB declarations against the approved active `File` set
 7. decide relationship ownership:
    - dedicated join table
    - shared `LDB_Relationships`
@@ -963,7 +962,7 @@ Practical birth sequence:
 9. add route/registry/shell ownership
 10. verify the file is truly createable/editable/browsable
 
-This is the minimum practical birth path for a new normal `L1`.
+This is the minimum practical birth path for a new normal `File`.
 
 Bootstrap priority direction:
 
@@ -1075,7 +1074,7 @@ So the practical principle is:
 
 The product currently uses several naming layers that must stay distinct:
 
-- `L1` label:
+- `File` label:
   the user-facing section name, such as `Markets`
 - route key:
   the navigation/shell key, such as `markets`
@@ -1103,3 +1102,4 @@ Working rule:
 - canonical names may remain structural
 - databook names may remain operational
 - surfaced labels should normalize to approved product wording in the shared label layer
+

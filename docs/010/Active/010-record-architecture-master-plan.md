@@ -81,28 +81,28 @@ The goal is operational consistency:
 
 The highest-priority architecture workflow is now:
 
-- consolidate new `L1` bootstrap into one canonical contract
+- consolidate new `File` bootstrap into one canonical contract
 - derive as much UI/runtime registration as possible from that contract
-- validate anything not yet derived so incomplete `L1`s fail loudly instead of rendering half-wired
+- validate anything not yet derived so incomplete `File`s fail loudly instead of rendering half-wired
 
 Reason:
 
 - shared shells are already converging
-- runtime `L1` bootstrap is still too distributed
-- if a new `L1` requires too many manual touch-points, canon is not yet doing enough work
+- runtime `File` bootstrap is still too distributed
+- if a new `File` requires too many manual touch-points, canon is not yet doing enough work
 - if canon is not driving efficient implementation, the UI will continue to look cleaner than the underlying system really is
 
 The intended steady state is:
 
-- define a new `L1` once
+- define a new `File` once
 - derive shell/navigation/runtime expectations from that definition
 - validate the remaining runtime hooks against that definition
-- reject visible-but-nonfunctional `L1`s as architecture failures
+- reject visible-but-nonfunctional `File`s as architecture failures
 
 This is the best route because it:
 
 - reduces drift
-- lowers implementation cost for future `L1`s
+- lowers implementation cost for future `File`s
 - keeps shell behavior predictable
 - scales better as record count, relationship count, and payload count increase
 - turns broken UI states into validation failures instead of late discoveries
@@ -170,9 +170,9 @@ The reasoning matters more than the order alone:
 - they are first because they become the architectural input layer for the rest of the file system
 - once they exist, a new file should be creatable by first creating a new `Files` record and declaring what that file is
 - that record should tell the system whether the new thing is:
-  - a true `L1`
-  - an `L2`
-  - an `L2.a`
+  - a true `File`
+  - an `View`
+  - an `View variant`
   - or another approved structure layer
 - that classification should help determine:
   - whether shared `System` applies
@@ -218,7 +218,7 @@ Working rule:
 
 Why this matters:
 
-- otherwise we can think a file has been accepted as an `L1` when only the layout has surfaced it
+- otherwise we can think a file has been accepted as an `File` when only the layout has surfaced it
 - this weakens the file-creation contract
 - it makes RAMP order, file acceptance, and runtime ownership drift apart
 
@@ -240,18 +240,18 @@ Working rule:
 - prefer composition over new primitives
 - keep the system contained so complexity emerges from the ordered structure rather than from extra small parts
 
-### Canonical L1 Bootstrap Map
+### Canonical File Bootstrap Map
 
 The consolidation map should be:
 
-1. one canonical `L1` contract definition
+1. one canonical `File` contract definition
 2. derived route/registry/navigation/shell labeling
 3. shared runtime owner registration for `list/create/update/delete`
 4. LDB declarations that are runtime-checked against canon
-5. a validator that rejects incomplete `L1` bootstrap
-6. proof-case implementation through one real `L1`
+5. a validator that rejects incomplete `File` bootstrap
+6. proof-case implementation through one real `File`
 
-The canonical `L1` contract should carry:
+The canonical `File` contract should carry:
 
 - canonical entity name
 - runtime table name
@@ -266,12 +266,12 @@ The canonical `L1` contract should carry:
 - shared base `System` parameter set
 - shared `LDB` linkage-section requirement
 - shared base `General` parameter set
-- optional branch metadata when the `L1` supports subtype routing
-- optional explicit `L2.a-b-c-d` view metadata when one subsection needs structured internal grouping
+- optional branch metadata when the `File` supports subtype routing
+- optional explicit `View variants` view metadata when one subsection needs structured internal grouping
 
-### Shared L1 Base Rule
+### Shared File Base Rule
 
-Every normal `L1` should begin from one shared canonical base before any entity-specific structure is added.
+Every normal `File` should begin from one shared canonical base before any entity-specific structure is added.
 
 That shared base should include:
 
@@ -296,11 +296,11 @@ It should not be treated as one universal fixed list of relationship leaf tokens
 
 Working rule:
 
-- do not create a new normal `L1` by inventing entity-prefixed copies of shared base fields
-- after the shared base is in place, the entity may add its own `L2`s and explicit `L2.a-b-c-d` views
+- do not create a new normal `File` by inventing entity-prefixed copies of shared base fields
+- after the shared base is in place, the entity may add its own `View`s and explicit `View variants` views
 - this keeps activation, linking, and shell behavior aligned across the file system
 
-The validator should fail if an `L1` is missing:
+The validator should fail if an `File` is missing:
 
 - canonical entity
 - runtime table
@@ -320,7 +320,7 @@ The validator should fail if an `L1` is missing:
 That means the app should create and own the current baseline table set as part of node initialization, including:
 
 - system/runtime tables such as `app_settings`, `Owner_DB`, `events`, `databook_snapshots`, and `Field_Verification_Metadata`
-- current first-order `L1` tables such as `Companies`, `Funds`, `Rounds`, `Users`, `Contacts`, `Projects`, `Tasks`, `Notes`, `Roles`, `Artifacts`, and related current working record tables
+- current first-order `File` tables such as `Companies`, `Funds`, `Rounds`, `Users`, `Contacts`, `Projects`, `Tasks`, `Notes`, `Roles`, `Artifacts`, and related current working record tables
 - current knowledge/reference tables such as `Markets`, `Securities`, `Regions`, `BusinessModels`, `SectorGroups`, `VerticalIndustries`, `VC_Terms_Glossary`, and related current supporting tables
 - current owned subtables and current relationship/join tables exactly as they are presently declared
 - current linkage/runtime tables such as `Users_Roles`, `Intake`, and `LDB_Relationships`
@@ -329,12 +329,12 @@ Working rule:
 
 - `Genesis` should not invent a smaller temporary schema
 - `Genesis` should install the current approved schema baseline as-is
-- later marketplace-delivered `L1`s may extend that baseline, but should not weaken or fork it casually
+- later marketplace-delivered `File`s may extend that baseline, but should not weaken or fork it casually
 
 Branch capability rule:
 
 - branch capability is a normal architecture feature, not a one-off exception
-- any `L1` may declare branch metadata when create flow must choose a subtype route first
+- any `File` may declare branch metadata when create flow must choose a subtype route first
 - branch metadata should be explicit in canon and registry, not implied by page-specific UI
 
 ### Owner Genesis File Order Rule
@@ -375,10 +375,10 @@ Reason:
 System-level exception rule:
 
 - `BB File` (`Building Blocks File`) should be treated as a special `System-Level File`
-- it is not a standard operational `L1`
+- it is not a standard operational `File`
 - it should not be confused with the normal app-data bootstrap contract
 - it renders conceptually before the operational files because it defines the visible building language and component canon of the app
-- this is a controlled exception and must not be used to weaken the normal `L1` bootstrap rule for the rest of the file system
+- this is a controlled exception and must not be used to weaken the normal `File` bootstrap rule for the rest of the file system
 
 Current approved first-pass genesis file order:
 
@@ -410,7 +410,7 @@ Current approved first-pass genesis file order:
 23. `Securities`
 24. remaining current supporting `LDB` / reference files
 
-First-pass L1 micro-summary:
+First-pass File micro-summary:
 
 - `System Files`: the file-definition repository and genesis layer for the rest of the file system
 - `Rule Books`: the governing rule layer that tells stewards how creation, upkeep, and validation should work
@@ -446,7 +446,7 @@ This matters because:
 
 - `BB File` establishes the visible building language and reconstruction canon before the rest of the product file system is interpreted
 - `File Folder` gives the system its first real file container surface
-- `L1 Files` is the root file registry and must exist before the rest of the file system can be treated as coherent
+- `File Files` is the root file registry and must exist before the rest of the file system can be treated as coherent
 - `Rule Books` should load before deeper operational creation because they tell the system and the stewards how file creation and upkeep should work
 - `Events` should exist before later genesis work is logged
 - the file-definition layer should also supply the guidance needed to make rendering more straightforward through:
@@ -454,7 +454,7 @@ This matters because:
   - settings
   - explicit ownership classification
   - explicit structure classification
-- later marketplace-delivered `L1`s should plug into this same file-first bootstrap model instead of bypassing it
+- later marketplace-delivered `File`s should plug into this same file-first bootstrap model instead of bypassing it
 - `Events` should be treated as a first-class file/entity in the same contract system as the rest of the file surfaces
 
 ### BB File Contract
@@ -472,12 +472,12 @@ Role:
 
 Working rule:
 
-- `BB File` is not a standard app-data `L1`
+- `BB File` is not a standard app-data `File`
 - it should not inherit the normal `System` / `LDB` subsection baseline used by standard files
 - this exception is intentional because `BB File` governs UI-building canon rather than operational record relationships
-- do not use this exception to weaken the standard contract for operational `L1`s
+- do not use this exception to weaken the standard contract for operational `File`s
 
-Approved first-pass `L2` structure for `BB File`:
+Approved first-pass `View` structure for `BB File`:
 
 - `General`
 - `Usage`
@@ -594,15 +594,15 @@ Section meanings:
 
 ### Marketplace Extension Rule
 
-When a marketplace exists, it should be able to distribute new `L1` infrastructure between users/nodes.
+When a marketplace exists, it should be able to distribute new `File` infrastructure between users/nodes.
 
 That means:
 
-- a user should be able to download an approved external `L1`
-- we should also be able to send/install new `L1` tables that complement existing infrastructure
-- marketplace `L1`s must still pass the same canonical bootstrap contract as local owner-created `L1`s
+- a user should be able to download an approved external `File`
+- we should also be able to send/install new `File` tables that complement existing infrastructure
+- marketplace `File`s must still pass the same canonical bootstrap contract as local owner-created `File`s
 - marketplace delivery is an extension path, not an exemption path
-- imported `L1`s must declare canon, runtime ownership, shell behavior, LDB behavior, and validation scope before they are treated as live
+- imported `File`s must declare canon, runtime ownership, shell behavior, LDB behavior, and validation scope before they are treated as live
 
 Proof rule:
 
@@ -624,7 +624,7 @@ Working rule:
 Current runtime status:
 
 - shared `record-view` route resolution now points at `RecordShellPage.vue`
-- opening a record from an `L1` now lands in the shell route for that selected record
+- opening a record from an `File` now lands in the shell route for that selected record
 - the shell now loads the selected record through `databooks.view(tableName, recordId)`
 - the standalone `record-shell` route remains available as the shell payload-testing surface
 - the old `RecordPage.vue` surface has now been removed
@@ -639,16 +639,16 @@ The currently approved middle hero contract is:
 
 - `Name` is the top anchor row
 - icon-only `settings` and `add record` controls sit beside `Name`
-- below `Name`, selected `L3` rows begin in the left column
+- below `Name`, selected `Token` rows begin in the left column
 - `Summary` is the first row in the right column
-- each selected `L3` row renders as:
-  - top row: label + `L2` description
+- each selected `Token` row renders as:
+  - top row: label + `View` description
   - bottom row: current value + status icon
 
 Shared selection rule:
 
 - the selected middle-field set belongs to the shared shell contract
-- `File Shell` card settings and `Record Shell` hero settings should read the same per-`L1` field-selection state
+- `File Shell` card settings and `Record Shell` hero settings should read the same per-`File` field-selection state
 - changing the selected middle fields in one shell should be reflected in the other
 - do not maintain separate card-only and record-only field-selection memories
 
@@ -763,7 +763,7 @@ Working rule:
 Universal shell rule:
 
 - this is not an `id`-only exception
-- alias declaration belongs to the `L3` token contract for any token whose runtime payload name differs from its canonical token name
+- alias declaration belongs to the `Token` token contract for any token whose runtime payload name differs from its canonical token name
 - the same rule must hold across `File Shell` and `Record Shell`
 - do not solve these gaps with page-level or record-level one-offs
 - if a token needs runtime mapping, declare it in canon and workbook companion so every shell reads the same contract
@@ -771,7 +771,7 @@ Universal shell rule:
 Shared dialog shell rule:
 
 - the shared create / edit dialog is only a true shell if every launching surface passes the same canonical payload contract
-- `File Shell`, `Record Shell`, and any future shared shell surface must not pre-interpret grouped `L2` structure differently before opening the dialog
+- `File Shell`, `Record Shell`, and any future shared shell surface must not pre-interpret grouped `View` structure differently before opening the dialog
 - if one surface sends grouped subsection payloads and another sends flat section payloads, that is shell drift, not an acceptable variation
 - page-level payload shaping for the shared dialog should be treated as architectural debt unless it is identical across shell surfaces
 - do not solve drift page by page
@@ -803,13 +803,13 @@ Current approved example:
 
 Correct evidence statement:
 
-- the observed evidence was that the shared edit dialog behaved differently depending on which `L1` source launched it
+- the observed evidence was that the shared edit dialog behaved differently depending on which `File` source launched it
 - that observation should be kept separate from any later hypothesis about which shell path caused the drift
 - architectural conclusions should only be stated as fact after the payload path is actually traced
 
 Payload builder relevance:
 
-- a shared payload builder matters because canonical `L1-L2-L3` structure alone does not automatically guarantee one shell-ready render shape
+- a shared payload builder matters because canonical `File-View-Token` structure alone does not automatically guarantee one shell-ready render shape
 - the builder is the last-mile translation from canon into the exact shell payload
 - long-term, that improves:
   - consistency
@@ -817,7 +817,7 @@ Payload builder relevance:
   - lower break risk
   - cleaner action handling at scale
 - it also gives the app:
-  - less drift as more `L1`s and actions are added
+  - less drift as more `File`s and actions are added
   - better performance discipline by centralizing transformation
   - safer action systems through shared addresses and write targets
   - easier debugging
@@ -827,14 +827,14 @@ Payload builder relevance:
 Shell styling rule:
 
 - shell styling must stay fixed at shell level
-- do not map `L1` to shell theme changes
-- do not map `L1` to avatar color changes
-- `L1` may change:
+- do not map `File` to shell theme changes
+- do not map `File` to avatar color changes
+- `File` may change:
   - payload
   - labels
   - section/token membership
   - declared capabilities, when explicitly approved
-- `L1` should not silently restyle the shell
+- `File` should not silently restyle the shell
 
 ## LDB Relationship Contract
 
@@ -851,7 +851,7 @@ Naming direction:
 Current shared-shell launch rule:
 
 - card-view `Add Relation` should route into `dialog-shell`
-- that launch should carry the source `L1`, clicked record id, and canonical entity name
+- that launch should carry the source `File`, clicked record id, and canonical entity name
 - the shared `Add/Edit Record Shell` should open directly in `LDB`
 
 If a LDB relationship token is declared in canonical structure, the system should assume that relationship is intended to be real and operational.
@@ -860,7 +860,7 @@ That means every declared LDB relationship must eventually have:
 
 - one real owner path
 - one reverse-read path
-- bidirectional appearance from both linked `L1`s
+- bidirectional appearance from both linked `File`s
 - one shared relationship contract across `Page View`, `Card View`, and `Record View`
 
 Working rule:
@@ -913,7 +913,7 @@ For the current architecture pass, LDB relationships should be understood in thr
 - the relationship has a real owner path underneath it, such as a join table or owned subset path
 
 3. `Bidirectionally rendered`
-- both linked `L1`s can read that same relationship back through their LDB surfaces
+- both linked `File`s can read that same relationship back through their LDB surfaces
 
 The intended steady state is:
 
@@ -921,20 +921,20 @@ The intended steady state is:
 
 No relationship should be treated as complete until all three are true.
 
-### New L1 Rule
+### New File Rule
 
-When a new `L1` is created, it must be treated as a full architectural bootstrap by default.
+When a new `File` is created, it must be treated as a full architectural bootstrap by default.
 
 Authority rule:
 
-- new `L1` bootstrap is `Owner`-only authority work
+- new `File` bootstrap is `Owner`-only authority work
 - it is not a normal shared-shell create action
 - it is not a normal file-page add-record action
-- non-owner users/roles should not be able to trigger new `L1` creation from the product UI
+- non-owner users/roles should not be able to trigger new `File` creation from the product UI
 
 That means:
 
-- the new `L1` must be implemented as a real new canonical source/table, not just a route or visible shell option
+- the new `File` must be implemented as a real new canonical source/table, not just a route or visible shell option
 - the canonical entity must be added to `docs/000-canonical-structure.json`
 - route, registry, shell, and navigation must be added together
 - runtime ownership must be added for:
@@ -942,44 +942,44 @@ That means:
   - `create`
   - `update`
   - `delete`
-- add/edit/create flows should work immediately once the `L1` is introduced
-- the new `L1` should not be left in a visible-but-nonfunctional state
-- validation should confirm the new `L1` is actually createable/editable before the task is treated as complete
+- add/edit/create flows should work immediately once the `File` is introduced
+- the new `File` should not be left in a visible-but-nonfunctional state
+- validation should confirm the new `File` is actually createable/editable before the task is treated as complete
 
 Relationship bootstrap is part of the same rule:
 
-- new normal `L1` creation should also create the reciprocal LDB bridge layer with the rest of the bootstrap
+- new normal `File` creation should also create the reciprocal LDB bridge layer with the rest of the bootstrap
 - relationship bridge work should not be treated as an optional later pass after the file/table/runtime owner already exists
-- if a new `L1` is born without its reciprocal LDB bridge layer, that bootstrap is incomplete
+- if a new `File` is born without its reciprocal LDB bridge layer, that bootstrap is incomplete
 
 Default subsection baseline:
 
-- every new `L1` should at minimum expose:
+- every new `File` should at minimum expose:
   - `System`
   - `LDB`
 - `General` should also be created when that is part of the current standard
 
 LDB propagation rule:
 
-- the new `L1`'s LDB relationship contract should be created with it
-- the new `L1` should not declare relationship tokens casually
+- the new `File`'s LDB relationship contract should be created with it
+- the new `File` should not declare relationship tokens casually
 - each declared relationship should have an approved owner path
 - each declared relationship should have an approved reverse-read path
 - new connections should follow the same relationship contract as existing ones
 - do not create one-off relationship behavior for a single page, dialog, or record surface
-- reciprocal LDB updates across the other relevant `L1`s are part of the initial implementation, not a later polish pass
-- if the intended product rule is that records should be linkable across the DB set, that propagation must happen during the `L1` bootstrap itself
-- reciprocal LDB declarations should be born with the `L1`, not manually discovered later
-- the bridge contract should also be born with the `L1`, not hand-added only after drift is noticed
+- reciprocal LDB updates across the other relevant `File`s are part of the initial implementation, not a later polish pass
+- if the intended product rule is that records should be linkable across the DB set, that propagation must happen during the `File` bootstrap itself
+- reciprocal LDB declarations should be born with the `File`, not manually discovered later
+- the bridge contract should also be born with the `File`, not hand-added only after drift is noticed
 - bootstrap should decide whether each approved relationship uses a dedicated join table or the shared `LDB_Relationships` owner path
 - manual back-wiring after file birth should be treated as a temporary repair, not as the intended architecture rule
 
-### New L1 Bootstrap Algorithm
+### New File Bootstrap Algorithm
 
-The intended birth sequence for a new normal `L1` is:
+The intended birth sequence for a new normal `File` is:
 
-1. create the canonical `L1` entity definition
-2. create the real table/runtime owner for that `L1`
+1. create the canonical `File` entity definition
+2. create the real table/runtime owner for that `File`
 3. create the shared base subsections:
    - `System`
    - `LDB`
@@ -993,8 +993,8 @@ The intended birth sequence for a new normal `L1` is:
    - `General`
      - `Name`
      - `Summary`
-5. create the entity-specific `L2` extensions and any approved `L2.a-b-c-d` views
-6. create the reciprocal LDB declarations against the approved active `L1` set
+5. create the entity-specific `View` extensions and any approved `View variants` views
+6. create the reciprocal LDB declarations against the approved active `File` set
 7. decide the owner path for each approved relationship:
    - dedicated join table
    - shared `LDB_Relationships`
@@ -1004,13 +1004,13 @@ The intended birth sequence for a new normal `L1` is:
 
 Validation rule:
 
-- a new `L1` should not be treated as born correctly until all ten steps are complete
-- if the table exists but reciprocal LDB bridge work does not, the `L1` birth is still incomplete
-- if the shell exists but the runtime owner path does not, the `L1` birth is still incomplete
+- a new `File` should not be treated as born correctly until all ten steps are complete
+- if the table exists but reciprocal LDB bridge work does not, the `File` birth is still incomplete
+- if the shell exists but the runtime owner path does not, the `File` birth is still incomplete
 
 ### Bootstrap Priority Set
 
-Before the broader normal `L1` set is born, the system should support a small priority stack for early render/load order.
+Before the broader normal `File` set is born, the system should support a small priority stack for early render/load order.
 
 Current intended priority order:
 
@@ -1038,7 +1038,7 @@ Current game-pack direction:
 
 The currently approved LDB direction is:
 
-- every first-level working `L1` should be able to relate through LDB to the other first-level working `L1`s where that connection is canonically declared
+- every first-level working `File` should be able to relate through LDB to the other first-level working `File`s where that connection is canonically declared
 - those relationships should be visible from either side once they are truly backed
 
 Current parent-shell exception:
@@ -1055,9 +1055,9 @@ LDB display grouping rule:
 - these are grouping contracts for browsing clarity
 - they do not replace the underlying token declarations
 
-Basic `L1` structure rule:
+Basic `File` structure rule:
 
-- every `L1` should at minimum expose:
+- every `File` should at minimum expose:
   - `System`
   - `LDB`
 
@@ -1067,9 +1067,9 @@ The current canon-level LDB baseline for shared shells should be treated as foll
 
 Approved rule:
 
-- all first-order `L1`s should be inter-related through declared LDB tokens
-- visible LDB `L1`s should also participate in the same shared LDB contract
-- every `L1` should at minimum expose:
+- all first-order `File`s should be inter-related through declared LDB tokens
+- visible LDB `File`s should also participate in the same shared LDB contract
+- every `File` should at minimum expose:
   - `System`
   - `LDB`
 
@@ -1102,7 +1102,7 @@ Current exception:
 
 Additional baseline correction:
 
-- the following canonical `L1`s previously lacked `LDB` and now have the basic `System + LDB` structure baseline:
+- the following canonical `File`s previously lacked `LDB` and now have the basic `System + LDB` structure baseline:
   - `Markets`
   - `Locations`
   - `Terms`
@@ -1209,7 +1209,7 @@ Working rule:
 - existing domain-specific relationship tables may continue where they are already meaningful and approved
 - canon-declared LDB links without that special owner path should use the shared `LDB_Relationships` contract
 - reverse appearance should be maintained through the same shared contract
-- the choice between domain-specific join table and shared `LDB_Relationships` should be made during `L1` bootstrap, not improvised later per page or per file
+- the choice between domain-specific join table and shared `LDB_Relationships` should be made during `File` bootstrap, not improvised later per page or per file
 
 Promotion rule:
 
@@ -1316,7 +1316,7 @@ Approved future canonical file:
 
 - `Access_Assignments`
 
-`Access_Assignments` should become the explicit standalone `L1` owner for scoped access.
+`Access_Assignments` should become the explicit standalone `File` owner for scoped access.
 
 Reason:
 
@@ -1339,7 +1339,7 @@ Fields to consider:
 
 Open architecture decision:
 
-- define the canonical `L1/L2/L3` structure for `Access_Assignments`
+- define the canonical `File/View/Token` structure for `Access_Assignments`
 - decide its exact `System`, `General`, `LDB`, and file-specific fields
 - decide whether `Users_Roles` remains a lower-level runtime helper, is absorbed, or becomes legacy
 - decide how `Access_Assignments` reads from and writes to `Users`, `Contacts`, `Projects`, and `Roles`
@@ -1353,20 +1353,20 @@ This should be documented before runtime work because it affects auth, LDB bound
 
 The lasting architecture should not depend on remembered exceptions.
 
-It should depend on explicit token behavior declared at the `L1/L2/L3` structure layer.
+It should depend on explicit token behavior declared at the `File/View/Token` structure layer.
 
 That means:
 
-- `L1`
+- `File`
   - defines entity identity and root contract
 
-- `L2`
+- `View`
   - defines section purpose such as:
     - `System`
     - `General`
     - `LDB`
 
-- `L3`
+- `Token`
   - defines token behavior
 
 The intended token behavior layer should explicitly declare concepts like:
@@ -1485,7 +1485,7 @@ Working rule:
 
 - the architecture meaning should be inspectable
 - users and companions should not have to guess why a field is editable, locked, or mirrored
-- new `L1`s and `LDB` `L1`s should inherit this rule instead of inventing their own relationship storage pattern
+- new `File`s and `LDB` `File`s should inherit this rule instead of inventing their own relationship storage pattern
 
 ## Shared Shell Rule
 
@@ -1502,28 +1502,28 @@ This is different from route ownership.
 Route ownership should still stay explicit:
 
 - each file page owns its own route
-- each file page should load its own route-owned `L1`
+- each file page should load its own route-owned `File`
 - only the literal `File Shell` lab route should switch source from the shell selector
 
 Working rule:
 
 - shared shell behavior changes once
 - page wrappers stay thin
-- route-owned `L1` loading should not be overridden by the last selected `File Shell` lab source
+- route-owned `File` loading should not be overridden by the last selected `File Shell` lab source
 
 ## Canonical Input Rules
 
 The shared create/edit record dialog should read field meaning from canonical structure, not from page-local UI logic.
 
-That means each `L3` token should declare:
+That means each `Token` token should declare:
 
 - its `token_type`
 - whether it is a fixed list, a live entity pick, a live entity set, a system stamp, or a direct input
-- any reusable canonical list it depends on
+- any reusable option list it depends on
 
 Approved option-source families:
 
-- `canonical_list`
+- `option_list`
   - fixed reusable dropdown libraries
   - example: `Task_Status -> Task_Status_List`
 - `live_entity`
@@ -1536,7 +1536,7 @@ Approved option-source families:
 
 ## Edit Payload Rule
 
-The shared edit dialog should preload from the true databook payload for the active `L1`, not from summary rows or card chips.
+The shared edit dialog should preload from the true databook payload for the active `File`, not from summary rows or card chips.
 
 That means:
 
@@ -1630,7 +1630,7 @@ Canonical loading rule:
 
 ## Opportunity Structure Rule
 
-`Opportunities` is now the shared parent `L1` contract for the opportunity lane.
+`Opportunities` is now the shared parent `File` contract for the opportunity lane.
 
 That means:
 
@@ -1661,7 +1661,7 @@ Current approved interpretation:
 
 Create rule:
 
-- if an `L1` owns subtype branches, create/add-record should first ask which route to take
+- if an `File` owns subtype branches, create/add-record should first ask which route to take
 - that route-choice step is canonical behavior, not a widget-only special case
 - that route-choice step should resolve through the independent `Fork Shell`
 - example: `Opportunities` should ask whether the new record should follow the `Fund` route or the `Round` route
@@ -1739,7 +1739,7 @@ That baseline is:
 
 - a real sqlite table
 - a preload/main bridge with at least `list`, `create`, and `delete`
-- canonical `L2` sections:
+- canonical `View` sections:
   - `System`
   - `LDB`
   - `General`
@@ -1764,7 +1764,7 @@ Working rule:
 
 Relationship inheritance rule:
 
-- when a new `LDB` or first-level `L1` is introduced, its LDB relationship expectations should be documented immediately
+- when a new `LDB` or first-level `File` is introduced, its LDB relationship expectations should be documented immediately
 - if the relationship is declared in canon, the owner path and reverse-read path should be planned at the same time
 - do not allow canon to drift far ahead of runtime relationship ownership without documenting that gap
 
@@ -2281,7 +2281,7 @@ Working guidance:
 Grouped view rendering rule (deprecated):
 
 - do not create grouped subdivision layers inside views
-- each `L2` remains a direct view; grouping inside a view is not active
+- each `View` remains a direct view; grouping inside a view is not active
 
 ## Execution Plan
 
@@ -2526,3 +2526,4 @@ Why:
 - many join tables are directional at the SQL layer
 - reusing the same join-column mapping in both directions can put the source record id into the wrong foreign-key column
 - that causes foreign-key failures even when the chosen linked record is valid
+

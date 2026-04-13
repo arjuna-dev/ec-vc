@@ -22,7 +22,7 @@ If the `File Steward` cannot answer these three questions clearly, stop and surf
 
 ## Shared Base Rule
 
-The `File Steward` should treat every normal `L1` as starting from one shared canonical base before any entity-specific extension is added.
+The `File Steward` should treat every normal `File` as starting from one shared canonical base before any entity-specific extension is added.
 
 That shared base should include:
 
@@ -50,17 +50,16 @@ Examples:
 - `Name`
 - `Summary`
 
-The `File Steward` should not allow a new `L1` to rename shared base fields into entity-prefixed duplicates when the meaning is the same.
+The `File Steward` should not allow a new `File` to rename shared base fields into entity-prefixed duplicates when the meaning is the same.
 
 Examples of drift to avoid:
 
 - `Companion_Role_Name` when the field is really shared `Name`
 - `Companion_Role_Summary` when the field is really shared `Summary`
 
-After that shared base is declared, the `L1` may add:
+After that shared base is declared, the `File` may add:
 
-- its own independent `L2`s
-- its own explicit `L2.a`, `L2.b`, `L2.c`, `L2.d` views
+- its own independent `View`s
 
 This keeps every file compatible with the same shell activation paths while still allowing entity-specific structure.
 
@@ -137,7 +136,7 @@ A file is only fully born when the file birth checklist is honestly satisfied:
 
 If a file guide exists but canon, registry, runtime, or shell ownership is missing, the `File Steward` should mark those items as `no`, `partial`, or `unclear`.
 
-The `File Steward` should never convert an approved future `L1` into fake implementation truth.
+The `File Steward` should never convert an approved future `File` into fake implementation truth.
 
 If an active file guide later loses canon, registry, runtime, shell, or provenance support, the `File Steward` should surface the regression and decide whether the guide must return to `Draft`.
 
@@ -160,14 +159,14 @@ That means:
 The `File Steward` should:
 
 - create new file entities only after their canonical view contract is explicit
-- create new normal `L1`s from the shared base structure before adding entity-specific extensions
+- create new normal `File`s from the shared base structure before adding entity-specific extensions
 - maintain existing file entities so runtime, shell, and sqlite ownership stay aligned
 - flag when a declared file surface has no real backend/runtime owner
 - flag when a runtime table exists without its own explicit canonical contract
 - protect the consistency of `System`, `LDB`, and `General` views
 - protect shared base field names from drifting into unnecessary entity-specific aliases
-- protect `LDB` as the required shared linkage section without pretending every `L1` must own a bespoke relationship leaf list
-- treat future `L3` field-definition governance as explicit contract work:
+- protect `LDB` as the required shared linkage section without pretending every `File` must own a bespoke relationship leaf list
+- treat future `Token` field-definition governance as explicit contract work:
   - field type
   - required-at-birth
   - conditional-required rules
@@ -176,10 +175,9 @@ The `File Steward` should:
 - use each file guide's `UX Steward` section to guide the user through structural forks
 - declare whether a file uses create branches, view forks, or no forks before exposing fork controls in shared shells
 - make sure `System Files` records declare `fork_mode` and `fork_enabled` before fork behavior is treated as real
-- ask whether a new structure is an `L1`, `L2`, or `L2.a` before accepting it as born
-- require parent file selection before creating an `L2`
-- require parent file and parent `L2` selection before creating an `L2.a`
-- treat `L1` as the safe default when the user is unsure whether something is a standalone file
+- ask whether a new structure is a `File` or a `View` before accepting it as born
+- require parent file selection before creating a `View`
+- treat `File` as the safe default when the user is unsure whether something is a standalone file
 - act as the LDB orchestrator for file birth and file upkeep
 - make sure files are born correctly
 - make sure `LDB` is born with them
@@ -188,7 +186,7 @@ The `File Steward` should:
 - make sure file order and creation sequence support those connections
 - keep `Users`, `Contacts`, `Roles`, and `Projects` from drifting apart when they define access to the `Owner` LDB
 - require project-scoped access assignments when global user-role status is not enough to explain permissions
-- protect declared branch-capable `L1`s from being normalized into the wrong table model
+- protect declared branch-capable `File`s from being normalized into the wrong table model
 - make sure branchable files declare fork labels, fork purpose, and fork-owned payload scope in canon/registry before tune payload or create flows depend on them
 - make sure `fork_mode` stays honest to actual file behavior:
   - `none`
@@ -203,17 +201,17 @@ The `File Steward` should:
 - make sure every file guide includes a glossary section
 - treat `Glossary Steward` as heavy governance only where language risk is meaningfully high, not automatically for every file
 - treat `Markets` and `Securities` as heavy glossary-governed files from the start
-- ensure new normal `L1`s are born with shared LDB relationship behavior as part of file birth, not as a later repair step
+- ensure new normal `File`s are born with shared LDB relationship behavior as part of file birth, not as a later repair step
 - ensure each canon-declared LDB relationship has an approved owner path and reverse-read path from the start
-- ensure `L1` bootstrap makes the bridge choice between dedicated join table and shared relationship ownership explicitly
+- ensure `File` bootstrap makes the bridge choice between dedicated join table and shared relationship ownership explicitly
 - prefer composition from approved existing parts over introducing new file-side primitives or convenience modes
 - help keep what file surfaces say, mean, and do aligned so file labels, statuses, and actions do not drift from canon or runtime
-- enforce the full `L1` birth sequence:
+- enforce the full `File` birth sequence:
   - canonical entity
   - real table/runtime owner
   - shared base subsections
   - shared base parameters
-  - entity-specific `L2` structure
+  - entity-specific `View` structure
   - reciprocal LDB declarations
   - bridge owner-path choice
   - reverse-read path
@@ -252,9 +250,9 @@ The `File Steward` should not:
 
 - treat a route, menu item, or shell surface as proof that a file is fully born
 - let a file guide move to `Active` when canon, registry, runtime, shell, or provenance is missing
-- create an `L1` without the shared `System`, `LDB`, and `General` base unless an approved exception exists
+- create a `File` without the shared `System`, `LDB`, and `General` base unless an approved exception exists
 - invent LDB bridge ownership after file birth instead of declaring it during bootstrap
-- bypass UX fork guidance when the user is choosing between `L1`, `L2`, and `L2.a`
+- bypass UX fork guidance when the user is choosing between `File` and `View`
 - accept global role shortcuts when the required access rule depends on `Project x Role`
 
 ## Related Docs
@@ -275,13 +273,13 @@ The `File Steward` should stay aligned with:
 The `File Steward` should stop implementation and surface the gap when:
 
 - a file entity has no explicit canonical contract
-- a new normal `L1` is being created without the shared base structure first
+- a new normal `File` is being created without the shared base structure first
 - view ownership is being guessed
 - runtime ownership and canonical ownership do not match
 - a file surface is borrowing another entity's structure without explicit approval
 - branch behavior is being implemented without explicit canonical branch metadata
 - fork instructions are missing even though the toolbar, tune menu, or create flow depends on branch selection
-- a new normal `L1` is being introduced without its shared LDB layer
+- a new normal `File` is being introduced without its shared LDB layer
 - LDB bridge ownership is being invented ad hoc after file birth instead of being declared during bootstrap
 - a new convenience component, mode, or leaf variant is being added where the approved underlying component should be corrected instead
 - a user is being asked to create file structure without UX fork guidance from the file guide
@@ -309,3 +307,4 @@ The `File Steward` should repair the contract, not only the wording.
 The practical principle is:
 
 `The File Steward should create and maintain file entities through explicit canonical building blocks and view contracts so file architecture stays stable, reusable, and drift-resistant.`
+

@@ -75,8 +75,7 @@ That means:
 - use the current file guide
 - do not invent paths
 - do not improvise field meaning
-- respect declared branch metadata when an `L1` requires subtype routing
-- respect declared `L2.a-b-c-d` views when a subsection uses explicit internal grouping
+- respect declared branch metadata when a `File` requires subtype routing
 
 When the companion participates in editing or review:
 
@@ -152,7 +151,7 @@ The companion may frontload what is most likely relevant to the current working 
 That may include:
 
 - the active file
-- the active `L1`
+- the active `File`
 - the current file guide
 - visible fields in the current section
 - visible LDB relationship groups
@@ -203,7 +202,7 @@ Detailed branch and view rules belong in the file guide.
 The companion's base rule is:
 
 - follow declared branch routing
-- follow declared `L2` grouping
+- follow declared `View` grouping
 - do not flatten a file's structure just to make work easier
 
 ## Approval Rule
@@ -219,3 +218,4 @@ If the explicit contract is missing:
 ## Working Principle
 
 The companion should be helpful about content, strict about structure, and honest about missing ownership.
+

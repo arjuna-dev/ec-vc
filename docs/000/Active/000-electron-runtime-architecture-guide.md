@@ -294,7 +294,7 @@ This is one of the most important files for understanding why a declared LDB lin
 - this file is where the current mixed relationship model becomes visible
 - some relationships are manually explicit here
 - many other relationships fall back to generic `LDB_Relationships`
-- this is one of the key places where future `new L1 birth automation` will need to become stricter
+- this is one of the key places where future `new File birth automation` will need to become stricter
 
 Important rule:
 
@@ -306,7 +306,7 @@ Important rule:
 
 This is the main shared file-shell renderer for file-level surfaces.
 
-It is where many `L1`s are presented through one common shell.
+It is where many `File`s are presented through one common shell.
 
 It handles things like:
 
@@ -347,7 +347,7 @@ This file helps organize canonical structure into payload groups for the shared 
 
 It does things like:
 
-- group `L2` sections
+- group `View` sections
 - preserve view structure; no extra grouping layer is active
 - build LDB views like:
   - `First-Order`
@@ -399,9 +399,9 @@ For the shared shell path, there is then an additional layer:
 
 If one step is missing, the feature is incomplete.
 
-## What This Means For New `L1` Work
+## What This Means For New `File` Work
 
-When creating a new normal `L1`, these files usually map to different parts of the birth sequence:
+When creating a new normal `File`, these files usually map to different parts of the birth sequence:
 
 - `sqlite-schema.js`
   - real table owner
@@ -420,7 +420,7 @@ When creating a new normal `L1`, these files usually map to different parts of t
 - `dialogShellPayload.js`
   - proof that grouped dialog payloads still follow canon for that source
 
-So if a new `L1` feels "half-real," it is usually because one or more of these files was skipped.
+So if a new `File` feels "half-real," it is usually because one or more of these files was skipped.
 
 ## Practical Review Order
 
@@ -476,3 +476,4 @@ If you want one sentence for each file:
 - `ldbRelationshipContracts.js` = how declared LDB links are actually owned and read
 - `FilePageShell.vue` = the main shared file-shell surface that proves whether the runtime path is usable
 - `dialogShellPayload.js` = the dialog grouping helper that should preserve canon instead of inventing it
+

@@ -117,7 +117,7 @@
         <button type="button" class="components-shell-page__inspect-btn" aria-label="View component details" @click="openComponentDetail('l2-toolbar')">
           <q-icon name="visibility" />
         </button>
-        <div class="components-shell-page__card-label">L2 Toolbar</div>
+        <div class="components-shell-page__card-label">View Toolbar</div>
         <div class="components-shell-page__card-status" :class="componentStatusClass('l2-toolbar')">{{ componentStatusLabel('l2-toolbar') }}</div>
         <div class="components-shell-page__card-stage components-shell-page__card-stage--stretch">
           <ShellSectionToolbar
@@ -282,10 +282,10 @@
         <button type="button" class="components-shell-page__inspect-btn" aria-label="View component details" @click="openComponentDetail('l3-box')">
           <q-icon name="visibility" />
         </button>
-        <div class="components-shell-page__card-label">L3 Box</div>
+        <div class="components-shell-page__card-label">Token Box</div>
         <div class="components-shell-page__card-status" :class="componentStatusClass('l3-box')">{{ componentStatusLabel('l3-box') }}</div>
         <div class="components-shell-page__card-stage components-shell-page__card-stage--stretch">
-          <L3Box label="L3" value="128" caption="Canonical tokens" />
+          <L3Box label="Token" value="128" caption="Canonical tokens" />
         </div>
       </article>
 

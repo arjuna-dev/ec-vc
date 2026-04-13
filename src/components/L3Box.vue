@@ -10,7 +10,7 @@
 defineProps({
   label: {
     type: String,
-    default: 'L3',
+    default: 'Token',
   },
   value: {
     type: String,

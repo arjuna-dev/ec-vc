@@ -446,7 +446,7 @@
       </template>
 
       <template v-else-if="blockKey === 'l3-box'">
-        <L3Box label="L3" value="128" caption="Canonical tokens" />
+        <L3Box label="Token" value="128" caption="Canonical tokens" />
       </template>
 
       <template v-else-if="blockKey === 'home-dashboard'">

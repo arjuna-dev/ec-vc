@@ -19,7 +19,7 @@ This tracker should stay aligned with:
 
 ## Current Focus
 
-- make canonical `L1` bootstrap consolidation the top architecture priority
+- make canonical `File` bootstrap consolidation the top architecture priority
 - run `Building Blocks to Shell Contract Migration` as the active shared-UI architecture project
 - keep the underlying structure, ownership, and runtime relationship paths converging cleanly
 - use the `Companion` and the first-pass game layer to surface issues without weakening the contract
@@ -29,7 +29,7 @@ This tracker should stay aligned with:
 - keep the naming direction on `LDB` and avoid piecemeal runtime renames
 - keep pushing bootstrap/setup flows to follow the same `System Files` + `LDB` contract path as normal runtime behavior so bugs surface earlier and more honestly
 - adopt `Record Shell` as the shared `Record View` direction
-- turn the `Contact/User` lesson into a generalized `L1/L2/L3` field-class rule instead of a remembered exception
+- turn the `Contact/User` lesson into a generalized `File/View/Token` field-class rule instead of a remembered exception
 - keep owner authority locked while still allowing owner-only editing of owner profile data
 - finish the setup layer so the first Companion role and first game board can begin on `Intake`
 - implement highlighted `default/preselected unverified` context cues so artifact assumptions become verification-ready rather than hidden
@@ -40,14 +40,14 @@ This tracker should stay aligned with:
 
 ## Top 5 To-Do
 
-1. Consolidate new `L1` bootstrap into one canonical contract with strict validation, and prove it through `Companion Roles`.
+1. Consolidate new `File` bootstrap into one canonical contract with strict validation, and prove it through `Companion Roles`.
 2. Finish `Building Blocks to Shell Contract Migration`:
    - foundational tokens
    - shared component extraction
    - shell placeholder migration
    - end-to-end rendering validation
 3. Convert the declared-but-not-yet-backed LDB set into real runtime-backed relationship paths.
-4. Define the first generalized field-class layer for `L3` tokens:
+4. Define the first generalized field-class layer for `Token` definitions:
    - `owned_field`
    - `directional_link`
    - `ldb_relationship`
@@ -59,14 +59,14 @@ This tracker should stay aligned with:
 
 ## Active Workstreams
 
-- canonical `L1` bootstrap consolidation and strict validation
+- canonical `File` bootstrap consolidation and strict validation
 - `Building Blocks to Shell Contract Migration`
 - runtime-backed completion of the declared LDB relationship set
 - field-class normalization:
   - `owned_field`
   - `directional_link`
   - `ldb_relationship`
-  - future `L3` governance metadata:
+  - future token governance metadata:
     - field type
     - always-required vs conditional-required
     - multi-condition requirement support
@@ -116,7 +116,7 @@ This tracker should stay aligned with:
   - start with `Design Steward` review of `BB` component `created` / `edited` events
 - intake extraction orchestration:
   - `Intake Steward` should orchestrate relevant `File Stewards`
-  - extraction should ask whether an artifact answers any declared `L1` / `L3` directive
+  - extraction should ask whether an artifact answers any declared `File` / `Token` directive
   - parcel first-pass answers into the strongest matching file/token path
   - avoid repeating the same information across multiple sections when one higher-confidence destination already exists
   - use page-title length as a light interpretation hint:
@@ -148,10 +148,10 @@ This tracker should stay aligned with:
 
 ## Pending Next
 
-- Milestone: `New L1 Bootstrap Automation Prep`
-  - Step 1: turn the approved `L1` birth sequence into an implementation checklist against the current codebase
-  - Step 2: define the canonical input contract for new normal `L1` birth
-  - Step 3: define the active `L1` set used for reciprocal LDB generation
+- Milestone: `New File Bootstrap Automation Prep`
+  - Step 1: turn the approved `File` birth sequence into an implementation checklist against the current codebase
+  - Step 2: define the canonical input contract for new normal `File` birth
+  - Step 3: define the active `File` set used for reciprocal LDB generation
   - Step 4: define the default relationship owner-path rule:
     - `LDB_Relationships` by default
     - dedicated join table only when promoted
@@ -163,7 +163,7 @@ This tracker should stay aligned with:
   - Step 1A: define steward contracts that protect file and design structure from drift:
     - `File Steward`
     - `Design Steward`
-  - Step 1B: update the structure docs so branch-capable `L1`s, explicit `L2.a-b-c-d` views, and first-class `Events` are declared in canon before more runtime normalization
+  - Step 1B: update the structure docs so branch-capable `Files`, explicit `Views`, and first-class `Events` are declared in canon before more runtime normalization
   - Step 2: add standalone `Companion Roles` as a real first-class table
   - Step 3: add the initial required `Companion Roles` columns
   - Step 4: create the first-pass `Companion Roles` records:
@@ -200,7 +200,7 @@ This tracker should stay aligned with:
     - main menu row
     - main menu view row
     - `BB Tile Header`
-    - `L2 Settings Menu`
+    - `View Settings Menu`
     - `Widget Settings Menu`
   - Task 4: separate design-token ownership from component ownership so `General Settings` becomes the source of truth for foundational visual rules
   - Task 5: migrate shell placeholders onto explicit building block and shell payload contracts
@@ -211,7 +211,7 @@ This tracker should stay aligned with:
   - Task 7: finish `bb:mini-toolbar` strictly through the BB/component layer:
     - do not let page-local shell logic invent toolbar behavior
     - keep `Views` and `Tokens` payloads explicit
-    - remove old directive paths that still treat `L2` grouping language as visible control truth
+    - remove old directive paths that still treat `View` grouping language as visible control truth
   - Task 8: complete the file-owned token/view payload jump:
     - stop treating `activeRegistryEntry.subsections` as final truth
     - define the live shell payload from file-owned tokens and governed views
@@ -243,7 +243,7 @@ This tracker should stay aligned with:
 - Fix workbook wrapper-token drift so the JSON companion validates cleanly for `Company`, `Funds`, `Markets`, and `Terms`
 - Convert the declared-but-not-yet-backed LDB set into real runtime-backed relationship paths
 - Define the missing runtime owner paths for canon-declared `User_*`, `Artifact_*`, and `Note_*` relationships
-- Add reverse-read behavior for every newly-backed LDB relationship so both linked `L1`s reflect the same connection
+- Add reverse-read behavior for every newly-backed LDB relationship so both linked `File`s reflect the same connection
 - Rework `Record View` table behavior so tabs switch locally and instantly
 - Align company `Record View` tabs with workbook structural nodes
 - Decide which workbook labels stay technical and which get friendlier UI labels
@@ -299,7 +299,7 @@ This tracker should stay aligned with:
 - approved successor direction for the shared legacy runtime path is now:
   - `databooks:*` -> `records:*`
   - `databook_snapshots` -> `record_history`
-- `Access_Assignments` is approved as a future standalone `L1` that should sit immediately after `Projects` in the file creation sequence, because it depends on `Contacts`, `Users`, `Roles`, and `Projects`
+- `Access_Assignments` is approved as a future standalone `File` that should sit immediately after `Projects` in the file creation sequence, because it depends on `Contacts`, `Users`, `Roles`, and `Projects`
 - `Intake` is now the approved file/page/runtime name replacing `Ingestion` / `Artifact Processed`, with route redirects kept only as temporary compatibility
 - `Markets` / `Securities` event tokens and broader token families now converge on `Market_*` / `Security_*`
 - the parent `File Shell` contract now fails closed on unmapped routes instead of silently rendering `Tasks`
@@ -382,7 +382,7 @@ Approved rule:
 
 - keep shared shell context in `actionLabel`
 - let each write create its own audit event id
-- apply this as a shell/action-layer rule, not as an `L1` or record-specific fix
+- apply this as a shell/action-layer rule, not as an `File` or record-specific fix
 
 ## Shared LDB Direction Correction
 
@@ -422,4 +422,5 @@ Architectural note:
 - the event log is a strong `L0` candidate because the earliest meaningful operational event can be things like `Owner created`, with later state and verification history building on top of that layer
 - `L0` should be understood as provenance/history, not as another editable business-content layer
 - conceptually this fits best with the second-tier / knowledge-system side of the product, because it explains how a record came into being and changed over time
-- `L0 Events` now also has a route-owned `File View` through the shared `L1` shell so the event layer can be browsed like the other shell sources instead of living only as an embedded feed
+- `L0 Events` now also has a route-owned `File View` through the shared `File` shell so the event layer can be browsed like the other shell sources instead of living only as an embedded feed
+

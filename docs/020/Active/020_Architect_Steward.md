@@ -35,7 +35,7 @@ No later layer should invent structure that the earlier layer did not declare.
 
 Before a new file or structural branch is treated as real, the `Architect Steward` should verify:
 
-- canonical `L1 / View Fork / Token` structure exists
+- canonical `File/View/Token` structure exists
 - `System Files` row exists
 - file guide exists
 - owner is declared
@@ -53,10 +53,6 @@ Before a new file or structural branch is treated as real, the `Architect Stewar
 - events/provenance path is declared
 
 If any checklist item is unclear, stop and surface the gap before implementation continues.
-
-Definition note:
-
-- view forks and subgroups are internal to a file, not separate file rows, unless `System Files` explicitly tracks them as such
 
 ## Checklist Status Vocabulary
 
@@ -233,3 +229,4 @@ If events only preserve raw history but do not stay filterable enough for Owner 
 ## Working Principle
 
 `The Architect Steward should make sure every layer of the system is born in the right order and can explain why it exists.`
+
