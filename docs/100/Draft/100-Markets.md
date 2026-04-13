@@ -21,7 +21,7 @@ It exists to provide a governed knowledge database instead of relying on driftin
 | Term | Meaning |
 | --- | --- |
 | `Market` | A governed market or industry concept. |
-| `Knowledge DB` | A file used as a shared relationship vocabulary layer. |
+| `LDB` | A file used as a shared relationship vocabulary layer. |
 | `Legacy Naming` | Older names that should not continue to drift into current canon. |
 
 ## Referenced Documents
