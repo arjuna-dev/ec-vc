@@ -30,6 +30,11 @@ This recipe should only collect:
 - naming or stewardship rules that proved helpful
 - setup assumptions we would want in a cleaner future birth
 
+Drafting note:
+
+- use `docs/999/Active/Governed_Translators_Draft.md` for in-progress governed-translator thinking and cleanup tracking
+- move only tested and approved patterns back into this recipe
+
 Do not add:
 
 - speculative ideas we have not tried
