@@ -42,11 +42,12 @@
       :history-table-name="dialogHistoryTableName"
       :history-record-id="dialogRecordId"
       :initial-artifacts="[]"
-      :artifact-context="null"
+      :artifact-context="dialogArtifactContext"
       @update:shell-selector-value="updateShellSelector"
       @toggle-general-settings-group="toggleGeneralSettingsGroup"
       @toggle-general-settings-item="toggleGeneralSettingsItem"
       @request-close="handleDialogClose"
+      @change="handleDialogChange"
       @submit="submitDialogRecord"
     />
   </q-page>
@@ -113,6 +114,9 @@ const expandedGeneralSettingsGroupKeys = ref([])
 const isAddAction = computed(() => dialogMode.value === 'create' && Boolean(String(route.query.create || '').trim()))
 const runtimeStructureVersion = ref(getRuntimeStructureVersion())
 let runtimeStructureUnsub = null
+const draftCreateInFlight = ref(false)
+const autoDraftRecordId = ref('')
+const autoDraftSourceKey = ref('')
 
 const dialogShellSourceKey = ref(resolveValidShellSection(route.query.section, route.query.entity))
 const activeSourceKey = computed(() => dialogShellSourceKey.value)
@@ -127,6 +131,23 @@ const fileTokens = computed(() => fileShellPayload.value.tokens)
 const groupedViews = computed(() => groupDialogViews(fileViews.value))
 const canonicalNameToken = computed(() => getRegistryTitleTokenForSource(activeSourceKey.value) || null)
 const canonicalSummaryToken = computed(() => getRegistrySummaryTokenForSource(activeSourceKey.value) || null)
+const dialogArtifactContext = computed(() => {
+  const recordId = String(dialogRecordId.value || '').trim()
+  const entityName = String(dialogEntityName.value || '').trim()
+  if (!recordId || !entityName) return null
+  const entry = activeRegistryEntry.value
+  const label = String(entry?.singularLabel || entry?.label || 'Record').trim()
+  const nameToken = canonicalNameToken.value
+  const recordLabel = nameToken?.key
+    ? String(dialogInitialValues.value?.[nameToken.key] || '').trim()
+    : ''
+  return {
+    entityName,
+    entityLabel: label,
+    recordId,
+    recordLabel: recordLabel || label,
+  }
+})
 
 const createPrimaryTokens = computed(() => {
   const branchTokenName = getCreateBranchTokenName(activeSourceKey.value)
@@ -355,6 +376,11 @@ watch(
       dialogInitialSnapshot.value = pending?.snapshot || null
       dialogInitialSectionKey.value = 'general'
       dialogOpen.value = true
+      void ensureDraftRecord({
+        values: dialogInitialValues.value,
+        verification: { changes: dialogInitialFieldMeta.value },
+        hasUserChanges: true,
+      })
       return
     }
 
@@ -428,8 +454,81 @@ function buildCreateDialogInitialFieldMeta(pending = null) {
   return nextFieldMeta
 }
 
+async function ensureDraftRecord(snapshot) {
+  if (dialogMode.value !== 'create') return
+  if (draftCreateInFlight.value || autoDraftRecordId.value) return
+  if (!snapshot?.values || typeof snapshot.values !== 'object') return
+
+  const nameKey = canonicalNameToken.value?.key
+  const nameValue = nameKey ? String(snapshot.values?.[nameKey] || '').trim() : ''
+  if (!nameValue) return
+
+  if (branchSelectorTokenKey.value) {
+    const branchEntry = getCreateBranchEntry(activeSourceKey.value, snapshot.values?.[branchSelectorTokenKey.value])
+    if (!branchEntry?.targetSourceKey) return
+  }
+
+  const { payload, allCreateTokens } = buildCreatePayload(snapshot.values)
+  if (!Object.keys(payload).length) return
+
+  const { branchEntry, createTargetSourceKey, createEntityName, createBridge } = resolveCreateTarget(snapshot.values)
+  if (!createBridge) return
+
+  draftCreateInFlight.value = true
+  try {
+    const result = await createBridge(payload)
+    if (!result?.id) {
+      $q.notify({ type: 'negative', message: 'Could not create the draft record yet.' })
+      return
+    }
+    const createdRecordId = String(result.id).trim()
+    autoDraftRecordId.value = createdRecordId
+    autoDraftSourceKey.value = branchEntry?.targetSourceKey || createTargetSourceKey || activeSourceKey.value
+    dialogRecordId.value = createdRecordId
+    dialogEntityName.value = createEntityName
+    dialogMode.value = 'edit'
+    dialogInitialValues.value = { ...snapshot.values }
+    dialogInitialFieldMeta.value = { ...(snapshot.verification?.changes || {}) }
+    dialogInitialSnapshot.value = snapshot
+
+    await applyBirthRelationships({
+      createdRecordId,
+      createdEntityName: createEntityName,
+      allCreateTokens,
+      values: snapshot.values,
+    })
+
+    await loadDialogHistory()
+  } catch (error) {
+    $q.notify({ type: 'negative', message: error?.message || String(error) })
+  } finally {
+    draftCreateInFlight.value = false
+  }
+}
+
+function handleDialogChange(snapshot) {
+  if (snapshot?.hasUserChanges) {
+    setPendingAddEditShellRequest({
+      sourceKey: activeSourceKey.value,
+      initialValues: snapshot?.values || {},
+      initialFieldMeta: snapshot?.verification?.changes || {},
+      snapshot,
+    })
+  }
+  void ensureDraftRecord(snapshot)
+}
+
 function handleDialogClose(snapshot) {
   if (snapshot?.closeReason === 'discard' || !snapshot?.hasUserChanges) {
+    if (snapshot?.closeReason === 'discard'
+      && autoDraftRecordId.value
+      && bridge.value?.[autoDraftSourceKey.value]?.delete) {
+      bridge.value[autoDraftSourceKey.value]
+        .delete(autoDraftRecordId.value)
+        .catch(() => null)
+    }
+    autoDraftRecordId.value = ''
+    autoDraftSourceKey.value = ''
     dialogInitialSnapshot.value = null
     return
   }
@@ -791,7 +890,7 @@ async function submitDialogRecord({ values } = {}) {
   await submitCreateRecord(values)
 }
 
-async function submitCreateRecord(values = {}) {
+function buildCreatePayload(values = {}) {
   const allCreateTokens = [...createPrimaryTokens.value, ...createViewGroups.value.flatMap((section) => section.tokens)]
   const payload = Object.fromEntries(
     allCreateTokens
@@ -803,6 +902,48 @@ async function submitCreateRecord(values = {}) {
       })
       .filter(Boolean),
   )
+  return { payload, allCreateTokens }
+}
+
+function resolveCreateTarget(values = {}) {
+  const branchEntry = getCreateBranchEntry(activeSourceKey.value, values?.[branchSelectorTokenKey.value])
+  const createTargetSourceKey = branchEntry?.targetSourceKey || activeSourceKey.value
+  const createEntityName = String(getFilePageRegistryEntry(createTargetSourceKey)?.entityName || '').trim()
+  const createBridge = branchSelectorTokenKey.value
+    ? bridge.value?.[branchEntry?.targetSourceKey || '']?.create
+    : bridge.value?.[activeSourceKey.value]?.create
+  return {
+    branchEntry,
+    createTargetSourceKey,
+    createEntityName,
+    createBridge,
+  }
+}
+
+async function applyBirthRelationships({ createdRecordId, createdEntityName, allCreateTokens, values }) {
+  if (!createdRecordId || !createdEntityName || !bridge.value?.records?.update) return
+  const relationshipChanges = allCreateTokens.flatMap((token) => {
+    if (!getLdbRelationshipContractForToken(createdEntityName, token)) return []
+    return buildTokenUpdateChanges(token, {
+      nextValue: values?.[token.key],
+      initialValue: null,
+      recordId: createdRecordId,
+      entityName: createdEntityName,
+      tableName: getRuntimeTableNameForEntityName(createdEntityName),
+    })
+  })
+
+  if (!relationshipChanges.length) return
+  await bridge.value.records.update({
+    tableName: getRuntimeTableNameForEntityName(createdEntityName),
+    recordId: createdRecordId,
+    changes: relationshipChanges,
+    actionLabel: 'shared_dialog_shell_birth_relationships',
+  })
+}
+
+async function submitCreateRecord(values = {}) {
+  const { payload, allCreateTokens } = buildCreatePayload(values)
 
   if (!Object.keys(payload).length) {
     $q.notify({ type: 'negative', message: 'Add at least one field before creating the record.' })
@@ -812,17 +953,16 @@ async function submitCreateRecord(values = {}) {
   dialogLoading.value = true
   try {
     let result = null
-    const branchEntry = getCreateBranchEntry(activeSourceKey.value, values?.[branchSelectorTokenKey.value])
-    const createTargetSourceKey = branchEntry?.targetSourceKey || activeSourceKey.value
+    const { branchEntry, createTargetSourceKey, createEntityName, createBridge } = resolveCreateTarget(values)
     if (branchSelectorTokenKey.value) {
       const branchLabel = String(activeRegistryEntry.value?.createBranchLabel || 'Fork').trim()
       if (!branchEntry?.targetSourceKey) {
         $q.notify({ type: 'negative', message: `Choose ${branchLabel} before continuing.` })
         return
       }
-      result = await bridge.value?.[branchEntry.targetSourceKey]?.create?.(payload)
+      result = await createBridge?.(payload)
     } else {
-      result = await bridge.value?.[activeSourceKey.value]?.create?.(payload)
+      result = await createBridge?.(payload)
     }
     if (!result) {
       $q.notify({ type: 'negative', message: 'Create bridge is not available for this record type yet.' })
@@ -830,29 +970,15 @@ async function submitCreateRecord(values = {}) {
     }
 
     const createdRecordId = String(result?.id || '').trim()
-    const createdEntityName = String(getFilePageRegistryEntry(createTargetSourceKey)?.entityName || '').trim()
-    if (createdRecordId && createdEntityName && bridge.value?.records?.update) {
-      const relationshipChanges = allCreateTokens.flatMap((token) => {
-        if (!getLdbRelationshipContractForToken(createdEntityName, token)) return []
-        return buildTokenUpdateChanges(token, {
-          nextValue: values?.[token.key],
-          initialValue: null,
-          recordId: createdRecordId,
-          entityName: createdEntityName,
-          tableName: getRuntimeTableNameForEntityName(createdEntityName),
-        })
-      })
+    await applyBirthRelationships({
+      createdRecordId,
+      createdEntityName: createEntityName,
+      allCreateTokens,
+      values,
+    })
 
-      if (relationshipChanges.length) {
-        await bridge.value.records.update({
-          tableName: getRuntimeTableNameForEntityName(createdEntityName),
-          recordId: createdRecordId,
-          changes: relationshipChanges,
-          actionLabel: 'shared_dialog_shell_birth_relationships',
-        })
-      }
-    }
-
+    autoDraftRecordId.value = ''
+    autoDraftSourceKey.value = ''
     dialogOpen.value = false
     $q.notify({ type: 'positive', message: `${activeRegistryEntry.value?.singularLabel || 'Missing record type'} created.` })
   } catch (error) {
@@ -880,6 +1006,8 @@ async function submitEditRecord(values = {}) {
       dialogOpen.value = false
       return
     }
+    autoDraftRecordId.value = ''
+    autoDraftSourceKey.value = ''
     dialogOpen.value = false
     $q.notify({ type: 'positive', message: `${activeRegistryEntry.value?.singularLabel || 'Missing record type'} updated.` })
   } catch (error) {
