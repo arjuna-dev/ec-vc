@@ -177,7 +177,7 @@ Instead, the companion should:
 
 - read the relevant file guide
 - read the declared token behavior when available
-- follow `docs/001/Active/001-field-classification-map.md` when reviewing token behavior
+- follow `docs/010/Active/DAMP.md` when reviewing token behavior
 - avoid turning file-specific rules into universal companion rules
 
 At minimum, the companion must preserve the distinction between:

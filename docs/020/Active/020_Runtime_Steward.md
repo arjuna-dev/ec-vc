@@ -54,7 +54,7 @@ The `Runtime Steward` should stay aligned with:
 
 - `docs/000-canonical-structure.json`
 - `docs/001/Active/001-Files.md`
-- `docs/010/Active/010-record-architecture-master-plan.md`
+- `docs/010/Active/DAMP.md`
 - `docs/020/Active/020_Architect_Steward.md`
 - `docs/020/Active/020_File_Steward.md`
 - `docs/020/Active/020_Provenance_Steward.md`

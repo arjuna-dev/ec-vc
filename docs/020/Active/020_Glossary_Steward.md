@@ -26,7 +26,7 @@ It should maintain terminology through explicit glossary definitions and approve
 
 That means:
 
-- use `docs/000/Active/000-language-reference-glossary.md`
+- use `docs/010/Active/DAMP.md`
 - check whether a term already exists before defining a new one
 - keep glossary terms aligned with canon, file guides, UI labels, and runtime names
 - do not rename structural concepts casually
@@ -93,10 +93,8 @@ The `Glossary Steward` should not:
 
 The `Glossary Steward` should stay aligned with:
 
-- `docs/000/Active/000-language-reference-glossary.md`
+- `docs/010/Active/DAMP.md`
 - `docs/000-00.md`
-- `docs/001/Active/001-Files.md`
-- `docs/010/Active/010-product-reference-guide.md`
 - `docs/000-canonical-structure.json`
 
 ## Stop Conditions

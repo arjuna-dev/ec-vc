@@ -14,7 +14,7 @@ This is meant to reduce context loss while we move together between product, sch
 
 This tracker should stay aligned with:
 
-- `docs/010/Active/010-record-architecture-master-plan.md`
+- `docs/010/Active/DAMP.md`
 - `docs/010/Draft/010-intake-architecture-plan.md`
 - `docs/999/Active/Intake_Project.md`
 
@@ -357,7 +357,7 @@ Key output metrics:
 ## Recent Decisions
 
 - the planning layer is now centered on:
-  - `010-record-architecture-master-plan.md`
+  - `DAMP.md`
   - `010-intake-architecture-plan.md`
 - canonical structure now lives in JSON, with workbook as validation/reference
 - the shared record direction is now `Record Shell`

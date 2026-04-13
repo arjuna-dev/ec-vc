@@ -36,7 +36,7 @@ The Games branch follows the domain/depth model:
 
 Current concrete guide:
 
-- `docs/300/Active/300_Game_Rulebook.md`
+- `docs/010/Active/Game_Rulebook.md`
 
 Related steward:
 

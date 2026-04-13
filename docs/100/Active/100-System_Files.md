@@ -4,7 +4,7 @@
 
 - file name: `System Files`
 - file guide: `docs/100/Active/100-System_Files.md`
-- parent guide: `docs/001/Active/001-Files.md`
+- parent guide: `docs/010/Active/DAMP.md`
 - file class: `File`
 - canonical entity: `Files`
 - app-facing label: `System Files`
@@ -47,15 +47,12 @@ It is the file-definition layer that helps the system know:
 
 ## Referenced Documents
 
-- `docs/001/Active/001-Files.md`
-- `docs/000/Active/000-Owner_Manual.md`
+- `docs/010/Active/DAMP.md`
 - `docs/002/Active/002-Companion_Manual.md`
 - `docs/020/Active/020_File_Steward.md`
 - `docs/020/Active/020_UX_Steward.md`
 - `docs/020/Active/020_Architect_Steward.md`
-- `docs/010/Active/010-record-architecture-master-plan.md`
 - `docs/000-canonical-structure.json`
-- `docs/000/Active/000-electron-runtime-architecture-guide.md`
 
 ## Operating Rules
 

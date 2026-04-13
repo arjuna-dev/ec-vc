@@ -17,9 +17,9 @@ This document should be treated as the single planning source of truth for the `
 Companion behavior and ingestion-side structural discipline should also stay aligned with:
 
 - `docs/002/Active/002-Companion_Manual.md`
-- `docs/003/Active/003-Games.md`
-- `docs/030/Active/030-Game_Operation.md`
-- `docs/300/Active/300_Game_Rulebook.md`
+- `docs/010/Active/Games.md`
+- `docs/010/Active/Game_Operation.md`
+- `docs/010/Active/Game_Rulebook.md`
 - `docs/020/Active/020_Game_Steward.md`
 - `docs/020/Active/020_Provenance_Steward.md`
 - `docs/020/Active/020_Runtime_Steward.md`
@@ -28,9 +28,9 @@ Companion behavior and ingestion-side structural discipline should also stay ali
 
 Docs-domain rule:
 
-- `docs/300/Active/300_Game_Rulebook.md` is the concrete Games guide
-- `docs/003/Active/003-Games.md` defines root Games rules
-- `docs/030/Active/030-Game_Operation.md` defines Games operation
+- `docs/010/Active/Game_Rulebook.md` is the concrete Games guide
+- `docs/010/Active/Games.md` defines root Games rules
+- `docs/010/Active/Game_Operation.md` defines Games operation
 - `docs/020/Active/020_Game_Steward.md` stays in Companion Stewards because it defines the companion role that explains and governs the game layer
 
 When decisions change:
@@ -63,6 +63,96 @@ Short product-reference anchors that should remain active here:
 - shared dialog behavior should remain one shell contract, not many file-specific interpretations
 
 The earlier separate product-reference guide should now be treated as retired and folded into this document.
+
+## Runtime Architecture Layer
+
+This document now also carries the active runtime-architecture layer that used to live in the separate electron runtime architecture guide.
+
+The core runtime and shared-shell chain is:
+
+1. `src-electron/services/sqlite-schema.js`
+2. `src-electron/services/sqlite-db.js`
+3. `src-electron/electron-main.js`
+4. `src-electron/electron-preload.js`
+5. `src/shared/ldbRelationshipContracts.js`
+6. `src/components/FilePageShell.vue`
+7. `src/utils/dialogShellPayload.js`
+
+Simple mental model:
+
+- `schema` says what can exist
+- `db` makes it real locally
+- `main` does the work
+- `preload` exposes the safe front door
+- relationship contracts govern `LDB` interpretation
+- shared shells prove whether the runtime contract is actually usable
+
+Runtime authority rule:
+
+- visible UI is not proof of a runtime path
+- if `electron-main.js` does not own the handler, the feature is not fully born
+- if preload does not expose the handler, the frontend still cannot use it
+- a table existing in schema does not mean the app can already use it
+
+Legacy runtime naming rule:
+
+- `api.databooks.*` is still a live shared runtime surface
+- it should be treated as `keep temporarily`
+- the approved successor direction is `api.records.*`
+
+## Workbook Companion Layer
+
+This document now also carries the active workbook-companion rule.
+
+The workbook schema companion is reference only.
+
+It is not live shell payload truth.
+
+It should not override file-owned token/view contracts or shared `LDB` behavior.
+
+Approved runtime sources are:
+
+1. `System Files` registry rows
+2. file-owned tokens and view forks
+3. shared `LDB_Relationships` contract
+
+The workbook companion still helps with:
+
+- historical structure reference
+- validation cues for missing tokens
+- migration and parity checks during cleanup
+
+What it must not do:
+
+- drive live shell payloads
+- substitute for file-owned token/view contracts
+- introduce legacy terms into new work
+
+## Glossary Authority
+
+This document now also carries glossary authority for the active architecture family.
+
+Key active glossary anchors:
+
+- `Owner`, `User`, and `Contact` are separate layers
+- `File` is the entity/file level in canonical structure
+- `View` is the subsection grouping level
+- `Token` is the leaf structural level
+- `System`, `General`, and `LDB` remain canonical subsection anchors
+- `Record Shell` is the snapshot surface for current record truth
+- `Add/Edit Record Shell` is the active record-formation surface
+- `Strict Feeder Chain` is the governed traffic path for shared surfaces
+- `Two-Layer Asset Rule` governs important shared system assets
+- `Translator` is the governed interpretation layer between canonical input and shared output
+
+Shared naming rules that remain active:
+
+- canonical names are for structure
+- route keys are for navigation
+- runtime table names are for IPC/database actions
+- these should not be treated as interchangeable
+
+The earlier standalone glossary should now be treated as archived and folded into this document family.
 
 ## Current Contract Override
 

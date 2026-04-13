@@ -140,7 +140,7 @@ The `Design Steward` should not:
 The `Design Steward` should stay aligned with:
 
 - `docs/001/Active/001-Files.md`
-- `docs/010/Active/010-record-architecture-master-plan.md`
+- `docs/010/Active/DAMP.md`
 - `docs/020/Archive/design-system/README.md`
 - `docs/020/Archive/design-system/tokens.json`
 

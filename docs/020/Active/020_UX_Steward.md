@@ -125,9 +125,7 @@ The `UX Steward` should not:
 
 The `UX Steward` should stay aligned with:
 
-- `docs/001/Active/001-Files.md`
-- `docs/010/Active/010-product-reference-guide.md`
-- `docs/010/Active/010-record-architecture-master-plan.md`
+- `docs/010/Active/DAMP.md`
 - `docs/020/Active/020_File_Steward.md`
 - `docs/100/Active/100-Files.md`
 

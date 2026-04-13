@@ -262,7 +262,7 @@ The `File Steward` should not:
 The `File Steward` should stay aligned with:
 
 - `docs/001/Active/001-Files.md`
-- `docs/010/Active/010-record-architecture-master-plan.md`
+- `docs/010/Active/DAMP.md`
 - `docs/020/Active/020_Provenance_Steward.md`
 - `docs/020/Active/020_Runtime_Steward.md`
 - `docs/100/Active/100-File_Guides_Index.md`

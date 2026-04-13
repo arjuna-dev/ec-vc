@@ -4,7 +4,7 @@
 
 - file name: `Files`
 - file guide: `docs/100/Active/100-Files.md`
-- parent guide: `docs/001/Active/001-Files.md`
+- parent guide: `docs/010/Active/DAMP.md`
 - file class: `File`
 - canonical entity: `Files`
 - app-facing label: `System Files`
@@ -16,9 +16,9 @@
 
 It stores the file-definition records that tell the system which files exist, how they are classified, which guide belongs to them, which structure they require, and how they should be governed.
 
-This guide is different from `docs/001/Active/001-Files.md`.
+This guide is different from `docs/010/Active/DAMP.md`.
 
-- `docs/001/Active/001-Files.md` is the parent rule for all file guides.
+- `docs/010/Active/DAMP.md` is the parent rule and architecture authority for file guides.
 - `docs/100/Active/100-Files.md` is the guide for the actual `Files` canonical entity and registry table.
 - `docs/100/Active/100-System_Files.md` is the guide for the app-facing `System Files` surface backed by `Files`.
 
@@ -43,16 +43,13 @@ The clean rule is:
 
 ## Referenced Documents
 
-- `docs/001/Active/001-Files.md`
+- `docs/010/Active/DAMP.md`
 - `docs/100/Active/100-File_Guides_Index.md`
 - `docs/100/Active/100-System_Files.md`
-- `docs/000/Active/000-Owner_Manual.md`
 - `docs/002/Active/002-Companion_Manual.md`
-- `docs/000/Active/000-language-reference-glossary.md`
 - `docs/020/Active/020_File_Steward.md`
 - `docs/020/Active/020_Architect_Steward.md`
 - `docs/020/Active/020_UX_Steward.md`
-- `docs/010/Active/010-record-architecture-master-plan.md`
 - `docs/000-canonical-structure.json`
 
 ## Operating Rules

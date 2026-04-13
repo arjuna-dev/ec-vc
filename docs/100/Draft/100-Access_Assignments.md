@@ -4,7 +4,7 @@
 
 - file name: `Access Assignments`
 - file guide: `docs/100/Draft/100-Access_Assignments.md`
-- parent guide: `docs/001/Active/001-Files.md`
+- parent guide: `docs/010/Active/DAMP.md`
 - file class: `File`
 - canonical entity: `Access_Assignments`
 - app-facing label: `Access Assignments`
@@ -46,17 +46,14 @@ That means:
 
 ## Referenced Documents
 
-- `docs/001/Active/001-Files.md`
-- `docs/000/Active/000-Owner_Manual.md`
+- `docs/010/Active/DAMP.md`
 - `docs/002/Active/002-Companion_Manual.md`
-- `docs/000/Active/000-language-reference-glossary.md`
 - `docs/020/Active/020_Architect_Steward.md`
 - `docs/020/Active/020_File_Steward.md`
 - `docs/020/Active/020_UX_Steward.md`
 - `docs/020/Active/020_Provenance_Steward.md`
 - `docs/020/Active/020_Runtime_Steward.md`
-- `docs/010/Active/010-record-architecture-master-plan.md`
-- `docs/300/Active/300_Game_Rulebook.md`
+- `docs/010/Active/Game_Rulebook.md`
 - `docs/000-canonical-structure.json`
 
 ## Operating Rules

@@ -118,7 +118,7 @@ The `Intake Steward` should stay aligned with:
 - `docs/002/Active/002-Companion_Manual.md`
 - `docs/010/Draft/010-intake-architecture-plan.md`
 - `docs/010/Draft/010-ingestion-reconnect-guide.md`
-- `docs/010/Active/010-record-architecture-master-plan.md`
+- `docs/010/Active/DAMP.md`
 - `docs/020/Active/020_Provenance_Steward.md`
 - `docs/100/Active/100-Files.md`
 

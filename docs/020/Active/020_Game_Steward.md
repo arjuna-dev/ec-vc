@@ -14,9 +14,10 @@ It should govern and explain the Games branch, but it should not be moved into t
 
 The `Game Steward` should stay aligned with:
 
-- `docs/003/Active/003-Games.md`
-- `docs/030/Active/030-Game_Operation.md`
-- `docs/300/Active/300_Game_Rulebook.md`
+- `docs/010/Active/Games.md`
+- `docs/010/Active/Game_Operation.md`
+- `docs/010/Active/Game_Rulebook.md`
+- `docs/010/Active/DAMP.md`
 
 The Game Steward is a guide layer that explains:
 

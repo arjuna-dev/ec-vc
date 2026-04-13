@@ -59,7 +59,7 @@ Reviewed surfaces:
 | File guide defaulting | Each born file should know its guide path or honestly show that it is missing. | Default guide path is only assigned for `file-system`; other rows default to `null`. | `partial` | File Steward: good honesty, but next pass should decide which active files require guide paths before nav acceptance. |
 | Shared section presence | Section presence should derive from the file-owned structure contract. | `Defined_Structure` is now the contract source for shared sections and LDB. | `partial` | File Steward: runtime enforcement is in progress. |
 | Shell rendering | `/file-system` should render through the shared file shell. | Route `/file-system` loads `FilesPage.vue`, which renders `FilePageShell`. `FilePageShell` has a `file-system` loader. | `yes` | Runtime Steward: page shell path exists. |
-| Add/Edit File Shell | Add/Edit File Shell should guide file structure and link the correct guide. | `AddEditFileShellDialog` uses registry view/token data and local structure-selection state. It is not the proven row-edit persistence path. The guide icon currently points to parent guide `docs/001/Active/001-Files.md`, not the selected file's `File_Guide_Path`. | `partial` | UX/File Steward: parent guide is useful, but selected file guide linking is not yet dynamic and this shell should not be assumed to persist registry row edits. |
+| Add/Edit File Shell | Add/Edit File Shell should guide file structure and link the correct guide. | `AddEditFileShellDialog` uses registry view/token data and local structure-selection state. It is not the proven row-edit persistence path. The guide icon currently points to parent architecture guide `docs/010/Active/DAMP.md`, not the selected file's `File_Guide_Path`. | `partial` | UX/File Steward: parent guide is useful, but selected file guide linking is not yet dynamic and this shell should not be assumed to persist registry row edits. |
 | Navigation acceptance | Visible file nav should mean accepted file truth. | `WORKSPACE_FILE_NAV_ITEMS` now carries the visible drawer file list and explicit `workspace` / `knowledge-dbs` grouping from `structureRegistry`; `MainLayout` consumes that export instead of manually injecting file nav rows. | `partial` | Architect Steward: layout injection is consolidated, but route meta still owns acceptance before `System Files` records become the source. |
 | Events/provenance | File birth should be reconstructable from events. | `events` table and `writeAuditEvent()` exist. `Files` has `File_EventLog`, `created_by`, and timestamps. `createFile()` sets `created_by`, but does not visibly write a file-birth audit event in this path. | `partial` | Provenance Steward: event infrastructure exists, but genesis/file-birth reconstruction is not proven. |
 | LDB relationships | File relationships should be declared and reverse-readable where required. | Canon declares LDB relationship tokens for Owner, Users, Contacts, Companion Roles, Events, and Rulebooks. Runtime has generic `LDB_Relationships`, but this audit did not prove Files-specific bridge writing or reverse-read behavior. | `partial` | File/Provenance Steward: relationship intent exists; runtime bridge proof is still needed. |
@@ -99,7 +99,7 @@ Only the `System Files` row receives a default guide path automatically.
 
 That prevents fake guide truth, but it also means guide acceptance is not yet strong enough to gate visibility.
 
-The Add/Edit File Shell currently links the parent `001-Files.md` guide, not the selected file's own guide path.
+The Add/Edit File Shell currently links the parent `DAMP.md` guide, not the selected file's own guide path.
 
 ### 5. Provenance infrastructure exists, but file-birth events are not proven
 
@@ -391,7 +391,7 @@ Goal:
 
 - decide whether an active visible `L1` must have `File_Guide_Path`
 - decide whether missing guide path means `Draft`, `partial`, or hidden from nav
-- make Add/Edit File Shell open the selected file guide when available, and parent `001-Files.md` only as fallback
+- make Add/Edit File Shell open the selected file guide when available, and parent `DAMP.md` only as fallback
 
 Why third:
 

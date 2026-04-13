@@ -99,13 +99,13 @@ The `Provenance Steward` should not:
 The `Provenance Steward` should stay aligned with:
 
 - `docs/001/Active/001-Files.md`
-- `docs/010/Active/010-record-architecture-master-plan.md`
+- `docs/010/Active/DAMP.md`
 - `docs/010/Draft/010-ingestion-reconnect-guide.md`
 - `docs/020/Active/020_Intake_Steward.md`
 - `docs/020/Active/020_Runtime_Steward.md`
 - `docs/100/Active/100-Files.md`
 - `docs/100/Active/100-System_Files.md`
-- `docs/300/Active/300_Game_Rulebook.md`
+- `docs/010/Active/Game_Rulebook.md`
 
 ## Stop Conditions
 
