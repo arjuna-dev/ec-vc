@@ -1946,6 +1946,29 @@ function enforceUniqueTokenNames(structure = null, runtimeEntityName = '') {
     })
   })
 
+  const systemAliases = ['history', 'event log', 'eventlog', 'events', 'feed']
+  const systemRoleTokens = new Set()
+  sections.forEach((section) => {
+    if (String(section?.label || '').trim().toLowerCase() !== 'system') return
+    const tokens = Array.isArray(section?.tokens) ? section.tokens : []
+    tokens.forEach((token) => {
+      const labelKey = String(token?.label || '').trim().toLowerCase()
+      const tokenKey = String(token?.tokenName || token?.key || token?.label || '').trim().toLowerCase()
+      if (tokenKey === 'history' || systemAliases.includes(labelKey)) {
+        systemRoleTokens.add(token)
+      }
+    })
+  })
+
+  if (systemRoleTokens.size > 1) {
+    const ranked = Array.from(systemRoleTokens).sort((a, b) => selectScore(b) - selectScore(a))
+    const keep = ranked[0]
+    systemRoleTokens.forEach((token) => {
+      if (token === keep) return
+      selectedTokens.delete(token)
+    })
+  }
+
   let mutated = false
   const normalizedSections = sections.map((section) => {
     const tokens = Array.isArray(section?.tokens) ? section.tokens : []
