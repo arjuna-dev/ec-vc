@@ -1750,6 +1750,62 @@ function buildBaseFileStructure(entry) {
   }
 }
 
+function ensureBaseStructureCompleteness(existing = null, base = null) {
+  if (!base || typeof base !== 'object') return existing
+  if (!existing || typeof existing !== 'object') return base
+
+  const baseSections = Array.isArray(base.sections) ? base.sections : []
+  const existingSections = Array.isArray(existing.sections) ? existing.sections : []
+  const normalizedExisting = existingSections.map((section) => ({
+    ...section,
+    tokens: Array.isArray(section?.tokens) ? section.tokens : [],
+  }))
+  const normalizedBase = baseSections.map((section) => ({
+    ...section,
+    tokens: Array.isArray(section?.tokens) ? section.tokens : [],
+  }))
+
+  let mutated = false
+  const findSectionIndex = (sections, label) =>
+    sections.findIndex(
+      (section) => String(section?.label || '').trim().toLowerCase() === label.toLowerCase(),
+    )
+
+  normalizedBase.forEach((baseSection) => {
+    const baseLabel = String(baseSection?.label || '').trim()
+    if (!baseLabel) return
+    const existingIndex = findSectionIndex(normalizedExisting, baseLabel)
+    if (existingIndex === -1) {
+      normalizedExisting.push(baseSection)
+      mutated = true
+      return
+    }
+
+    const existingSection = normalizedExisting[existingIndex]
+    const existingTokens = Array.isArray(existingSection.tokens) ? existingSection.tokens : []
+    const tokenMap = new Map(
+      existingTokens.map((token) => [String(token?.tokenName || token?.key || '').trim().toLowerCase(), token]),
+    )
+    baseSection.tokens.forEach((baseToken) => {
+      const tokenNameKey = String(baseToken?.tokenName || baseToken?.key || '').trim().toLowerCase()
+      if (!tokenNameKey) return
+      if (tokenMap.has(tokenNameKey)) return
+      tokenMap.set(tokenNameKey, baseToken)
+      mutated = true
+    })
+    normalizedExisting[existingIndex] = {
+      ...existingSection,
+      tokens: Array.from(tokenMap.values()),
+    }
+  })
+
+  if (!mutated) return existing
+  return {
+    ...existing,
+    sections: normalizedExisting,
+  }
+}
+
 function buildDefinedStructureJson(entry) {
   const rawSections = Array.isArray(entry?.subsections) ? entry.subsections : []
   if (!rawSections.length) {
@@ -2341,19 +2397,27 @@ function ensureDefaultFiles(database) {
   const normalizeTx = database.transaction((inputRows) => {
     inputRows.forEach((row) => {
       const rawStructure = String(row?.Defined_Structure || '').trim()
-      if (!rawStructure) return
+      const sourceKey = String(row?.File_Source_Key || '').trim()
+      const registryEntry = getFileRegistryEntryBySourceKey(sourceKey)
+      const baseStructure = buildBaseFileStructure(registryEntry || { key: sourceKey, entityName: row?.File_Runtime_Entity })
+      if (!rawStructure) {
+        if (baseStructure) normalizeStructureRow.run(JSON.stringify(baseStructure), row.id)
+        return
+      }
       let parsed = null
       try {
         parsed = JSON.parse(rawStructure)
       } catch {
+        if (baseStructure) normalizeStructureRow.run(JSON.stringify(baseStructure), row.id)
         return
       }
       if (!parsed || typeof parsed !== 'object') return
       const sections = Array.isArray(parsed.sections) ? parsed.sections : []
-      if (!sections.length) return
+      if (!sections.length) {
+        if (baseStructure) normalizeStructureRow.run(JSON.stringify(baseStructure), row.id)
+        return
+      }
 
-      const sourceKey = String(row?.File_Source_Key || '').trim()
-      const registryEntry = getFileRegistryEntryBySourceKey(sourceKey)
       const runtimeEntityName = String(row?.File_Runtime_Entity || registryEntry?.entityName || '').trim()
 
       let mutated = false
@@ -2377,9 +2441,11 @@ function ensureDefaultFiles(database) {
         })
       })
 
+      const completed = ensureBaseStructureCompleteness(parsed, baseStructure)
+      if (completed !== parsed) mutated = true
+
       if (!mutated) return
-      parsed.sections = sections
-      normalizeStructureRow.run(JSON.stringify(parsed), row.id)
+      normalizeStructureRow.run(JSON.stringify(completed), row.id)
     })
   })
 
