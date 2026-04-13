@@ -8,6 +8,7 @@ export function buildFileStructureSessionSnapshot({
   selectedLeafKeys = [],
   requiredFieldKeys = [],
   deletedTokenKeys = [],
+  definedStructure = null,
 } = {}) {
   return {
     sourceKey: String(sourceKey || '').trim(),
@@ -19,5 +20,6 @@ export function buildFileStructureSessionSnapshot({
     selectedLeafKeys: Array.isArray(selectedLeafKeys) ? [...selectedLeafKeys] : [],
     requiredFieldKeys: Array.isArray(requiredFieldKeys) ? [...requiredFieldKeys] : [],
     deletedTokenKeys: Array.isArray(deletedTokenKeys) ? [...deletedTokenKeys] : [],
+    definedStructure: definedStructure && typeof definedStructure === 'object' ? { ...definedStructure } : null,
   }
 }

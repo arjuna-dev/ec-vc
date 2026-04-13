@@ -557,8 +557,61 @@ const fileStructureSnapshot = computed(() =>
     selectedLeafKeys: selectedLeafKeys.value,
     requiredFieldKeys: activeRequiredFieldKeys.value,
     deletedTokenKeys: deletedTokenKeysBySource.value[activeSettingsSourceKey.value] || [],
+    definedStructure: buildDefinedStructurePayload(),
   }),
 )
+
+function buildDefinedStructurePayload() {
+  const sourceKey = activeSettingsSourceKey.value
+  const deletedKeys = new Set(deletedTokenKeysBySource.value[sourceKey] || [])
+  const draftTokens = draftTokenRowsBySource.value[sourceKey] || []
+  const overridesByKey = tokenFieldOverridesBySource.value[sourceKey] || {}
+  const requiredKeys = new Set(requiredFieldKeysBySource.value[sourceKey] || [])
+  const sections = fileViewGroups.value.map((section, index) => {
+    const baseTokens = Array.isArray(section?.tokens) ? section.tokens : []
+    const mergedTokens = [...draftTokens, ...baseTokens].filter((token) => !deletedKeys.has(token.key))
+    const tokens = mergedTokens.map((token, tokenIndex) => {
+      const overrides = overridesByKey[token.key] || {}
+      return {
+        key: token.key || `token-${tokenIndex + 1}`,
+        tokenName: token.tokenName || token.key || `token-${tokenIndex + 1}`,
+        tokenRole: token.tokenRole || '',
+        tokenOrder: token.tokenOrder || String(tokenIndex + 1),
+        address: token.address || '',
+        label: (overrides.label ?? token.label) || '',
+        tokenType: (overrides.type ?? token.tokenType) || '',
+        optionSource: (overrides.optionSource ?? token.optionSource) || '',
+        optionEntity: (overrides.optionEntity ?? token.optionEntity) || '',
+        optionList: (overrides.optionList ?? token.optionList) || '',
+        optionEntities: Array.isArray(token.optionEntities) ? token.optionEntities : [],
+        dbFieldAliases: Array.isArray(token.dbFieldAliases) ? token.dbFieldAliases : [],
+        dbWriteField: (overrides.dbWriteField ?? token.dbWriteField) || '',
+        dbWriteTable: token.dbWriteTable || '',
+        dbWriteIdColumn: token.dbWriteIdColumn || '',
+        relationshipGroup: token.relationshipGroup || '',
+        fieldClass: (overrides.fieldClass ?? token.fieldClass ?? token.field_class) || '',
+        required: requiredKeys.has(token.key) ? 'Yes' : 'No',
+        editable: token.editable === false ? 'No' : token.editable === true ? 'Yes' : '',
+      }
+    })
+    return {
+      key: section.key || `section-${index + 1}`,
+      label: section.label || '',
+      address: section.address || '',
+      structureToken: section.structureToken || '',
+      subgroupKey: section.subgroupKey || '',
+      subgroupLabel: section.subgroupLabel || '',
+      subgroupAddress: section.subgroupAddress || '',
+      displayGroup: section.displayGroup || '',
+      tokens,
+    }
+  })
+
+  return {
+    version: 1,
+    sections,
+  }
+}
 
 function selectShellSelectorOption(value) {
   pendingShellSelectorValue.value = String(value || '').trim()
