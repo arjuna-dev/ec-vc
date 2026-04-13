@@ -1658,23 +1658,6 @@ async function removeProcessedArtifactForSelection(artifactId) {
   )
 }
 
-function addCompanionEntry(kind) {
-  void kind
-}
-
-function toggleCompanionEntrySelection(kind, entryId, nextValue) {
-  void kind
-  void entryId
-  void nextValue
-}
-
-function removeCompanionEntries(kind) {
-  void kind
-}
-
-function toggleCompanionEntryExpanded(entryId) {
-  void entryId
-}
 
 function startResize(event) {
   stopResize()

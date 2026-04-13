@@ -962,7 +962,7 @@ async function submitCreateRecord(values = {}) {
   dialogLoading.value = true
   try {
     let result = null
-    const { branchEntry, createTargetSourceKey, createEntityName, createBridge } = resolveCreateTarget(values)
+    const { branchEntry, createEntityName, createBridge } = resolveCreateTarget(values)
     if (branchSelectorTokenKey.value) {
       const branchLabel = String(activeRegistryEntry.value?.createBranchLabel || 'Fork').trim()
       if (!branchEntry?.targetSourceKey) {
