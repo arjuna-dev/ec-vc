@@ -57,7 +57,7 @@ Birth-status meaning:
 | `Companion Roles` | `Draft` | `partially born` | `docs/100/Draft/100-Companion_Roles.md` | `docs/001/Active/001-Files.md` | `File Steward` | Mapped file guide created in prep pass. Runtime surface exists; promotion review still pending. |
 | `Markets` | `Draft` | `partially born` | `docs/100/Draft/100-Markets.md` | `docs/001/Active/001-Files.md` | `Glossary Steward` | Mapped file guide created in prep pass. Runtime surface exists; promotion review still pending. |
 | `Securities` | `Draft` | `partially born` | `docs/100/Draft/100-Securities.md` | `docs/001/Active/001-Files.md` | `Glossary Steward` | Mapped file guide created in prep pass. Runtime surface exists; promotion review still pending. |
-| `Access Assignments` | `Draft` | `approved direction` | `docs/100/Draft/100-Access_Assignments.md` | `docs/001/Active/001-Files.md` | `File Steward` | Approved future `L1`. Canon, registry, runtime ownership, and shell rendering are not born yet. |
+| `Access Assignments` | `Draft` | `approved direction` | `docs/100/Draft/100-Access_Assignments.md` | `docs/001/Active/001-Files.md` | `File Steward` | Approved future file. Canon, registry, runtime ownership, and shell rendering are not born yet. |
 
 ## Promotion Rule
 
@@ -71,7 +71,8 @@ The `File Steward` should confirm:
 - owner is declared
 - steward is declared
 - UX fork questions are declared
-- shared sections are declared in `Defined Structure`
+- `System` requirement is declared
+- `LDB` requirement is declared
 - runtime/sqlite ownership is declared
 - shell rendering path is declared
 - events/provenance path is declared
@@ -93,4 +94,4 @@ When a new file guide is created:
 
 - Should this index eventually be generated from `System Files` records?
 - Should `File_Status` in runtime align directly with `Active`, `Draft`, and `Archive`?
-- Should each active `L1` require a `100` guide before it appears in main navigation?
+- Should each active file require a `100` guide before it appears in main navigation?
