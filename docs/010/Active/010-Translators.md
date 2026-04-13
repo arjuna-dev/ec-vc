@@ -177,6 +177,7 @@ When a shared behavior starts appearing in many places, ask:
 
 Stay aligned with:
 
+- `docs/010/Active/010-Recipe.md`
 - `docs/999/Active/Intake_Governance.md`
 - `docs/999/Active/Intake_Rulings.md`
 - `docs/999/Active/Translators_Draft.md`
