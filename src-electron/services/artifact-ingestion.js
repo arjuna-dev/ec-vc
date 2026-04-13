@@ -71,12 +71,6 @@ async function ensureSequentialSuffixDestPath(destPath) {
   throw new Error(`Could not find an available filename for: ${destPath}`)
 }
 
-function artifactLinkColumns(entityId) {
-  const normalized = String(entityId || '').trim()
-  if (!normalized) return { round_id: null, fund_id: null }
-  if (normalized.startsWith('fund:')) return { round_id: null, fund_id: normalized }
-  return { round_id: normalized, fund_id: null }
-}
 
 async function extractWithOfficeParser(sourceFilePath) {
   const mod = await import('officeparser')
@@ -303,7 +297,7 @@ export async function ingestArtifactsFromPaths({
   const files = Array.isArray(filePaths) ? filePaths : []
   const openaiApiKey = normalizeApiKey(apiKeys?.openai)
   const geminiApiKey = normalizeApiKey(apiKeys?.gemini)
-  const oppty = String(opportunityId || '').trim() || null
+  void opportunityId
   if (!workspaceRoot) throw new Error('workspaceRoot is required')
   if (files.length === 0) {
     emitStatus?.({
@@ -417,7 +411,6 @@ export async function ingestArtifactsFromPaths({
     try {
       const stat = await fs.stat(rawAbsPath)
       const hash = await sha256FileHex(rawAbsPath)
-      const links = artifactLinkColumns(oppty)
       dbRun(
         `
         INSERT INTO Artifacts (
@@ -430,8 +423,8 @@ export async function ingestArtifactsFromPaths({
       `,
         [
           rawArtifactId,
-          links.round_id,
-          links.fund_id,
+          null,
+          null,
           baseName(originalFileName),
           originalExt.replace('.', '') || null,
         ],
@@ -506,7 +499,6 @@ export async function ingestArtifactsFromPaths({
       try {
         const stat = await fs.stat(llmAbsPath)
         const hash = await sha256FileHex(llmAbsPath)
-        const links = artifactLinkColumns(oppty)
         dbRun(
           `
           INSERT INTO Artifacts (
@@ -517,7 +509,7 @@ export async function ingestArtifactsFromPaths({
             artifact_format
           ) VALUES (?, ?, ?, ?, ?)
         `,
-          [llmArtifactId, links.round_id, links.fund_id, baseName(originalFileName), 'md'],
+          [llmArtifactId, null, null, baseName(originalFileName), 'md'],
         )
         dbRun(
           `
@@ -644,7 +636,6 @@ export async function ingestArtifactsFromPaths({
     try {
       const stat = await fs.stat(llmAbsPath)
       const hash = await sha256FileHex(llmAbsPath)
-      const links = artifactLinkColumns(oppty)
       dbRun(
         `
         INSERT INTO Artifacts (
@@ -655,7 +646,7 @@ export async function ingestArtifactsFromPaths({
           artifact_format
         ) VALUES (?, ?, ?, ?, ?)
       `,
-        [llmArtifactId, links.round_id, links.fund_id, baseName(originalFileName), 'md'],
+        [llmArtifactId, null, null, baseName(originalFileName), 'md'],
       )
       dbRun(
         `
