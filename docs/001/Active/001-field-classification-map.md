@@ -38,13 +38,13 @@ That means this map should help us move toward explicit token behavior such as:
 
 These are the first cases we should normalize before the broader pass.
 
-| File | View Fork | Token | Human Meaning | Field Class | Ownership Mode | Cardinality | Reverse Visibility | Write Path | Editable Where | Notes |
+| File | View | Token | Human Meaning | Field Class | Ownership Mode | Cardinality | Reverse Visibility | Write Path | Editable Where | Notes |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | `Owner_DB` | `System` | `Owner_User` | The node can have only one owner user | `directional_link` | `root_owned` | `one_to_one` | `visible` | `Owner_DB.owner_user_id` | owner/root only | This is authority and bootstrap, not casual LDB |
 | `Users` | `System` | `User_Role` | A user receives a role and permissions | `directional_link` | `root_owned` | `one_to_one` to start | `visible` | `Users_Roles.role_id` | owner / admin side | Treat as permissions path, not loose LDB. |
 | `Contacts` | `LDB` | `Contact_User` | A contact may be the same human as a user | `directional_link` | `root_owned` | `one_to_one` | `visible` | `Contacts.linked_user_id` | owner side only | Already backed directly in the DB |
 | `Users` | `LDB` | `User_Contact` | Reverse-visible identity link from user to contact | `directional_link` | `root_owned` | `one_to_one` | `visible` | reverse of `Contacts.linked_user_id` | follow back to owner side | Should not behave like generic multi-link LDB |
-| `Any L1` | `System` | `*_Creator` | The actor who created the record | `directional_link` | `root_owned` | `one_to_one` | `visible` | creator provenance path | source record only | Loaded but locked in linked views |
+| `Any File` | `System` | `*_Creator` | The actor who created the record | `directional_link` | `root_owned` | `one_to_one` | `visible` | creator provenance path | source record only | Loaded but locked in linked views |
 | `Artifacts` | `LDB` or `System` | `Artifact_Ingestion` | Original artifact points to ingestion/provenance flow | `directional_link` | `relationship_owned` | `one_to_many` | `visible` | ingestion provenance owner path | owner/provenance side | Treat as provenance, not casual LDB |
 | `Ingestion` | `LDB` or `System` | `Ingestion_Created_Files` | Ingestion creates downstream files | `directional_link` | `relationship_owned` | `one_to_many` | `visible` | created-files provenance path | ingestion side | Output lineage should remain explicit |
 
@@ -112,6 +112,6 @@ After the root cases above, the next likely pass should include:
 
 - `Project` parentage / governing company links
 - `Ingestion` provenance links
-- `Creator` paths across more `L1`s
+- `Creator` paths across more files
 - `User` and `Role` permission structure
 - `Artifact_*` and `Note_*` links that may really be directional rather than generic LDB
