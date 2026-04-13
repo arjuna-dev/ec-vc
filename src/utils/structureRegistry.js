@@ -503,10 +503,6 @@ export const WORKSPACE_FILE_NAV_ITEMS = Object.freeze(
 export function getFilePageRegistryEntry(key) {
   const normalizedKey = String(key || '').trim().toLowerCase()
   const aliases = {
-    files: 'file-system',
-    file: 'file-system',
-    'system files': 'file-system',
-    history: 'events',
     intake: 'intake',
   }
   return FILE_PAGE_REGISTRY_BY_KEY[aliases[normalizedKey] || normalizedKey] || null
