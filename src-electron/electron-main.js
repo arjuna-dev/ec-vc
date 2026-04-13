@@ -1946,7 +1946,17 @@ function enforceUniqueTokenNames(structure = null, runtimeEntityName = '') {
     })
   })
 
-  const systemAliases = ['history', 'event log', 'eventlog', 'events', 'feed']
+  const systemAliases = [
+    'history',
+    'history feed',
+    'event feed',
+    'event log',
+    'eventlog',
+    'events',
+    'feed',
+    'activity',
+    'activity log',
+  ]
   const systemRoleTokens = new Set()
   sections.forEach((section) => {
     if (String(section?.label || '').trim().toLowerCase() !== 'system') return
