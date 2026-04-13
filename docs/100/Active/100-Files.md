@@ -5,7 +5,7 @@
 - file name: `Files`
 - file guide: `docs/100/Active/100-Files.md`
 - parent guide: `docs/001/Active/001-Files.md`
-- file class: `L1`
+- file class: `File`
 - canonical entity: `Files`
 - app-facing label: `System Files`
 - canonical owner identity: `Owner`
@@ -36,10 +36,10 @@ The clean rule is:
 | `System Files` | The app-facing surface that exposes and governs the `Files` registry. |
 | `File Guide` | The `.md` guide attached to a file record. System file guides live in `docs/100`. |
 | `File Source Key` | The stable registry key used to connect a file row to the file/page registry. |
-| `File Class` | Whether a file is an `L1`. `View Fork` / `Subgroup` only when internal structure is explicitly tracked in `System Files`. |
+| `File Class` | Whether a file is a file, view, or subgroup. |
 | `File Order` | The display or creation order used by the registry and file shell. |
 | `Ownership Mode` | The ownership model for the file, such as `root_owned`. |
-| `Defined Structure` | The declared view-fork structure for the file. |
+| `Defined Structure` | The declared view structure for the file. |
 
 ## Referenced Documents
 
@@ -118,12 +118,12 @@ The first user-facing question should be:
 
 `Is this a file the user should be able to find, govern, and open?`
 
-If yes, the safe default is `L1`.
+If yes, the safe default is a file.
 
 If no, the user should be guided toward:
 
-- `View Fork` when the concept is a major section inside an existing file
-- `Subgroup` when the concept is a subgroup inside an existing section
+- a view when the concept is a major section inside an existing file
+- a subgroup when the concept is a subgroup inside an existing section
 
 The UI should make the guide lifecycle understandable:
 
@@ -171,7 +171,7 @@ For `Files`, the current checklist is:
 - file guide exists: `yes`, `docs/100/Active/100-Files.md`
 - owner is declared: `yes`, `Owner`
 - steward is declared: `yes`, `File Steward`
-- UX fork questions are declared: `yes`, this guide describes the first `L1 / View Fork / Subgroup` fork
+- UX fork questions are declared: `yes`, this guide describes the first file/view/subgroup fork
 - `System` requirement is declared: `yes`
 - `LDB` requirement is declared: `yes`
 - runtime/sqlite ownership is declared: `yes`, table `Files`
@@ -180,7 +180,7 @@ For `Files`, the current checklist is:
 
 This means `Files` is active and runtime-backed, but still `partially born` until provenance reconstruction is complete.
 
-## View Fork System
+## View Structure
 
 ### System
 
@@ -273,7 +273,7 @@ Working rule:
 - `Hidden` means intentionally not shown in normal workspace navigation
 - `Archived` means historical retention only
 
-For normal visible `L1` files:
+For normal visible files:
 
 - `File_Guide_Path` should exist
 
