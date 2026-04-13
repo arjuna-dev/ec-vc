@@ -1537,6 +1537,9 @@ async function startArtifactProcessing(artifactId) {
     if (!workingArtifactId) {
       throw new Error('Artifact record was not created.')
     }
+    if (!workingArtifactId.startsWith('artifact:')) {
+      throw new Error('Artifact must be ingested before intake start.')
+    }
 
     const opportunityId = resolveArtifactContextOpportunityId()
     const intakeId = await ensureIntakeSession(workingArtifactId)
@@ -1585,7 +1588,9 @@ async function startArtifactProcessing(artifactId) {
 
 async function ensureIntakeSession(originalArtifactId = '') {
   if (intakeSessionId.value) return intakeSessionId.value
-  if (!bridge.value?.intake?.create) return ''
+  if (!bridge.value?.intake?.create) {
+    throw new Error('Intake create bridge is not available.')
+  }
 
   const nameSeed = String(stagedArtifacts.value[0]?.name || '').trim() || 'New Intake'
   const result = await bridge.value.intake.create({
