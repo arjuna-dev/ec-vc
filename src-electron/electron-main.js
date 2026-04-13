@@ -1790,6 +1790,15 @@ function ensureBaseStructureCompleteness(existing = null, base = null) {
       const tokenNameKey = String(baseToken?.tokenName || baseToken?.key || '').trim().toLowerCase()
       if (!tokenNameKey) return
       if (tokenMap.has(tokenNameKey)) return
+      const baseRole = String(baseToken?.tokenRole || '').trim().toLowerCase()
+      const baseLabel = String(baseToken?.label || '').trim().toLowerCase()
+      const hasRoleMatch = baseRole
+        ? existingTokens.some((token) => String(token?.tokenRole || '').trim().toLowerCase() === baseRole)
+        : false
+      const hasLabelMatch = baseLabel
+        ? existingTokens.some((token) => String(token?.label || '').trim().toLowerCase() === baseLabel)
+        : false
+      if (hasRoleMatch || hasLabelMatch) return
       tokenMap.set(tokenNameKey, baseToken)
       mutated = true
     })
