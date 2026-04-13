@@ -1,5 +1,4 @@
 import canonicalStructure from '../shared/canonicalStructure.js'
-import { formatSharedDisplayLabel } from '../shared/labelFormatting.js'
 
 export const DEFAULT_L1_REQUIRED_RUNTIME_CAPABILITIES = Object.freeze(['list', 'create', 'delete'])
 
