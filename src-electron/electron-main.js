@@ -1782,6 +1782,14 @@ function ensureBaseStructureCompleteness(existing = null, base = null) {
     }
 
     const existingSection = normalizedExisting[existingIndex]
+    if (baseLabel.toLowerCase() === 'system') {
+      normalizedExisting[existingIndex] = {
+        ...existingSection,
+        tokens: baseSection.tokens,
+      }
+      if (existingSection.tokens?.length !== baseSection.tokens.length) mutated = true
+      return
+    }
     const existingTokens = Array.isArray(existingSection.tokens) ? existingSection.tokens : []
     const tokenMap = new Map(
       existingTokens.map((token) => [String(token?.tokenName || token?.key || '').trim().toLowerCase(), token]),
