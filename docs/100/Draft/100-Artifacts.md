@@ -5,7 +5,7 @@
 - file name: `Artifacts`
 - file guide: `docs/100/Draft/100-Artifacts.md`
 - parent guide: `docs/001/Active/001-Files.md`
-- file class: `L1`
+- file class: `File`
 - canonical entity: `Artifacts`
 - app-facing label: `Artifacts`
 - canonical owner identity: `Owner`
@@ -78,11 +78,7 @@ The system should preserve artifact creation, source actor, raw-path changes, ve
 - shell rendering path is declared: `yes`, route `/artifacts`
 - events/provenance path is declared: `partial`
 
-## View Fork System
-
-Definition note:
-
-- view forks and subgroups are internal to a file, not separate file rows, unless `System Files` explicitly tracks them as such
+## View Structure
 
 ### System
 
