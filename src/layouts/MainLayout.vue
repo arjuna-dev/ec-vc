@@ -154,6 +154,28 @@
     </q-page-container>
 
     <div
+      v-if="pendingAddEditRequest || pendingIntakeRequest"
+      class="ec-resume-chips"
+    >
+      <q-chip
+        v-if="pendingAddEditRequest"
+        clickable
+        class="ec-resume-chip"
+        icon="edit"
+        label="Resume Draft"
+        @click="resumePendingAddEdit"
+      />
+      <q-chip
+        v-if="pendingIntakeRequest"
+        clickable
+        class="ec-resume-chip ec-resume-chip--intake"
+        icon="hourglass_top"
+        label="Resume Intake"
+        @click="resumePendingIntake"
+      />
+    </div>
+
+    <div
       v-if="intakeDraftCount > 0 && !draftTrayDismissed"
       class="ec-intake-drafts"
     >
@@ -381,7 +403,8 @@ import {
   resolveIntakeReviewItem,
   useIntakeReviewQueueState,
 } from 'src/utils/intakeReviewQueueState'
-import { setPendingAddEditShellRequest } from 'src/utils/addEditShellState'
+import { getPendingAddEditShellRequest, setPendingAddEditShellRequest } from 'src/utils/addEditShellState'
+import { getPendingIntakeShellRequest } from 'src/utils/intakeShellState'
 
 const leftDrawerOpen = ref(false)
 const quickActionsOpen = ref(false)
@@ -506,6 +529,8 @@ const intakeDraftCount = computed(() => intakeDraftState.draftOrder.length)
 const intakeDrafts = computed(() =>
   intakeDraftState.draftOrder.map((draftId) => intakeDraftState.drafts[draftId]).filter(Boolean),
 )
+const pendingAddEditRequest = computed(() => getPendingAddEditShellRequest())
+const pendingIntakeRequest = computed(() => getPendingIntakeShellRequest())
 const activeIntakeQueueItem = computed(() => {
   const activeId = String(intakeReviewQueueState.activeItemId || '').trim()
   return intakeReviewQueueState.items.find((item) => String(item?.id || '').trim() === activeId) || null
@@ -1138,6 +1163,31 @@ function resumeDraft(draftId) {
     setTimeout(() => {
       globalThis?.dispatchEvent?.(new Event(eventName))
     }, 80)
+  })
+}
+
+function resumePendingAddEdit() {
+  const pending = pendingAddEditRequest.value
+  const sourceKey = String(pending?.sourceKey || '').trim()
+  if (!sourceKey) return
+  router.push({
+    name: 'dialog-shell',
+    query: {
+      section: sourceKey,
+      create: '1',
+      open: String(Date.now()),
+    },
+  })
+}
+
+function resumePendingIntake() {
+  if (!pendingIntakeRequest.value) return
+  router.push({
+    name: 'intake-shell',
+    query: {
+      create: '1',
+      open: String(Date.now()),
+    },
   })
 }
 
@@ -2181,6 +2231,30 @@ function goBack() {
   color: rgba(255, 255, 255, 0.68);
   font-size: 9px;
   line-height: 1.2;
+}
+
+.ec-resume-chips {
+  position: fixed;
+  right: 18px;
+  bottom: 150px;
+  z-index: 4001;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ec-resume-chip {
+  background: rgba(255, 255, 255, 0.96);
+  color: rgba(20, 27, 40, 0.92);
+  border: 1px solid rgba(20, 27, 40, 0.12);
+  box-shadow: var(--ds-shadow-floating-label);
+  font-weight: 600;
+}
+
+.ec-resume-chip--intake {
+  background: rgba(214, 236, 255, 0.98);
+  border-color: rgba(64, 121, 210, 0.24);
+  color: rgba(24, 72, 144, 0.96);
 }
 
 .ec-quick-widget-settings-panel__list {

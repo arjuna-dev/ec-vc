@@ -23,6 +23,10 @@ export function setPendingIntakeShellRequest(request = null) {
     : null
 }
 
+export function getPendingIntakeShellRequest() {
+  return pendingIntakeShellRequest.value
+}
+
 export function consumePendingIntakeShellRequest() {
   const pending = pendingIntakeShellRequest.value
   pendingIntakeShellRequest.value = null

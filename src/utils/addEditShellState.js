@@ -19,6 +19,10 @@ export function setPendingAddEditShellRequest(request = null) {
     : null
 }
 
+export function getPendingAddEditShellRequest() {
+  return pendingAddEditShellRequest.value
+}
+
 export function consumePendingAddEditShellRequest(sourceKey = '') {
   const pending = pendingAddEditShellRequest.value
   const normalizedSourceKey = String(sourceKey || '').trim().toLowerCase()
