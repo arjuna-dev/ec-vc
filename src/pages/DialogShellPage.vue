@@ -431,10 +431,16 @@ function buildCreateDialogInitialValues(pending = null) {
   }
 
   if (canonicalNameToken.value?.key && !String(nextInitialValues[canonicalNameToken.value.key] || '').trim()) {
-    const sourceLabel = String(activeRegistryEntry.value?.singularLabel || activeRegistryEntry.value?.label || 'Record').trim()
-    const nameSeed = requestedBranch
-      ? `New ${requestedBranch.charAt(0).toUpperCase() + requestedBranch.slice(1)} ${sourceLabel}`
-      : `New ${sourceLabel}`
+    const targetSourceKey = branchEntry?.targetSourceKey || activeSourceKey.value
+    const targetEntry = getFilePageRegistryEntry(targetSourceKey) || activeRegistryEntry.value
+    const sourceLabel = String(targetEntry?.singularLabel || targetEntry?.label || 'Record').trim()
+    const branchLabel = requestedBranch
+      ? `${requestedBranch.charAt(0).toUpperCase() + requestedBranch.slice(1)} `
+      : ''
+    const liveRows = Array.isArray(liveOptionRowsBySource.value[targetSourceKey])
+      ? liveOptionRowsBySource.value[targetSourceKey]
+      : []
+    const nameSeed = `New ${branchLabel}${sourceLabel} #${liveRows.length + 1}`
     nextInitialValues[canonicalNameToken.value.key] = nameSeed
   }
 
