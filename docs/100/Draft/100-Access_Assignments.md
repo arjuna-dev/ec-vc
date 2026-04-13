@@ -53,7 +53,7 @@ That means:
 - `docs/020/Active/020_UX_Steward.md`
 - `docs/020/Active/020_Provenance_Steward.md`
 - `docs/020/Active/020_Runtime_Steward.md`
-- `docs/010/Active/Game_Rulebook.md`
+- `docs/010/Active/Games.md`
 - `docs/000-canonical-structure.json`
 
 ## Operating Rules

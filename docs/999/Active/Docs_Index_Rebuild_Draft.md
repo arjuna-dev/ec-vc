@@ -59,8 +59,6 @@ Proposed current files:
 - `docs/000/Recipe.md`
 - `docs/000/Translators.md`
 - `docs/000/Games.md`
-- `docs/000/Game_Operation.md`
-- `docs/000/Game_Rulebook.md`
 - `docs/000/Archive/*`
 
 Role of this layer:
