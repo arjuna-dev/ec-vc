@@ -7,7 +7,6 @@
         <col class="structure-governance-panel__col structure-governance-panel__col--label">
         <col class="structure-governance-panel__col structure-governance-panel__col--side">
         <col class="structure-governance-panel__col structure-governance-panel__col--count">
-        <col class="structure-governance-panel__col structure-governance-panel__col--count">
       </colgroup>
       <thead>
         <tr>
@@ -16,7 +15,7 @@
           <th>View</th>
           <th>Side</th>
           <th>Tokens</th>
-          <th>Views</th>
+          <th>Tokens</th>
         </tr>
       </thead>
       <tbody>
@@ -34,10 +33,9 @@
           <td class="structure-governance-panel__cell--label">{{ view.label }}</td>
           <td class="structure-governance-panel__cell--data">{{ view.side }}</td>
           <td class="structure-governance-panel__cell--data">{{ view.tokenCount }}</td>
-          <td class="structure-governance-panel__cell--data">{{ view.subgroupCount }}</td>
         </tr>
         <tr v-if="!viewRows.length">
-          <td colspan="6" class="structure-governance-panel__empty">{{ emptyViewsLabel }}</td>
+          <td colspan="5" class="structure-governance-panel__empty">{{ emptyViewsLabel }}</td>
         </tr>
       </tbody>
     </table>

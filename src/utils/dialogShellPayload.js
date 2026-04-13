@@ -19,7 +19,7 @@ export function groupDialogViews(views = []) {
     }
     groups.push({
       value,
-      title: String(view?.subgroupLabel || view?.displayGroup || view?.label || '').trim(),
+      title: String(view?.displayGroup || view?.label || '').trim(),
       views: [view],
     })
   }
