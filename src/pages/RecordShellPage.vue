@@ -295,208 +295,6 @@
           </div>
         </div>
 
-        <div v-else-if="hasGroupedViewSubgroups" class="record-shell__section-group-stack">
-          <section
-            v-for="group in activeViewTokenGroups"
-            :key="group.key"
-            class="record-shell__section-group"
-          >
-            <button
-              type="button"
-              class="record-shell__section-group-toggle"
-              @click="toggleViewSubgroup(group.key)"
-            >
-              <q-icon
-                :name="isViewSubgroupExpanded(group.key) ? 'expand_more' : 'chevron_right'"
-                size="14px"
-                class="record-shell__section-group-toggle-icon"
-              />
-              <span class="record-shell__section-group-title">{{ group.title }}</span>
-              <span class="record-shell__section-group-meta">{{ group.tokens.length }} fields</span>
-            </button>
-            <div v-if="isViewSubgroupExpanded(group.key)" class="record-shell__field-grid">
-              <div v-for="token in group.tokens" :key="token.key" class="record-shell__field-card">
-                <div class="record-shell__field-label-row">
-                  <div class="record-shell__field-label">{{ token.label }}</div>
-                  <q-btn
-                    flat
-                    dense
-                    round
-                    size="sm"
-                    icon="tune"
-                    class="record-shell__field-meta-button"
-                    aria-label="Edit token metadata"
-                    @click.stop="openTokenMetaEditor(token)"
-                  >
-                    <q-menu
-                      :model-value="activeTokenMetaKey === token.key"
-                      anchor="bottom right"
-                      self="top right"
-                      @update:model-value="(value) => { if (!value) closeTokenMetaEditor() }"
-                    >
-                      <div class="record-shell__token-meta-menu">
-                        <div class="record-shell__token-meta-title">Token Meta</div>
-                        <q-select
-                          dense
-                          outlined
-                          emit-value
-                          map-options
-                          label="Token Type"
-                          :options="TOKEN_TYPE_OPTIONS"
-                          :model-value="getTokenMetaDraftValue(token, 'tokenType')"
-                          @update:model-value="updateTokenMetaDraftValue(token, 'tokenType', $event)"
-                        />
-                        <q-select
-                          dense
-                          outlined
-                          emit-value
-                          map-options
-                          label="Option Source"
-                          :options="OPTION_SOURCE_OPTIONS"
-                          :model-value="getTokenMetaDraftValue(token, 'optionSource')"
-                          @update:model-value="updateTokenMetaDraftValue(token, 'optionSource', $event)"
-                        />
-                        <q-input
-                          v-if="tokenMetaUsesOptionList(token)"
-                          dense
-                          outlined
-                          label="Option List"
-                          :model-value="getTokenMetaDraftValue(token, 'optionList')"
-                          @update:model-value="updateTokenMetaDraftValue(token, 'optionList', $event)"
-                        />
-                        <q-input
-                          v-else
-                          dense
-                          outlined
-                          label="Option Entity"
-                          :model-value="getTokenMetaDraftValue(token, 'optionEntity')"
-                          @update:model-value="updateTokenMetaDraftValue(token, 'optionEntity', $event)"
-                        />
-                        <q-input
-                          dense
-                          outlined
-                          label="Write Field"
-                          :model-value="getTokenMetaDraftValue(token, 'dbWriteField')"
-                          @update:model-value="updateTokenMetaDraftValue(token, 'dbWriteField', $event)"
-                        />
-                        <q-select
-                          dense
-                          outlined
-                          emit-value
-                          map-options
-                          label="Field Class"
-                          :options="FIELD_CLASS_OPTIONS"
-                          :model-value="getTokenMetaDraftValue(token, 'fieldClass')"
-                          @update:model-value="updateTokenMetaDraftValue(token, 'fieldClass', $event)"
-                        />
-                        <div class="record-shell__token-meta-actions">
-                          <q-btn flat dense no-caps label="Reset" @click="resetTokenMeta(token)" />
-                          <q-btn flat dense no-caps label="Save" @click="commitTokenMeta(token)" />
-                        </div>
-                      </div>
-                    </q-menu>
-                  </q-btn>
-                </div>
-                <div v-if="isRecordRoute" class="record-shell__field-value-row">
-                  <div
-                    v-if="isSystemReadOnlyInline(token)"
-                    class="record-shell__field-static-box"
-                  >
-                    {{ getTokenDisplayValue(token) }}
-                  </div>
-                  <q-select
-                    v-else-if="token.tokenType === 'select_multi'"
-                    :model-value="inlineMultiValue(token)"
-                    dense
-                    outlined
-                    use-chips
-                    multiple
-                    emit-value
-                    map-options
-                    :options="token.inputOptions || []"
-                    :disable="loading || !isInlineFieldEditable(token)"
-                    class="record-shell__field-input"
-                    @update:model-value="updateInlineFieldValue(token, $event)"
-                    @blur="commitInlineFieldValue(token)"
-                  />
-                  <q-select
-                    v-else-if="token.tokenType === 'select_single'"
-                    :model-value="inlineSingleValue(token)"
-                    dense
-                    outlined
-                    use-chips
-                    emit-value
-                    map-options
-                    :options="token.inputOptions || []"
-                    :disable="loading || !isInlineFieldEditable(token)"
-                    class="record-shell__field-input"
-                    @update:model-value="commitInlineFieldValue(token, $event)"
-                  />
-                  <q-input
-                    v-else
-                    :model-value="inlineStringValue(token)"
-                    dense
-                    outlined
-                    :disable="loading || !isInlineFieldEditable(token)"
-                    :type="inlineInputType(token)"
-                    class="record-shell__field-input"
-                    @update:model-value="updateInlineFieldValue(token, $event)"
-                    @blur="commitInlineFieldValue(token)"
-                    @keydown.enter.stop.prevent="commitInlineFieldValue(token)"
-                  />
-                  <q-btn
-                    v-if="showInlineFieldVerificationAction(token)"
-                    flat
-                    dense
-                    size="sm"
-                    :disable="loading"
-                    class="record-shell__field-action"
-                  >
-                    <q-icon
-                      :name="inlineFieldVerificationIcon(token)"
-                      :class="inlineFieldVerificationIconClass(token)"
-                      :style="inlineFieldVerificationIconStyle(token)"
-                      size="14px"
-                    />
-                    <q-menu anchor="bottom right" self="top left">
-                      <q-list dense class="record-shell__verification-menu">
-                        <q-item
-                          v-for="option in fieldVerificationActionOptions"
-                          :key="option.value"
-                          clickable
-                          v-close-popup
-                          class="record-shell__verification-menu-item"
-                          @click="updateInlineFieldVerificationState(token, option.value)"
-                        >
-                          <q-item-section avatar>
-                            <q-icon :name="option.icon" :style="{ color: option.color }" size="14px" />
-                          </q-item-section>
-                          <q-item-section>
-                            <q-item-label class="record-shell__verification-menu-label">{{ option.label }}</q-item-label>
-                          </q-item-section>
-                        </q-item>
-                      </q-list>
-                    </q-menu>
-                  </q-btn>
-                  <q-btn
-                    v-if="showInlineFieldCopyAction(token)"
-                    flat
-                    dense
-                    size="sm"
-                    :disable="loading"
-                    class="record-shell__field-action"
-                    aria-label="Copy field value"
-                    @click="copyInlineFieldValue(token)"
-                  >
-                    <q-icon name="content_copy" size="14px" />
-                  </q-btn>
-                </div>
-                <div v-else class="record-shell__field-value">{{ getTokenDisplayValue(token) }}</div>
-              </div>
-            </div>
-          </section>
-        </div>
-
         <div v-else class="record-shell__field-grid">
           <div
             v-for="token in activeViewTokens"
@@ -754,7 +552,6 @@ const createDialogLoading = ref(false)
 const liveOptionRowsBySource = ref({})
 const expandedViewKeys = ref([])
 const expandedHeroGroupKeys = ref([])
-const expandedViewSubgroupKeys = ref([])
 const activeViewGroupKey = ref('')
 const contactHeroRef = ref(null)
 const contactHeroGradient = ref({ x: 50, y: 30, size: 60, opacity: 0 })
@@ -1153,16 +950,6 @@ const isLdbViewActive = computed(() =>
 )
 const isSystemViewActive = computed(() => activeViewEntries.value.some((view) => String(view.label || '').trim().toLowerCase() === 'system'))
 const systemViewTokens = computed(() => activeViewTokens.value.filter((token) => !isHistoryDerivedSystemToken(token)))
-const hasGroupedViewSubgroups = computed(() => !isLdbViewActive.value && activeViewEntries.value.length > 1)
-const activeViewTokenGroups = computed(() =>
-  activeViewEntries.value
-    .map((view) => ({
-      key: view.key,
-      title: view.label,
-      tokens: viewDisplayTokens.value.filter((token) => token.parentKey === view.key),
-    }))
-    .filter((group) => group.tokens.length),
-)
 const toolbarLeftViews = computed(() =>
   groupedViews.value.filter(
     (group) => !group.views.some((view) => isRelationshipViewLabel(view.label) || String(view.label || '').trim().toLowerCase() === 'system'),
@@ -1324,7 +1111,6 @@ watch(fileViews, (sections) => {
   if (!sections.length) {
     activeViewGroupKey.value = ''
     expandedViewKeys.value = []
-    expandedViewSubgroupKeys.value = []
     return
   }
   const groups = groupedViews.value
@@ -1337,14 +1123,6 @@ watch(heroSourceGroups, (groups) => {
   expandedHeroGroupKeys.value = nextKeys.filter((key) => expandedHeroGroupKeys.value.includes(key))
   if (!expandedHeroGroupKeys.value.length && nextKeys.length) {
     expandedHeroGroupKeys.value = [...nextKeys]
-  }
-}, { immediate: true })
-
-watch(activeViewTokenGroups, (groups) => {
-  const nextKeys = groups.map((group) => group.key)
-  expandedViewSubgroupKeys.value = nextKeys.filter((key) => expandedViewSubgroupKeys.value.includes(key))
-  if (!expandedViewSubgroupKeys.value.length && nextKeys.length) {
-    expandedViewSubgroupKeys.value = [...nextKeys]
   }
 }, { immediate: true })
 
@@ -1454,16 +1232,10 @@ onMounted(() => {
 })
 
 function isHeroGroupExpanded(groupKey) { return expandedHeroGroupKeys.value.includes(groupKey) }
-function isViewSubgroupExpanded(groupKey) { return expandedViewSubgroupKeys.value.includes(groupKey) }
 function toggleHeroGroup(groupKey) {
   expandedHeroGroupKeys.value = isHeroGroupExpanded(groupKey)
     ? expandedHeroGroupKeys.value.filter((key) => key !== groupKey)
     : [...expandedHeroGroupKeys.value, groupKey]
-}
-function toggleViewSubgroup(groupKey) {
-  expandedViewSubgroupKeys.value = isViewSubgroupExpanded(groupKey)
-    ? expandedViewSubgroupKeys.value.filter((key) => key !== groupKey)
-    : [...expandedViewSubgroupKeys.value, groupKey]
 }
 function getViewTokens(viewKey) { return selectableTokens.value.filter((token) => token.parentKey === viewKey) }
 function isSelectedToken(tokenKey) { return selectedTokenKeySet.value.has(tokenKey) }
