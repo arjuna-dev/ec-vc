@@ -1,12 +1,18 @@
 <template>
-  <div class="building-block-tile-header">
+  <div
+    class="building-block-tile-header"
+    :data-debug-name="title ? `BB Title Header: ${title}` : 'BB Title Header'"
+  >
     <div v-if="$slots.leading" class="building-block-tile-header__leading">
       <slot name="leading" />
     </div>
 
     <div class="building-block-tile-header__main">
       <div class="building-block-tile-header__label-row">
-        <div class="building-block-tile-header__label">{{ title }}</div>
+        <div
+          class="building-block-tile-header__label"
+          :data-debug-name="title ? `BB Title Label: ${title}` : 'BB Title Label'"
+        >{{ title }}</div>
         <div v-if="graphLabel" class="building-block-tile-header__graph">{{ graphLabel }}</div>
         <div v-if="shellsLabel" class="building-block-tile-header__shells">{{ shellsLabel }}</div>
         <button

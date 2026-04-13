@@ -41,6 +41,23 @@
               </q-btn>
             </template>
           </div>
+          <div class="ec-shell-toolbar-devtools">
+            <q-btn
+              dense
+              flat
+              round
+              icon="bug_report"
+              class="ec-shell-debug-toggle"
+              :class="{ 'ec-shell-debug-toggle--active': developerHoverMode }"
+              :aria-pressed="developerHoverMode ? 'true' : 'false'"
+              :aria-label="developerHoverMode ? 'Turn off developer hover mode' : 'Turn on developer hover mode'"
+              @click="toggleDeveloperHoverMode"
+            >
+              <q-tooltip>
+                {{ developerHoverMode ? 'Developer hover mode on' : 'Developer hover mode off' }}
+              </q-tooltip>
+            </q-btn>
+          </div>
           <div class="ec-shell-brand-box">
             <B10Logo size="header" />
           </div>
@@ -152,6 +169,14 @@
     <q-page-container>
       <router-view />
     </q-page-container>
+
+    <div
+      v-if="developerHoverMode && developerHoverLabel"
+      class="ec-shell-debug-hover"
+      :style="developerHoverStyle"
+    >
+      {{ developerHoverLabel }}
+    </div>
 
     <div class="ec-quick-widget" :style="quickWidgetStyle">
       <div
@@ -363,6 +388,7 @@ const QUICK_WIDGET_ACTION_HOVER_SCALE = 1.08
 const QUICK_WIDGET_MARGIN = 16
 const QUICK_WIDGET_POSITION_STORAGE_KEY = 'ecvc.quickWidgetPosition'
 const QUICK_WIDGET_ACTION_SETTINGS_STORAGE_KEY = 'ecvc.quickWidgetActionSettings'
+const DEV_HOVER_MODE_STORAGE_KEY = 'ecvc.devHoverMode'
 const DEFAULT_QUICK_WIDGET_ACTION_ORDER = [
   'users',
   'artifact',
@@ -442,6 +468,9 @@ const bridge = computed(() => (typeof window !== 'undefined' ? window.ecvc : nul
 const intakeDraftState = useIntakeDraftState()
 const intakeReviewQueueState = useIntakeReviewQueueState()
 const breadcrumbActionsState = useBreadcrumbActionsState()
+const developerHoverMode = ref(false)
+const developerHoverLabel = ref('')
+const developerHoverPosition = ref({ x: 0, y: 0 })
 let quickWidgetIconAnimation = null
 let quickWidgetDragState = null
 let quickWidgetSettingsDragState = null
@@ -551,6 +580,10 @@ const toolbarActions = computed(() => {
 
   return []
 })
+const developerHoverStyle = computed(() => ({
+  left: `${developerHoverPosition.value.x}px`,
+  top: `${developerHoverPosition.value.y}px`,
+}))
 const isSelectableShellRoute = computed(() => ['test-shell', 'record-shell'].includes(String(route.name || '')))
 const isDialogShellRoute = computed(() => String(route.name || '') === 'dialog-shell')
 const isForkShellRoute = computed(() => String(route.name || '') === 'fork-shell')
@@ -1539,6 +1572,7 @@ onMounted(() => {
   window.addEventListener('resize', onQuickWidgetResize)
   void loadRuntimeFileStructures()
   syncUserNavState()
+  loadDeveloperHoverMode()
   loadQuickWidgetActionSettings()
   loadQuickWidgetPosition()
   playQuickWidgetIdle()
@@ -1572,6 +1606,7 @@ onBeforeUnmount(() => {
   quickWidgetDragState = null
   quickWidgetSettingsDragState = null
   clearIntakeQueueNextTimer()
+  stopDeveloperHoverMode()
 })
 
 watch(
@@ -1650,6 +1685,119 @@ function goBack() {
   router.push({ name: 'home' })
 }
 
+function toggleDeveloperHoverMode() {
+  developerHoverMode.value = !developerHoverMode.value
+}
+
+function loadDeveloperHoverMode() {
+  if (typeof window === 'undefined') return
+  try {
+    developerHoverMode.value = window.localStorage?.getItem(DEV_HOVER_MODE_STORAGE_KEY) === '1'
+  } catch {
+    developerHoverMode.value = false
+  }
+}
+
+function persistDeveloperHoverMode() {
+  if (typeof window === 'undefined') return
+  try {
+    window.localStorage?.setItem(DEV_HOVER_MODE_STORAGE_KEY, developerHoverMode.value ? '1' : '0')
+  } catch {
+    // Ignore localStorage write failures for debug-only state.
+  }
+}
+
+function clearDeveloperHoverLabel() {
+  developerHoverLabel.value = ''
+}
+
+function normalizeDebugText(value = '') {
+  return String(value || '')
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
+function shortenDebugLabel(value = '') {
+  const normalized = normalizeDebugText(value)
+  if (normalized.length <= 48) return normalized
+  return `${normalized.slice(0, 45).trim()}...`
+}
+
+function extractDebugLabelFromElement(element) {
+  if (!(element instanceof HTMLElement)) return ''
+  const explicitName = normalizeDebugText(element.dataset?.debugName)
+  if (explicitName) return explicitName
+
+  const ariaLabel = normalizeDebugText(element.getAttribute('aria-label'))
+  if (ariaLabel) return ariaLabel
+
+  const title = normalizeDebugText(element.getAttribute('title'))
+  if (title) return title
+
+  const placeholder = normalizeDebugText(element.getAttribute('placeholder'))
+  if (placeholder) return placeholder
+
+  const visibleText = shortenDebugLabel(element.innerText || element.textContent || '')
+  if (visibleText) return visibleText
+
+  return ''
+}
+
+function resolveDeveloperHoverLabel(target) {
+  if (!(target instanceof HTMLElement)) return ''
+  if (target.closest('.ec-shell-debug-hover')) return ''
+
+  const preferredSelectors = [
+    '[data-debug-name]',
+    '[aria-label]',
+    '[title]',
+    'button',
+    'a',
+    'label',
+    '.q-btn',
+    '.q-item',
+    '.q-tab',
+    'input',
+    'textarea',
+    '[role="button"]',
+  ]
+
+  for (const selector of preferredSelectors) {
+    const match = target.closest(selector)
+    const label = extractDebugLabelFromElement(match)
+    if (label) return label
+  }
+
+  return extractDebugLabelFromElement(target)
+}
+
+function handleDeveloperHoverMove(event) {
+  developerHoverPosition.value = {
+    x: Number(event?.clientX || 0) + 14,
+    y: Number(event?.clientY || 0) + 18,
+  }
+  developerHoverLabel.value = resolveDeveloperHoverLabel(event?.target)
+}
+
+function startDeveloperHoverMode() {
+  if (typeof window === 'undefined') return
+  window.addEventListener('pointermove', handleDeveloperHoverMove, true)
+  window.addEventListener('blur', clearDeveloperHoverLabel)
+}
+
+function stopDeveloperHoverMode() {
+  if (typeof window === 'undefined') return
+  window.removeEventListener('pointermove', handleDeveloperHoverMove, true)
+  window.removeEventListener('blur', clearDeveloperHoverLabel)
+  clearDeveloperHoverLabel()
+}
+
+watch(developerHoverMode, () => {
+  persistDeveloperHoverMode()
+  if (developerHoverMode.value) startDeveloperHoverMode()
+  else stopDeveloperHoverMode()
+})
+
 </script>
 
 <style scoped>
@@ -1722,6 +1870,32 @@ function goBack() {
   gap: var(--ds-space-8);
 }
 
+.ec-shell-toolbar-devtools {
+  display: flex;
+  align-items: flex-end;
+}
+
+.ec-shell-debug-toggle {
+  align-self: flex-end;
+  color: #111111;
+  background: #ffffff !important;
+  border: 1px solid rgba(17, 17, 17, 0.9);
+}
+
+.ec-shell-debug-toggle :deep(.q-icon) {
+  color: #111111;
+}
+
+.ec-shell-debug-toggle--active {
+  color: #111111;
+  background: #d92d20 !important;
+  border-color: #111111;
+}
+
+.ec-shell-debug-toggle--active :deep(.q-icon) {
+  color: #111111;
+}
+
 .ec-shell-toolbar-status {
   color: var(--ds-color-text-navigation);
   font-size: var(--ds-font-size-sm);
@@ -1753,6 +1927,24 @@ function goBack() {
   gap: 12px;
   margin-left: auto;
   min-width: 0;
+}
+
+.ec-shell-debug-hover {
+  position: fixed;
+  z-index: 5000;
+  max-width: min(320px, calc(100vw - 24px));
+  padding: 6px 10px;
+  color: #111111;
+  background: rgba(255, 255, 255, 0.97);
+  border: 1px solid rgba(17, 17, 17, 0.88);
+  border-radius: 8px;
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.2);
+  font-family: var(--font-title);
+  font-size: 0.72rem;
+  font-weight: var(--font-weight-black);
+  line-height: 1;
+  letter-spacing: 0.01em;
+  pointer-events: none;
 }
 
 .ec-shell-toolbar-center {
