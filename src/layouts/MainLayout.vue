@@ -154,7 +154,72 @@
     </q-page-container>
 
     <div
-      v-if="pendingAddEditRequest || pendingIntakeRequest"
+      v-if="draftTrayVisible"
+      class="ec-draft-tray"
+      :class="{ 'ec-draft-tray--minimized': draftTrayMinimized }"
+    >
+      <div class="ec-draft-tray__header">
+        <div class="ec-draft-tray__title">
+          Drafts
+          <span class="ec-draft-tray__count">{{ draftEntries.length + (pendingIntakeRequest ? 1 : 0) }}</span>
+        </div>
+        <div class="ec-draft-tray__actions">
+          <q-btn
+            flat
+            dense
+            round
+            :icon="draftTrayMinimized ? 'expand_less' : 'expand_more'"
+            aria-label="Toggle drafts"
+            @click="toggleDraftTray"
+          />
+          <q-btn
+            flat
+            dense
+            round
+            icon="close"
+            aria-label="Close drafts"
+            @click="closeDraftTray"
+          />
+        </div>
+      </div>
+      <div v-if="!draftTrayMinimized" class="ec-draft-tray__body">
+        <q-list dense class="ec-draft-tray__list">
+          <q-item
+            v-if="pendingIntakeRequest"
+            clickable
+            class="ec-draft-tray__item ec-draft-tray__item--intake"
+            @click="openIntakeDraftFromTray"
+          >
+            <q-item-section avatar>
+              <q-icon name="hourglass_top" />
+            </q-item-section>
+            <q-item-section>
+              <q-item-label>Intake Draft</q-item-label>
+              <q-item-label caption>Resume the active intake flow.</q-item-label>
+            </q-item-section>
+          </q-item>
+
+          <q-item
+            v-for="draft in draftEntries"
+            :key="`tray-${draft.sourceKey}:${draft.id}`"
+            clickable
+            class="ec-draft-tray__item"
+            @click="openDraftEntry(draft)"
+          >
+            <q-item-section avatar>
+              <q-icon name="description" />
+            </q-item-section>
+            <q-item-section>
+              <q-item-label>{{ draft.label }}</q-item-label>
+              <q-item-label caption>{{ draft.sourceLabel }}</q-item-label>
+            </q-item-section>
+          </q-item>
+        </q-list>
+      </div>
+    </div>
+
+    <div
+      v-if="pendingAddEditRequest || pendingIntakeRequest || draftEntries.length"
       class="ec-resume-chips"
     >
       <q-chip
@@ -173,7 +238,61 @@
         label="Resume Intake"
         @click="resumePendingIntake"
       />
+      <q-chip
+        v-if="draftEntries.length || pendingIntakeRequest"
+        clickable
+        class="ec-resume-chip ec-resume-chip--drafts"
+        icon="view_list"
+        label="Drafts"
+        @click="draftsDialogOpen = true"
+      />
     </div>
+
+    <q-dialog v-model="draftsDialogOpen">
+      <q-card class="ec-drafts-dialog">
+        <q-card-section class="ec-drafts-dialog__head">
+          <div class="ec-drafts-dialog__title">Active Drafts</div>
+          <div class="ec-drafts-dialog__subtitle">Jump between drafts across files.</div>
+        </q-card-section>
+        <q-card-section class="ec-drafts-dialog__body">
+          <q-list dense class="ec-drafts-dialog__list">
+            <q-item
+              v-if="pendingIntakeRequest"
+              clickable
+              class="ec-drafts-dialog__item ec-drafts-dialog__item--intake"
+              @click="openIntakeDraftFromTray"
+            >
+              <q-item-section avatar>
+                <q-icon name="hourglass_top" />
+              </q-item-section>
+              <q-item-section>
+                <q-item-label>Intake Draft</q-item-label>
+                <q-item-label caption>Resume the active intake flow.</q-item-label>
+              </q-item-section>
+            </q-item>
+
+            <q-item
+              v-for="draft in draftEntries"
+              :key="`${draft.sourceKey}:${draft.id}`"
+              clickable
+              class="ec-drafts-dialog__item"
+              @click="openDraftEntry(draft)"
+            >
+              <q-item-section avatar>
+                <q-icon name="description" />
+              </q-item-section>
+              <q-item-section>
+                <q-item-label>{{ draft.label }}</q-item-label>
+                <q-item-label caption>{{ draft.sourceLabel }}</q-item-label>
+              </q-item-section>
+            </q-item>
+          </q-list>
+        </q-card-section>
+        <q-card-actions align="right">
+          <q-btn flat no-caps label="Close" @click="draftsDialogOpen = false" />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
 
     <div
       v-if="intakeDraftCount > 0 && !draftTrayDismissed"
@@ -393,9 +512,11 @@ import {
   getCreateBranchEntry,
   getCreateBranches,
   getFilePageRegistryEntry,
+  getRegistryTitleTokenForSource,
+  getCanonicalTokenValue,
   setRuntimeFileStructures,
   TEST_SHELL_SECTION_OPTIONS,
-    WORKSPACE_FILE_NAV_ITEMS,
+  WORKSPACE_FILE_NAV_ITEMS,
   } from 'src/utils/structureRegistry'
 import {
   activateNextIntakeReviewItem,
@@ -405,6 +526,7 @@ import {
 } from 'src/utils/intakeReviewQueueState'
 import { getPendingAddEditShellRequest, setPendingAddEditShellRequest } from 'src/utils/addEditShellState'
 import { getPendingIntakeShellRequest } from 'src/utils/intakeShellState'
+import { getDraftRegistryEntries } from 'src/utils/draftRegistry'
 
 const leftDrawerOpen = ref(false)
 const quickActionsOpen = ref(false)
@@ -424,6 +546,8 @@ const quickWidgetSettingsSectionOpen = ref({
   'local-dbs': true,
 })
 const draftTrayDismissed = ref(false)
+const draftTrayMinimized = ref(false)
+const draftsDialogOpen = ref(false)
 const intakeQueueDialogOpen = ref(false)
 const intakeQueueFieldEdits = ref({})
 const ownerSetupRequired = ref(false)
@@ -531,6 +655,27 @@ const intakeDrafts = computed(() =>
 )
 const pendingAddEditRequest = computed(() => getPendingAddEditShellRequest())
 const pendingIntakeRequest = computed(() => getPendingIntakeShellRequest())
+const draftTrayVisible = computed(() => Boolean(draftEntries.value.length || pendingIntakeRequest.value))
+const draftEntries = computed(() => {
+  const entries = getDraftRegistryEntries()
+  return entries
+    .map((entry) => {
+      const sourceKey = String(entry?.sourceKey || '').trim().toLowerCase()
+      const registryEntry = getFilePageRegistryEntry(sourceKey)
+      const titleToken = getRegistryTitleTokenForSource(sourceKey)
+      const rawValue = titleToken ? getCanonicalTokenValue(entry?.values || {}, titleToken) : null
+      const label = rawValue != null && String(rawValue).trim()
+        ? String(rawValue).trim()
+        : 'Untitled draft'
+      return {
+        ...entry,
+        sourceKey,
+        sourceLabel: String(registryEntry?.label || sourceKey || '').trim(),
+        label,
+      }
+    })
+    .filter((entry) => entry.sourceKey)
+})
 const activeIntakeQueueItem = computed(() => {
   const activeId = String(intakeReviewQueueState.activeItemId || '').trim()
   return intakeReviewQueueState.items.find((item) => String(item?.id || '').trim() === activeId) || null
@@ -1191,6 +1336,47 @@ function resumePendingIntake() {
   })
 }
 
+function openIntakeDraftFromTray() {
+  draftsDialogOpen.value = false
+  draftTrayMinimized.value = false
+  resumePendingIntake()
+}
+
+function openDraftEntry(draft) {
+  const sourceKey = String(draft?.sourceKey || '').trim().toLowerCase()
+  if (!sourceKey) return
+  const values = draft?.values && typeof draft.values === 'object' ? { ...draft.values } : {}
+  setPendingAddEditShellRequest({
+    sourceKey,
+    initialValues: values,
+    snapshot: {
+      values,
+      hasUserChanges: true,
+      uiState: {
+        activeSectionKey: 'general',
+      },
+    },
+  })
+  draftsDialogOpen.value = false
+  draftTrayMinimized.value = false
+  router.push({
+    name: 'dialog-shell',
+    query: {
+      section: sourceKey,
+      create: '1',
+      open: String(Date.now()),
+    },
+  })
+}
+
+function toggleDraftTray() {
+  draftTrayMinimized.value = !draftTrayMinimized.value
+}
+
+function closeDraftTray() {
+  draftTrayMinimized.value = true
+}
+
 function discardDraft(draftId) {
   removeIntakeDraft(draftId)
   if (intakeDraftState.draftOrder.length === 0) {
@@ -1556,44 +1742,42 @@ async function openRoundFromQuickAction() {
   await openShellCreateFromQuickAction('opportunities', { kind: 'round' })
 }
 
-async function openShellCreateFromQuickAction(section, extraQuery = {}) {
-  closeQuickActions()
-  const sourceKey = String(section || '').trim().toLowerCase()
-  const requestedBranch = String(extraQuery?.kind || '').trim().toLowerCase()
-  const targetEntry = getFilePageRegistryEntry(sourceKey)
-  const targetRouteName = String(targetEntry?.routeName || '').trim()
-  if (!targetRouteName) {
-    return
-  }
-  if (!requestedBranch && getCreateBranches(sourceKey).length) {
-    await router.push({
-      name: 'fork-shell',
-      query: {
-        section: sourceKey,
+  async function openShellCreateFromQuickAction(section, extraQuery = {}) {
+    closeQuickActions()
+    const sourceKey = String(section || '').trim().toLowerCase()
+    const requestedBranch = String(extraQuery?.kind || '').trim().toLowerCase()
+    const targetEntry = getFilePageRegistryEntry(sourceKey)
+    if (!targetEntry) return
+    if (!requestedBranch && getCreateBranches(sourceKey).length) {
+      await router.push({
+        name: 'fork-shell',
+        query: {
+          section: sourceKey,
         returnTo: route.fullPath,
       },
     })
     return
   }
-  if (requestedBranch && getCreateBranchEntry(sourceKey, requestedBranch)) {
+    if (requestedBranch && getCreateBranchEntry(sourceKey, requestedBranch)) {
+      await router.push({
+        name: 'dialog-shell',
+        query: {
+          section: sourceKey,
+          create: String(Date.now()),
+          kind: requestedBranch,
+        },
+      })
+      return
+    }
     await router.push({
       name: 'dialog-shell',
       query: {
         section: sourceKey,
         create: String(Date.now()),
-        kind: requestedBranch,
+        ...extraQuery,
       },
     })
-    return
   }
-  await router.push({
-    name: targetRouteName,
-    query: {
-      create: String(Date.now()),
-      ...extraQuery,
-    },
-  })
-}
 
 async function ensureOwnerSetupRoute() {
   if (!bridge.value?.userSettings?.get) return
@@ -2251,11 +2435,85 @@ function goBack() {
   font-weight: 600;
 }
 
-.ec-resume-chip--intake {
-  background: rgba(214, 236, 255, 0.98);
-  border-color: rgba(64, 121, 210, 0.24);
-  color: rgba(24, 72, 144, 0.96);
-}
+  .ec-resume-chip--intake {
+    background: rgba(214, 236, 255, 0.98);
+    border-color: rgba(64, 121, 210, 0.24);
+    color: rgba(24, 72, 144, 0.96);
+  }
+
+  .ec-draft-tray {
+    position: fixed;
+    right: 20px;
+    bottom: 120px;
+    width: 320px;
+    max-width: calc(100vw - 40px);
+    background: #ffffff;
+    border-radius: 14px;
+    box-shadow: 0 18px 40px rgba(15, 23, 42, 0.18);
+    border: 1px solid rgba(15, 23, 42, 0.08);
+    z-index: 3000;
+    overflow: hidden;
+  }
+
+  .ec-draft-tray--minimized .ec-draft-tray__body {
+    display: none;
+  }
+
+  .ec-draft-tray__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 12px 10px 14px;
+    background: rgba(248, 250, 252, 0.95);
+  }
+
+  .ec-draft-tray__title {
+    font-size: 13px;
+    font-weight: 600;
+    color: #0f172a;
+    letter-spacing: 0.02em;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .ec-draft-tray__count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 22px;
+    height: 22px;
+    padding: 0 6px;
+    border-radius: 999px;
+    background: rgba(15, 23, 42, 0.08);
+    color: #0f172a;
+    font-size: 11px;
+  }
+
+  .ec-draft-tray__actions {
+    display: flex;
+    gap: 4px;
+  }
+
+  .ec-draft-tray__body {
+    padding: 8px;
+    max-height: 320px;
+    overflow: auto;
+  }
+
+  .ec-draft-tray__list {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .ec-draft-tray__item {
+    border-radius: 10px;
+  }
+
+  .ec-draft-tray__item--intake {
+    background: rgba(255, 247, 237, 0.8);
+  }
 
 .ec-quick-widget-settings-panel__list {
   display: flex;
