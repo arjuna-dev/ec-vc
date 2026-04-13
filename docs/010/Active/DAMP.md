@@ -1,4 +1,4 @@
-# Record Architecture Master Plan
+# Draft Architecture Master Plan
 
 ## Status
 
@@ -10,8 +10,9 @@ This document is now the primary working reference for:
 - execution plan
 - progress tracking
 - the current normalized `File -> Card -> Record View` system framing
+- the product-reference layer that used to live in the separate product reference guide
 
-This document should be treated as the single planning source of truth for the `File -> Card -> Record View` architecture.
+This document should be treated as the single planning source of truth for the `File -> Card -> Record View` architecture and its core product-reference language.
 
 Companion behavior and ingestion-side structural discipline should also stay aligned with:
 
@@ -37,6 +38,31 @@ When decisions change:
 - update this file
 - do not create parallel architecture docs unless there is a strong reason
 - use the progress tracker here to reflect what is approved, in progress, and complete
+
+## Product Reference Layer
+
+This document now also carries the product-reference layer.
+
+Use it for:
+
+- core product vocabulary
+- file and record naming
+- record-view behavior
+- canonical relationship ownership
+- first-order field logic
+- relationship editing rules
+- companion-side ownership discipline
+
+Short product-reference anchors that should remain active here:
+
+- the product grows through composition, not by multiplying primitives
+- `File` and `Record` are the main information-architecture terms
+- `Owner`, `User`, and `Contact` are related but not interchangeable
+- `File -> record list -> eye icon -> Record View` remains the core navigation model
+- canonical structure should be read through explicit token contracts, not page-local guessing
+- shared dialog behavior should remain one shell contract, not many file-specific interpretations
+
+The earlier separate product-reference guide should now be treated as retired and folded into this document.
 
 ## Current Contract Override
 
