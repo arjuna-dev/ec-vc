@@ -32,7 +32,7 @@ This recipe should only collect:
 
 Drafting note:
 
-- use `docs/999/Active/Governed_Translators_Draft.md` for in-progress governed-translator thinking and cleanup tracking
+- use `docs/999/Active/Translators_Draft.md` for in-progress translator thinking and cleanup tracking
 - move only tested and approved patterns back into this recipe
 
 Do not add:
