@@ -351,7 +351,7 @@ It does things like:
 - preserve view structure
 - build LDB views like:
   - `First-Order`
-  - `Knowledge DB`
+  - `LDB`
 - split sections into left/right shell placement
 
 It is part of the contract-preparation layer for the dialog shell.
