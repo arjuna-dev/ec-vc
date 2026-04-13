@@ -3598,7 +3598,7 @@ function requestEditRecordShell(row, options = {}) {
   router.push({ name: route.name, params: route.params, query: nextQuery })
 }
 
-function openCreateRecordShell(options = {}) {
+  function openCreateRecordShell(options = {}) {
   if (!canCreateWithShell.value) {
     $q.notify({ type: 'negative', message: 'This shell source is view-only.' })
     return
@@ -3614,10 +3614,20 @@ function openCreateRecordShell(options = {}) {
   editDialogRow.value = null
   editDialogRecordPayload.value = null
   createDialogInitialSectionKey.value = 'general'
-  createDialogPrefillValues.value = {
-    ...getFilePageBirthDefaults(activeSourceKey.value),
-    ...(options?.initialValues && typeof options.initialValues === 'object' ? { ...options.initialValues } : {}),
-  }
+    const baseValues = {
+      ...getFilePageBirthDefaults(activeSourceKey.value),
+      ...(options?.initialValues && typeof options.initialValues === 'object' ? { ...options.initialValues } : {}),
+    }
+    const allTokens = [...createPrimaryTokens.value, ...createViewGroups.value.flatMap((section) => section.tokens)]
+    allTokens.forEach((token) => {
+      const key = String(token?.key || '').trim()
+      if (!key || String(baseValues[key] || '').trim()) return
+      const defaultValue = getDefaultTokenCreateValue(token)
+      if (defaultValue != null) {
+        baseValues[key] = defaultValue
+      }
+    })
+    createDialogPrefillValues.value = baseValues
   createDialogFieldMeta.value = options?.initialFieldMeta && typeof options.initialFieldMeta === 'object'
     ? { ...options.initialFieldMeta }
     : {}

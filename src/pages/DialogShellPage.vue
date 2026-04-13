@@ -480,6 +480,17 @@ function buildCreateDialogInitialValues(pending = null) {
     nextInitialValues[canonicalNameToken.value.key] = nameSeed
   }
 
+  const allTokens = [...createPrimaryTokens.value, ...createViewGroups.value.flatMap((section) => section.tokens)]
+  const statusToken = allTokens.find(
+    (token) => String(token?.tokenRole || '').trim().toLowerCase() === 'status',
+  )
+  if (statusToken?.key && !String(nextInitialValues[statusToken.key] || '').trim()) {
+    const defaultValue = getDefaultTokenCreateValue(statusToken)
+    if (defaultValue != null) {
+      nextInitialValues[statusToken.key] = defaultValue
+    }
+  }
+
   return nextInitialValues
 }
 
