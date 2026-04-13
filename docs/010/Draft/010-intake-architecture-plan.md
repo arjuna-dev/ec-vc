@@ -84,6 +84,52 @@ This matters because repeated local shell controls make it harder to tell whethe
 - the payload contract
 - or a one-off page implementation
 
+## Record Shell vs Add/Edit Record Shell
+
+This distinction must stay explicit during intake work.
+
+`Record Shell` and `Add/Edit Record Shell` do not have the same objective.
+
+### Record Shell
+
+Purpose:
+
+- show a trustworthy snapshot of record data
+- help the user read, inspect, and verify the current record state
+- present record truth clearly once a record already exists
+
+Working rule:
+
+- `Record Shell` is a record-view surface
+- it must not become the primary intake workflow surface
+- it should not carry active intake-state burden unless a separate approved reason is declared
+
+### Add/Edit Record Shell
+
+Purpose:
+
+- form record data
+- guide active creation and editing
+- host intake-linked staging, review, and record-formation behavior
+
+Working rule:
+
+- `Add/Edit Record Shell` is the process surface where intake begins
+- it may carry staged inputs, active guidance, and in-progress state
+- it must not pretend the record is already a settled snapshot while the intake process is still forming it
+
+### Approved language rule
+
+Use:
+
+- `Record Shell` when talking about record snapshot and record truth
+- `Add/Edit Record Shell` when talking about intake, creation, editing, staging, and record formation
+
+Do not use:
+
+- `Add/Edit Shell` as an ambiguous shortcut when the record shell is intended
+- `Record Shell` as if it were the intake working surface
+
 ## Containment Rule
 
 Intake architecture should also stay contained.

@@ -26,6 +26,38 @@ Stabilize the real intake process so we can see:
 - what completed in the database
 - what still needs user guidance
 
+## Shell Distinction
+
+This mission depends on keeping two shells clearly separated.
+
+### Record Shell
+
+Use case:
+
+- snapshot of existing record data
+- record reading
+- record inspection
+- record verification
+
+Working rule:
+
+- `Record Shell` is where the user sees what the record currently is
+- it is not the main intake working surface
+
+### Add/Edit Record Shell
+
+Use case:
+
+- active record formation
+- staged intake input
+- guided creation and editing
+- in-progress review before record truth is settled
+
+Working rule:
+
+- `Add/Edit Record Shell` is where the intake process begins
+- this is the shell that should carry the main intake-process debugging burden
+
 ## Objective Set
 
 ### Objective 1. Make Intake Progress Visible
