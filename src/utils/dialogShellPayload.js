@@ -1,6 +1,4 @@
 export function getDialogViewGroupValue(view) {
-  const subgroupKey = String(view?.subgroupKey || '').trim()
-  if (subgroupKey) return `subgroup:${subgroupKey}`
   const displayGroup = String(view?.displayGroup || '').trim()
   return displayGroup ? `group:${displayGroup}` : String(view?.key || '').trim()
 }
@@ -49,7 +47,7 @@ export function buildDialogViews({
         key: group.value,
         label: group.title,
         tokens: flatTokens,
-        subgroups: subgroupViews.length > 1 ? subgroupViews : [],
+        subgroups: [],
       }
     })
     .filter((group) => keepEmptySections || group.tokens.length)
