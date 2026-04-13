@@ -644,7 +644,6 @@ export function getRuntimeTableNameForEntityName(entityName = '') {
     files: 'Files',
     file: 'Files',
     'file-system': 'Files',
-    file_system: 'Files',
     'system files': 'Files',
     companies: 'Companies',
     company: 'Companies',
