@@ -1613,8 +1613,147 @@ function listCompanionRoles() {
   )
 }
 
+const BASE_FILE_TOKEN_FIELDS = Object.freeze({
+  'file-system': { nameField: 'File_Name', summaryField: 'File_Summary' },
+  companies: { nameField: 'Company_Name', summaryField: 'One_Liner' },
+  contacts: { nameField: 'Name', summaryField: '' },
+  users: { nameField: 'User_Name', summaryField: '' },
+  notes: { nameField: 'Note_Name', summaryField: 'Note_Content' },
+  tasks: { nameField: 'Task_Name', summaryField: 'Task_Summary' },
+  projects: { nameField: 'Project_Name', summaryField: '' },
+  artifacts: { nameField: 'title', summaryField: '' },
+  opportunities: { nameField: 'opportunity_name', summaryField: '' },
+  funds: { nameField: 'Fund_Name', summaryField: '' },
+  rounds: { nameField: 'Round_Name', summaryField: '' },
+  markets: { nameField: 'Market_Name', summaryField: 'Market_Summary' },
+  securities: { nameField: 'Security_Name', summaryField: 'Security_Summary' },
+  events: { nameField: 'Event_Name', summaryField: 'Event_Summary' },
+  'bb-file': { nameField: 'Name', summaryField: 'Summary' },
+})
+
+function buildBaseFileStructure(entry) {
+  const sourceKey = String(entry?.key || '').trim().toLowerCase()
+  const runtimeEntityName = String(entry?.entityName || '').trim()
+  const mapping = BASE_FILE_TOKEN_FIELDS[sourceKey] || { nameField: '', summaryField: '' }
+  const nameField = String(mapping.nameField || '').trim()
+  const summaryField = String(mapping.summaryField || '').trim()
+  const makeWriteTarget = (fieldName) =>
+    fieldName && runtimeEntityName
+      ? { dbWriteField: fieldName, dbWriteTable: runtimeEntityName, dbWriteIdColumn: 'id' }
+      : { dbWriteField: fieldName, dbWriteTable: '', dbWriteIdColumn: '' }
+
+  return {
+    version: 1,
+    sections: [
+      {
+        key: `${sourceKey}-system`,
+        label: 'System',
+        address: '',
+        structureToken: '',
+        subgroupKey: '',
+        subgroupLabel: '',
+        subgroupAddress: '',
+        displayGroup: '',
+        tokens: [
+          {
+            key: 'ID',
+            tokenName: 'ID',
+            tokenRole: 'id',
+            tokenOrder: '1',
+            address: '',
+            label: 'ID',
+            tokenType: 'id',
+            optionSource: '',
+            optionEntity: '',
+            optionList: '',
+            optionEntities: [],
+            dbFieldAliases: ['id'],
+            ...makeWriteTarget('id'),
+            relationshipGroup: '',
+          },
+          {
+            key: 'History',
+            tokenName: 'History',
+            tokenRole: '',
+            tokenOrder: '2',
+            address: '',
+            label: 'History',
+            tokenType: 'event_log',
+            optionSource: '',
+            optionEntity: '',
+            optionList: '',
+            optionEntities: [],
+            dbFieldAliases: [],
+            ...makeWriteTarget(''),
+            relationshipGroup: '',
+          },
+        ],
+      },
+      {
+        key: `${sourceKey}-general`,
+        label: 'General',
+        address: '',
+        structureToken: '',
+        subgroupKey: '',
+        subgroupLabel: '',
+        subgroupAddress: '',
+        displayGroup: '',
+        tokens: [
+          {
+            key: 'Name',
+            tokenName: 'Name',
+            tokenRole: 'title',
+            tokenOrder: '1',
+            address: '',
+            label: 'Name',
+            tokenType: 'text',
+            optionSource: '',
+            optionEntity: '',
+            optionList: '',
+            optionEntities: [],
+            dbFieldAliases: nameField ? [nameField] : [],
+            ...makeWriteTarget(nameField),
+            relationshipGroup: '',
+          },
+          {
+            key: 'Summary',
+            tokenName: 'Summary',
+            tokenRole: 'summary',
+            tokenOrder: '2',
+            address: '',
+            label: 'Summary',
+            tokenType: 'text',
+            optionSource: '',
+            optionEntity: '',
+            optionList: '',
+            optionEntities: [],
+            dbFieldAliases: summaryField ? [summaryField] : [],
+            ...makeWriteTarget(summaryField),
+            relationshipGroup: '',
+          },
+        ],
+      },
+      {
+        key: `${sourceKey}-ldb`,
+        label: 'LDB',
+        address: '',
+        structureToken: '',
+        subgroupKey: '',
+        subgroupLabel: '',
+        subgroupAddress: '',
+        displayGroup: '',
+        tokens: [],
+      },
+    ],
+  }
+}
+
 function buildDefinedStructureJson(entry) {
-  const sections = (Array.isArray(entry?.subsections) ? entry.subsections : []).map((section, index) => ({
+  const rawSections = Array.isArray(entry?.subsections) ? entry.subsections : []
+  if (!rawSections.length) {
+    return JSON.stringify(buildBaseFileStructure(entry))
+  }
+  const sections = rawSections.map((section, index) => ({
     key: String(section?.key || section?.structureToken || section?.label || `section-${index + 1}`).trim(),
     label: String(section?.label || '').trim(),
     address: String(section?.address || '').trim(),
