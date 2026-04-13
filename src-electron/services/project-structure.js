@@ -2,10 +2,7 @@ import path from 'node:path'
 import fse from 'fs-extra'
 import {
   ARTIFACT_STAGE_DIRS,
-  getArtifactsSectionPath,
   getNetworkDatabaseSectionDirName,
-  getNetworkDatabaseSectionPath,
-  getPipelinesSectionPath,
   NETWORK_DATABASES_DIR,
   USER_WORKSPACE_DIR,
 } from './workspace-structure.js'
@@ -30,12 +27,6 @@ export const DEFAULT_PROJECT_STRUCTURE = {
       [getNetworkDatabaseSectionDirName('Agents')]: {},
     },
   },
-}
-
-async function removeDirectoryIfEmpty(dirPath) {
-  if (!(await fse.pathExists(dirPath))) return
-  const entries = await fse.readdir(dirPath)
-  if (entries.length === 0) await fse.remove(dirPath)
 }
 
 export async function createProjectStructure(
