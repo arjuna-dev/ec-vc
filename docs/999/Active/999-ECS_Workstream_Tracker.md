@@ -22,6 +22,7 @@ This tracker should stay aligned with:
 - make canonical `File` bootstrap consolidation the top architecture priority
 - run `Building Blocks to Shell Contract Migration` as the active shared-UI architecture project
 - keep the underlying structure, ownership, and runtime relationship paths converging cleanly
+- close the shared shell convergence cleanup pass with strict alias pruning and minimal canon references
 - use the `Companion` and the first-pass game layer to surface issues without weakening the contract
 - keep the shared shell, edit dialog, and LDB relationship behavior aligned to canon
 - keep LDB linking, unlinking, and selector labels working through shared shell contracts instead of per-entity fixes
@@ -83,6 +84,12 @@ This tracker should stay aligned with:
   - fail closed on unmapped page routes
   - honest non-validator file-health state
   - remove heuristic title/summary and option-label fallback paths
+- convergence cleanup pass:
+  - removed legacy route aliases and redirects (ingestion/artifacts-processed)
+  - removed old registry alias families (roles, system files, bb file, singular variants)
+  - enforced strict runtime aliasing to canonical source keys only
+  - replaced legacy canon/workbook JSON with minimal active references
+  - tightened Defined_Structure validation for required System/General tokens
 - file-owned token/view convergence:
   - stop treating `activeRegistryEntry.subsections` as final live truth
   - replace scaffolding-owned live shell payloads with file-owned token/view payloads
@@ -145,6 +152,35 @@ This tracker should stay aligned with:
   - owner identity pass
   - companion install pass
 - game layer guidance staying above the contract layer instead of replacing it
+
+## Convergence Pass Summary (Completed)
+
+This pass closed the strict shell convergence cleanup and removed legacy scaffolding paths so the runtime contract is now file-owned and fail-closed.
+
+What we achieved:
+
+- Frontend normalization:
+  - shared shell surfaces now align on file-owned view/token payloads
+  - removed subgroup scaffolding across shells and dialogs
+  - aligned labels to `File / View / Token` language
+  - tightened toolbar and navigation contracts to canonical source keys
+
+- Backend/runtime normalization:
+  - defined strict `Defined_Structure` validation (System + General tokens required)
+  - enforced Shared LDB contract usage for relationships
+  - removed legacy alias/redirect paths (ingestion/artifacts-processed)
+  - reduced helper alias families to canonical keys only
+
+- Canon/structure cleanup:
+  - replaced `000-canonical-structure.json` with a minimal active reference
+  - replaced `000-workbook-schema-companion.json` with a minimal import/export contract reference
+  - archived legacy canon/workbook schema for historical reference only
+
+Key output metrics:
+
+- Branch status: `ahead 109`, `behind 14` from `origin/ECS_KDB_Relationship_Pass`
+- Full diff vs `origin/master`: `278 files changed, 66,264 insertions(+), 44,555 deletions(-)`
+- Code-only diff vs `origin/master` (excluding docs): `188 files changed, 42,038 insertions(+), 37,715 deletions(-)`
 
 ## Pending Next
 
