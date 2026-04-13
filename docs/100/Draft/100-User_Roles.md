@@ -5,7 +5,7 @@
 - file name: `User Roles`
 - file guide: `docs/100/Draft/100-User_Roles.md`
 - parent guide: `docs/001/Active/001-Files.md`
-- file class: `L1`
+- file class: `File`
 - canonical entity: `Roles`
 - app-facing label: `User Roles`
 - canonical owner identity: `Owner`
@@ -77,11 +77,7 @@ The system should preserve role creation, role changes, and when a role becomes 
 - shell rendering path is declared: `yes`, route `/user-roles`
 - events/provenance path is declared: `partial`
 
-## View Fork System
-
-Definition note:
-
-- view forks and subgroups are internal to a file, not separate file rows, unless `System Files` explicitly tracks them as such
+## View Structure
 
 ### System
 
