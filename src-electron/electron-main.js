@@ -2169,6 +2169,68 @@ function ensureDefaultFiles(database) {
     inputRows.forEach((row) => upsertRow.run(row))
   })
   tx(rows)
+
+  const normalizeStructureRow = database.prepare(`
+    UPDATE Files
+    SET Defined_Structure = ?, updated_at = datetime('now')
+    WHERE id = ?
+  `)
+
+  const existingRows = database
+    .prepare(
+      `
+      SELECT id, File_Source_Key, File_Runtime_Entity, Defined_Structure
+      FROM Files
+    `,
+    )
+    .all()
+
+  const normalizeTx = database.transaction((inputRows) => {
+    inputRows.forEach((row) => {
+      const rawStructure = String(row?.Defined_Structure || '').trim()
+      if (!rawStructure) return
+      let parsed = null
+      try {
+        parsed = JSON.parse(rawStructure)
+      } catch {
+        return
+      }
+      if (!parsed || typeof parsed !== 'object') return
+      const sections = Array.isArray(parsed.sections) ? parsed.sections : []
+      if (!sections.length) return
+
+      const sourceKey = String(row?.File_Source_Key || '').trim()
+      const registryEntry = getFileRegistryEntryBySourceKey(sourceKey)
+      const runtimeEntityName = String(row?.File_Runtime_Entity || registryEntry?.entityName || '').trim()
+
+      let mutated = false
+      sections.forEach((section) => {
+        if (!Array.isArray(section?.tokens)) return
+        section.tokens.forEach((token) => {
+          if (!token || typeof token !== 'object') return
+          const aliases = Array.isArray(token.dbFieldAliases) ? token.dbFieldAliases : []
+          if (!String(token.dbWriteField || '').trim() && aliases.length) {
+            token.dbWriteField = String(aliases[0] || '').trim()
+            mutated = true
+          }
+          if (!String(token.dbWriteTable || '').trim() && runtimeEntityName) {
+            token.dbWriteTable = runtimeEntityName
+            mutated = true
+          }
+          if (!String(token.dbWriteIdColumn || '').trim() && runtimeEntityName) {
+            token.dbWriteIdColumn = 'id'
+            mutated = true
+          }
+        })
+      })
+
+      if (!mutated) return
+      parsed.sections = sections
+      normalizeStructureRow.run(JSON.stringify(parsed), row.id)
+    })
+  })
+
+  normalizeTx(existingRows)
 }
 
 function listFiles() {
