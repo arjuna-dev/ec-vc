@@ -1784,10 +1784,12 @@ function ensureBaseStructureCompleteness(existing = null, base = null) {
     const existingSection = normalizedExisting[existingIndex]
     if (baseLabel.toLowerCase() === 'system') {
       const baseTokenKeys = new Set(
-        baseSection.tokens.map((token) => String(token?.tokenName || token?.key || '').trim().toLowerCase()).filter(Boolean),
+        baseSection.tokens
+          .map((token) => String(token?.tokenName || token?.key || token?.label || '').trim().toLowerCase())
+          .filter(Boolean),
       )
       const systemExtras = existingSection.tokens?.filter((token) => {
-        const tokenKey = String(token?.tokenName || token?.key || '').trim().toLowerCase()
+        const tokenKey = String(token?.tokenName || token?.key || token?.label || '').trim().toLowerCase()
         return tokenKey && !baseTokenKeys.has(tokenKey)
       }) || []
 
@@ -1803,10 +1805,13 @@ function ensureBaseStructureCompleteness(existing = null, base = null) {
           const generalSection = normalizedExisting[generalIndex]
           const generalTokens = Array.isArray(generalSection.tokens) ? generalSection.tokens : []
           const generalTokenMap = new Map(
-            generalTokens.map((token) => [String(token?.tokenName || token?.key || '').trim().toLowerCase(), token]),
+            generalTokens.map((token) => [
+              String(token?.tokenName || token?.key || token?.label || '').trim().toLowerCase(),
+              token,
+            ]),
           )
           systemExtras.forEach((token) => {
-            const tokenKey = String(token?.tokenName || token?.key || '').trim().toLowerCase()
+            const tokenKey = String(token?.tokenName || token?.key || token?.label || '').trim().toLowerCase()
             if (!tokenKey) return
             if (generalTokenMap.has(tokenKey)) return
             const tokenRole = String(token?.tokenRole || '').trim().toLowerCase()
@@ -1831,10 +1836,13 @@ function ensureBaseStructureCompleteness(existing = null, base = null) {
     }
     const existingTokens = Array.isArray(existingSection.tokens) ? existingSection.tokens : []
     const tokenMap = new Map(
-      existingTokens.map((token) => [String(token?.tokenName || token?.key || '').trim().toLowerCase(), token]),
+      existingTokens.map((token) => [
+        String(token?.tokenName || token?.key || token?.label || '').trim().toLowerCase(),
+        token,
+      ]),
     )
     baseSection.tokens.forEach((baseToken) => {
-      const tokenNameKey = String(baseToken?.tokenName || baseToken?.key || '').trim().toLowerCase()
+      const tokenNameKey = String(baseToken?.tokenName || baseToken?.key || baseToken?.label || '').trim().toLowerCase()
       if (!tokenNameKey) return
       if (tokenMap.has(tokenNameKey)) return
       const baseRole = String(baseToken?.tokenRole || '').trim().toLowerCase()
