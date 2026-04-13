@@ -402,6 +402,14 @@ function buildCreateDialogInitialValues(pending = null) {
     nextInitialValues[branchToken.key] = resolveCreateDialogOptionValue(branchToken, branchEntry.value)
   }
 
+  if (canonicalNameToken.value?.key && !String(nextInitialValues[canonicalNameToken.value.key] || '').trim()) {
+    const sourceLabel = String(activeRegistryEntry.value?.singularLabel || activeRegistryEntry.value?.label || 'Record').trim()
+    const nameSeed = requestedBranch
+      ? `New ${requestedBranch.charAt(0).toUpperCase() + requestedBranch.slice(1)} ${sourceLabel}`
+      : `New ${sourceLabel}`
+    nextInitialValues[canonicalNameToken.value.key] = nameSeed
+  }
+
   return nextInitialValues
 }
 
@@ -414,6 +422,9 @@ function buildCreateDialogInitialFieldMeta(pending = null) {
     Object.assign(nextFieldMeta, pending.snapshot.verification.changes)
   }
   Object.assign(nextFieldMeta, buildContextRelationshipPrefill().initialFieldMeta)
+  if (canonicalNameToken.value?.key && !nextFieldMeta[canonicalNameToken.value.key]) {
+    nextFieldMeta[canonicalNameToken.value.key] = { verificationState: 'suggested_unverified' }
+  }
   return nextFieldMeta
 }
 

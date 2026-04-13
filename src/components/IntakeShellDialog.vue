@@ -1357,11 +1357,23 @@ async function onArtifactDrop(event) {
   const files = Array.from(event?.dataTransfer?.files || [])
   if (!files.length) return
 
-  const nextArtifacts = await Promise.all(
-    files
-      .map((file) => normalizeArtifactFile(file))
-      .filter((file) => file.path || file.name),
-  )
+  const normalized = files
+    .map((file) => normalizeArtifactFile(file))
+    .filter((file) => file.path || file.name)
+  if (!normalized.length) return
+
+  const nextArtifacts = []
+  for (const artifact of normalized) {
+    try {
+      const persisted = await persistDroppedArtifact(artifact)
+      nextArtifacts.push(persisted || artifact)
+    } catch (error) {
+      $q.notify({
+        type: 'negative',
+        message: error?.message || `Could not ingest ${artifact.name || 'artifact'}.`,
+      })
+    }
+  }
 
   if (!nextArtifacts.length) return
 
