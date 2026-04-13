@@ -225,28 +225,31 @@
             </q-item-section>
           </q-item>
 
-          <q-item
-            v-for="draft in draftEntries"
-            :key="`tray-${draft.sourceKey}:${draft.id}`"
-            class="ec-draft-tray__row"
-          >
-            <q-item-section side class="ec-draft-tray__select">
-              <q-checkbox v-model="selectedDraftIds" :val="`${draft.sourceKey}:${draft.id}`" />
-            </q-item-section>
-            <q-item-section>
-              <q-item-label>{{ draft.label }}</q-item-label>
-            </q-item-section>
-            <q-item-section side>
-              <q-btn
-                flat
-                dense
-                round
-                icon="open_in_new"
-                aria-label="Open draft"
-                @click="openDraftEntry(draft)"
-              />
-            </q-item-section>
-          </q-item>
+          <template v-for="group in draftGroups" :key="`tray-group-${group.key}`">
+            <div class="ec-draft-tray__group-label">{{ group.label }}</div>
+            <q-item
+              v-for="draft in group.items"
+              :key="`tray-${draft.sourceKey}:${draft.id}`"
+              class="ec-draft-tray__row"
+            >
+              <q-item-section side class="ec-draft-tray__select">
+                <q-checkbox v-model="selectedDraftIds" :val="`${draft.sourceKey}:${draft.id}`" />
+              </q-item-section>
+              <q-item-section>
+                <q-item-label>{{ draft.label }}</q-item-label>
+              </q-item-section>
+              <q-item-section side>
+                <q-btn
+                  flat
+                  dense
+                  round
+                  icon="open_in_new"
+                  aria-label="Open draft"
+                  @click="openDraftEntry(draft)"
+                />
+              </q-item-section>
+            </q-item>
+          </template>
         </q-list>
       </div>
     </div>
