@@ -14,7 +14,7 @@ It should govern and explain the `Games` layer, but it should not be moved into 
 
 `Game` should stay aligned with:
 
-- `docs/003/Games.md`
+- `docs/003/a. Games.md`
 - `docs/000/a. DAMP.md`
 
 `Game` is the companion guide for `Games`.

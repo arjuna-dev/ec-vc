@@ -181,4 +181,4 @@ Stay aligned with:
 - `docs/000/a. DAMP.md`
 - `docs/000/b. LAMP.md`
 - `docs/000/d. Intake.md`
-- `docs/002/Companion.md`
+- `docs/002/a. Companion.md`

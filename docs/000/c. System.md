@@ -24,7 +24,7 @@ The clean rule is:
 ## Related Docs
 
 - `docs/000/a. DAMP.md`
-- `docs/002/Companion.md`
+- `docs/002/a. Companion.md`
 - `docs/020/a. File.md`
 - `docs/000/i. UX.md`
 - `docs/000/a. DAMP.md`

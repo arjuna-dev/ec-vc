@@ -16,17 +16,17 @@ This document should be treated as the single planning source of truth for the `
 
 Companion behavior and ingestion-side structural discipline should also stay aligned with:
 
-- `docs/002/Companion.md`
-- `docs/003/Games.md`
+- `docs/002/a. Companion.md`
+- `docs/003/a. Games.md`
 - `docs/020/c. Game.md`
 - `docs/020/b. Intake.md`
 - `docs/000/c. System.md`
 - `docs/010/Archive/010-files-system-birth-audit.md`
-- `docs/999/ECS_Tracker.md`
+- `docs/999/a. ECS_Tracker.md`
 
 Docs-domain rule:
 
-- `docs/003/Games.md` is the single active `Games` guide
+- `docs/003/a. Games.md` is the single active `Games` guide
 - it carries root `Games` rules, `Games` operation, and the current rulebook
 - `docs/020/c. Game.md` stays in Companion Stewards because it defines the companion role that explains and governs the game layer
 

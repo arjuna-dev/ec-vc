@@ -30,11 +30,11 @@ Working posture:
 - `docs/000/a. DAMP.md`
 - `docs/000/g. Recipe.md`
 - `docs/000/e. Translators.md`
-- `docs/002/Companion.md`
+- `docs/002/a. Companion.md`
 - `docs/020/a. File.md`
 - `docs/020/b. Intake.md`
 - `docs/000/h. Design.md`
-- `docs/999/ECS_Tracker.md`
+- `docs/999/a. ECS_Tracker.md`
 
 ## Current Understanding
 
