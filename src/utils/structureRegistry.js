@@ -733,7 +733,7 @@ export function getCanonicalTokenWriteFieldName(token = {}) {
     ? token.dbFieldAliases.map((value) => String(value || '').trim()).filter(Boolean)
     : []
   if (aliases.length) return aliases[0]
-  return String(token?.tokenName || '').trim()
+  return ''
 }
 
 export function getCanonicalTokenWriteTarget(token = {}, fallbackTableName = '', fallbackIdColumn = 'id') {

@@ -66,6 +66,7 @@ import {
   getCreateBranches,
   getCreateBranchTokenName,
   getCanonicalTokenFieldNames,
+  getCanonicalTokenWriteFieldName,
   getCanonicalTokenValue,
   getFilePageRegistryEntry,
   getFilePageRegistryEntryByEntityReference,
@@ -898,7 +899,9 @@ function buildCreatePayload(values = {}) {
         if (branchSelectorTokenKey.value && token.key === branchSelectorTokenKey.value) return null
         const normalizedValue = normalizeTokenWriteValue(token, values?.[token.key])
         if (normalizedValue == null) return null
-        return [String(token?.dbWriteField || token?.tokenName || token?.key || '').trim(), normalizedValue]
+        const writeField = getCanonicalTokenWriteFieldName(token)
+        if (!writeField) return null
+        return [writeField, normalizedValue]
       })
       .filter(Boolean),
   )

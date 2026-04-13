@@ -519,6 +519,7 @@ import StructureGovernancePanel from 'src/components/StructureGovernancePanel.vu
 import { setPendingAddEditShellRequest } from 'src/utils/addEditShellState'
 import {
   getCanonicalTokenFieldNames,
+  getCanonicalTokenWriteFieldName,
   getCanonicalTokenValue,
   getFilePageRegistryEntry,
   getFilePageRegistryEntryByEntityReference,
@@ -1405,15 +1406,16 @@ function buildCreatePayload(values = {}) {
         const value = values?.[token.key]
         if (Array.isArray(value) && !value.length) return null
         if (!Array.isArray(value) && String(value ?? '').trim() === '') return null
-        return [resolveWriteField(token), value]
+        const writeField = resolveWriteField(token)
+        if (!writeField) return null
+        return [writeField, value]
       })
       .filter(Boolean),
   )
 }
 
 function resolveWriteField(token) {
-  const aliases = getCanonicalTokenFieldNames(token)
-  return String(token?.dbWriteField || aliases[0] || token?.tokenName || token?.key || '').trim()
+  return getCanonicalTokenWriteFieldName(token)
 }
 
 function normalizeCreateDialogToken(token) {
