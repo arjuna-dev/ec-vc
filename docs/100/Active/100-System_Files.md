@@ -61,6 +61,12 @@ It is the file-definition layer that helps the system know:
 
 - Use `System Files` as the registry for file-definition truth.
 - Treat canonical JSON as the first birth source for file structure; `System Files` records should register that structure, not invent it afterward.
+- Every file row must include a `Defined_Structure` payload that the shells can render.
+- Minimum base structure required for every file:
+  - **System**: `ID`, `History`
+  - **General**: `Name` (required), `Summary` (optional)
+  - **LDB**: empty view that renders shared LDB links from the System Files universe
+- Shells must refuse to infer fields when `Defined_Structure` is missing. The only recovery path is to seed the base structure in System Files.
 - Do not treat a file as fully born if it has no guide.
 - Do not treat a file as fully born if its UX fork questions are missing.
 - Do not treat a branchable file as fully born if its create-branch or view-fork instructions are missing.

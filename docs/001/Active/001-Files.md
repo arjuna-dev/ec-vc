@@ -670,6 +670,19 @@ The rule is:
 - one approved loading boundary per runtime
 - no hidden direct JSON imports scattered through app code
 
+## System Files Base Structure Safeguard
+
+Every file **must** have an explicit `Defined_Structure` stored in System Files.
+
+Minimum required structure (for every file):
+- **System**: `ID`, `History`
+- **General**: `Name` (required), `Summary` (optional)
+- **LDB**: empty view that renders shared LDB links from the System Files universe
+
+If a file’s `Defined_Structure` is missing, shells must treat that as an error state
+and refuse to infer or guess fields. The only acceptable recovery is to seed the
+base structure inside System Files.
+
 ## File Guide Template
 
 Each file-specific guide can begin from this compact template:

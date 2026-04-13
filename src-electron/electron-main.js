@@ -1996,6 +1996,18 @@ function buildFilesAcceptanceValidation(rows = []) {
       return
     }
 
+    const definedStructure = String(row?.Defined_Structure || '').trim()
+    if (!definedStructure) {
+      addIssue({
+        severity: 'error',
+        sourceKey,
+        fileId: String(row?.id || '').trim(),
+        field: 'Defined_Structure',
+        issue: 'Defined_Structure is missing for this file. Runtime shells cannot render views or tokens without it.',
+        suggestedAction: 'Seed the base System/General/LDB structure for this file inside System Files.',
+      })
+    }
+
     const fileId = String(row?.id || '').trim()
     const statusValue = normalizeFileStatusValue(row?.File_Status)
     const expectedGuideRequired = !PROTECTED_BOOTSTRAP_FILE_SOURCE_KEYS.has(sourceKey)
