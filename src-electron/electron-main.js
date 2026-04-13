@@ -1637,6 +1637,8 @@ function buildBaseFileStructure(entry) {
   const mapping = BASE_FILE_TOKEN_FIELDS[sourceKey] || { nameField: '', summaryField: '' }
   const nameField = String(mapping.nameField || '').trim()
   const summaryField = String(mapping.summaryField || '').trim()
+  const nameTokenName = nameField || 'Name'
+  const summaryTokenName = summaryField || 'Summary'
   const makeWriteTarget = (fieldName) =>
     fieldName && runtimeEntityName
       ? { dbWriteField: fieldName, dbWriteTable: runtimeEntityName, dbWriteIdColumn: 'id' }
@@ -1700,8 +1702,8 @@ function buildBaseFileStructure(entry) {
         displayGroup: '',
         tokens: [
           {
-            key: 'Name',
-            tokenName: 'Name',
+            key: nameTokenName,
+            tokenName: nameTokenName,
             tokenRole: 'title',
             tokenOrder: '1',
             address: '',
@@ -1716,8 +1718,8 @@ function buildBaseFileStructure(entry) {
             relationshipGroup: '',
           },
           {
-            key: 'Summary',
-            tokenName: 'Summary',
+            key: summaryTokenName,
+            tokenName: summaryTokenName,
             tokenRole: 'summary',
             tokenOrder: '2',
             address: '',
