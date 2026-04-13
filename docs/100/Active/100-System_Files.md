@@ -5,7 +5,7 @@
 - file name: `System Files`
 - file guide: `docs/100/Active/100-System_Files.md`
 - parent guide: `docs/001/Active/001-Files.md`
-- file class: `L1`
+- file class: `File`
 - canonical entity: `Files`
 - app-facing label: `System Files`
 - canonical owner identity: `Owner`
@@ -38,11 +38,11 @@ It is the file-definition layer that helps the system know:
 | `System Files` | The app-facing file-definition surface. |
 | `Files` | The canonical entity behind the `System Files` surface. |
 | `File Guide` | The `.md` guide that explains and governs a specific file. |
-| `File Class` | Whether a file is an `L1`. `View Fork` / `Subgroup` only when internal structure is explicitly tracked in `System Files`. |
+| `File Class` | Whether a file is a file, view, or subgroup. |
 | `Ownership Mode` | The declared ownership rule for a file or field. |
 | `Steward` | The companion or role responsible for keeping a file correct. |
-| `System` | The shared provenance and runtime-control view fork. |
-| `General` | The shared human-readable description view fork. |
+| `System` | The shared provenance and runtime-control view. |
+| `General` | The shared human-readable description view. |
 | `LDB` | The shared relationship section derived from the `System Files` file universe. |
 
 ## Referenced Documents
@@ -130,12 +130,12 @@ For `System Files`, the answer is yes.
 
 That means:
 
-- `System Files` is an `L1`
+- `System Files` is a file
 - it should be visible as a governed file-definition surface
 - it should have its own file guide
 - it should expose the file-definition fields needed to guide future file birth
 
-The safe default for new user-created concepts is also `L1` until the user or steward confirms the concept is only a section or subsection inside an existing file.
+The safe default for new user-created concepts is also a file until the user or steward confirms the concept is only a view or subgroup inside an existing file.
 
 ## File Birth Checklist
 
@@ -146,7 +146,7 @@ For `System Files`, the initial checklist is:
 - file guide exists: `yes`, `docs/100/Active/100-System_Files.md`
 - owner is declared: `yes`, `Owner`
 - steward is declared: `yes`, `File Steward`
-- UX fork questions are declared: `yes`, this guide defines the initial `L1 / View Fork / Subgroup` fork
+- UX fork questions are declared: `yes`, this guide defines the initial file/view/subgroup fork
 - create-branch instructions are declared: `yes`, branchable files must declare them in canon/registry before create flows depend on them
 - view-fork instructions are declared: `yes`, branchable files must declare them in canon/registry before toolbar/tune payload depends on them
 - `System` requirement is declared: `yes`
@@ -234,11 +234,7 @@ should all connect into one event backbone, even if some runtime paths still use
 
 `Creator` and `Datetime` should be treated as quick visible summaries of that event trail, not as a second competing source of truth.
 
-## View Fork System
-
-Definition note:
-
-- view forks and subgroups are internal to a file, not separate file rows, unless `System Files` explicitly tracks them as such
+## View Structure
 
 ### System
 
@@ -387,7 +383,7 @@ The intended split is:
 
 - create forks
   - govern file birth and create-target choice
-  - help the user decide whether creation stays `L1` or branches into another declared path
+  - help the user decide whether creation stays a file or branches into another declared path
 - view forks
   - govern reading, rendering, tune payload, and file perspective
   - do not automatically imply a different birth path
