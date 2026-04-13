@@ -218,7 +218,7 @@ Current map:
 | `Companion Roles` | `partially born` | `docs/100/Archive/100-Companion_Roles.md` | `File Steward` | Runtime surface exists; promotion review still pending. |
 | `Markets` | `partially born` | `docs/100/Archive/100-Markets.md` | `Glossary Steward` | Runtime surface exists; promotion review still pending. |
 | `Securities` | `partially born` | `docs/100/Archive/100-Securities.md` | `Glossary Steward` | Runtime surface exists; promotion review still pending. |
-| `Access Assignments` | `approved direction` | `docs/100/Archive/100-Access_Assignments.md` | `File Steward` | Approved future file; canon and runtime are not born yet. |
+| `Access Assignments` | `parked direction` | `docs/100/Archive/100-Access_Assignments.md` | `File Steward` | Archived future concept only; do not treat as active file-guide authority. |
 
 ## Current Open Issues
 
