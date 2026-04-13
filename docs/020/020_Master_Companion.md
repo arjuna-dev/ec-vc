@@ -16,5 +16,5 @@ It ensures the system is born in the correct order and that each file is created
 
 This role inherits the baseline companion rules in:
 
-- `docs/002/002-Companion_Manual.md`
+- `docs/002/Companion.md`
 

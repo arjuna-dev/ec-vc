@@ -16,5 +16,5 @@ It ensures scoring reflects verified work and does not drift from actual complet
 
 This role inherits the baseline companion rules in:
 
-- `docs/002/002-Companion_Manual.md`
+- `docs/002/Companion.md`
 

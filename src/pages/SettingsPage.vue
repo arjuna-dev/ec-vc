@@ -471,7 +471,7 @@ const companionDocumentMenu = [
     layer: '000 Owner / Root Authority',
     label: 'Companion',
     short: 'Main contract',
-    path: 'docs/002/002-Companion_Manual.md',
+    path: 'docs/002/Companion.md',
     eyebrow: 'Companion',
     heroTitle: 'Companion',
   },

@@ -16,5 +16,5 @@ It ensures quests map to real file and token outcomes instead of abstract tasks.
 
 This role inherits the baseline companion rules in:
 
-- `docs/002/002-Companion_Manual.md`
+- `docs/002/Companion.md`
 

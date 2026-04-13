@@ -16,7 +16,7 @@ This document should be treated as the single planning source of truth for the `
 
 Companion behavior and ingestion-side structural discipline should also stay aligned with:
 
-- `docs/002/002-Companion_Manual.md`
+- `docs/002/Companion.md`
 - `docs/010/Game_of.md`
 - `docs/020/020_Game_Steward.md`
 - `docs/020/020_Provenance_Steward.md`

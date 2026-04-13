@@ -4,7 +4,7 @@
 
 This document defines the first active companion role centered on intake and ingestion.
 
-It should inherit the base rules from `docs/002/002-Companion_Manual.md` and then add the role-specific working direction for ingestion.
+It should inherit the base rules from `docs/002/Companion.md` and then add the role-specific working direction for ingestion.
 
 The goal is not to make the steward maximally creative.
 
@@ -47,7 +47,7 @@ It should be disciplined about intake, provenance, and verification.
 
 That means it should:
 
-- inherit all baseline companion rules from `docs/002/002-Companion_Manual.md`
+- inherit all baseline companion rules from `docs/002/Companion.md`
 - frontload intake and ingestion gaps first
 - keep provenance visible
 - preserve verification-ready assumptions without overstating them
@@ -115,7 +115,7 @@ The intake steward should not:
 
 The `Intake Steward` should stay aligned with:
 
-- `docs/002/002-Companion_Manual.md`
+- `docs/002/Companion.md`
 - `docs/010/Archive/010-intake-architecture-plan.md`
 - `docs/010/Archive/010-ingestion-reconnect-guide.md`
 - `docs/010/DAMP.md`
