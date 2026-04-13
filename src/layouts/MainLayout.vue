@@ -103,7 +103,7 @@
                   />
                 </q-item-section>
                 <q-item-section>
-                  <MainMenuSubgroupRow
+                  <MainMenuGroupRow
                     :label="item.label"
                     :expanded="isDrawerSectionOpen(item.toggleKey)"
                   />
@@ -351,7 +351,7 @@ import widgetBackAnimationData from 'src/assets/lottie/widget-back.json'
 import widgetOpenAnimationData from 'src/assets/lottie/widget-open.json'
 import widgetToAnimationData from 'src/assets/lottie/widget-to.json'
 import MainMenuRow from 'src/components/MainMenuRow.vue'
-import MainMenuSubgroupRow from 'src/components/MainMenuSubgroupRow.vue'
+import MainMenuGroupRow from 'src/components/MainMenuGroupRow.vue'
 import MainMenuIconButton from 'src/components/buttons/MainMenuIconButton.vue'
 import ShellOpenDialogButton from 'src/components/ShellOpenDialogButton.vue'
 import FileShellTitleRow from 'src/components/FileShellTitleRow.vue'

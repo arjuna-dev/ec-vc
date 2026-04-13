@@ -108,9 +108,9 @@
         </div>
       </template>
 
-      <template v-else-if="blockKey === 'main-menu-subgroup-row'">
+      <template v-else-if="blockKey === 'main-menu-group-row'">
         <div class="building-block-preview-tile__drawer-row-context">
-          <MainMenuSubgroupRow label="Shells" :expanded="true" />
+          <MainMenuGroupRow label="Shells" :expanded="true" />
         </div>
       </template>
 
@@ -887,7 +887,7 @@ import MainMenuIconButton from 'src/components/buttons/MainMenuIconButton.vue'
 import MainMenuRowIcon from 'src/components/MainMenuRowIcon.vue'
 import MainMenuRowLabel from 'src/components/MainMenuRowLabel.vue'
 import MainMenuRow from 'src/components/MainMenuRow.vue'
-import MainMenuSubgroupRow from 'src/components/MainMenuSubgroupRow.vue'
+import MainMenuGroupRow from 'src/components/MainMenuGroupRow.vue'
 import ViewModeToggle from 'src/components/ViewModeToggle.vue'
 import ToggleRowIcons from 'src/components/ToggleRowIcons.vue'
 import ValueChip from 'src/components/ValueChip.vue'

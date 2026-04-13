@@ -93,13 +93,13 @@
       </article>
 
       <article class="components-shell-page__card components-shell-page__card--toolbar-wide">
-        <button type="button" class="components-shell-page__inspect-btn" aria-label="View component details" @click="openComponentDetail('main-menu-subgroup-row')">
+        <button type="button" class="components-shell-page__inspect-btn" aria-label="View component details" @click="openComponentDetail('main-menu-group-row')">
           <q-icon name="visibility" />
         </button>
         <div class="components-shell-page__card-label">Main Menu View Row</div>
-        <div class="components-shell-page__card-status" :class="componentStatusClass('main-menu-subgroup-row')">{{ componentStatusLabel('main-menu-subgroup-row') }}</div>
+        <div class="components-shell-page__card-status" :class="componentStatusClass('main-menu-group-row')">{{ componentStatusLabel('main-menu-group-row') }}</div>
         <div class="components-shell-page__card-stage">
-          <MainMenuSubgroupRow label="Shells" :expanded="true" />
+          <MainMenuGroupRow label="Shells" :expanded="true" />
         </div>
       </article>
 
@@ -350,7 +350,7 @@ import ViewSettingsMenu from 'src/components/ViewSettingsMenu.vue'
 import LiveActionL1 from 'src/components/LiveActionL1.vue'
 import MainMenuIconButton from 'src/components/buttons/MainMenuIconButton.vue'
 import MainMenuRow from 'src/components/MainMenuRow.vue'
-import MainMenuSubgroupRow from 'src/components/MainMenuSubgroupRow.vue'
+import MainMenuGroupRow from 'src/components/MainMenuGroupRow.vue'
 import PageBackSymbol from 'src/components/PageBackSymbol.vue'
 import ToggleRowIcons from 'src/components/ToggleRowIcons.vue'
 import WidgetSettingsMenu from 'src/components/WidgetSettingsMenu.vue'

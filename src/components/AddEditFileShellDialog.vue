@@ -20,7 +20,7 @@
             class="file-structure-shell__shell-selector"
             @click.stop="toggleShellSelector"
           >
-            <MainMenuSubgroupRow
+            <MainMenuGroupRow
               :label="activeShellSelectorOption.label"
               :expanded="shellSelectorOpen"
             />
@@ -222,7 +222,7 @@ import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import DialogShellFrame from 'src/components/DialogShellFrame.vue'
 import RecordFieldsBox from 'src/components/RecordFieldsBox.vue'
 import DialogShellTitleRow from 'src/components/DialogShellTitleRow.vue'
-import MainMenuSubgroupRow from 'src/components/MainMenuSubgroupRow.vue'
+import MainMenuGroupRow from 'src/components/MainMenuGroupRow.vue'
 import PlusWithLabelButton from 'src/components/PlusWithLabelButton.vue'
 import RecordTitle from 'src/components/RecordTitle.vue'
 import RecordSummaryBox from 'src/components/RecordSummaryBox.vue'
@@ -1169,7 +1169,7 @@ watch(
   border-color: rgba(15, 23, 42, 0.24);
 }
 
-.file-structure-shell__shell-selector :deep(.main-menu-subgroup-row) {
+.file-structure-shell__shell-selector :deep(.main-menu-group-row) {
   color: #fff;
 }
 
