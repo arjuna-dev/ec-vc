@@ -341,294 +341,6 @@
                 <div class="create-record-shell__panel-meta">{{ activeFields.length }} fields</div>
               </div>
 
-              <div
-                v-if="activeSectionSubgroups.length"
-                class="create-record-shell__subgroup-stack"
-              >
-                <section
-                  v-for="subgroup in activeSectionSubgroups"
-                  :key="subgroup.key"
-                  class="create-record-shell__subgroup"
-                >
-                  <button
-                    type="button"
-                    class="create-record-shell__subgroup-toggle"
-                    @click="toggleSubgroup(subgroup.key)"
-                  >
-                    <q-icon
-                      :name="isSubgroupExpanded(subgroup.key) ? 'expand_more' : 'chevron_right'"
-                      size="14px"
-                      class="create-record-shell__subgroup-toggle-icon"
-                    />
-                    <span class="create-record-shell__subgroup-title">{{ subgroup.label }}</span>
-                    <span class="create-record-shell__subgroup-meta">{{ subgroup.tokens.length }} fields</span>
-                  </button>
-
-                  <div
-                    v-if="isSubgroupExpanded(subgroup.key)"
-                    class="create-record-shell__fields"
-                    :style="{ '--create-record-shell-label-width': activeFieldLabelWidth }"
-                  >
-                    <div class="create-record-shell__fields-grid create-record-shell__fields-grid--left">
-                      <div
-                        v-for="fieldEntry in subgroupLeftEntries(subgroup)"
-                        :key="fieldEntry.token.key"
-                        class="create-record-shell__field"
-                        :class="{
-                          'create-record-shell__field--wide': isWideField(fieldEntry.token),
-                          'create-record-shell__field--verification-needed': shouldHighlightFieldVerification(fieldEntry.token),
-                        }"
-                      >
-                        <div class="create-record-shell__field-label-row">
-                          <div class="create-record-shell__field-label-wrap">
-                            <div class="create-record-shell__field-label">
-                              {{ fieldEntry.token.label }}
-                              <q-tooltip anchor="top middle" self="bottom middle">
-                                {{ formatFieldType(fieldEntry.token.tokenType) }}
-                              </q-tooltip>
-                            </div>
-                          </div>
-                          <q-btn
-                            v-if="fieldHasParentRecordLink(fieldEntry.token)"
-                            flat
-                            dense
-                            round
-                            size="sm"
-                            icon="link"
-                            class="create-record-shell__field-parent-link"
-                            :aria-label="`Open source record for ${fieldEntry.token.label}`"
-                            @click="openFieldParentRecord(fieldEntry.token)"
-                          />
-                        </div>
-
-                        <div class="create-record-shell__field-value-row">
-                          <q-select
-                            v-if="fieldEntry.token.tokenType === 'select_multi'"
-                            :model-value="Array.isArray(formValues[fieldEntry.token.key]) ? formValues[fieldEntry.token.key] : []"
-                            dense
-                            outlined
-                            use-chips
-                            multiple
-                            emit-value
-                            map-options
-                            :options="fieldEntry.token.inputOptions || []"
-                            :disable="loading || isFieldLocked(fieldEntry.token)"
-                            class="create-record-shell__input"
-                            :class="[
-                              { 'create-record-shell__input--summary': isSummaryField(fieldEntry.token) },
-                              fieldVerificationClass(fieldEntry.token),
-                            ]"
-                            @update:model-value="updateField(fieldEntry.token.key, $event)"
-                          />
-
-                          <q-select
-                            v-else-if="fieldEntry.token.tokenType === 'select_single'"
-                            :model-value="selectSingleValue(formValues[fieldEntry.token.key])"
-                            dense
-                            outlined
-                            use-chips
-                            emit-value
-                            map-options
-                            :options="fieldEntry.token.inputOptions || []"
-                            :disable="loading || isFieldLocked(fieldEntry.token)"
-                            class="create-record-shell__input"
-                            :class="fieldVerificationClass(fieldEntry.token)"
-                            @update:model-value="updateField(fieldEntry.token.key, $event)"
-                          />
-
-                          <q-input
-                            v-else
-                            :model-value="getStagedFieldValue(fieldEntry.token.key)"
-                            dense
-                            outlined
-                            :disable="loading || isFieldLocked(fieldEntry.token)"
-                            :type="isSummaryField(fieldEntry.token) ? 'textarea' : inputTypeForToken(fieldEntry.token.tokenType)"
-                            :autogrow="isSummaryField(fieldEntry.token)"
-                            class="create-record-shell__input"
-                            :class="[
-                              { 'create-record-shell__input--summary': isSummaryField(fieldEntry.token) },
-                              fieldVerificationClass(fieldEntry.token),
-                            ]"
-                            @update:model-value="stageFieldValue(fieldEntry.token.key, $event)"
-                            @blur="commitStagedField(fieldEntry.token.key)"
-                            @keyup.enter="handleTextFieldEnter(fieldEntry.token, fieldEntry.token.key, $event)"
-                          />
-
-                          <q-btn
-                            v-if="showFieldVerificationAction(fieldEntry.token)"
-                            flat
-                            dense
-                            size="sm"
-                            :disable="loading"
-                            :class="[fieldActionClass(fieldEntry.token), fieldVerificationClass(fieldEntry.token)]"
-                            :aria-label="`Change verification state for ${fieldEntry.token.label}`"
-                          >
-                            <q-icon
-                              :name="fieldVerificationIcon(fieldEntry.token)"
-                              :class="fieldVerificationIconClass(fieldEntry.token)"
-                              :style="fieldVerificationIconStyle(fieldEntry.token)"
-                              size="14px"
-                            />
-                            <q-menu
-                              :anchor="verificationMenuAnchor(fieldEntry.column)"
-                              :self="verificationMenuSelf(fieldEntry.column)"
-                            >
-                              <q-list dense class="create-record-shell__verification-menu">
-                                <q-item
-                                  v-for="option in fieldVerificationActionOptions"
-                                  :key="option.value"
-                                  clickable
-                                  v-close-popup
-                                  class="create-record-shell__verification-menu-item"
-                                  @click="updateFieldVerificationState(fieldEntry.token, option.value)"
-                                >
-                                  <q-item-section avatar>
-                                    <q-icon :name="option.icon" :class="option.iconClass" :style="{ color: option.color }" size="14px" />
-                                  </q-item-section>
-                                  <q-item-section>
-                                    <q-item-label class="create-record-shell__verification-menu-label">
-                                      {{ option.label }}
-                                    </q-item-label>
-                                  </q-item-section>
-                                </q-item>
-                              </q-list>
-                            </q-menu>
-                          </q-btn>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div class="create-record-shell__fields-grid create-record-shell__fields-grid--right">
-                      <div
-                        v-for="fieldEntry in subgroupRightEntries(subgroup)"
-                        :key="fieldEntry.token.key"
-                        class="create-record-shell__field"
-                        :class="{
-                          'create-record-shell__field--wide': isWideField(fieldEntry.token),
-                          'create-record-shell__field--verification-needed': shouldHighlightFieldVerification(fieldEntry.token),
-                        }"
-                      >
-                        <div class="create-record-shell__field-label-row">
-                          <div class="create-record-shell__field-label-wrap">
-                            <div class="create-record-shell__field-label">
-                              {{ fieldEntry.token.label }}
-                              <q-tooltip anchor="top middle" self="bottom middle">
-                                {{ formatFieldType(fieldEntry.token.tokenType) }}
-                              </q-tooltip>
-                            </div>
-                          </div>
-                          <q-btn
-                            v-if="fieldHasParentRecordLink(fieldEntry.token)"
-                            flat
-                            dense
-                            round
-                            size="sm"
-                            icon="link"
-                            class="create-record-shell__field-parent-link"
-                            :aria-label="`Open source record for ${fieldEntry.token.label}`"
-                            @click="openFieldParentRecord(fieldEntry.token)"
-                          />
-                        </div>
-
-                        <div class="create-record-shell__field-value-row">
-                          <q-select
-                            v-if="fieldEntry.token.tokenType === 'select_multi'"
-                            :model-value="Array.isArray(formValues[fieldEntry.token.key]) ? formValues[fieldEntry.token.key] : []"
-                            dense
-                            outlined
-                            use-chips
-                            multiple
-                            emit-value
-                            map-options
-                            :options="fieldEntry.token.inputOptions || []"
-                            :disable="loading || isFieldLocked(fieldEntry.token)"
-                            class="create-record-shell__input"
-                            :class="[
-                              { 'create-record-shell__input--summary': isSummaryField(fieldEntry.token) },
-                              fieldVerificationClass(fieldEntry.token),
-                            ]"
-                            @update:model-value="updateField(fieldEntry.token.key, $event)"
-                          />
-
-                          <q-select
-                            v-else-if="fieldEntry.token.tokenType === 'select_single'"
-                            :model-value="selectSingleValue(formValues[fieldEntry.token.key])"
-                            dense
-                            outlined
-                            use-chips
-                            emit-value
-                            map-options
-                            :options="fieldEntry.token.inputOptions || []"
-                            :disable="loading || isFieldLocked(fieldEntry.token)"
-                            class="create-record-shell__input"
-                            :class="fieldVerificationClass(fieldEntry.token)"
-                            @update:model-value="updateField(fieldEntry.token.key, $event)"
-                          />
-
-                          <q-input
-                            v-else
-                            :model-value="getStagedFieldValue(fieldEntry.token.key)"
-                            dense
-                            outlined
-                            :disable="loading || isFieldLocked(fieldEntry.token)"
-                            :type="isSummaryField(fieldEntry.token) ? 'textarea' : inputTypeForToken(fieldEntry.token.tokenType)"
-                            :autogrow="isSummaryField(fieldEntry.token)"
-                            class="create-record-shell__input"
-                            :class="[
-                              { 'create-record-shell__input--summary': isSummaryField(fieldEntry.token) },
-                              fieldVerificationClass(fieldEntry.token),
-                            ]"
-                            @update:model-value="stageFieldValue(fieldEntry.token.key, $event)"
-                            @blur="commitStagedField(fieldEntry.token.key)"
-                            @keyup.enter="handleTextFieldEnter(fieldEntry.token, fieldEntry.token.key, $event)"
-                          />
-
-                          <q-btn
-                            v-if="showFieldVerificationAction(fieldEntry.token)"
-                            flat
-                            dense
-                            size="sm"
-                            :disable="loading"
-                            :class="[fieldActionClass(fieldEntry.token), fieldVerificationClass(fieldEntry.token)]"
-                            :aria-label="`Change verification state for ${fieldEntry.token.label}`"
-                          >
-                            <q-icon
-                              :name="fieldVerificationIcon(fieldEntry.token)"
-                              :class="fieldVerificationIconClass(fieldEntry.token)"
-                              :style="fieldVerificationIconStyle(fieldEntry.token)"
-                              size="14px"
-                            />
-                            <q-menu
-                              :anchor="verificationMenuAnchor(fieldEntry.column)"
-                              :self="verificationMenuSelf(fieldEntry.column)"
-                            >
-                              <q-list dense class="create-record-shell__verification-menu">
-                                <q-item
-                                  v-for="option in fieldVerificationActionOptions"
-                                  :key="option.value"
-                                  clickable
-                                  v-close-popup
-                                  class="create-record-shell__verification-menu-item"
-                                  @click="updateFieldVerificationState(fieldEntry.token, option.value)"
-                                >
-                                  <q-item-section avatar>
-                                    <q-icon :name="option.icon" :class="option.iconClass" :style="{ color: option.color }" size="14px" />
-                                  </q-item-section>
-                                  <q-item-section>
-                                    <q-item-label class="create-record-shell__verification-menu-label">
-                                      {{ option.label }}
-                                    </q-item-label>
-                                  </q-item-section>
-                                </q-item>
-                              </q-list>
-                            </q-menu>
-                          </q-btn>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </section>
-              </div>
 
               <div
                 v-else-if="activeFields.length"
@@ -1006,7 +718,6 @@ const blurbEntries = ref([])
 const selectedUrlEntryIds = ref([])
 const selectedBlurbEntryIds = ref([])
 const expandedEntryIds = ref([])
-const expandedSubgroupKeys = ref([])
 const supportResourcesCollapsed = ref(false)
 const recordDataCollapsed = ref(false)
 const dialogWidth = ref(760)
@@ -1115,7 +826,6 @@ const activeSection = computed(
 )
 
 const activeFields = computed(() => activeSection.value?.tokens || [])
-const activeSectionSubgroups = computed(() => Array.isArray(activeSection.value?.subgroups) ? activeSection.value.subgroups : [])
 const activeFieldEntries = computed(() => {
   const nameEntries = []
   const summaryEntries = []
@@ -1169,12 +879,6 @@ function buildFieldEntries(tokens = []) {
   })
 
   return [...nameEntries, ...summaryEntries, ...alternatingEntries]
-}
-function subgroupLeftEntries(subgroup) {
-  return buildFieldEntries(subgroup?.tokens || []).filter((entry) => entry.column === 'left')
-}
-function subgroupRightEntries(subgroup) {
-  return buildFieldEntries(subgroup?.tokens || []).filter((entry) => entry.column === 'right')
 }
 const leftFieldEntries = computed(() => {
   const pinned = activeFieldEntries.value.filter((entry) => entry.column === 'left' && isNameField(entry.token))
@@ -1365,13 +1069,6 @@ watch(
   { immediate: true },
 )
 
-watch(activeSectionSubgroups, (groups) => {
-  const nextKeys = groups.map((group) => group.key)
-  expandedSubgroupKeys.value = nextKeys.filter((key) => expandedSubgroupKeys.value.includes(key))
-  if (!expandedSubgroupKeys.value.length && nextKeys.length) {
-    expandedSubgroupKeys.value = [...nextKeys]
-  }
-}, { immediate: true })
 
 function updateField(tokenKey, value) {
   pushUndoSnapshot()
@@ -1515,12 +1212,6 @@ function formatFieldType(tokenType) {
 
 function isWideField(token) {
   return isSummaryField(token)
-}
-function isSubgroupExpanded(groupKey) { return expandedSubgroupKeys.value.includes(groupKey) }
-function toggleSubgroup(groupKey) {
-  expandedSubgroupKeys.value = isSubgroupExpanded(groupKey)
-    ? expandedSubgroupKeys.value.filter((key) => key !== groupKey)
-    : [...expandedSubgroupKeys.value, groupKey]
 }
 
 function isNameField(token) {
@@ -2756,48 +2447,6 @@ onBeforeUnmount(() => {
   justify-content: flex-start;
   gap: 12px;
   margin-bottom: 10px;
-}
-
-.create-record-shell__subgroup-stack {
-  display: grid;
-  gap: 14px;
-}
-
-.create-record-shell__subgroup {
-  display: grid;
-  gap: 8px;
-}
-
-.create-record-shell__subgroup-toggle {
-  display: inline-flex;
-  align-items: center;
-  justify-content: flex-start;
-  gap: 2px;
-  width: max-content;
-  padding: 0;
-  color: #111111;
-  background: transparent;
-  border: 0;
-  text-align: left;
-  cursor: pointer;
-}
-
-.create-record-shell__subgroup-toggle-icon {
-  color: #111111;
-}
-
-.create-record-shell__subgroup-title {
-  color: #111111;
-  font-family: var(--font-title);
-  font-size: 0.78rem;
-  font-weight: var(--font-weight-black);
-  line-height: 0.96;
-}
-
-.create-record-shell__subgroup-meta {
-  margin-left: 6px;
-  color: rgba(17, 17, 17, 0.54);
-  font-size: 0.7rem;
 }
 
 .create-record-shell__panel-title {
