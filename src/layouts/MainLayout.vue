@@ -268,43 +268,17 @@
 
     <q-dialog v-model="draftsDialogOpen">
       <q-card class="ec-drafts-dialog">
-        <q-card-section class="ec-drafts-dialog__head">
-          <div class="ec-drafts-dialog__title">Active Drafts</div>
-          <div class="ec-drafts-dialog__subtitle">Jump between drafts across files.</div>
-        </q-card-section>
         <q-card-section class="ec-drafts-dialog__body">
-          <q-list dense class="ec-drafts-dialog__list">
-            <q-item
-              v-if="pendingIntakeRequest"
-              clickable
-              class="ec-drafts-dialog__item ec-drafts-dialog__item--intake"
-              @click="openIntakeDraftFromTray"
-            >
-              <q-item-section avatar>
-                <q-icon name="hourglass_top" />
-              </q-item-section>
-              <q-item-section>
-                <q-item-label>Intake Draft</q-item-label>
-                <q-item-label caption>Resume the active intake flow.</q-item-label>
-              </q-item-section>
-            </q-item>
-
-            <q-item
-              v-for="draft in draftEntries"
-              :key="`${draft.sourceKey}:${draft.id}`"
-              clickable
-              class="ec-drafts-dialog__item"
-              @click="openDraftEntry(draft)"
-            >
-              <q-item-section avatar>
-                <q-icon name="description" />
-              </q-item-section>
-              <q-item-section>
-                <q-item-label>{{ draft.label }}</q-item-label>
-                <q-item-label caption>{{ draft.sourceLabel }}</q-item-label>
-              </q-item-section>
-            </q-item>
-          </q-list>
+          <RecordFeedPanel
+            v-model="draftFeedTab"
+            title="Active Drafts"
+            :tabs="draftFeedTabs"
+            :groups="draftFeedGroups"
+            :items="draftFeedItems"
+            :add-button-tabs="[]"
+            empty-message="No active drafts yet."
+            @open-log="openDraftFeedItem"
+          />
         </q-card-section>
         <q-card-actions align="right">
           <q-btn flat no-caps label="Close" @click="draftsDialogOpen = false" />
@@ -516,6 +490,7 @@ import ShellOpenDialogButton from 'src/components/ShellOpenDialogButton.vue'
 import FileShellTitleRow from 'src/components/FileShellTitleRow.vue'
 import WidgetSettingsMenu from 'src/components/WidgetSettingsMenu.vue'
 import B10Logo from 'src/components/B10Logo.vue'
+import RecordFeedPanel from 'src/components/RecordFeedPanel.vue'
 
 import ArtifactAddDialog from 'components/ArtifactAddDialog.vue'
 import {
@@ -566,6 +541,7 @@ const quickWidgetSettingsSectionOpen = ref({
 const draftTrayDismissed = ref(false)
 const draftTrayMinimized = ref(false)
 const draftsDialogOpen = ref(false)
+const draftFeedTab = ref('drafts')
 const intakeQueueDialogOpen = ref(false)
 const intakeQueueFieldEdits = ref({})
 const ownerSetupRequired = ref(false)
@@ -722,6 +698,52 @@ const draftGroups = computed(() => {
     grouped.get(key).items.push(entry)
   })
   return Array.from(grouped.values())
+})
+const draftFeedTabs = computed(() => [{ id: 'drafts', label: 'Drafts' }])
+const draftFeedGroups = computed(() =>
+  draftGroups.value.map((group) => ({
+    id: group.key,
+    label: group.label,
+  })),
+)
+const draftFeedItems = computed(() => {
+  const items = []
+  if (pendingAddEditTrayEntry.value) {
+    items.push({
+      id: `pending:${pendingAddEditTrayEntry.value.sourceKey}`,
+      feedKey: 'drafts',
+      groupKey: pendingAddEditTrayEntry.value.sourceKey,
+      title: pendingAddEditTrayEntry.value.label,
+      meta: 'Draft',
+      hasLogPage: true,
+      sourceKey: pendingAddEditTrayEntry.value.sourceKey,
+      type: 'pending-add-edit',
+    })
+  }
+  if (pendingIntakeRequest.value) {
+    items.push({
+      id: 'pending:intake',
+      feedKey: 'drafts',
+      groupKey: 'intake',
+      title: 'Intake Draft',
+      meta: 'Draft',
+      hasLogPage: true,
+      type: 'pending-intake',
+    })
+  }
+  draftEntries.value.forEach((entry) => {
+    items.push({
+      id: `${entry.sourceKey}:${entry.id}`,
+      feedKey: 'drafts',
+      groupKey: entry.sourceKey,
+      title: entry.label,
+      meta: 'Draft',
+      hasLogPage: true,
+      type: 'draft',
+      draft: entry,
+    })
+  })
+  return items
 })
 const activeIntakeQueueItem = computed(() => {
   const activeId = String(intakeReviewQueueState.activeItemId || '').trim()
@@ -1414,6 +1436,22 @@ function openDraftEntry(draft) {
       open: String(Date.now()),
     },
   })
+}
+
+function openDraftFeedItem(itemId) {
+  const item = draftFeedItems.value.find((entry) => entry.id === itemId)
+  if (!item) return
+  if (item.type === 'pending-intake') {
+    openIntakeDraftFromTray()
+    return
+  }
+  if (item.type === 'pending-add-edit') {
+    resumePendingAddEdit()
+    return
+  }
+  if (item.draft) {
+    openDraftEntry(item.draft)
+  }
 }
 
 function toggleDraftTray() {
