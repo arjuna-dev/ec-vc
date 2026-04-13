@@ -47,7 +47,6 @@ export function buildDialogViews({
         key: group.value,
         label: group.title,
         tokens: flatTokens,
-        subgroups: [],
       }
     })
     .filter((group) => keepEmptySections || group.tokens.length)

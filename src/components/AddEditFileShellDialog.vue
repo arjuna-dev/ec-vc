@@ -354,7 +354,6 @@ const activeFilePayload = computed(() => {
     tokens: fileShellPayload.tokens
       .filter((token) => token.parentKey === section.key)
       .map((token) => ({ ...token })),
-    subgroups: [],
   }))
 
   return {

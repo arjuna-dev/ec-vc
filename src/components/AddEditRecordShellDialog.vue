@@ -1193,7 +1193,6 @@ function mergePrimaryTokensIntoSections(sections = [], primaryTokens = []) {
           key: 'general',
           label: 'General',
           tokens: normalizedPrimaryTokens,
-          subgroups: [],
         }]
       : []
   }
@@ -1208,7 +1207,6 @@ function mergePrimaryTokensIntoSections(sections = [], primaryTokens = []) {
         key: 'general',
         label: 'General',
         tokens: normalizedPrimaryTokens,
-        subgroups: [],
       },
       ...normalizedSections,
     ]
