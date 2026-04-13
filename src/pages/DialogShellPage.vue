@@ -377,6 +377,18 @@ watch(
       dialogInitialFieldMeta.value = buildCreateDialogInitialFieldMeta(pending)
       dialogInitialSnapshot.value = pending?.snapshot || null
       dialogInitialSectionKey.value = 'general'
+      if (!pending) {
+        setPendingAddEditShellRequest({
+          sourceKey: activeSourceKey.value,
+          initialValues: dialogInitialValues.value,
+          initialFieldMeta: dialogInitialFieldMeta.value,
+          snapshot: {
+            values: dialogInitialValues.value,
+            verification: { changes: dialogInitialFieldMeta.value },
+            hasUserChanges: true,
+          },
+        })
+      }
       dialogOpen.value = true
       void ensureDraftRecord({
         values: dialogInitialValues.value,

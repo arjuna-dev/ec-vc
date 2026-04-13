@@ -159,10 +159,12 @@
       :class="{ 'ec-draft-tray--minimized': draftTrayMinimized }"
     >
       <div class="ec-draft-tray__header">
-        <div class="ec-draft-tray__title">
-          Drafts
-          <span class="ec-draft-tray__count">{{ draftEntries.length + (pendingIntakeRequest ? 1 : 0) }}</span>
-        </div>
+          <div class="ec-draft-tray__title">
+            Drafts
+            <span class="ec-draft-tray__count">
+              {{ draftEntries.length + (pendingIntakeRequest ? 1 : 0) + (pendingAddEditRequest ? 1 : 0) }}
+            </span>
+          </div>
         <div class="ec-draft-tray__actions">
           <q-btn
             flat
@@ -184,6 +186,20 @@
       </div>
       <div v-if="!draftTrayMinimized" class="ec-draft-tray__body">
         <q-list dense class="ec-draft-tray__list">
+          <q-item
+            v-if="pendingAddEditTrayEntry"
+            clickable
+            class="ec-draft-tray__item"
+            @click="resumePendingAddEdit"
+          >
+            <q-item-section avatar>
+              <q-icon name="edit" />
+            </q-item-section>
+            <q-item-section>
+              <q-item-label>{{ pendingAddEditTrayEntry.label }}</q-item-label>
+              <q-item-label caption>{{ pendingAddEditTrayEntry.sourceLabel }}</q-item-label>
+            </q-item-section>
+          </q-item>
           <q-item
             v-if="pendingIntakeRequest"
             clickable
@@ -657,7 +673,9 @@ const intakeDrafts = computed(() =>
 )
 const pendingAddEditRequest = computed(() => getPendingAddEditShellRequest())
 const pendingIntakeRequest = computed(() => getPendingIntakeShellRequest())
-const draftTrayVisible = computed(() => Boolean(draftEntries.value.length || pendingIntakeRequest.value))
+const draftTrayVisible = computed(() =>
+  Boolean(draftEntries.value.length || pendingIntakeRequest.value || pendingAddEditRequest.value),
+)
 const draftEntries = computed(() => {
   const entries = getDraftRegistryEntries()
   return entries
@@ -677,6 +695,21 @@ const draftEntries = computed(() => {
       }
     })
     .filter((entry) => entry.sourceKey)
+})
+const pendingAddEditTrayEntry = computed(() => {
+  const pending = pendingAddEditRequest.value
+  if (!pending?.sourceKey) return null
+  const sourceKey = String(pending.sourceKey || '').trim().toLowerCase()
+  const entry = getFilePageRegistryEntry(sourceKey)
+  const titleToken = getRegistryTitleTokenForSource(sourceKey)
+  const values = pending.snapshot?.values || pending.initialValues || {}
+  const rawValue = titleToken ? getCanonicalTokenValue(values, titleToken) : null
+  const label = String(rawValue || '').trim() || 'Untitled draft'
+  return {
+    sourceKey,
+    sourceLabel: String(entry?.label || sourceKey || '').trim(),
+    label,
+  }
 })
 const draftGroups = computed(() => {
   const grouped = new Map()
