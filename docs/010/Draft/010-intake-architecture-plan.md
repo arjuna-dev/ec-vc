@@ -74,7 +74,7 @@ When intake-related shell surfaces are exposed for testing or convergence, they 
 
 That means:
 
-- the shared top shell header owns the `L1` select menu
+- the shared top shell header owns the file select menu
 - shell routes should not add a second local selector or launch row when that shared header already exists
 - if a page starts reproducing header-level controls locally, that is a shell-drift warning
 
@@ -341,7 +341,7 @@ More concretely:
 
 1. Less drift as the app grows
 
-- if many `L1`s, many view forks, and many actions all use one payload builder:
+- if many files, many views, and many actions all use one payload builder:
   - new entities behave predictably
   - grouped sections behave the same everywhere
   - the app does not keep re-solving the same rendering problem
