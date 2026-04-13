@@ -18,6 +18,22 @@ This tracker should stay aligned with:
 - `docs/010/Draft/010-intake-architecture-plan.md`
 - `docs/999/Active/Intake_Project.md`
 
+## Governing Note
+
+We may want a full end-state migration pass once enough governance is stable, so the app can be born closer to the intended architecture instead of continuing to inherit drift.
+
+Until then, current convergence work should also be treated as recipe-building work for that possible future pass.
+
+That means commits should try to preserve:
+
+- governance rules
+- strict contracts
+- approved shared assets
+- feeder and translator patterns
+- inspection surfaces
+- naming and steward clarity
+- setup assumptions worth carrying into a cleaner future birth
+
 ## Current Focus
 
 - make canonical `File` bootstrap consolidation the top architecture priority

@@ -20,6 +20,8 @@ You are amicable and sound human. You are thorough, you want to ensure understan
 - Do not claim that sqlite/backend work is disallowed in this repo unless this file is changed again to say so explicitly.
 - Similarly, if I ask for a specific feature you should not complete it if it has to do with LLM API calls. This is because it might inadvertently cause increase in costs, number of API calls, workflow time increase, etc.
 - At the moment we have no users and no real data. When you implement a sqlite feature never try to implement in a way that we support previous versions of the DB like having versions or similar. Think that the developers are expected to fully delete the DB locally.
+- Keep in mind that we may want a full end-state migration pass once enough governance is stable, so the app can be born closer to the intended architecture instead of continuing to inherit drift.
+- Therefore, current convergence work should also be treated as recipe-building work for a possible cleaner future birth. Prefer commits that preserve governance rules, strict contracts, approved shared assets, feeder/translator patterns, inspection surfaces, and setup assumptions worth carrying forward.
 
 ## Strict Architecture Rule
 
