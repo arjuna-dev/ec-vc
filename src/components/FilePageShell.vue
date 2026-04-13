@@ -773,6 +773,7 @@ import { loadShellFieldSelectionMap, persistShellFieldSelectionMap } from 'src/u
 import { getBuildingBlockGraphCounts, getBuildingBlockGraphLinks } from 'src/utils/buildingBlocks'
 import { setPendingAddEditShellRequest } from 'src/utils/addEditShellState'
 import { setPendingIntakeShellRequest } from 'src/utils/intakeShellState'
+import { removeDraftRegistryEntry, upsertDraftRegistryEntry } from 'src/utils/draftRegistry'
   import { getTokenMetadataOverride, loadTokenMetadataOverrides, mergeTokenMetadata, persistTokenMetadataOverrides } from 'src/utils/tokenMetadataOverrides'
 
 const props = defineProps({
@@ -1577,7 +1578,7 @@ function resolveCreateDialogOptionValue(token, rawValue) {
   return matchedOption ? matchedOption.value : normalized
 }
 
-function normalizeCreateDialogInitialValue(token, value) {
+  function normalizeCreateDialogInitialValue(token, value) {
   const tokenType = String(token?.tokenType || '').trim()
 
   if (tokenType === 'select_multi') {
@@ -1595,8 +1596,25 @@ function normalizeCreateDialogInitialValue(token, value) {
     return resolveCreateDialogOptionValue(token, value)
   }
 
-  return value == null ? '' : String(value)
-}
+    return value == null ? '' : String(value)
+  }
+
+  function buildSuggestedRecordName(sourceKey, requestedBranch = '') {
+    const normalizedSourceKey = String(sourceKey || '').trim().toLowerCase()
+    if (!normalizedSourceKey) return ''
+    const entry = getFilePageRegistryEntry(normalizedSourceKey)
+    const titleToken = getRegistryTitleTokenForSource(normalizedSourceKey)
+    if (!entry || !titleToken?.key) return ''
+
+    const singularLabel = String(entry.singularLabel || entry.label || 'Record').trim()
+    const normalizedBranch = String(requestedBranch || '').trim()
+    const branchLabel = normalizedBranch
+      ? `${normalizedBranch.charAt(0).toUpperCase()}${normalizedBranch.slice(1)} `
+      : ''
+    const rows = getOptionRowsForSource(normalizedSourceKey)
+    const count = Array.isArray(rows) ? rows.length : 0
+    return `New ${branchLabel}${singularLabel} #${count + 1}`
+  }
 
 function normalizeEntitySourceKey(entityName) {
   return String(entityName || '').trim().toLowerCase()
@@ -3345,9 +3363,9 @@ function canCreateForSourceKey(sourceKey) {
   return Boolean(bridge.value?.[normalizedSourceKey]?.create)
 }
 
-function requestCreateRecordShellForSource(sourceKey, options = {}) {
-  const normalizedSourceKey = String(sourceKey || '').trim().toLowerCase()
-  if (!normalizedSourceKey) return
+  function requestCreateRecordShellForSource(sourceKey, options = {}) {
+    const normalizedSourceKey = String(sourceKey || '').trim().toLowerCase()
+    if (!normalizedSourceKey) return
 
   if (normalizedSourceKey === activeSourceKey.value) {
     if (!canCreateWithShell.value) {
@@ -3397,16 +3415,28 @@ function requestCreateRecordShellForSource(sourceKey, options = {}) {
     return
   }
 
-  if (normalizedSourceKey !== activeSourceKey.value) {
-    const contextPrefill = buildContextRelationshipPrefillForSource(
-      normalizedSourceKey,
-      options?.contextEntity,
-      options?.contextRecordId,
-    )
-    setPendingAddEditShellRequest({
-      sourceKey: normalizedSourceKey,
-      initialValues: contextPrefill.initialValues,
-      initialFieldMeta: contextPrefill.initialFieldMeta,
+    if (normalizedSourceKey !== activeSourceKey.value) {
+      const contextPrefill = buildContextRelationshipPrefillForSource(
+        normalizedSourceKey,
+        options?.contextEntity,
+        options?.contextRecordId,
+      )
+      const suggestedName = buildSuggestedRecordName(normalizedSourceKey, requestedBranch)
+      const titleToken = getRegistryTitleTokenForSource(normalizedSourceKey)
+      if (suggestedName && titleToken?.key && !contextPrefill.initialValues?.[titleToken.key]) {
+        contextPrefill.initialValues = {
+          ...(contextPrefill.initialValues || {}),
+          [titleToken.key]: suggestedName,
+        }
+        contextPrefill.initialFieldMeta = {
+          ...(contextPrefill.initialFieldMeta || {}),
+          [titleToken.key]: { verificationState: 'suggested_unverified' },
+        }
+      }
+      setPendingAddEditShellRequest({
+        sourceKey: normalizedSourceKey,
+        initialValues: contextPrefill.initialValues,
+        initialFieldMeta: contextPrefill.initialFieldMeta,
     })
     const nextQuery = {
       section: normalizedSourceKey,
@@ -3429,9 +3459,9 @@ function requestCreateRecordShellForSource(sourceKey, options = {}) {
     options?.contextEntity,
     options?.contextRecordId,
   )
-  const nextInitialValues = {
-    ...contextPrefill.initialValues,
-  }
+    const nextInitialValues = {
+      ...contextPrefill.initialValues,
+    }
   const branchTokenName = getCreateBranchTokenName(activeSourceKey.value)
   const branchEntry = getCreateBranchEntry(activeSourceKey.value, requestedBranch)
   const branchToken = branchTokenName
@@ -3440,15 +3470,22 @@ function requestCreateRecordShellForSource(sourceKey, options = {}) {
       ) || null
     : null
 
-  if (branchToken && branchEntry) {
-    nextInitialValues[branchToken.key] = resolveCreateDialogOptionValue(branchToken, branchEntry.value)
-  }
+    if (branchToken && branchEntry) {
+      nextInitialValues[branchToken.key] = resolveCreateDialogOptionValue(branchToken, branchEntry.value)
+    }
 
-  openCreateRecordShell({
-    initialValues: nextInitialValues,
-    initialFieldMeta: contextPrefill.initialFieldMeta,
-  })
-}
+    const suggestedName = buildSuggestedRecordName(normalizedSourceKey, requestedBranch)
+    const nextFieldMeta = { ...(contextPrefill.initialFieldMeta || {}) }
+    if (suggestedName && canonicalTitleToken.value?.key && !nextInitialValues[canonicalTitleToken.value.key]) {
+      nextInitialValues[canonicalTitleToken.value.key] = suggestedName
+      nextFieldMeta[canonicalTitleToken.value.key] = { verificationState: 'suggested_unverified' }
+    }
+
+    openCreateRecordShell({
+      initialValues: nextInitialValues,
+      initialFieldMeta: nextFieldMeta,
+    })
+  }
 
 function requestCreateRecordShell(options = {}) {
   requestCreateRecordShellForSource(activeSourceKey.value, options)
@@ -4086,6 +4123,7 @@ function upsertLocalDraftRow(sourceKey, draftId, values = {}) {
       ),
     ],
   }
+  upsertDraftRegistryEntry(normalizedSourceKey, normalizedDraftId, values)
 }
 
 function removeLocalDraftRow(sourceKey, draftId) {
@@ -4099,6 +4137,7 @@ function removeLocalDraftRow(sourceKey, draftId) {
     ...localDraftRowsBySource.value,
     [normalizedSourceKey]: existingRows.filter((row) => String(row?.id || '').trim() !== normalizedDraftId),
   }
+  removeDraftRegistryEntry(normalizedSourceKey, normalizedDraftId)
 }
 
 function hasPersistableDraftContent(snapshot) {
@@ -4122,6 +4161,11 @@ function updateLocalDraftRowFromSnapshot(snapshot) {
     return
   }
   upsertLocalDraftRow(createDialogDraftSourceKey.value, createDialogDraftRecordId.value, snapshot?.values || createDialogInitialValues.value)
+  upsertDraftRegistryEntry(
+    createDialogDraftSourceKey.value,
+    createDialogDraftRecordId.value,
+    snapshot?.values || createDialogInitialValues.value,
+  )
 }
 
 function buildCreatePayload(values = {}) {
