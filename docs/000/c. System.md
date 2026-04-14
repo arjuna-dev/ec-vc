@@ -112,6 +112,12 @@ Minimum base structure required for every file:
 
 The only recovery path for a missing shell structure is to seed the base structure in system registry truth.
 
+Table/rendering implication:
+
+- shared base fields such as `Name` and `Summary` should come from the declared file structure
+- they should not be reintroduced later as local hardcoded table headers
+- approved system columns such as `History` and `Status` should be declared and governed as system-level columns, not improvised per surface
+
 ## Birth Checklist
 
 For system-file acceptance, the honest checklist is:

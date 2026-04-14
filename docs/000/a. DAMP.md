@@ -2823,6 +2823,68 @@ Examples:
 
 If a shell action is performing a databook write, verification write, or databook snapshot/update flow, it must normalize through the approved databook table-name mapping first.
 
+## Table Column Contract
+
+Shared row and table surfaces must treat column rendering as a strict contract problem, not a local presentation problem.
+
+Working rule:
+
+- data columns must come from the active file structure
+- token-backed column titles must come from `Token Label`
+- if a column title is wrong, fix the token contract instead of patching the table
+- shared shells must not invent replacement display names for token-backed columns
+
+That means:
+
+- `token key` remains structural identity
+- `token label` is the human-facing column title
+- `token type` governs input/edit behavior
+- `write target` governs persistence path
+- `visibility` and `editability` govern whether the column should render and how it may be edited
+
+### Shared Base Column Rule
+
+Shared base fields such as `Name` and `Summary` must not be hardcoded as table headers when they are already declared in file structure.
+
+They should render through the same token/file-structure contract as the rest of the row data.
+
+If `Name` or `Summary` appears twice, disappears, or drifts by surface, treat that as a file-structure or token-contract problem first.
+
+### Approved Special System Columns
+
+Some columns are approved as special system columns rather than ordinary token-backed data columns.
+
+Current approved system columns are:
+
+- `History`
+- `Status`
+
+Working interpretation:
+
+- `History` is an approved provenance/system column
+- `Status` is an approved system-state column because it identifies the state of the record rather than ordinary record content
+
+These columns should still be declared and governed explicitly.
+
+They must not be treated as accidental local UI columns.
+
+### Local Control Column Rule
+
+The following are local control columns, not data columns:
+
+- `Select`
+- `View`
+- `Edit`
+
+When present, they should always remain on the left in that order.
+
+They should stay visually distinct from data columns and should not borrow token-header meaning.
+
+Selection behavior rule:
+
+- when selection is active, explicit field or row actions such as `Share` and `Delete` may become available
+- those actions should be activated by selection state, not by pretending the selection column is part of record data
+
 ## Append-Only Audit Rule
 
 Shared shell writes must respect the append-only `events` contract.

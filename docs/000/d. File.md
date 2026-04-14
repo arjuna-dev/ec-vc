@@ -235,6 +235,18 @@ That means:
   - hug their content
   - stay aligned with the same shared row pattern used in other canonical shells
 
+For file-backed data columns, the `File Steward` should keep table headers and lead columns governed by file structure.
+
+That means:
+
+- token-backed column titles come from `Token Label`
+- shared base fields such as `Name` and `Summary` must render from the file structure/token contract, not from local hardcodes
+- duplicated or drifting base-field columns should be treated as file-structure drift
+- `History` and `Status` may remain approved special system columns when they are explicitly governed as record-state/provenance columns
+- local control columns such as `Select`, `View`, and `Edit` are not file tokens and should remain fixed control columns on the left
+
+If a file table shows a better label than the token contract provides, the `File Steward` should fix the token label or file structure instead of patching the table header locally.
+
 For editable field rows, the selection box should not be treated as the way to enter editing.
 
 Its purpose is to support explicit field actions such as:
