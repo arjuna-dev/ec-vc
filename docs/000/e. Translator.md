@@ -1,10 +1,10 @@
-# Translators
+# Translator
 
 ## Purpose
 
-This document explains the role of `Translators` in the system.
+This document explains the role of `Translator` in the system.
 
-`Translators` are important shared system assets that help move canonical input into approved shared output without letting local interpretation drift take over.
+`Translator` is the important shared system layer that helps move canonical input into approved shared output without letting local interpretation drift take over.
 
 They are not just utilities.
 
@@ -21,7 +21,7 @@ In simple form:
 - the translator produces normalized output
 - shared builders and renderers use that output
 
-## Why Translators Matter
+## Why Translator Matters
 
 Without a translator layer, each page, shell, or component starts shaping shared behavior locally.
 
@@ -33,7 +33,7 @@ That leads to:
 - harder debugging
 - surfaces that only look shared while behaving differently underneath
 
-Translators help prevent that by giving the system one governed place for shared interpretation.
+Translator logic helps prevent that by giving the system one governed place for shared interpretation.
 
 ## Core Chain
 
@@ -177,8 +177,8 @@ When a shared behavior starts appearing in many places, ask:
 
 Stay aligned with:
 
-- `docs/000/g. Recipe.md`
+- `docs/000/h. Recipe.md`
 - `docs/000/a. DAMP.md`
 - `docs/000/b. LAMP.md`
-- `docs/000/d. Intake.md`
+- `docs/000/f. Intake.md`
 - `docs/002/a. Companion.md`

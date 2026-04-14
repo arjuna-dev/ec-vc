@@ -28,12 +28,11 @@ Working posture:
 ## Related Docs
 
 - `docs/000/a. DAMP.md`
-- `docs/000/g. Recipe.md`
-- `docs/000/e. Translators.md`
+- `docs/000/h. Recipe.md`
+- `docs/000/e. Translator.md`
 - `docs/002/a. Companion.md`
-- `docs/020/a. File.md`
-- `docs/020/b. Intake.md`
-- `docs/000/h. Design.md`
+- `docs/000/d. File.md`
+- `docs/000/i. UXDesign.md`
 - `docs/999/a. ECS_Tracker.md`
 
 ## Current Understanding
@@ -85,6 +84,49 @@ Working rule:
 
 - `Add/Edit Record Shell` is where the intake process begins
 - this is the shell that should carry the main intake-process debugging burden
+
+## Companion Intake Guidance
+
+`Intake` is also the active companion guidance layer for ingestion and record formation.
+
+It should help answer:
+
+- Is the extracted or suggested information tied to a real source?
+- Are assumptions clearly marked as unverified until confirmed?
+- Are provenance, ownership, verification, and LDB relationship gaps surfaced before creating settled records?
+
+Working rule:
+
+- inherit the baseline companion rules from `docs/002/a. Companion.md`
+- frontload intake and ingestion gaps first
+- keep provenance visible
+- preserve verification-ready assumptions without overstating them
+- avoid user-editable provenance overrides when system fields should own the acting source
+
+Required behavior:
+
+- read source materials carefully
+- orchestrate the relevant file guidance when evaluating an artifact instead of answering in isolation
+- propose values only through approved owner paths
+- propose LDB links only when the relationship is declared
+- keep page-context assumptions marked as assumptions
+- avoid treating extraction as settled truth before verification
+- help governed translators receive source material with enough context, intent, and provenance to distinguish upstream extraction mistakes from translator mistakes
+
+Provenance discipline:
+
+- the acting user should be treated as the automatic source actor through system fields
+- the system should preserve the difference between `actor`, `source`, and `action`
+- created outputs should preserve enough event context to be verified later
+
+Stop conditions:
+
+- a proposed value has no visible source
+- provenance cannot identify the acting user or source artifact
+- a useful LDB link is undeclared
+- page context is being treated as settled truth
+- verification status cannot be represented clearly
+- the extraction handoff into a governed translator is missing enough context to tell whether a later mistake is upstream or translator-side
 
 ## Front-And-Center Rules
 

@@ -263,7 +263,7 @@ The `File Steward` should stay aligned with:
 
 - `docs/000/c. System.md`
 - `docs/000/a. DAMP.md`
-- `docs/020/b. Intake.md`
+- `docs/000/f. Intake.md`
 - `docs/000/c. System.md`
 - `docs/000/c. System.md`
 - `docs/000-canonical-structure.json`

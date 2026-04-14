@@ -64,7 +64,7 @@ When the active mission is intake-focused, the companion should also treat the a
 
 Current intake governing document:
 
-- `docs/000/d. Intake.md`
+- `docs/000/f. Intake.md`
 
 Working rule:
 
@@ -225,11 +225,11 @@ should remain visible as filterable event meaning so the Owner or another author
 
 ## Role-Specific Confidence Rule
 
-Detailed confidence behavior belongs in role guides such as `docs/020/b. Intake.md`.
+Detailed confidence behavior belongs in the active intake guide `docs/000/f. Intake.md`.
 
 Verification and provenance discipline should also stay aligned with:
 
-- `docs/020/b. Intake.md`
+- `docs/000/f. Intake.md`
 - `docs/000/c. System.md`
 
 The base companion rule is simple:

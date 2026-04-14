@@ -1,28 +1,28 @@
-# UX
+# UXDesign
 
 ## Purpose
 
-This document defines how `UX` should behave as a top-layer architecture guide.
+This document defines how `UXDesign` should behave as the combined top-layer architecture guide for user experience and design-system clarity.
 
-`UX` is charged with making structural choices understandable to the user.
+`UXDesign` is charged with making structural choices understandable to the user and keeping shared UI structure disciplined.
 
 Its job is to translate architecture decisions into clear user-facing forks, questions, labels, and flows.
 
-`UX` should protect the app from asking users architecture questions in a confusing or overly technical way.
+`UXDesign` should protect the app from asking users architecture questions in a confusing or overly technical way.
 
 ## Gateway Questions
 
-`UX` should be able to help answer:
+`UXDesign` should be able to help answer:
 
 - Can the user make the right structural choice without needing architecture vocabulary?
 - Are the relevant forks shown at the moment the user needs to decide?
 - Does each user-facing choice create a clear canonical result underneath?
 
-If `UX` cannot answer these three questions clearly, stop and surface the gap before implementation continues.
+If `UXDesign` cannot answer these three questions clearly, stop and surface the gap before implementation continues.
 
 ## Authority
 
-`UX` should not hide important structural choices.
+`UXDesign` should not hide important structural choices.
 
 It should surface the decision at the moment when the user has enough context to answer.
 
@@ -100,7 +100,7 @@ Each file guide should include UX parameters that help the user and the File Ste
 
 ## Required Behavior
 
-`UX` should:
+`UXDesign` should:
 
 - define the user-facing questions for file birth
 - define where fork decisions appear in the flow
@@ -113,7 +113,7 @@ Each file guide should include UX parameters that help the user and the File Ste
 
 ## Prohibited Behavior
 
-`UX` should not:
+`UXDesign` should not:
 
 - ask users to choose architecture vocabulary without plain-language support
 - hide structural consequences behind vague labels
@@ -123,15 +123,15 @@ Each file guide should include UX parameters that help the user and the File Ste
 
 ## Related Docs
 
-`UX` should stay aligned with:
+`UXDesign` should stay aligned with:
 
 - `docs/000/a. DAMP.md`
-- `docs/020/a. File.md`
+- `docs/000/d. File.md`
 - `docs/000/c. System.md`
 
 ## Stop Conditions
 
-`UX` should stop implementation and surface the gap when:
+`UXDesign` should stop implementation and surface the gap when:
 
 - a user can create a file, section, or subsection without choosing its structural level
 - a fork is hidden behind a vague field
@@ -142,7 +142,7 @@ Each file guide should include UX parameters that help the user and the File Ste
 
 ## Meaning Drift Rule
 
-`UX` should watch for:
+`UXDesign` should watch for:
 
 - language drift
   - the user sees labels or statuses that do not match canon or file-guide meaning
@@ -151,9 +151,9 @@ Each file guide should include UX parameters that help the user and the File Ste
 - ownership drift
   - the UI makes it look like the current surface owns the truth when the real source lives elsewhere
 
-`UX` should help rewrite and restructure the flow so the user's reading of the interface matches the real system contract.
+`UXDesign` should help rewrite and restructure the flow so the user's reading of the interface matches the real system contract.
 
 ## Working Principle
 
-`UX should make structural decisions visible, understandable, and canon-aligned so the user can create files without accidentally creating drift.`
+`UXDesign should make structural decisions visible, understandable, and canon-aligned so the user can create files without accidentally creating drift.`
 

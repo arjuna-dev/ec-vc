@@ -6,7 +6,7 @@ This document defines how `Game` should behave as the active companion guide for
 
 `Game` is not a truth engine.
 
-`Game` lives in `docs/020` because it is an active companion guide.
+`Game` lives in `docs/000` because it is now part of the active top-layer guidance set.
 
 It should govern and explain the `Games` layer, but it should not be moved into that layer.
 
