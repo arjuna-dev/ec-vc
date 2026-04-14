@@ -246,6 +246,18 @@ The intended birth chain is:
 3. file-owned tokens/views
 4. runtime/sqlite table and shell rendering
 
+Minimum shared base expectation:
+
+- `System`
+  - `ID`
+  - `History`
+  - `Status`
+- `General`
+  - `Name`
+  - `Summary`
+- `LDB`
+- optional `File Specific`
+
 Reference inputs:
 
 - `docs/000-canonical-structure.json`

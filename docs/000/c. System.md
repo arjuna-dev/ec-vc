@@ -191,6 +191,7 @@ Minimum base structure required for every file:
 - `System`: `ID`, `History`, `Status`
 - `General`: `Name` required, `Summary` optional
 - `LDB`: empty relationship view derived from the declared system-file universe
+- `File Specific`: optional extension area for file-owned structure that does not belong in the shared base
 
 The only recovery path for a missing shell structure is to seed the base structure in system registry truth.
 
@@ -200,6 +201,7 @@ Table/rendering implication:
 - they should not be reintroduced later as local hardcoded table headers
 - approved system columns such as `History` and `Status` should be declared and governed as system-level columns, not improvised per surface
 - token definitions should remain visible enough that extraction and local meaning can be compared against outside sources when needed
+- empty token arrays should normally appear only where a section is intentionally waiting for file-specific extension or governed future definition
 
 ## Birth Checklist
 
