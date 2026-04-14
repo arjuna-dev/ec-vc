@@ -1685,6 +1685,7 @@ function buildBaseFileStructure(entry) {
             dbFieldAliases: ['id'],
             ...makeWriteTarget('id'),
             relationshipGroup: '',
+            definition: '',
             defaultVerificationState: 'verified',
             defaultVerificationSource: 'system_defined',
           },
@@ -1703,6 +1704,7 @@ function buildBaseFileStructure(entry) {
             dbFieldAliases: [],
             ...makeWriteTarget(''),
             relationshipGroup: '',
+            definition: '',
             defaultVerificationState: 'verified',
             defaultVerificationSource: 'system_defined',
           },
@@ -1722,6 +1724,7 @@ function buildBaseFileStructure(entry) {
             dbFieldAliases: ['Data_Status'],
             ...makeWriteTarget('Data_Status'),
             relationshipGroup: '',
+            definition: '',
             defaultVerificationState: 'input',
             defaultVerificationSource: 'system_defined',
           },
@@ -1749,6 +1752,7 @@ function buildBaseFileStructure(entry) {
             dbFieldAliases: nameField ? [nameField] : [],
             ...makeWriteTarget(nameField),
             relationshipGroup: '',
+            definition: '',
             defaultVerificationState: 'input',
             defaultVerificationSource: 'system_defined',
           },
@@ -1767,6 +1771,7 @@ function buildBaseFileStructure(entry) {
               dbFieldAliases: summaryField ? [summaryField] : [],
               ...makeWriteTarget(summaryField),
               relationshipGroup: '',
+              definition: '',
               defaultVerificationState: 'input',
               defaultVerificationSource: 'system_defined',
             },
@@ -1834,10 +1839,24 @@ function ensureBaseStructureCompleteness(existing = null, base = null) {
 
   const baseSections = Array.isArray(base.sections) ? base.sections : []
   const existingSections = Array.isArray(existing.sections) ? existing.sections : []
-  const normalizedExisting = existingSections.map((section) => ({
-    ...section,
-    tokens: Array.isArray(section?.tokens) ? section.tokens : [],
-  }))
+  const normalizedExisting = existingSections.map((section) => {
+    const nextSection = {
+      ...section,
+      tokens: Array.isArray(section?.tokens) ? section.tokens : [],
+    }
+    const normalizedLabel = String(nextSection?.label || '').trim().toLowerCase()
+    if (normalizedLabel === 'file specific') {
+      nextSection.label = 'Other'
+      const normalizedKey = String(nextSection?.key || '').trim().toLowerCase()
+      if (!normalizedKey || normalizedKey.endsWith('-file-specific')) {
+        const sourcePrefix = normalizedKey.endsWith('-file-specific')
+          ? normalizedKey.slice(0, normalizedKey.length - '-file-specific'.length)
+          : ''
+        nextSection.key = sourcePrefix ? `${sourcePrefix}-other` : String(nextSection.key || '').trim()
+      }
+    }
+    return nextSection
+  })
   const normalizedBase = baseSections.map((section) => ({
     ...section,
     tokens: Array.isArray(section?.tokens) ? section.tokens : [],
