@@ -23,6 +23,7 @@ This tracker should stay aligned with:
 - `docs/000/i. Recipe.md`
 - `docs/000/j. UXDesign.md`
 - `docs/999/b. PMP.md`
+- `docs/999/c. How it Works.md`
 
 ## PMP Definition
 
