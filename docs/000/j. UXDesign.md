@@ -152,13 +152,26 @@ This protects the user mental model:
 - a section is part of a file
 - a subsection is part of a section
 
-## File Specific Rule
+## Other Rule
 
-`File Specific` is not a replacement for real named views.
+`Other` is not a replacement for real named views.
 
-`File Specific` is the governance area where the file records its unique structure metadata.
+`Other` is the first governed extension lane where the file may begin recording unique structure.
 
 Actual user-facing file structure should still be expressed through explicit views when the file needs them.
+
+## Structure Surface Reading Rule
+
+When the user is in structure governance:
+
+- `Views` should read as the place where section/view metadata is governed
+- `Tokens` should read as the place where token metadata is governed
+- both surfaces should feel like direct structure editing, not side tables
+
+Color rule:
+
+- blue = editable
+- grey = locked
 
 ## UX Parameters For Each File Guide
 

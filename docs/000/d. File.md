@@ -16,7 +16,7 @@ The `File Steward` should be able to help answer:
 
 - Is this file born correctly?
 - Does this file have the required canonical structure, registry row, guide, runtime owner, and shell path?
-- Are its `System`, `General`, `LDB`, and `File Specific` responsibilities clearly separated?
+- Are its `System`, `General`, `LDB`, and `Other` responsibilities clearly separated?
 
 If the `File Steward` cannot answer these three questions clearly, stop and surface the gap before implementation continues.
 
@@ -29,13 +29,14 @@ That shared base should include:
 - shared `System`
 - shared `LDB`
 - shared `General`
+- shared `Other`
 
 And only two parts of that base carry a fixed shared parameter set:
 
 - `System`
   - `ID`
   - `History`
-  - `Status`
+  - `Data.Status`
 - `General`
   - `Name`
   - `Summary`
@@ -67,6 +68,80 @@ After that shared base is declared, the `File` may add:
 - its own independent `View`s
 
 This keeps every file compatible with the same shell activation paths while still allowing entity-specific structure.
+
+## View Lock Rules
+
+Base views should start as:
+
+- `System`
+- `General`
+- `LDB`
+- `Other`
+
+Working rule:
+
+- `System`, `General`, and `LDB` are protected shared views
+- `Other` is the first extension lane and example sandbox view
+- users may add tokens to `General`
+- users may add tokens to `Other`
+- users may also add new views beyond `Other`
+
+Current runtime note:
+
+- the current `Views` governance surface does not yet let the user add a new view row from that panel
+- view creation is therefore not yet fully converged with the intended rule
+
+## Structure Governance Surface Rule
+
+The `File` structure surfaces should edit the stored JSON structure directly.
+
+That means:
+
+- `Views` edits section/view metadata
+- `Tokens` edits token metadata
+- the surface should not invent a second parallel structure layer
+
+Working rule:
+
+- view metadata lives on the section object
+- token metadata lives on the token object
+- changing those surfaces should regulate `Defined_Structure`
+
+Visual rule:
+
+- blue = editable
+- grey = locked
+
+## Token Ownership And Value Editability
+
+The safe distinction is:
+
+- `view ownership`
+- `token ownership`
+- `value editability`
+
+Current governed reading:
+
+- `System`
+  - view ownership: locked
+  - token ownership: `ID`, `History`, and `Data.Status` stay owned by `System`
+  - value editability: `ID` and `History` stay locked; `Data.Status` value remains editable
+
+- `LDB`
+  - view ownership: locked
+  - token ownership: LDB link tokens stay nested in `LDB`
+  - value editability: link values remain editable
+
+- `General`
+  - view ownership: locked
+  - token ownership: `Name` and `Summary` must always exist and must not be deleted
+  - value editability: editable
+  - nesting rule: `Name` and `Summary` may be nested into user-facing views other than `System` and `LDB`
+
+- `Other`
+  - view ownership: locked as the first extension example lane
+  - token ownership: open for user-added structure
+  - value editability: governed by token contract
 
 ## File Ownership Chain
 
@@ -300,14 +375,14 @@ That means:
 - token-backed column titles come from `Token Label`
 - shared base fields such as `Name` and `Summary` must render from the file structure/token contract, not from local hardcodes
 - duplicated or drifting base-field columns should be treated as file-structure drift
-- `History` and `Status` may remain approved special system columns when they are explicitly governed as record-state/provenance columns
+- `History` and `Data.Status` may remain approved special system columns when they are explicitly governed as record-state/provenance columns
 - local control columns such as `Select` and `View` are not file tokens and should remain fixed control columns on the left
 
 Current runtime note:
 
 - `History` is still implemented as an approved special system column in `File Shell`
-- `Status` should live in `System View` with `ID` and `History`
-- `Status` should not be treated as a normal free-floating display column
+- `Data.Status` should live in `System View` with `ID` and `History`
+- `Data.Status` should not be treated as a normal free-floating display column
 - these two columns should stay explicit and governed until the file/token contract gives them a cleaner canonical home
 
 If a file table shows a better label than the token contract provides, the `File Steward` should fix the token label or file structure instead of patching the table header locally.
@@ -451,7 +526,7 @@ Current working `File` JSON shape:
         "tokens": [
           { "key": "ID", "label": "ID", "tokenRole": "id", "tokenType": "id" },
           { "key": "History", "label": "History", "tokenType": "event_log" },
-          { "key": "Status", "label": "Status", "tokenRole": "status", "tokenType": "select_single" }
+          { "key": "Data_Status", "label": "Data.Status", "tokenRole": "data_status", "tokenType": "select_single" }
         ]
       },
       {
@@ -468,8 +543,8 @@ Current working `File` JSON shape:
         "tokens": []
       },
       {
-        "key": "companies-file-specific",
-        "label": "File Specific",
+        "key": "companies-other",
+        "label": "Other",
         "tokens": []
       }
     ]
@@ -484,4 +559,6 @@ Reading note:
 - sections/views own tokens
 - base sections should already carry their governed shared tokens
 - an empty token list should usually mean the section is not yet declared or is waiting for file-specific extension
+- `Data.Status` belongs in `System`
+- file-specific status belongs in `Other` or another file-owned view
 

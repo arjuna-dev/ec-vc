@@ -31,6 +31,9 @@ At minimum, each token should carry:
 - `section ownership`
 - `definition`
 - `default verification state`
+- `view lock`
+- `token lock`
+- `value editability`
 
 ## Default Status Vocabulary
 
@@ -115,6 +118,21 @@ Working interpretation:
 - `Pre-Selected` and `Suggested` are system-origin states
 - `Verified` is a human-confirmed state
 - `Input` is the governed open-entry state
+- `Data.Status` in `System` is different from a file-specific status token in `Other`
+
+Locking rule:
+
+- bootstrap shared tokens may be protected even when their values remain editable
+- `Data.Status` stays owned by `System`
+- `Name` and `Summary` must always exist, but their values remain editable
+- `LDB` tokens stay nested in `LDB` even though link values remain editable
+
+Structure-surface rule:
+
+- `Tokens` surface should edit token metadata directly
+- this should regulate the token JSON structure rather than a second parallel notes layer
+- editable token metadata should read blue
+- locked token metadata should read grey
 
 ## Extraction Rule
 
@@ -159,15 +177,15 @@ Current working `Token` JSON shape:
 
 ```json
 {
-  "key": "Company_Name",
-  "tokenName": "Company_Name",
-  "tokenRole": "title",
-  "label": "Name",
-  "tokenType": "text",
-  "parentKey": "companies-general",
-  "parentLabel": "General",
-  "dbFieldAliases": ["Company_Name"],
-  "dbWriteField": "Company_Name",
+  "key": "Data_Status",
+  "tokenName": "Data_Status",
+  "tokenRole": "data_status",
+  "label": "Data.Status",
+  "tokenType": "select_single",
+  "parentKey": "companies-system",
+  "parentLabel": "System",
+  "dbFieldAliases": ["Data_Status"],
+  "dbWriteField": "Data_Status",
   "dbWriteTable": "Companies",
   "dbWriteIdColumn": "id",
   "definition": "",

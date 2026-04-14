@@ -1627,33 +1627,32 @@ function listCompanionRoles() {
 }
 
 const BASE_FILE_TOKEN_FIELDS = Object.freeze({
-  'file-system': { nameField: 'File_Name', summaryField: 'File_Summary', statusField: 'File_Status' },
-  companies: { nameField: 'Company_Name', summaryField: 'One_Liner', statusField: 'Status' },
-  contacts: { nameField: 'Name', summaryField: '', statusField: 'Status' },
-  users: { nameField: 'User_Name', summaryField: '', statusField: 'Status' },
-  notes: { nameField: 'Note_Name', summaryField: 'Note_Content', statusField: 'Status' },
-  tasks: { nameField: 'Task_Name', summaryField: 'Task_Summary', statusField: 'Status' },
-  projects: { nameField: 'Project_Name', summaryField: '', statusField: 'Status' },
-  artifacts: { nameField: 'title', summaryField: '', statusField: 'Status' },
-  opportunities: { nameField: 'Venture_Oppty_Name', summaryField: '', statusField: 'Status' },
-  funds: { nameField: 'Fund_Name', summaryField: '', statusField: 'Status' },
-  rounds: { nameField: 'Round_Name', summaryField: '', statusField: 'Status' },
-  markets: { nameField: 'Market_Name', summaryField: 'Market_Summary', statusField: 'Status' },
-  securities: { nameField: 'Security_Name', summaryField: 'Security_Summary', statusField: 'Status' },
-  events: { nameField: 'Event_Name', summaryField: 'Event_Summary', statusField: 'Status' },
-  'bb-file': { nameField: 'Name', summaryField: 'Summary', statusField: 'Status' },
-  intake: { nameField: 'Intake_Name', summaryField: '', statusField: 'Status' },
-  'user-roles': { nameField: 'Role_Name', summaryField: 'Role_Summary', statusField: 'Status' },
-  'companion-roles': { nameField: 'Companion_Role_Name', summaryField: 'Companion_Role_Summary', statusField: 'Status' },
+  'file-system': { nameField: 'File_Name', summaryField: 'File_Summary' },
+  companies: { nameField: 'Company_Name', summaryField: 'One_Liner' },
+  contacts: { nameField: 'Name', summaryField: '' },
+  users: { nameField: 'User_Name', summaryField: '' },
+  notes: { nameField: 'Note_Name', summaryField: 'Note_Content' },
+  tasks: { nameField: 'Task_Name', summaryField: 'Task_Summary' },
+  projects: { nameField: 'Project_Name', summaryField: '' },
+  artifacts: { nameField: 'title', summaryField: '' },
+  opportunities: { nameField: 'Venture_Oppty_Name', summaryField: '' },
+  funds: { nameField: 'Fund_Name', summaryField: '' },
+  rounds: { nameField: 'Round_Name', summaryField: '' },
+  markets: { nameField: 'Market_Name', summaryField: 'Market_Summary' },
+  securities: { nameField: 'Security_Name', summaryField: 'Security_Summary' },
+  events: { nameField: 'Event_Name', summaryField: 'Event_Summary' },
+  'bb-file': { nameField: 'Name', summaryField: 'Summary' },
+  intake: { nameField: 'Intake_Name', summaryField: '' },
+  'user-roles': { nameField: 'Role_Name', summaryField: 'Role_Summary' },
+  'companion-roles': { nameField: 'Companion_Role_Name', summaryField: 'Companion_Role_Summary' },
 })
 
 function buildBaseFileStructure(entry) {
   const sourceKey = String(entry?.key || '').trim().toLowerCase()
   const runtimeEntityName = String(entry?.entityName || '').trim()
-  const mapping = BASE_FILE_TOKEN_FIELDS[sourceKey] || { nameField: '', summaryField: '', statusField: 'Status' }
+  const mapping = BASE_FILE_TOKEN_FIELDS[sourceKey] || { nameField: '', summaryField: '' }
   const nameField = String(mapping.nameField || '').trim()
   const summaryField = String(mapping.summaryField || '').trim()
-  const statusField = String(mapping.statusField || 'Status').trim()
   const nameTokenName = nameField || 'Name'
   const summaryTokenName = summaryField || 'Summary'
   const makeWriteTarget = (fieldName) =>
@@ -1686,6 +1685,8 @@ function buildBaseFileStructure(entry) {
             dbFieldAliases: ['id'],
             ...makeWriteTarget('id'),
             relationshipGroup: '',
+            defaultVerificationState: 'verified',
+            defaultVerificationSource: 'system_defined',
           },
           {
             key: 'History',
@@ -1702,23 +1703,27 @@ function buildBaseFileStructure(entry) {
             dbFieldAliases: [],
             ...makeWriteTarget(''),
             relationshipGroup: '',
+            defaultVerificationState: 'verified',
+            defaultVerificationSource: 'system_defined',
           },
           {
-            key: statusField || 'Status',
-            tokenName: statusField || 'Status',
-            tokenRole: 'status',
+            key: 'Data_Status',
+            tokenName: 'Data_Status',
+            tokenRole: 'data_status',
             tokenOrder: '3',
             address: '',
-            label: 'Status',
-            tokenType: 'select_multi',
+            label: 'Data.Status',
+            tokenType: 'select_single',
             optionSource: 'static',
             optionEntity: '',
             optionList: '',
             optionEntities: [],
-            inputOptions: ['Draft', 'Saved', 'Discarded'],
-            dbFieldAliases: statusField ? [statusField] : [],
-            ...makeWriteTarget(statusField),
+            inputOptions: ['Pre-Selected', 'Suggested', 'Verified', 'Input'],
+            dbFieldAliases: ['Data_Status'],
+            ...makeWriteTarget('Data_Status'),
             relationshipGroup: '',
+            defaultVerificationState: 'input',
+            defaultVerificationSource: 'system_defined',
           },
         ],
       },
@@ -1744,6 +1749,8 @@ function buildBaseFileStructure(entry) {
             dbFieldAliases: nameField ? [nameField] : [],
             ...makeWriteTarget(nameField),
             relationshipGroup: '',
+            defaultVerificationState: 'input',
+            defaultVerificationSource: 'system_defined',
           },
             {
               key: summaryTokenName,
@@ -1760,12 +1767,22 @@ function buildBaseFileStructure(entry) {
               dbFieldAliases: summaryField ? [summaryField] : [],
               ...makeWriteTarget(summaryField),
               relationshipGroup: '',
+              defaultVerificationState: 'input',
+              defaultVerificationSource: 'system_defined',
             },
           ],
         },
       {
         key: `${sourceKey}-ldb`,
         label: 'LDB',
+        address: '',
+        structureToken: '',
+        displayGroup: '',
+        tokens: [],
+      },
+      {
+        key: `${sourceKey}-other`,
+        label: 'Other',
         address: '',
         structureToken: '',
         displayGroup: '',
@@ -1778,6 +1795,32 @@ function buildBaseFileStructure(entry) {
 function ensureBaseStructureCompleteness(existing = null, base = null) {
   if (!base || typeof base !== 'object') return existing
   if (!existing || typeof existing !== 'object') return base
+
+  const mergeMissingTokenFields = (existingToken = {}, baseToken = {}) => {
+    const nextToken = { ...existingToken }
+    let changed = false
+
+    Object.entries(baseToken).forEach(([key, value]) => {
+      const currentValue = nextToken?.[key]
+      const missingArray = Array.isArray(value) && !Array.isArray(currentValue)
+      const missingScalar =
+        !Array.isArray(value) &&
+        (currentValue == null || (typeof currentValue === 'string' && !String(currentValue).trim()))
+
+      if (missingArray) {
+        nextToken[key] = Array.isArray(value) ? [...value] : value
+        changed = true
+        return
+      }
+
+      if (missingScalar) {
+        nextToken[key] = value
+        changed = true
+      }
+    })
+
+    return changed ? nextToken : existingToken
+  }
 
   const resolveTokenIdentity = (token = {}) => {
     const writeField = String(token?.dbWriteField || '').trim().toLowerCase()
@@ -1821,6 +1864,12 @@ function ensureBaseStructureCompleteness(existing = null, base = null) {
       const baseTokenKeys = new Set(
         baseSection.tokens.map((token) => resolveTokenIdentity(token)).filter(Boolean),
       )
+      const mergedSystemTokens = baseSection.tokens.map((baseToken) => {
+        const matchingToken = (existingSection.tokens || []).find(
+          (token) => resolveTokenIdentity(token) === resolveTokenIdentity(baseToken),
+        )
+        return matchingToken ? mergeMissingTokenFields(matchingToken, baseToken) : baseToken
+      })
       const systemExtras = existingSection.tokens?.filter((token) => {
         const tokenKey = resolveTokenIdentity(token)
         return tokenKey && !baseTokenKeys.has(tokenKey)
@@ -1828,17 +1877,19 @@ function ensureBaseStructureCompleteness(existing = null, base = null) {
 
       normalizedExisting[existingIndex] = {
         ...existingSection,
-        tokens: baseSection.tokens,
+        tokens: mergedSystemTokens,
       }
-      if (existingSection.tokens?.length !== baseSection.tokens.length) mutated = true
+      if (JSON.stringify(existingSection.tokens || []) !== JSON.stringify(mergedSystemTokens)) mutated = true
 
       if (systemExtras.length) {
         const generalIndex = findSectionIndex(normalizedExisting, 'General')
-        if (generalIndex !== -1) {
-          const generalSection = normalizedExisting[generalIndex]
-          const generalTokens = Array.isArray(generalSection.tokens) ? generalSection.tokens : []
-          const generalTokenMap = new Map(
-            generalTokens.map((token) => [
+        const otherIndex = findSectionIndex(normalizedExisting, 'Other')
+        const targetIndex = otherIndex !== -1 ? otherIndex : generalIndex
+        if (targetIndex !== -1) {
+          const targetSection = normalizedExisting[targetIndex]
+          const targetTokens = Array.isArray(targetSection.tokens) ? targetSection.tokens : []
+          const targetTokenMap = new Map(
+            targetTokens.map((token) => [
               resolveTokenIdentity(token),
               token,
             ]),
@@ -1846,22 +1897,22 @@ function ensureBaseStructureCompleteness(existing = null, base = null) {
           systemExtras.forEach((token) => {
             const tokenKey = resolveTokenIdentity(token)
             if (!tokenKey) return
-            if (generalTokenMap.has(tokenKey)) return
+            if (targetTokenMap.has(tokenKey)) return
             const tokenRole = String(token?.tokenRole || '').trim().toLowerCase()
             const tokenLabel = String(token?.label || '').trim().toLowerCase()
             const hasRoleMatch = tokenRole
-              ? generalTokens.some((entry) => String(entry?.tokenRole || '').trim().toLowerCase() === tokenRole)
+              ? targetTokens.some((entry) => String(entry?.tokenRole || '').trim().toLowerCase() === tokenRole)
               : false
             const hasLabelMatch = tokenLabel
-              ? generalTokens.some((entry) => String(entry?.label || '').trim().toLowerCase() === tokenLabel)
+              ? targetTokens.some((entry) => String(entry?.label || '').trim().toLowerCase() === tokenLabel)
               : false
             if (hasRoleMatch || hasLabelMatch) return
-            generalTokenMap.set(tokenKey, token)
+            targetTokenMap.set(tokenKey, token)
             mutated = true
           })
-          normalizedExisting[generalIndex] = {
-            ...generalSection,
-            tokens: Array.from(generalTokenMap.values()),
+          normalizedExisting[targetIndex] = {
+            ...targetSection,
+            tokens: Array.from(targetTokenMap.values()),
           }
         }
       }
@@ -1879,6 +1930,12 @@ function ensureBaseStructureCompleteness(existing = null, base = null) {
         if (!tokenNameKey) return
         const baseRole = String(baseToken?.tokenRole || '').trim().toLowerCase()
         if (tokenMap.has(tokenNameKey)) {
+          const existingToken = tokenMap.get(tokenNameKey)
+          const mergedToken = mergeMissingTokenFields(existingToken, baseToken)
+          if (mergedToken !== existingToken) {
+            tokenMap.set(tokenNameKey, mergedToken)
+            mutated = true
+          }
           if (baseRole === 'status') {
             tokenMap.set(tokenNameKey, baseToken)
             mutated = true

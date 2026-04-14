@@ -42,26 +42,6 @@ The system chain works like this:
 - `structureRegistry.js` = runtime parser
 - shell surfaces = renderer
 
-Quick nesting summary:
-
-1. `Files`
-   - says the file exists
-
-2. `Files.Defined_Structure`
-   - stores how the file is built
-
-3. `sections/views`
-   - group the file into governed reading/editing areas
-
-4. `tokens`
-   - define the leaf fields inside each section/view
-
-Working interpretation:
-
-- `Files.Defined_Structure` = container contract
-- `section/view structure` = grouping layer
-- `token structure` = leaf-definition layer
-
 ### Why This Matters
 
 Changing bootstrap in `electron-main.js` does not automatically mean every existing file structure has changed everywhere.
@@ -108,7 +88,32 @@ The current logic is:
 2. that file stores its structure in `Files.Defined_Structure`
 3. the structure declares views/sections
 4. those views/sections declare tokens
-5. shared shells render from that stored structure
+
+REF REVIEW "good way to think about it.
+
+Files.Defined_Structure is the stored JSON structure contract for a file.
+
+Inside that contract, the next layer is:
+
+sections/views
+then tokens
+So the nesting is basically:
+
+Files
+
+the registry row exists
+Files.Defined_Structure
+
+the file’s stored structure contract
+sections/views
+
+System
+General
+LDB
+file-specific views
+tokens
+
+the leaf definitions inside each section/view"
 
 Short reading:
 
@@ -116,6 +121,13 @@ Short reading:
 - `Defined_Structure` says what the file contains
 - runtime parsing makes that structure usable
 - shells render what the structure actually says
+
+Current governed base:
+
+- `System`
+- `General`
+- `LDB`
+- `Other`
 
 Working rule:
 

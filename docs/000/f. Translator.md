@@ -192,6 +192,17 @@ Working interpretation:
 - the shared data-surface contract governs how that input is rendered into a reusable row surface
 - local shells should not invent their own row grammar when they are meant to share this surface logic
 
+## Shared Structure Rules
+
+These translator rules work across shared structure work too:
+
+- bootstrap shared views such as `System`, `General`, `LDB`, and `Other` should stay explicit
+- translator logic should not silently rename or relocate protected shared tokens
+- `Data.Status` should be read as the governed data-status token in `System`
+- file-specific business or entity status should remain in `Other` or another file-owned view
+- if the runtime surface and the stored file structure disagree, repair the stored file structure contract first instead of teaching the translator to compensate locally
+- `Views` and `Tokens` structure surfaces should be treated as direct JSON-governance paths, not local interpretation layers
+
 ## Working Rule
 
 When a shared behavior starts appearing in many places, ask:

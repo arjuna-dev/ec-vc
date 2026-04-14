@@ -64,13 +64,18 @@ That includes fields such as:
 
 - `ID`
 - `History`
-- `Status`
+- `Data.Status`
 
 Working rule:
 
-- `Status` should be treated as a `System View` field, not as a drifting general-purpose display column
-- row and table surfaces should render `Status` through the governed system path when that field is part of the shared record-state layer
+- `Data.Status` should be treated as a `System View` field, not as a drifting general-purpose display column
+- row and table surfaces should render `Data.Status` through the governed system path when that field is part of the shared record-state layer
 - token/field status should also begin from governed `System` definition rather than from page-local defaults
+
+Important distinction:
+
+- `Data.Status` = the status of the inputed/governed data itself
+- file-specific status fields such as company, fund, or process status belong in `Other` or another file-owned view
 
 Approved default status vocabulary:
 
@@ -93,6 +98,73 @@ Approved default status vocabulary:
   - blue
   - `CI = n.a.`
   - user-editable entry state
+
+## View Lock Rules
+
+Shared bootstrap views should begin from one governed base:
+
+- `System`
+- `General`
+- `LDB`
+- `Other`
+
+Working rule:
+
+- these views should be born as canonical structure
+- `System`, `General`, and `LDB` are protected shared views
+- `Other` is the first governed extension lane so users know where extension may begin
+- user-added views may be created beyond `Other`
+
+Current runtime note:
+
+- the current `Views` governance surface is still read-only
+- it does not yet support adding a new view row from that panel
+
+## Structure Governance Surface Rule
+
+The structure governance surfaces should edit the JSON structure directly.
+
+That means:
+
+- `Views` edits section/view metadata
+- `Tokens` edits token metadata
+- both surfaces should be treated as governed structure surfaces, not as local convenience tables
+
+Visual rule:
+
+- blue = editable
+- grey = locked
+
+## Token Ownership And Value Editability
+
+Keep these three distinctions explicit:
+
+- `view ownership`
+- `token ownership`
+- `value editability`
+
+Current governed reading:
+
+- `System`
+  - view ownership: locked
+  - token ownership: `ID`, `History`, and `Data.Status` stay owned by `System`
+  - value editability: `ID` and `History` stay locked; `Data.Status` value may be edited
+
+- `LDB`
+  - view ownership: locked
+  - token ownership: relationship tokens stay nested in `LDB`
+  - value editability: link values remain editable
+
+- `General`
+  - view ownership: locked
+  - token ownership: `Name` and `Summary` must always exist and must not be deleted
+  - value editability: editable
+  - nesting rule: `Name` and `Summary` are not true id and may be nested into user-facing views other than `System` and `LDB`
+
+- `Other`
+  - view ownership: locked as the first extension example lane
+  - token ownership: open for user-added structure
+  - value editability: editable according to token contract
 
 ## File Structure Ownership Chain
 
@@ -188,10 +260,10 @@ The `File Steward` governs whether each file is born correctly, has the required
 
 Minimum base structure required for every file:
 
-- `System`: `ID`, `History`, `Status`
+- `System`: `ID`, `History`, `Data.Status`
 - `General`: `Name` required, `Summary` optional
 - `LDB`: empty relationship view derived from the declared system-file universe
-- `File Specific`: optional extension area for file-owned structure that does not belong in the shared base
+- `Other`: optional extension area for file-owned structure that does not belong in the shared base
 
 The only recovery path for a missing shell structure is to seed the base structure in system registry truth.
 
@@ -199,7 +271,7 @@ Table/rendering implication:
 
 - shared base fields such as `Name` and `Summary` should come from the declared file structure
 - they should not be reintroduced later as local hardcoded table headers
-- approved system columns such as `History` and `Status` should be declared and governed as system-level columns, not improvised per surface
+- approved system columns such as `History` and `Data.Status` should be declared and governed as system-level columns, not improvised per surface
 - token definitions should remain visible enough that extraction and local meaning can be compared against outside sources when needed
 - empty token arrays should normally appear only where a section is intentionally waiting for file-specific extension or governed future definition
 
