@@ -187,7 +187,13 @@ For clean-birth thinking, this matters because a future setup path should not in
 
 It should be able to scaffold from the governed token layer directly.
 
-Each token should also be able to carry a visible `Definition`, so launch/setup, extraction, and later comparison work can follow one local meaning source instead of relying on vague remembered intent.
+Each token should also be able to carry a visible `Definition`.
+
+Working rule:
+
+- `Definition` is token metadata
+- it is not the same thing as record `Summary`
+- launch/setup, extraction, and later comparison work should follow that local token meaning source instead of relying on vague remembered intent
 
 ## Launch Base Structure Rule
 
@@ -215,7 +221,9 @@ Shared base expectation:
   - `Name`
   - `Summary`
 - `LDB`
-  - empty by default
+  - always present
+  - hydrates from active linkable files in the governed `System Files` universe
+  - should follow approved LDB relationship rules rather than local manual guessing
 - `Other`
   - empty by default
 
