@@ -100,7 +100,25 @@ Drift signal:
 
 - structure governance surfaces become side tables instead of direct structure editing
 
-### 5. Data Surface Contract Rule
+### 5. Structure Mirror Rule
+
+- governance row surfaces must mirror governed JSON structure directly
+- the same metadata source should render through the same governed surface everywhere it is edited
+
+Drift signal:
+
+- the same metadata field appears in one shell but not another
+
+### 6. Shared Governance Surface Rule
+
+- `Views` and `Tokens` metadata must be rendered through one shared row-surface grammar
+- shared metadata should use one shared contract instead of per-shell column definitions
+
+Drift signal:
+
+- local per-shell token or view column definitions reappear
+
+### 7. Data Surface Contract Rule
 
 - shared row/data surfaces must read the same way everywhere
 - control columns, cell-state meaning, scroll behavior, and resize behavior should stay governed
@@ -109,7 +127,7 @@ Drift signal:
 
 - one page or dialog starts inventing its own row grammar
 
-### 6. Payload Contract Rule
+### 8. Payload Contract Rule
 
 - shell payloads should come from governed structure plus governed translator logic
 - do not let local page code invent payload meaning
@@ -118,7 +136,7 @@ Drift signal:
 
 - a renderer only works because a page shaped the payload ad hoc
 
-### 7. Translator Rule
+### 9. Translator Rule
 
 - shared interpretation should flow through:
   - canonical input
@@ -130,7 +148,7 @@ Drift signal:
 
 - page-local shaping starts doing translator work
 
-### 8. Declared System Path Rule
+### 10. Declared System Path Rule
 
 - important actions should follow declared ownership and relationship paths
 - do not rely on hidden bootstrap exceptions or side helpers as the real operating path
@@ -139,7 +157,7 @@ Drift signal:
 
 - a path only works through bootstrap magic and not through declared structure ownership
 
-### 9. File Creation Orchestration Rule
+### 11. File Creation Orchestration Rule
 
 - file birth should be an orchestrated bootstrap pass
 - not a long manual assembly task across disconnected layers
@@ -148,7 +166,7 @@ Drift signal:
 
 - creating one file still requires too many hand-touched places
 
-### 10. Directional LDB Join Rule
+### 12. Directional LDB Join Rule
 
 - explicit LDB join contracts must preserve direction
 - reverse direction must swap join ownership correctly when needed
@@ -158,7 +176,7 @@ Drift signal:
 - linking only works from one side
 - reverse linking writes into the wrong foreign-key path
 
-### 11. Master Translator Rule
+### 13. Master Translator Rule
 
 - user files remain the durable home of meaningful data
 - the app is the viewing, organizing, translating, and workflow layer
@@ -242,6 +260,10 @@ That means:
 - `Tokens` edits token metadata
 - both surfaces should regulate `Defined_Structure`
 - they should not become side tables that only look structural
+- `Row Surface` is the shared editable governance surface
+- it mirrors governed JSON structure
+- it must not invent local column contracts per shell
+- if a token or view metadata field exists in structure, it should appear through the same governed surface everywhere that edits it
 
 Visual reading rule:
 
@@ -253,6 +275,14 @@ Current target behavior:
 - bootstrap shared views and tokens stay protected
 - editable cells should expose the governed structure directly
 - the app should not invent a second parallel structure model in the UI
+
+Context rule:
+
+- local DB stores the governed file structure
+- views/sections give contextual grouping
+- tokens carry field meaning and metadata
+- shared row surfaces expose and edit that same structure truth
+- live shells should render from that contextualized local structure instead of guessing
 
 ## Launch Data Surface Rule
 

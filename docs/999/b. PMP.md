@@ -165,12 +165,26 @@ Current target list:
    - `Views` edits section metadata
    - `Tokens` edits token metadata
    - both regulate `Defined_Structure`
+   - `Row Surface` is the shared editable mirror of governed JSON structure
 
 4. continue removing wording that suggests old page-local or heuristic rendering paths are acceptable long-term
 
 5. keep compact strict rules in `LAMP` and use them to review new implementation work
 
 6. promote tested patterns into `Recipe` only after they are truly stable
+
+## Shared Governance Failure Pattern
+
+One useful failure pattern is now explicit:
+
+- we had documented `Views` and `Tokens` as governance surfaces
+- we had not made it strict enough that `Row Surface` is the shared editable mirror of governed JSON structure
+- because that rule was too soft, multiple local metadata contracts survived across different shells
+
+What PMP should enforce from this:
+
+- if a token or view metadata field exists in governed structure, it should appear through the same governed surface everywhere that edits it
+- shared governance surfaces should not carry separate local column contracts per shell
 
 ## Current Tested Patterns Worth Preserving
 
