@@ -149,6 +149,15 @@ Focus:
 - stop local draft naming workarounds from pretending to be canonical structure
 - keep `parentKey` as the structural owner path while removing legacy ordering drift
 
+Current checkpoint:
+
+- visible `Order` display has been removed from `Add/Edit File Shell`
+- duplicate token-label enforcement and n+1 draft naming have been removed from the local draft-token surface
+- draft-side `tokenOrder` assignment has been removed from `Add/Edit File Shell`
+- `History` remains an approved special system column in `File Shell`
+- `Status` remains partly governed through special system/default-value behavior
+- remaining `tokenOrder` usage is now in bootstrap seeding and passive runtime parsing
+
 ## PMP Checkpoints
 
 ### 1. Architecture Checkpoint

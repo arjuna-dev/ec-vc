@@ -257,6 +257,12 @@ That means:
 - `History` and `Status` may remain approved special system columns when they are explicitly governed as record-state/provenance columns
 - local control columns such as `Select` and `View` are not file tokens and should remain fixed control columns on the left
 
+Current runtime note:
+
+- `History` is still implemented as an approved special system column in `File Shell`
+- `Status` is still partly governed through special system/default-value behavior and should not be treated as a normal free-floating display column
+- these two columns should stay explicit and governed until the file/token contract gives them a cleaner canonical home
+
 If a file table shows a better label than the token contract provides, the `File Steward` should fix the token label or file structure instead of patching the table header locally.
 
 Token meaning rule:
@@ -264,6 +270,12 @@ Token meaning rule:
 - each governed token should also be able to carry a `Definition`
 - `Definition` should remain visible and editable
 - extraction and translator work should prefer that local token definition when comparing outside source language to file-owned meaning
+
+Legacy ordering caution:
+
+- legacy `tokenOrder` should not be treated as structure authority
+- column sequence should not be governed by accidental array order either
+- if ordering becomes important again, it should return through an explicitly approved token/file contract rather than through leftover scaffolding
 
 Row surface working rule:
 
