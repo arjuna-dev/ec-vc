@@ -34,9 +34,8 @@ And only two parts of that base carry a fixed shared parameter set:
 
 - `System`
   - `ID`
-  - `Creator`
-  - `Datetime`
-  - `EventLog`
+  - `History`
+  - `Status`
 - `General`
   - `Name`
   - `Summary`
@@ -50,7 +49,13 @@ Examples:
 - `Name`
 - `Summary`
 
-The `File Steward` should not allow a new `File` to rename shared base fields into entity-prefixed duplicates when the meaning is the same.
+The `File Steward` should not allow a new `File` to create unnecessary entity-prefixed duplicates when the shared base field already covers the same meaning.
+
+If a file-specific field is introduced instead, it should reflect a genuinely different:
+
+- meaning
+- write target
+- governed role
 
 Examples of drift to avoid:
 
@@ -185,7 +190,15 @@ If an active file guide later loses canon, registry, runtime, shell, or provenan
 
 ## Building Block Rule
 
-The same anti-drift discipline used for shared UI building blocks should apply to file architecture.
+The same anti-drift discipline used for shared UI building blocks can be used as a helpful analogy for file architecture.
+
+But file architecture should still be governed through:
+
+- file contracts
+- section/view contracts
+- token contracts
+
+not through frontend BB rules themselves.
 
 That means:
 
@@ -435,16 +448,28 @@ Current working `File` JSON shape:
       {
         "key": "companies-system",
         "label": "System",
-        "tokens": []
+        "tokens": [
+          { "key": "ID", "label": "ID", "tokenRole": "id", "tokenType": "id" },
+          { "key": "History", "label": "History", "tokenType": "event_log" },
+          { "key": "Status", "label": "Status", "tokenRole": "status", "tokenType": "select_single" }
+        ]
       },
       {
         "key": "companies-general",
         "label": "General",
-        "tokens": []
+        "tokens": [
+          { "key": "Company_Name", "label": "Name", "tokenRole": "title", "tokenType": "text" },
+          { "key": "One_Liner", "label": "Summary", "tokenRole": "summary", "tokenType": "text" }
+        ]
       },
       {
         "key": "companies-ldb",
         "label": "LDB",
+        "tokens": []
+      },
+      {
+        "key": "companies-file-specific",
+        "label": "File Specific",
         "tokens": []
       }
     ]
@@ -457,4 +482,6 @@ Reading note:
 - `File` owns the stored `Defined_Structure`
 - `Defined_Structure` owns sections/views
 - sections/views own tokens
+- base sections should already carry their governed shared tokens
+- an empty token list should usually mean the section is not yet declared or is waiting for file-specific extension
 
