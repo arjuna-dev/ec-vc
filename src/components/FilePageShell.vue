@@ -38,7 +38,50 @@
         aria-label="Dashboard row marker"
       >
         <div class="file-shell__dashboard-lane">
-          <div class="file-shell__dashboard-lane-box" />
+          <div class="file-shell__dashboard-lane-box file-shell__dashboard-lane-box--left-controls">
+            <q-checkbox
+              :model-value="allVisibleSelected"
+              :indeterminate="someVisibleSelected && !allVisibleSelected"
+              :disable="loading"
+              dense
+              color="dark"
+              class="file-shell__dashboard-select-all"
+              @update:model-value="toggleSelectAllVisible"
+            />
+            <button
+              type="button"
+              class="file-shell__dashboard-add"
+              :disabled="loading || !supportsActiveSourceEditing || !canCreateWithShell"
+              aria-label="Add Record"
+              @click="handleToolbarAdd"
+            >
+              <PlusIconChip />
+            </button>
+            <SearchBarInput
+              :model-value="searchQuery"
+              class="file-shell__dashboard-search"
+              :placeholder="searchPlaceholder"
+              :disable="loading"
+              @update:model-value="searchQuery = $event"
+            />
+            <q-btn flat round dense class="file-shell__dashboard-filter" icon="filter_list" aria-label="File shell filters">
+              <q-menu
+                anchor="top left"
+                self="top right"
+                class="test-shell-filters-menu"
+                content-class="test-shell-filters-menu__content"
+              >
+                <FileFilterMenu
+                  :title="isBbFileSource ? 'Building Block Filter' : 'File Filter'"
+                  :sections="fileFilterMenuSections"
+                  :expanded-section-key="isBbFileSource ? expandedBbFilterCategoryKey : expandedFilterViewKey"
+                  @toggle-section="handleFileFilterToggleView"
+                  @toggle-item="handleFileFilterToggleItem"
+                  @toggle-item-checkbox="handleFileFilterToggleItemCheckbox"
+                />
+              </q-menu>
+            </q-btn>
+          </div>
         </div>
         <button
           type="button"
@@ -5240,7 +5283,7 @@ function isBbGraphLinkToken(tokenRow) {
   min-height: 40px;
   display: grid;
   grid-template-columns: minmax(0, 1fr) 10px minmax(0, 1fr) 10px minmax(0, 1fr) 10px minmax(0, 1fr);
-  align-items: stretch;
+  align-items: center;
   column-gap: 0;
   padding: 8px;
   margin-top: 12px;
@@ -5259,6 +5302,8 @@ function isBbGraphLinkToken(tokenRow) {
   width: 100%;
   min-height: 24px;
   box-sizing: border-box;
+  display: flex;
+  align-items: center;
   background: rgba(255, 255, 255, 0.96);
   border: 1px solid rgba(15, 23, 42, 0.08);
   border-radius: 6px;
@@ -5268,6 +5313,14 @@ function isBbGraphLinkToken(tokenRow) {
   display: flex;
   align-items: center;
   justify-content: flex-end;
+  gap: 6px;
+  padding: 0 6px;
+}
+
+.file-shell__dashboard-lane-box--left-controls {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
   gap: 6px;
   padding: 0 6px;
 }
@@ -5311,6 +5364,75 @@ function isBbGraphLinkToken(tokenRow) {
 
 .file-shell__dashboard-divider:hover::before {
   background: rgba(15, 23, 42, 0.42);
+}
+
+.file-shell__dashboard-select-all {
+  min-height: 18px;
+  margin-left: -1px;
+  color: var(--ds-color-text-primary);
+}
+
+.file-shell__dashboard-add {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  min-width: 24px;
+  height: 24px;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  border-radius: var(--ds-radius-round);
+  cursor: pointer;
+}
+
+.file-shell__dashboard-add:hover:not(:disabled) {
+  background: rgba(15, 23, 42, 0.04);
+}
+
+.file-shell__dashboard-add:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.file-shell__dashboard-add :deep(.plus-icon-chip) {
+  --plus-icon-chip-size: 18px;
+  --plus-icon-chip-glyph-size: 12px;
+}
+
+.file-shell__dashboard-search {
+  width: min(100%, 132px);
+  min-width: 88px;
+  flex: 0 1 132px;
+}
+
+.file-shell__dashboard-search :deep(.q-field__control),
+.file-shell__dashboard-search :deep(.q-field__native),
+.file-shell__dashboard-search :deep(.q-field__input) {
+  min-height: 22px;
+  height: 22px;
+}
+
+.file-shell__dashboard-search :deep(.q-field__control) {
+  padding: 0 8px;
+}
+
+.file-shell__dashboard-search :deep(.q-field__prepend) {
+  min-width: 16px;
+  padding-right: 4px;
+}
+
+.file-shell__dashboard-search :deep(.q-field__prepend .q-icon) {
+  font-size: 9.6px;
+}
+
+.file-shell__dashboard-search :deep(.q-field__native),
+.file-shell__dashboard-search :deep(.q-field__input) {
+  font-size: var(--ds-font-size-xs);
+}
+
+.file-shell__dashboard-filter {
+  color: var(--ds-color-text-muted);
 }
 
 .file-shell__dashboard-icon-btn {
