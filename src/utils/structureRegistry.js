@@ -212,8 +212,8 @@ const FILE_PAGE_ROUTE_META = Object.freeze({
       { value: 'round', label: 'Round', icon: 'donut_large', targetSourceKey: 'rounds' },
     ],
   },
-  Funds: { key: 'funds', label: 'Funds', singularLabel: 'Fund', routeName: 'funds', path: '/funds', icon: 'account_balance', showInWorkspaceNav: false, shellGroup: 'first_order', fileGuidePath: 'docs/100/Archive/100-Funds.md' },
-  Rounds: { key: 'rounds', label: 'Rounds', singularLabel: 'Round', routeName: 'rounds', path: '/rounds', icon: 'toll', showInWorkspaceNav: false, shellGroup: 'first_order', fileGuidePath: 'docs/100/Archive/100-Rounds.md' },
+  Funds: { key: 'funds', label: 'Funds', singularLabel: 'Fund', routeName: 'funds', path: '/funds', icon: 'account_balance', showInWorkspaceNav: false, shellGroup: 'first_order', fileGuidePath: 'docs/100/c7. Funds.md' },
+  Rounds: { key: 'rounds', label: 'Rounds', singularLabel: 'Round', routeName: 'rounds', path: '/rounds', icon: 'toll', showInWorkspaceNav: false, shellGroup: 'first_order', fileGuidePath: 'docs/100/c8. Rounds.md' },
   Projects: { key: 'projects', label: 'Projects', singularLabel: 'Project', routeName: 'projects', path: '/projects', icon: 'schema', showInWorkspaceNav: true, workspaceNavGroup: 'files', shellGroup: 'first_order', fileGuidePath: 'docs/100/c3. Projects.md' },
   Tasks: {
     key: 'tasks',
@@ -269,7 +269,7 @@ const FILE_PAGE_ROUTE_META = Object.freeze({
     showInWorkspaceNav: true,
     workspaceNavGroup: 'local-dbs',
     shellGroup: 'knowledge_db',
-    fileGuidePath: 'docs/100/Archive/100-Markets.md',
+    fileGuidePath: 'docs/100/d1. Markets.md',
     primaryStewardDoc: {
       id: 'glossary-steward',
       label: 'Glossary Steward',
@@ -288,7 +288,7 @@ const FILE_PAGE_ROUTE_META = Object.freeze({
     showInWorkspaceNav: true,
     workspaceNavGroup: 'local-dbs',
     shellGroup: 'knowledge_db',
-    fileGuidePath: 'docs/100/Archive/100-Securities.md',
+    fileGuidePath: 'docs/100/d2. Securities.md',
     primaryStewardDoc: {
       id: 'glossary-steward',
       label: 'Glossary Steward',

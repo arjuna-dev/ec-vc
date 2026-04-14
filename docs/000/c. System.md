@@ -27,7 +27,6 @@ The clean rule is:
 - `docs/002/a. Companion.md`
 - `docs/000/d. File.md`
 - `docs/000/i. UXDesign.md`
-- `docs/000/a. DAMP.md`
 - `docs/000-canonical-structure.json`
 
 ## Glossary
@@ -201,24 +200,24 @@ Current map:
 | File | Birth Status | Guide Path | Steward | Notes |
 | --- | --- | --- | --- | --- |
 | `System / Files` | `partially born` | `docs/000/c. System.md` | `File` | Canonical registry entity and app-facing system-file surface are both described here. |
-| `BB Shell` | `partially born` | `docs/100/Archive/100-BB_Shell.md` | `Design Steward` | Runtime table and shell exist; promotion review still pending. |
+| `BB Shell` | `partially born` | `docs/100/Archive/100-BB_Shell.md` | `UXDesign` | Runtime table and shell exist; promotion review still pending. |
 | `Events` | `partially born` | `docs/100/a2. History.md` | `Intake` | Runtime event surface exists; promotion review still pending. |
 | `Users` | `partially born` | `docs/100/a5. Users.md` | `File` | Runtime surface exists; promotion review still pending. |
 | `Contacts` | `partially born` | `docs/100/a4. Contacts.md` | `File` | Runtime surface exists; promotion review still pending. |
 | `Companies` | `partially born` | `docs/100/c1. Companies.md` | `File` | Runtime surface exists; promotion review still pending. |
 | `Opportunities` | `partially born` | `docs/100/c2. Opportunities.md` | `File` | Branch-capable runtime surface exists; promotion review still pending. |
-| `Funds` | `partially born` | `docs/100/Archive/100-Funds.md` | `File Steward` | Runtime surface exists but is not workspace-visible yet. |
-| `Rounds` | `partially born` | `docs/100/Archive/100-Rounds.md` | `File Steward` | Runtime surface exists but is not workspace-visible yet. |
+| `Funds` | `partially born` | `docs/100/c7. Funds.md` | `File` | Runtime surface exists but is not workspace-visible yet. |
+| `Rounds` | `partially born` | `docs/100/c8. Rounds.md` | `File` | Runtime surface exists but is not workspace-visible yet. |
 | `Projects` | `partially born` | `docs/100/c3. Projects.md` | `File` | Runtime surface exists; promotion review still pending. |
 | `Tasks` | `partially born` | `docs/100/c4. Tasks.md` | `File` | Runtime surface exists; promotion review still pending. |
 | `Notes` | `partially born` | `docs/100/c5. Notes.md` | `File` | Runtime surface exists; promotion review still pending. |
 | `Artifacts` | `partially born` | `docs/100/c6. Artifacts.md` | `Intake` | Runtime surface exists; promotion review still pending. |
 | `Intake` | `partially born` | `docs/100/b2. Intake.md` | `Intake` | Runtime surface exists; promotion review still pending. |
 | `User Roles` | `partially born` | `docs/100/a3. User_Roles.md` | `File` | Runtime surface exists; promotion review still pending. |
-| `Companion Roles` | `partially born` | `docs/100/Archive/100-Companion_Roles.md` | `File Steward` | Runtime surface exists; promotion review still pending. |
-| `Markets` | `partially born` | `docs/100/Archive/100-Markets.md` | `Glossary Steward` | Runtime surface exists; promotion review still pending. |
-| `Securities` | `partially born` | `docs/100/Archive/100-Securities.md` | `Glossary Steward` | Runtime surface exists; promotion review still pending. |
-| `Access Assignments` | `parked direction` | `docs/100/Archive/100-Access_Assignments.md` | `File Steward` | Archived future concept only; do not treat as active file-guide authority. |
+| `Companion Roles` | `partially born` | `docs/100/Archive/100-Companion_Roles.md` | `File` | Runtime surface exists; promotion review still pending. |
+| `Markets` | `partially born` | `docs/100/d1. Markets.md` | `LAMP` | Runtime surface exists; promotion review still pending. |
+| `Securities` | `partially born` | `docs/100/d2. Securities.md` | `LAMP` | Runtime surface exists; promotion review still pending. |
+| `Access Assignments` | `parked direction` | `docs/100/Archive/100-Access_Assignments.md` | `File` | Archived future concept only; do not treat as active file-guide authority. |
 
 ## Current Open Issues
 
