@@ -3,6 +3,7 @@
     v-if="items.length"
     class="shell-section-toolbar"
     :class="{ 'shell-section-toolbar--mini': variant === 'mini' }"
+    :style="{ gridTemplateColumns: toolbarGridTemplateColumns }"
     :aria-label="ariaLabel"
   >
     <div
@@ -24,7 +25,20 @@
       </button>
     </div>
 
-    <div v-if="structuralItems.length" class="shell-section-toolbar__lane shell-section-toolbar__lane--data">
+    <div
+      v-if="structuralItems.length"
+      ref="dataLaneRef"
+      class="shell-section-toolbar__lane shell-section-toolbar__lane--data"
+      :class="{ 'shell-section-toolbar__lane--with-divider': hasVisibleLaneBeforeData }"
+    >
+      <div
+        v-if="canResizeDataLane"
+        class="shell-section-toolbar__divider-handle"
+        role="separator"
+        aria-orientation="vertical"
+        aria-label="Resize data lane"
+        @mousedown.prevent="startLaneResize('data', $event)"
+      />
       <button
         v-if="showDataLaneScrollControls"
         type="button"
@@ -71,7 +85,20 @@
       </button>
     </div>
 
-    <div v-if="governanceItems.length" class="shell-section-toolbar__lane shell-section-toolbar__lane--governance">
+    <div
+      v-if="governanceItems.length"
+      ref="governanceLaneRef"
+      class="shell-section-toolbar__lane shell-section-toolbar__lane--governance"
+      :class="{ 'shell-section-toolbar__lane--with-divider': hasVisibleLaneBeforeGovernance }"
+    >
+      <div
+        v-if="canResizeGovernanceLane"
+        class="shell-section-toolbar__divider-handle"
+        role="separator"
+        aria-orientation="vertical"
+        aria-label="Resize governance lane"
+        @mousedown.prevent="startLaneResize('governance', $event)"
+      />
       <button
         v-for="section in governanceItems"
         :key="section.value"
@@ -87,7 +114,11 @@
       </button>
     </div>
 
-    <div v-if="showViewToggle" class="shell-section-toolbar__lane shell-section-toolbar__lane--right">
+    <div
+      v-if="showViewToggle"
+      class="shell-section-toolbar__lane shell-section-toolbar__lane--right"
+      :class="{ 'shell-section-toolbar__lane--with-divider': hasVisibleLaneBeforeRight }"
+    >
       <ViewModeToggle
         :model-value="viewMode"
         class="shell-section-toolbar__view-toggle"
@@ -96,7 +127,11 @@
       />
     </div>
 
-    <div v-if="hasSuffixSlot" class="shell-section-toolbar__lane shell-section-toolbar__lane--suffix">
+    <div
+      v-if="hasSuffixSlot"
+      class="shell-section-toolbar__lane shell-section-toolbar__lane--suffix"
+      :class="{ 'shell-section-toolbar__lane--with-divider': hasVisibleLaneBeforeSuffix }"
+    >
       <slot name="suffix" />
     </div>
   </section>
@@ -119,10 +154,15 @@ const props = defineProps({
 defineEmits(['update:modelValue', 'update:viewMode'])
 
 const slots = useSlots()
+const dataLaneRef = ref(null)
+const governanceLaneRef = ref(null)
 const dataLaneScrollRef = ref(null)
 const canScrollDataPrev = ref(false)
 const canScrollDataNext = ref(false)
 let dataLaneResizeObserver = null
+const dataLaneWidth = ref(null)
+const governanceLaneWidth = ref(null)
+const resizeState = ref(null)
 
 const leftItems = computed(() =>
   props.items.filter((section) => itemLane(section) === 'left'),
@@ -136,6 +176,36 @@ const governanceItems = computed(() =>
 const hasPrefixSlot = computed(() => Boolean(slots.prefix))
 const hasSuffixSlot = computed(() => Boolean(slots.suffix))
 const showDataLaneScrollControls = computed(() => canScrollDataPrev.value || canScrollDataNext.value)
+const hasVisibleLaneBeforeData = computed(() =>
+  hasPrefixSlot.value || leftItems.value.length > 0,
+)
+const hasVisibleLaneBeforeGovernance = computed(() =>
+  hasVisibleLaneBeforeData.value || structuralItems.value.length > 0,
+)
+const hasVisibleLaneBeforeRight = computed(() =>
+  hasVisibleLaneBeforeGovernance.value || governanceItems.value.length > 0,
+)
+const hasVisibleLaneBeforeSuffix = computed(() =>
+  hasVisibleLaneBeforeRight.value || props.showViewToggle,
+)
+const canResizeDataLane = computed(() =>
+  structuralItems.value.length > 0 && (governanceItems.value.length > 0 || props.showViewToggle || hasSuffixSlot.value),
+)
+const canResizeGovernanceLane = computed(() =>
+  governanceItems.value.length > 0 && (props.showViewToggle || hasSuffixSlot.value),
+)
+const toolbarGridTemplateColumns = computed(() => {
+  const leftWidth = hasPrefixSlot.value || leftItems.value.length > 0 ? 'max-content' : '0px'
+  const dataWidth = structuralItems.value.length > 0
+    ? (dataLaneWidth.value ? `${Math.round(dataLaneWidth.value)}px` : 'minmax(220px, 1fr)')
+    : '0px'
+  const governanceWidth = governanceItems.value.length > 0
+    ? (governanceLaneWidth.value ? `${Math.round(governanceLaneWidth.value)}px` : 'max-content')
+    : '0px'
+  const rightWidth = props.showViewToggle ? 'max-content' : '0px'
+  const suffixWidth = hasSuffixSlot.value ? 'max-content' : '0px'
+  return [leftWidth, dataWidth, governanceWidth, rightWidth, suffixWidth].join(' ')
+})
 
 function itemLane(section = {}) {
   if (section?.lane) return String(section.lane).trim().toLowerCase()
@@ -167,6 +237,38 @@ function scrollDataLane(direction = 1) {
   window.setTimeout(updateDataLaneScrollState, 180)
 }
 
+function startLaneResize(lane, event) {
+  const targetRef = lane === 'governance' ? governanceLaneRef.value : dataLaneRef.value
+  if (!targetRef || typeof window === 'undefined') return
+  resizeState.value = {
+    lane,
+    startX: event.clientX,
+    startWidth: targetRef.getBoundingClientRect().width,
+  }
+  window.addEventListener('mousemove', onLaneResizeMove)
+  window.addEventListener('mouseup', stopLaneResize)
+}
+
+function onLaneResizeMove(event) {
+  const state = resizeState.value
+  if (!state) return
+  const delta = event.clientX - state.startX
+  const nextWidth = Math.max(state.lane === 'governance' ? 140 : 220, state.startWidth + delta)
+  if (state.lane === 'governance') {
+    governanceLaneWidth.value = nextWidth
+    return
+  }
+  dataLaneWidth.value = nextWidth
+}
+
+function stopLaneResize() {
+  resizeState.value = null
+  if (typeof window !== 'undefined') {
+    window.removeEventListener('mousemove', onLaneResizeMove)
+    window.removeEventListener('mouseup', stopLaneResize)
+  }
+}
+
 watch(
   () => structuralItems.value.map((item) => item.value).join('|'),
   async () => {
@@ -191,6 +293,7 @@ onBeforeUnmount(() => {
   if (typeof window !== 'undefined') {
     window.removeEventListener('resize', updateDataLaneScrollState)
   }
+  stopLaneResize()
   dataLaneResizeObserver?.disconnect?.()
 })
 </script>
@@ -207,11 +310,15 @@ onBeforeUnmount(() => {
   column-gap: var(--ds-toolbar-gap-sm);
   row-gap: var(--ds-toolbar-gap-sm);
   padding: var(--ds-toolbar-padding-sm);
+  margin-top: var(--ds-space-12);
   box-sizing: border-box;
-  background: var(--ds-color-surface-overlay-light);
-  border: 1px solid var(--ds-color-border-default);
+  background: rgba(255, 159, 67, 0.24);
+  border: 1px solid rgba(15, 23, 42, 0.14);
   border-radius: var(--ds-radius-lg);
   backdrop-filter: var(--ds-panel-blur-md);
+  box-shadow:
+    0 1px 0 rgba(15, 23, 42, 0.04),
+    0 8px 24px rgba(15, 23, 42, 0.06);
 }
 
 .shell-section-toolbar__lane {
@@ -219,6 +326,7 @@ onBeforeUnmount(() => {
   align-items: center;
   gap: var(--ds-toolbar-gap-sm);
   min-width: 0;
+  position: relative;
 }
 
 .shell-section-toolbar__lane--left {
@@ -233,6 +341,47 @@ onBeforeUnmount(() => {
 .shell-section-toolbar__lane--suffix {
   justify-content: flex-start;
   white-space: nowrap;
+}
+
+.shell-section-toolbar__lane--with-divider::before {
+  content: '';
+  position: absolute;
+  left: calc(var(--ds-toolbar-gap-sm) * -0.5);
+  top: 50%;
+  width: 1px;
+  height: 50%;
+  transform: translateY(-50%);
+  background: rgba(15, 23, 42, 0.14);
+  pointer-events: none;
+}
+
+.shell-section-toolbar__divider-handle {
+  position: absolute;
+  top: 50%;
+  right: calc(var(--ds-toolbar-gap-sm) * -0.5);
+  width: 12px;
+  height: 70%;
+  transform: translate(50%, -50%);
+  padding: 0;
+  background: transparent;
+  border: 0;
+  cursor: col-resize;
+  z-index: 2;
+}
+
+.shell-section-toolbar__divider-handle::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 1px;
+  height: 70%;
+  transform: translate(-50%, -50%);
+  background: rgba(15, 23, 42, 0.18);
+}
+
+.shell-section-toolbar__divider-handle:hover::before {
+  background: rgba(15, 23, 42, 0.36);
 }
 
 .shell-section-toolbar__lane--data {
@@ -312,6 +461,11 @@ onBeforeUnmount(() => {
   color: var(--ds-color-brand-white);
   background: var(--ds-color-brand-black);
   border-color: var(--ds-color-brand-black);
+}
+
+.shell-section-toolbar__item--active .shell-section-toolbar__item-label,
+.shell-section-toolbar__item--active .shell-section-toolbar__item-icon {
+  color: var(--ds-color-brand-white);
 }
 
 .shell-section-toolbar__item--ldb {

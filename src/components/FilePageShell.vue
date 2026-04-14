@@ -32,23 +32,23 @@
       />
 
       <div
-        class="file-shell__dashboard-row"
-        aria-label="Dashboard row marker"
+        class="file-shell__control-row"
+        aria-label="control row marker"
       >
-        <div class="file-shell__dashboard-lane">
-          <div class="file-shell__dashboard-lane-box file-shell__dashboard-lane-box--left-controls">
+        <div class="file-shell__control-lane">
+          <div class="file-shell__control-lane-box file-shell__control-lane-box--left-controls">
             <q-checkbox
               :model-value="allVisibleSelected"
               :indeterminate="someVisibleSelected && !allVisibleSelected"
               :disable="loading"
               dense
               color="dark"
-              class="file-shell__dashboard-select-all"
+              class="file-shell__control-select-all"
               @update:model-value="toggleSelectAllVisible"
             />
             <button
               type="button"
-              class="file-shell__dashboard-add"
+              class="file-shell__control-add"
               :disabled="loading || !supportsActiveSourceEditing || !canCreateWithShell"
               aria-label="Add Record"
               @click="handleToolbarAdd"
@@ -57,12 +57,12 @@
             </button>
             <SearchBarInput
               :model-value="searchQuery"
-              class="file-shell__dashboard-search"
+              class="file-shell__control-search"
               :placeholder="searchPlaceholder"
               :disable="loading"
               @update:model-value="searchQuery = $event"
             />
-            <q-btn flat round dense class="file-shell__dashboard-filter" icon="filter_list" aria-label="File shell filters">
+            <q-btn flat round dense class="file-shell__control-filter" icon="filter_list" aria-label="File shell filters">
               <q-menu
                 anchor="top left"
                 self="top right"
@@ -81,79 +81,118 @@
             </q-btn>
           </div>
         </div>
-        <div class="file-shell__dashboard-lane">
-          <div class="file-shell__dashboard-lane-box file-shell__dashboard-lane-box--views">
+        <div class="file-shell__control-lane">
+          <div class="file-shell__control-lane-box file-shell__control-lane-box--views">
             <div
-              ref="dashboardViewsScrollRef"
-              class="file-shell__dashboard-views-scroll ds-mini-scrollbar"
-              @scroll="updateDashboardViewsScrollState"
+              ref="controlViewsScrollRef"
+              class="file-shell__control-views-scroll ds-mini-scrollbar"
+              @scroll="updatecontrolViewsScrollState"
             >
               <button
-                v-for="section in dashboardViewLabels"
-                :key="`dashboard-view:${section.key}`"
+                v-for="section in controlViewLabels"
+                :key="`control-view:${section.key}`"
                 type="button"
-                class="file-shell__dashboard-chip"
+                class="file-shell__control-chip"
+                :class="{ 'file-shell__control-chip--active': activeViewKey === section.key }"
+                @click="activeViewKey = section.key"
               >
                 {{ section.label }}
               </button>
             </div>
-            <div v-if="dashboardViewsCanScrollPrev || dashboardViewsCanScrollNext" class="file-shell__dashboard-views-nav">
+            <div v-if="controlViewsCanScrollPrev || controlViewsCanScrollNext" class="file-shell__control-views-nav">
               <button
                 type="button"
-                class="file-shell__dashboard-views-nav-btn"
-                :disabled="!dashboardViewsCanScrollPrev"
+                class="file-shell__control-views-nav-btn"
+                :disabled="!controlViewsCanScrollPrev"
                 aria-label="Scroll view labels left"
-                @click="scrollDashboardViews(-1)"
+                @click="scrollcontrolViews(-1)"
               >
                 <q-icon name="chevron_left" size="14px" />
               </button>
               <button
                 type="button"
-                class="file-shell__dashboard-views-nav-btn"
-                :disabled="!dashboardViewsCanScrollNext"
+                class="file-shell__control-views-nav-btn"
+                :disabled="!controlViewsCanScrollNext"
                 aria-label="Scroll view labels right"
-                @click="scrollDashboardViews(1)"
+                @click="scrollcontrolViews(1)"
               >
                 <q-icon name="chevron_right" size="14px" />
               </button>
             </div>
           </div>
         </div>
-        <div class="file-shell__dashboard-lane">
-          <div class="file-shell__dashboard-lane-box file-shell__dashboard-lane-box--governance">
-            <div class="file-shell__dashboard-governance-set">
-              <button type="button" class="file-shell__dashboard-chip file-shell__dashboard-chip--ldb">
-                LDB
+        <div class="file-shell__control-lane">
+          <div class="file-shell__control-lane-box file-shell__control-lane-box--governance">
+            <div class="file-shell__control-governance-set">
+              <button
+                type="button"
+                class="shell-section-toolbar__item shell-section-toolbar__item--ldb"
+                :class="{ 'shell-section-toolbar__item--active': activeViewKey === controlLdbViewKey }"
+                @click="controlLdbViewKey && (activeViewKey = controlLdbViewKey)"
+              >
+                <span class="shell-section-toolbar__item-label">LDB</span>
               </button>
-              <button type="button" class="file-shell__dashboard-chip file-shell__dashboard-chip--system">
-                System
+              <button
+                type="button"
+                class="shell-section-toolbar__item shell-section-toolbar__item--system"
+                :class="{ 'shell-section-toolbar__item--active': activeViewKey === controlSystemViewKey }"
+                @click="controlSystemViewKey && (activeViewKey = controlSystemViewKey)"
+              >
+                <span class="shell-section-toolbar__item-label">System</span>
               </button>
             </div>
-            <div class="file-shell__dashboard-governance-set">
-              <button type="button" class="file-shell__dashboard-chip file-shell__dashboard-chip--governance">
-                Tokens
+            <div class="file-shell__control-governance-set">
+              <button
+                type="button"
+                class="shell-section-toolbar__item shell-section-toolbar__item--governance"
+                :class="{ 'shell-section-toolbar__item--active': activeViewKey === 'tokens' }"
+                @click="activeViewKey = 'tokens'"
+              >
+                <span class="shell-section-toolbar__item-label">Tokens</span>
               </button>
-              <button type="button" class="file-shell__dashboard-chip file-shell__dashboard-chip--governance">
-                Views
+              <button
+                type="button"
+                class="shell-section-toolbar__item shell-section-toolbar__item--governance"
+                :class="{ 'shell-section-toolbar__item--active': activeViewKey === 'views' }"
+                @click="activeViewKey = 'views'"
+              >
+                <span class="shell-section-toolbar__item-label">Views</span>
               </button>
             </div>
           </div>
         </div>
-        <div class="file-shell__dashboard-lane">
-          <div class="file-shell__dashboard-lane-box file-shell__dashboard-lane-box--controls">
-            <button type="button" class="file-shell__dashboard-icon-btn" aria-label="Row view">
-              <svg viewBox="0 0 24 24" aria-hidden="true" class="file-shell__dashboard-row-icon">
+        <div class="file-shell__control-lane">
+          <div class="file-shell__control-lane-box file-shell__control-lane-box--controls">
+            <button
+              type="button"
+              class="file-shell__control-icon-btn"
+              :class="{ 'file-shell__control-icon-btn--active': viewMode === 'page' }"
+              aria-label="Row view"
+              @click="viewMode = 'page'"
+            >
+              <svg viewBox="0 0 24 24" aria-hidden="true" class="file-shell__control-row-icon">
                 <path d="M5 7.25H19" />
                 <path d="M5 12H19" />
                 <path d="M5 16.75H19" />
               </svg>
             </button>
-            <button type="button" class="file-shell__dashboard-icon-btn" aria-label="Card view">
+            <button
+              type="button"
+              class="file-shell__control-icon-btn"
+              :class="{ 'file-shell__control-icon-btn--active': viewMode === 'card' }"
+              aria-label="Card view"
+              @click="viewMode = 'card'"
+            >
               <q-icon name="grid_view" size="14px" />
             </button>
-            <button type="button" class="file-shell__dashboard-icon-btn" aria-label="Expand row">
-              <svg viewBox="0 0 24 24" aria-hidden="true" class="file-shell__dashboard-chevron-icon">
-                <path d="M7 10L12 15L17 10" />
+            <button
+              type="button"
+              class="file-shell__control-icon-btn"
+              aria-label="Expand row"
+              @click="dataSurfaceCollapsed = !dataSurfaceCollapsed"
+            >
+              <svg viewBox="0 0 24 24" aria-hidden="true" class="file-shell__control-chevron-icon">
+                <path :d="dataSurfaceCollapsed ? 'M7 10L12 15L17 10' : 'M7 14L12 9L17 14'" />
               </svg>
             </button>
           </div>
@@ -166,180 +205,10 @@
         <div>content: {{ activeContentSourceKey }}</div>
         <div>views: {{ fileViews.length }}</div>
         <div>tokens: {{ fileTokens.length }}</div>
-        <div>toolbar items: {{ miniToolbarItems.length }}</div>
+        <div>toolbar items: 4 lanes</div>
         <div>raw rows: {{ rawRows.length }}</div>
         <div>display rows: {{ displayRows.length }}</div>
       </q-banner>
-
-      <MiniToolbar
-        v-if="miniToolbarItems.length"
-        v-model="miniToolbarActiveKey"
-        aria-label="Shell mini toolbar"
-        :items="miniToolbarItems"
-        :view-mode="viewMode"
-        :view-options="viewOptions"
-        :show-view-toggle="!activeGovernanceToolbarKey"
-        @update:view-mode="viewMode = $event"
-      >
-        <template #prefix>
-          <template v-if="!activeGovernanceToolbarKey">
-            <q-checkbox
-              :model-value="allVisibleSelected"
-              :indeterminate="someVisibleSelected && !allVisibleSelected"
-              :disable="loading"
-              dense
-              color="dark"
-              class="file-shell__toolbar-select-all"
-              @update:model-value="toggleSelectAllVisible"
-            />
-            <button
-              type="button"
-              class="file-shell__toolbar-add"
-              :disabled="loading || !supportsActiveSourceEditing || !canCreateWithShell"
-              aria-label="Add Record"
-              @click="handleToolbarAdd"
-            >
-              <PlusIconChip />
-            </button>
-            <div v-if="draftCount" class="file-shell__draft-chip">
-              <button
-                type="button"
-                class="file-shell__draft-chip-btn"
-                :aria-label="`Drafts (${draftCount})`"
-              >
-                <q-icon name="edit_note" size="16px" />
-                <span>Drafts ({{ draftCount }})</span>
-                <q-menu
-                  anchor="bottom left"
-                  self="top left"
-                  class="file-shell__draft-menu"
-                  content-class="file-shell__draft-menu-content"
-                >
-                  <div class="file-shell__draft-menu-panel">
-                    <div class="file-shell__draft-menu-tabs">
-                      <button
-                        v-for="tab in draftTabs"
-                        :key="`draft-tab:${tab.key}`"
-                        type="button"
-                        class="file-shell__draft-menu-tab"
-                        :class="{ 'file-shell__draft-menu-tab--active': tab.key === draftTabKey }"
-                        @click="draftTabKey = tab.key"
-                      >
-                        <span class="file-shell__draft-menu-tab-label">{{ tab.label }}</span>
-                        <span class="file-shell__draft-menu-tab-count">{{ tab.count }}</span>
-                      </button>
-                    </div>
-
-                    <div class="file-shell__draft-menu-rows">
-                      <div v-if="!draftRowsForActiveTab.length" class="file-shell__draft-menu-empty">
-                        No draft rows in this file yet.
-                      </div>
-                      <button
-                        v-for="row in draftRowsForActiveTab"
-                        :key="`draft-row:${draftTabKey}:${row.recordId}`"
-                        type="button"
-                        class="file-shell__draft-menu-row"
-                        @click="openDraftRow(draftTabKey, row)"
-                      >
-                        <span class="file-shell__draft-menu-row-label">{{ getDraftRowLabel(row, draftTabKey) }}</span>
-                        <q-icon name="open_in_new" size="14px" />
-                      </button>
-                    </div>
-                  </div>
-                </q-menu>
-              </button>
-            </div>
-            <SearchBarInput
-              :model-value="searchQuery"
-              class="file-shell__toolbar-search"
-              :placeholder="searchPlaceholder"
-              :disable="loading"
-              @update:model-value="searchQuery = $event"
-            />
-            <q-btn flat round dense class="test-shell-filters-trigger" icon="filter_list" aria-label="File shell filters">
-              <q-menu
-                anchor="top left"
-                self="top right"
-                class="test-shell-filters-menu"
-                content-class="test-shell-filters-menu__content"
-              >
-                <FileFilterMenu
-                  :title="isBbFileSource ? 'Building Block Filter' : 'File Filter'"
-                  :sections="fileFilterMenuSections"
-                  :expanded-section-key="isBbFileSource ? expandedBbFilterCategoryKey : expandedFilterViewKey"
-                  @toggle-section="handleFileFilterToggleView"
-                  @toggle-item="handleFileFilterToggleItem"
-                  @toggle-item-checkbox="handleFileFilterToggleItemCheckbox"
-                />
-              </q-menu>
-            </q-btn>
-          </template>
-        </template>
-        <template #suffix>
-          <div v-if="!activeGovernanceToolbarKey && isBbFileSource && activeBbFilterGroup" class="bb-shell-toolbar-filter">
-            <button
-              type="button"
-              class="bb-shell-toolbar-filter__chip"
-              :aria-label="`Selected building block filter ${activeBbFilterLabel}`"
-            >
-              <span class="bb-shell-toolbar-filter__chip-label">{{ activeBbFilterLabel }}</span>
-              <q-menu
-                anchor="bottom left"
-                self="top left"
-                class="test-shell-filters-menu"
-                content-class="test-shell-filters-menu__content"
-              >
-                <div class="test-shell-filters-panel">
-                  <div class="test-shell-filters-panel__title">{{ activeBbFilterGroup.label }}</div>
-                  <div class="test-shell-filters-panel__rows">
-                    <div class="test-shell-filter-group">
-                      <div class="test-shell-filter-group__children">
-                        <button
-                          type="button"
-                          class="test-shell-filter-child-row"
-                          :class="{ 'test-shell-filter-child-row--selected': !activeBbBlockKey }"
-                          @click="applyBbFilterSelection(`category:${activeBbFilterGroup.key}`)"
-                        >
-                          <span class="test-shell-filter-child-row__label">{{ activeBbFilterGroup.label }}</span>
-                        </button>
-                        <button
-                          v-for="block in activeBbFilterGroup.blocks"
-                          :key="`active-filter:${block.key}`"
-                          type="button"
-                          class="test-shell-filter-child-row"
-                          :class="{ 'test-shell-filter-child-row--selected': block.key === activeBbBlockKey }"
-                          @click="applyBbFilterSelection(`block:${block.key}`)"
-                        >
-                          <span class="test-shell-filter-child-row__label">{{ block.label }}</span>
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </q-menu>
-            </button>
-
-            <button
-              type="button"
-              class="bb-shell-toolbar-filter__clear"
-              aria-label="Clear building block filter"
-              @click="clearActiveBbFilter()"
-            >
-              <q-icon name="close" size="14px" />
-            </button>
-          </div>
-          <button
-            type="button"
-            class="file-shell__toolbar-chevron"
-            :aria-label="dataSurfaceCollapsed ? 'Expand data surface' : 'Collapse data surface'"
-            @click="dataSurfaceCollapsed = !dataSurfaceCollapsed"
-          >
-            <svg viewBox="0 0 24 24" aria-hidden="true" class="file-shell__toolbar-chevron-icon">
-              <path :d="dataSurfaceCollapsed ? 'M7 10L12 15L17 10' : 'M7 14L12 9L17 14'" />
-            </svg>
-          </button>
-        </template>
-      </MiniToolbar>
 
       <div v-if="!dataSurfaceCollapsed && activeGovernanceToolbarKey" class="test-shell-table-surface">
         <StructureGovernancePanel
@@ -929,14 +798,12 @@ import AddEditRecordShellDialog from 'components/AddEditRecordShellDialog.vue'
 import FileFilterMenu from 'components/FileFilterMenu.vue'
 import FileHero from 'components/FileHero.vue'
 import ViewSettingsMenu from 'components/ViewSettingsMenu.vue'
-import MiniToolbar from 'components/MiniToolbar.vue'
 import PlusIconChip from 'components/PlusIconChip.vue'
 import RecordHistoryBox from 'components/RecordHistoryBox.vue'
 import SearchBarInput from 'components/SearchBarInput.vue'
 import BuildingBlockPreviewTile from 'components/BuildingBlockPreviewTile.vue'
 import StructureGovernancePanel from 'components/StructureGovernancePanel.vue'
 import { buildTokenGovernanceColumns } from 'src/utils/structureGovernanceColumns'
-import { buildStructureToolbarItems } from 'src/utils/structureToolbarContract'
 import EyeIconButton from 'components/buttons/EyeIconButton.vue'
 import SelectionActionBar from 'components/SelectionActionBar.vue'
   import {
@@ -1002,9 +869,9 @@ const rowHistoryByRecordId = ref({})
 const rowHistoryLoadingByRecordId = ref({})
 const loaderDiagnostics = ref({})
 const viewMode = ref('page')
-const dashboardViewsScrollRef = ref(null)
-const dashboardViewsCanScrollPrev = ref(false)
-const dashboardViewsCanScrollNext = ref(false)
+const controlViewsScrollRef = ref(null)
+const controlViewsCanScrollPrev = ref(false)
+const controlViewsCanScrollNext = ref(false)
 const dataSurfaceCollapsed = ref(false)
 const createDialogOpen = ref(false)
 const createDialogRenderKey = ref(0)
@@ -1024,31 +891,37 @@ const createDialogPrefillValues = ref({})
 const createDialogFieldMeta = ref({})
 const createDialogInitialArtifacts = ref([])
 const createDialogLastChangeSnapshot = ref(null)
-const dashboardViewLabels = computed(() =>
+const controlLdbViewKey = computed(
+  () => fileViews.value.find((section) => isRelationshipSectionLabel(section?.label))?.key || '',
+)
+const controlSystemViewKey = computed(
+  () => fileViews.value.find((section) => String(section?.label || '').trim().toLowerCase() === 'system')?.key || '',
+)
+const controlViewLabels = computed(() =>
   fileViews.value.filter((section) => {
     const label = String(section?.label || '').trim().toLowerCase()
     return label && label !== 'system' && label !== 'ldb'
   }),
 )
 
-function updateDashboardViewsScrollState() {
-  const element = dashboardViewsScrollRef.value
+function updatecontrolViewsScrollState() {
+  const element = controlViewsScrollRef.value
   if (!element) {
-    dashboardViewsCanScrollPrev.value = false
-    dashboardViewsCanScrollNext.value = false
+    controlViewsCanScrollPrev.value = false
+    controlViewsCanScrollNext.value = false
     return
   }
   const maxScrollLeft = Math.max(0, element.scrollWidth - element.clientWidth)
-  dashboardViewsCanScrollPrev.value = element.scrollLeft > 2
-  dashboardViewsCanScrollNext.value = element.scrollLeft < (maxScrollLeft - 2)
+  controlViewsCanScrollPrev.value = element.scrollLeft > 2
+  controlViewsCanScrollNext.value = element.scrollLeft < (maxScrollLeft - 2)
 }
 
-function scrollDashboardViews(direction = 1) {
-  const element = dashboardViewsScrollRef.value
+function scrollcontrolViews(direction = 1) {
+  const element = controlViewsScrollRef.value
   if (!element) return
   const delta = Math.max(90, Math.round(element.clientWidth * 0.5)) * (direction >= 0 ? 1 : -1)
   element.scrollBy({ left: delta, behavior: 'smooth' })
-  window.setTimeout(updateDashboardViewsScrollState, 180)
+  window.setTimeout(updatecontrolViewsScrollState, 180)
 }
 const createDialogLastSavedSignature = ref('')
 const createDialogAutosavePending = ref(false)
@@ -2042,11 +1915,6 @@ const fileSystemValidationIssueCount = computed(() => {
 
 const isBbFileSource = computed(() => activeSourceKey.value === 'bb-file')
 const searchPlaceholder = computed(() => `Search ${activeRegistryEntry.value?.label || 'Records'}`)
-const viewOptions = Object.freeze([
-  { value: 'page', icon: 'view_agenda', label: 'Page' },
-  { value: 'card', icon: 'grid_view', label: 'Card' },
-])
-
 const multiTokenFilterViews = computed(() => {
   if (!activeView.value) return []
   return getFilterViewTokenCount(activeView.value.key) > 1 ? [activeView.value] : []
@@ -2116,17 +1984,6 @@ const fileFilterMenuSections = computed(() => {
       selected: token.key === activeFilterTokenKey.value,
     })),
   }))
-})
-
-const activeBbFilterGroup = computed(() =>
-  bbFilterGroups.value.find((group) => group.key === activeBbCategoryKey.value) || null,
-)
-
-const activeBbFilterLabel = computed(() => {
-  if (!activeBbFilterGroup.value) return ''
-  if (!activeBbBlockKey.value) return activeBbFilterGroup.value.label
-  const block = activeBbFilterGroup.value.blocks.find((entry) => entry.key === activeBbBlockKey.value)
-  return block ? `${activeBbFilterGroup.value.label} > ${block.label}` : activeBbFilterGroup.value.label
 })
 
 const bbTileGroups = computed(() => {
@@ -2215,43 +2072,8 @@ const governanceViewRows = computed(() =>
     tokenCount: fileTokens.value.filter((token) => token.parentKey === view.key).length,
   })),
 )
-const draftTabKey = ref('')
 const draftSourceEntries = computed(() =>
   FILE_SOURCE_REGISTRY.filter((entry) => entry?.key && entry?.entityName),
-)
-const draftRowsBySource = computed(() => {
-  const result = {}
-  draftSourceEntries.value.forEach((entry) => {
-    const sourceKey = String(entry.key || '').trim()
-    if (!sourceKey) return
-    const rows = getOptionRowsForSource(sourceKey)
-    const draftRows = (Array.isArray(rows) ? rows : []).filter((row) => {
-      const statusValue = stringifyValue(row?.Status || row?.status || row?.raw?.Status || row?.raw?.status)
-        .toLowerCase()
-      return statusValue === 'draft'
-    })
-    if (draftRows.length) {
-      result[sourceKey] = draftRows
-    }
-  })
-  return result
-})
-const draftTabs = computed(() =>
-  draftSourceEntries.value
-    .map((entry) => {
-      const key = String(entry.key || '').trim()
-      const rows = Array.isArray(draftRowsBySource.value[key]) ? draftRowsBySource.value[key] : []
-      return {
-        key,
-        label: entry.label || key,
-        count: rows.length,
-      }
-    })
-    .filter((entry) => entry.count > 0),
-)
-const draftCount = computed(() => draftTabs.value.reduce((sum, entry) => sum + entry.count, 0))
-const draftRowsForActiveTab = computed(() =>
-  Array.isArray(draftRowsBySource.value[draftTabKey.value]) ? draftRowsBySource.value[draftTabKey.value] : [],
 )
   const tokenGroupsByView = computed(() =>
     governanceViewRows.value.map((view) => ({
@@ -2274,25 +2096,6 @@ const draftRowsForActiveTab = computed(() =>
         })),
     })),
   )
-const eventShellNavItems = computed(() =>
-  buildStructureToolbarItems({
-    leftItems: toolbarLeftViews.value,
-    rightItems: toolbarRightViews.value,
-    governanceItems: [
-      { value: 'tokens', title: 'Tokens' },
-      { value: 'views', title: 'Views' },
-    ],
-    isRelationshipSectionLabel,
-  }),
-)
-const miniToolbarItems = computed(() => eventShellNavItems.value)
-const miniToolbarActiveKey = computed({
-  get: () => activeViewKey.value,
-  set: (value) => {
-    activeViewKey.value = String(value || '').trim()
-  },
-})
-
 function isStatusToken(token) {
   const role = String(token?.tokenRole || '').trim().toLowerCase()
   if (role === 'status') return true
@@ -2311,27 +2114,6 @@ function getDefaultActiveViewKey(views = []) {
   const generalView = normalizedViews.find((view) => String(view?.label || '').trim().toLowerCase() === 'general')
   if (generalView?.key) return generalView.key
   return normalizedViews[0]?.key || ''
-}
-
-function getDraftRowLabel(row, sourceKey) {
-  const normalizedSourceKey = String(sourceKey || '').trim().toLowerCase()
-  const titleToken = getRegistryTitleTokenForSource(normalizedSourceKey)
-  const label = titleToken ? getCanonicalTokenValue(row, titleToken) : row?.Name || row?.Title || ''
-  return String(label || '').trim() || 'Untitled Draft'
-}
-
-function openDraftRow(sourceKey, row) {
-  if (!row?.recordId) return
-  const registryEntry = getFilePageRegistryEntry(sourceKey)
-  const entityName = String(registryEntry?.entityName || '').trim()
-  if (!entityName) return
-  const location = buildRecordViewLocation({
-    tableName: entityName,
-    recordId: row.recordId,
-    returnTo: route.fullPath,
-  })
-  if (!location) return
-  router.push(location)
 }
 
 watch(
@@ -2362,20 +2144,6 @@ watch(
         .filter(Boolean)
         .map((sourceKey) => ensureLiveOptionRowsLoaded(sourceKey)),
     )
-  },
-  { immediate: true },
-)
-
-watch(
-  draftTabs,
-  (tabs) => {
-    if (!tabs.length) {
-      draftTabKey.value = ''
-      return
-    }
-    if (!tabs.some((tab) => tab.key === draftTabKey.value)) {
-      draftTabKey.value = tabs[0].key
-    }
   },
   { immediate: true },
 )
@@ -2843,7 +2611,7 @@ onMounted(() => {
   })
   if (typeof window !== 'undefined') {
     window.setTimeout(() => {
-      updateDashboardViewsScrollState()
+      updatecontrolViewsScrollState()
     }, 0)
   }
 })
@@ -5248,7 +5016,7 @@ function isBbGraphLinkToken(tokenRow) {
   color: var(--ds-color-text-primary);
 }
 
-.file-shell__dashboard-row {
+.file-shell__control-row {
   width: 100%;
   min-height: 40px;
   display: grid;
@@ -5258,29 +5026,29 @@ function isBbGraphLinkToken(tokenRow) {
   padding: 8px;
   margin-top: 12px;
   margin-bottom: 12px;
-  background: rgba(255, 159, 67, 0.35);
-  border: 1px solid rgba(15, 23, 42, 0.14);
+  background: rgba(255, 255, 255, 0.96);
+  border: 0;
   border-radius: 6px;
 }
 
-.file-shell__dashboard-lane {
+.file-shell__control-lane {
   display: flex;
   align-items: center;
   position: relative;
   min-width: 0;
 }
 
-.file-shell__dashboard-lane-box {
+.file-shell__control-lane-box {
   min-height: 24px;
   box-sizing: border-box;
   display: flex;
   align-items: center;
   background: rgba(255, 255, 255, 0.96);
-  border: 1px solid rgba(15, 23, 42, 0.08);
+  border: 0;
   border-radius: 6px;
 }
 
-.file-shell__dashboard-lane-box--controls {
+.file-shell__control-lane-box--controls {
   display: flex;
   align-items: center;
   justify-content: flex-end;
@@ -5289,7 +5057,7 @@ function isBbGraphLinkToken(tokenRow) {
   width: auto;
 }
 
-.file-shell__dashboard-lane-box--left-controls {
+.file-shell__control-lane-box--left-controls {
   display: flex;
   align-items: center;
   justify-content: flex-start;
@@ -5298,7 +5066,7 @@ function isBbGraphLinkToken(tokenRow) {
   width: auto;
 }
 
-.file-shell__dashboard-lane-box--views {
+.file-shell__control-lane-box--views {
   flex-direction: column;
   align-items: stretch;
   justify-content: center;
@@ -5307,7 +5075,7 @@ function isBbGraphLinkToken(tokenRow) {
   width: 100%;
 }
 
-.file-shell__dashboard-lane-box--governance {
+.file-shell__control-lane-box--governance {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -5316,14 +5084,68 @@ function isBbGraphLinkToken(tokenRow) {
   width: auto;
 }
 
-.file-shell__dashboard-governance-set {
+.file-shell__control-governance-set {
   display: inline-flex;
   align-items: center;
   gap: 6px;
   min-width: 0;
 }
 
-.file-shell__dashboard-views-scroll {
+.file-shell__control-lane-box--governance .shell-section-toolbar__item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 6px;
+  color: var(--ds-color-text-subtle);
+  cursor: pointer;
+  background: transparent;
+  border: 1px solid var(--ds-color-border-default);
+  border-radius: var(--ds-toolbar-chip-radius);
+  font-family: var(--ds-font-body);
+  font-size: 10px;
+  font-weight: var(--ds-font-weight-medium);
+  line-height: 1;
+  transition:
+    color 0.2s ease,
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.file-shell__control-lane-box--governance .shell-section-toolbar__item--ldb,
+.file-shell__control-lane-box--governance .shell-section-toolbar__item--system,
+.file-shell__control-lane-box--governance .shell-section-toolbar__item--governance {
+  color: var(--ds-color-brand-black);
+  background: var(--ds-color-brand-light-grey);
+  border-color: rgba(15, 23, 42, 0.12);
+  border-radius: 4px;
+  align-self: center;
+  flex: 0 0 auto;
+}
+
+.file-shell__control-lane-box--governance .shell-section-toolbar__item--ldb .shell-section-toolbar__item-label,
+.file-shell__control-lane-box--governance .shell-section-toolbar__item--system .shell-section-toolbar__item-label,
+.file-shell__control-lane-box--governance .shell-section-toolbar__item--governance .shell-section-toolbar__item-label {
+  font-family: inherit;
+  font-size: 10px;
+}
+
+.file-shell__control-lane-box--governance .shell-section-toolbar__item--ldb.shell-section-toolbar__item--active,
+.file-shell__control-lane-box--governance .shell-section-toolbar__item--system.shell-section-toolbar__item--active,
+.file-shell__control-lane-box--governance .shell-section-toolbar__item--governance.shell-section-toolbar__item--active {
+  color: var(--ds-color-brand-white);
+  background: var(--ds-color-brand-black);
+  border-color: var(--ds-color-brand-black);
+}
+
+.file-shell__control-lane-box--governance .shell-section-toolbar__item--ldb.shell-section-toolbar__item--active .shell-section-toolbar__item-label,
+.file-shell__control-lane-box--governance .shell-section-toolbar__item--system.shell-section-toolbar__item--active .shell-section-toolbar__item-label,
+.file-shell__control-lane-box--governance .shell-section-toolbar__item--governance.shell-section-toolbar__item--active .shell-section-toolbar__item-label {
+  color: var(--ds-color-brand-white);
+}
+
+
+.file-shell__control-views-scroll {
   display: flex;
   align-items: center;
   justify-content: flex-start;
@@ -5335,14 +5157,14 @@ function isBbGraphLinkToken(tokenRow) {
   white-space: nowrap;
 }
 
-.file-shell__dashboard-views-nav {
+.file-shell__control-views-nav {
   display: flex;
   align-items: center;
   justify-content: flex-end;
   gap: 4px;
 }
 
-.file-shell__dashboard-views-nav-btn {
+.file-shell__control-views-nav-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -5356,17 +5178,17 @@ function isBbGraphLinkToken(tokenRow) {
   border-radius: 4px;
 }
 
-.file-shell__dashboard-views-nav-btn:disabled {
+.file-shell__control-views-nav-btn:disabled {
   opacity: 0.35;
 }
 
-.file-shell__dashboard-select-all {
+.file-shell__control-select-all {
   min-height: 18px;
   margin-left: -1px;
   color: var(--ds-color-text-primary);
 }
 
-.file-shell__dashboard-add {
+.file-shell__control-add {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -5380,60 +5202,60 @@ function isBbGraphLinkToken(tokenRow) {
   cursor: pointer;
 }
 
-.file-shell__dashboard-add:hover:not(:disabled) {
+.file-shell__control-add:hover:not(:disabled) {
   background: rgba(15, 23, 42, 0.04);
 }
 
-.file-shell__dashboard-add:disabled {
+.file-shell__control-add:disabled {
   opacity: 0.6;
   cursor: default;
 }
 
-.file-shell__dashboard-add :deep(.plus-icon-chip) {
+.file-shell__control-add :deep(.plus-icon-chip) {
   --plus-icon-chip-size: 18px;
   --plus-icon-chip-glyph-size: 12px;
 }
 
-.file-shell__dashboard-search {
+.file-shell__control-search {
   width: min(100%, 132px);
   min-width: 88px;
   flex: 0 1 132px;
 }
 
-.file-shell__dashboard-search :deep(.q-field__control),
-.file-shell__dashboard-search :deep(.q-field__native),
-.file-shell__dashboard-search :deep(.q-field__input) {
+.file-shell__control-search :deep(.q-field__control),
+.file-shell__control-search :deep(.q-field__native),
+.file-shell__control-search :deep(.q-field__input) {
   min-height: 22px;
   height: 22px;
 }
 
-.file-shell__dashboard-search :deep(.q-field__control) {
+.file-shell__control-search :deep(.q-field__control) {
   padding: 0 8px;
 }
 
-.file-shell__dashboard-search :deep(.q-field__prepend) {
+.file-shell__control-search :deep(.q-field__prepend) {
   min-width: 16px;
   padding-right: 4px;
 }
 
-.file-shell__dashboard-search :deep(.q-field__prepend .q-icon) {
+.file-shell__control-search :deep(.q-field__prepend .q-icon) {
   font-size: 9.6px;
 }
 
-.file-shell__dashboard-search :deep(.q-field__native),
-.file-shell__dashboard-search :deep(.q-field__input) {
+.file-shell__control-search :deep(.q-field__native),
+.file-shell__control-search :deep(.q-field__input) {
   font-size: var(--ds-font-size-xs);
 }
 
-.file-shell__dashboard-filter {
+.file-shell__control-filter {
   color: var(--ds-color-text-muted);
 }
 
-.file-shell__dashboard-filter :deep(.q-icon) {
+.file-shell__control-filter :deep(.q-icon) {
   font-size: 15.456px;
 }
 
-.file-shell__dashboard-icon-btn {
+.file-shell__control-icon-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -5447,8 +5269,13 @@ function isBbGraphLinkToken(tokenRow) {
   border-radius: 6px;
 }
 
-.file-shell__dashboard-row-icon,
-.file-shell__dashboard-chevron-icon {
+.file-shell__control-icon-btn--active {
+  color: var(--ds-color-brand-white);
+  background: var(--ds-color-brand-black);
+}
+
+.file-shell__control-row-icon,
+.file-shell__control-chevron-icon {
   width: 14px;
   height: 14px;
   fill: none;
@@ -5458,29 +5285,57 @@ function isBbGraphLinkToken(tokenRow) {
   stroke-linejoin: round;
 }
 
-.file-shell__dashboard-chip {
+.file-shell__control-chip {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 20px;
-  padding: 0 8px;
-  color: var(--ds-color-text-primary);
+  color: var(--ds-color-brand-black);
   background: transparent;
-  border: 1px solid rgba(15, 23, 42, 0.12);
+  border: 1px solid var(--ds-color-border-default);
   border-radius: 4px;
   font-family: var(--ds-font-body);
-  font-weight: var(--ds-font-weight-regular);
-  font-size: var(--ds-font-size-sm);
+  font-weight: var(--ds-font-weight-medium);
+  font-size: var(--ds-font-size-xs);
   line-height: 1;
   white-space: nowrap;
 }
 
-.file-shell__dashboard-chip--ldb,
-.file-shell__dashboard-chip--system {
-  font-size: var(--ds-font-size-sm);
+.file-shell__control-lane-box--views .file-shell__control-chip {
+  font-size: 12px;
+  background: rgba(255, 255, 255, 0.96);
+  border-radius: 4px;
 }
 
-.file-shell__dashboard-chip--governance {
+.file-shell__control-chip--active {
+  color: var(--ds-color-brand-white);
+  background: var(--ds-color-brand-black);
+  border-color: var(--ds-color-brand-black);
+}
+
+.file-shell__control-lane-box--views .file-shell__control-chip--active {
+  color: var(--ds-color-brand-white);
+  background: var(--ds-color-brand-black);
+  border-color: var(--ds-color-brand-black);
+}
+
+.file-shell__control-chip--ldb,
+.file-shell__control-chip--system {
+  background: color-mix(in srgb, var(--ds-color-brand-light-grey) 78%, white);
+  border-color: var(--ds-color-border-dashed);
+  padding: 2px 6px;
+  border-radius: 4px;
+  align-self: center;
+  flex: 0 0 auto;
+  font-size: var(--ds-font-size-xs);
+}
+
+.file-shell__control-chip--governance {
+  background: color-mix(in srgb, var(--ds-color-brand-light-grey) 78%, white);
+  border-color: var(--ds-color-border-dashed);
+  padding: 2px 6px;
+  border-radius: 4px;
+  align-self: center;
+  flex: 0 0 auto;
   font-size: var(--ds-font-size-xs);
 }
 
@@ -7154,3 +7009,4 @@ function isBbGraphLinkToken(tokenRow) {
   }
 }
 </style>
+
