@@ -222,7 +222,7 @@
           class="test-shell-empty-state bg-grey-1 text-black"
           rounded
         >
-          No real rows loaded for {{ activeRegistryEntry?.label || 'this section' }}.
+          No rows available for {{ activeRegistryEntry?.label || 'this section' }}.
         </q-banner>
 
         <div class="bb-shell-tiles-toolbar">
@@ -299,7 +299,7 @@
             class="test-shell-empty-state bg-grey-1 text-black"
             rounded
           >
-            No real rows loaded for {{ activeRegistryEntry?.label || 'this section' }}.
+            No rows available for {{ activeRegistryEntry?.label || 'this section' }}.
           </q-banner>
         </div>
 
@@ -356,7 +356,7 @@
                 <div class="test-shell-card__hero-side">
                   <div class="test-shell-card__hero-copy">
                     <div class="test-shell-card__title" :class="{ 'test-shell-card__value--placeholder': !row.titleValue }">
-                      {{ row.titleValue || 'Title mapping undefined' }}
+                      {{ row.titleValue || 'Missing title value' }}
                     </div>
 
                     <div class="test-shell-card__bottom-stack">
@@ -389,7 +389,7 @@
                         <div class="test-shell-card__detail-row">
                           <button type="button" class="test-shell-card__inline-chip test-shell-card__inline-chip--placeholder">
                             <q-icon name="info" size="14px" />
-                            <span>Metadata mapping undefined</span>
+                            <span>No metadata value</span>
                           </button>
                         </div>
                       </div>
@@ -452,7 +452,7 @@
           class="test-shell-empty-state bg-grey-1 text-black"
           rounded
         >
-          No real rows loaded for {{ activeRegistryEntry?.label || 'this section' }}.
+          No rows available for {{ activeRegistryEntry?.label || 'this section' }}.
         </q-banner>
 
         <div ref="tableScrollRef" class="test-shell-table-scroll">
@@ -579,7 +579,7 @@
                       class="test-shell-table__name"
                       :class="{ 'test-shell-card__value--placeholder': !row.titleValue }"
                     >
-                      {{ row.titleValue || 'Name mapping undefined' }}
+                      {{ row.titleValue || 'Missing title value' }}
                     </div>
                   </div>
                 </td>
@@ -646,7 +646,7 @@
                         {{ item.title }}
                       </button>
                     </div>
-                    <span v-else class="test-shell-card__value--placeholder">No explicit value</span>
+                    <span v-else class="test-shell-card__value--placeholder">No token value</span>
                   </template>
                   <template v-else-if="isLdbViewActive">
                     <div
@@ -680,7 +680,7 @@
                       ]"
                       @dblclick="beginInlineTableEdit(row, tokenRow.token, 'token')"
                     >
-                      No explicit value
+                      No token value
                     </span>
                   </template>
                   <span
@@ -692,7 +692,7 @@
                     ]"
                     @dblclick="beginInlineTableEdit(row, tokenRow.token, 'token')"
                   >
-                    {{ tokenRow.value || 'No explicit value' }}
+                    {{ tokenRow.value || 'No token value' }}
                   </span>
                 </td>
                 <td
