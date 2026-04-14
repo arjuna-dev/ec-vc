@@ -169,6 +169,20 @@ Safe ownership chain:
 - those sections/views own tokens
 - those tokens are the canonical token layer the shell should render from
 
+Default token/field status rule:
+
+- token/system definition provides the default status state
+- draft/edit activity may change it
+- saved/runtime verification may confirm or replace it
+- row surfaces should render from that governed state
+
+Approved starting vocabulary:
+
+- `Pre-Selected`
+- `Suggested`
+- `Verified`
+- `Input`
+
 Reference inputs remain useful for:
 
 - migration checks

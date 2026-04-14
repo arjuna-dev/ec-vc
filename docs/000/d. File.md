@@ -260,7 +260,8 @@ That means:
 Current runtime note:
 
 - `History` is still implemented as an approved special system column in `File Shell`
-- `Status` is still partly governed through special system/default-value behavior and should not be treated as a normal free-floating display column
+- `Status` should live in `System View` with `ID` and `History`
+- `Status` should not be treated as a normal free-floating display column
 - these two columns should stay explicit and governed until the file/token contract gives them a cleaner canonical home
 
 If a file table shows a better label than the token contract provides, the `File Steward` should fix the token label or file structure instead of patching the table header locally.
@@ -270,6 +271,35 @@ Token meaning rule:
 - each governed token should also be able to carry a `Definition`
 - `Definition` should remain visible and editable
 - extraction and translator work should prefer that local token definition when comparing outside source language to file-owned meaning
+- each governed token should also carry a default verification state through its system definition
+
+Approved default status vocabulary:
+
+- `Pre-Selected`
+  - grey
+  - `CI = 75%`
+  - system knows where the value came from through governed file/LDB context
+
+- `Suggested`
+  - yellow
+  - `CI = 50%`
+  - system is suggesting the value through extraction or contextual interpretation
+
+- `Verified`
+  - black
+  - `CI = 100%`
+  - user has confirmed the value
+
+- `Input`
+  - blue
+  - `CI = n.a.`
+  - field is open for direct user input
+
+Working rule:
+
+- these states should come from token/system definition first
+- row surfaces should render them honestly
+- do not invent local status colors outside the governed file/token path
 
 Legacy ordering caution:
 

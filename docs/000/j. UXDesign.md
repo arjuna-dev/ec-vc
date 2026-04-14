@@ -90,6 +90,24 @@ They should not be treated as ad hoc decoration.
 - keep the canonical result explicit underneath the UI
 - do not let a visual shortcut bypass file birth rules
 
+Approved status vocabulary behind those tones:
+
+- `Input`
+  - blue
+  - user may type directly into the field
+
+- `Pre-Selected`
+  - light grey
+  - governed system-origin value with known provenance
+
+- `Suggested`
+  - yellow
+  - system-proposed value awaiting confirmation
+
+- `Verified`
+  - black
+  - user-confirmed value
+
 ## File Birth UX Fork
 
 When the user is creating or changing file structure, the first fork should ask:

@@ -30,6 +30,33 @@ At minimum, each token should carry:
 - `editability / visibility`
 - `section ownership`
 - `definition`
+- `default verification state`
+
+## Default Status Vocabulary
+
+The approved default token/field status vocabulary is:
+
+- `Pre-Selected`
+  - color: grey
+  - `CI = 75%`
+  - system knows where the data came from
+  - usually flows through governed `LDB` links or pre-existing local data paths
+
+- `Suggested`
+  - color: yellow
+  - `CI = 50%`
+  - system is proposing the value
+  - usually comes from extraction or context-guided interpretation
+
+- `Verified`
+  - color: black
+  - `CI = 100%`
+  - user has confirmed that the value is correct
+
+- `Input`
+  - color: blue
+  - `CI = n.a.`
+  - user may type directly into the field
 
 ## Meaning Of Each Part
 
@@ -60,13 +87,34 @@ At minimum, each token should carry:
   - helps compare the token meaning against outside definitions or source-material definitions
   - allows the owner to adapt wording for special cases without losing the governed token layer
 
+- `default verification state`
+  - states the governed starting verification posture for that token
+  - should come from the token/system definition rather than from page-local guesses
+  - may later be changed by draft/edit activity
+  - may later be confirmed or replaced by saved/runtime verification
+  - should use the approved default status vocabulary unless an explicit exception is declared
+
 ## Working Rules
 
 - token-backed rendering must come from the token contract
 - if a visible label is wrong, fix `Token Label`
 - if a visible meaning is wrong or incomplete, fix `Definition`
+- if a field-state default is wrong, fix the token/system verification default
 - do not patch token meaning locally in tables, cards, or dialogs
 - do not let extraction logic invent token meaning outside the token contract when the file already owns that token
+
+Verification-state rule:
+
+1. token/system definition provides the default verification state
+2. draft/edit activity may change it
+3. saved/runtime verification may confirm or replace it
+4. row surfaces should render from that governed state
+
+Working interpretation:
+
+- `Pre-Selected` and `Suggested` are system-origin states
+- `Verified` is a human-confirmed state
+- `Input` is the governed open-entry state
 
 ## Extraction Rule
 

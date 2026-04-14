@@ -58,6 +58,42 @@ This is not just a menu list.
 
 It is the file-definition governance surface.
 
+`System` should also remain the governed home for shared record-state and provenance fields.
+
+That includes fields such as:
+
+- `ID`
+- `History`
+- `Status`
+
+Working rule:
+
+- `Status` should be treated as a `System View` field, not as a drifting general-purpose display column
+- row and table surfaces should render `Status` through the governed system path when that field is part of the shared record-state layer
+- token/field status should also begin from governed `System` definition rather than from page-local defaults
+
+Approved default status vocabulary:
+
+- `Pre-Selected`
+  - grey
+  - `CI = 75%`
+  - system-origin data with known governed provenance
+
+- `Suggested`
+  - yellow
+  - `CI = 50%`
+  - system-origin proposed data, not yet confirmed
+
+- `Verified`
+  - black
+  - `CI = 100%`
+  - user-confirmed correct data
+
+- `Input`
+  - blue
+  - `CI = n.a.`
+  - user-editable entry state
+
 ## File Structure Ownership Chain
 
 `System` should be read as the first layer in the active file-structure chain:
@@ -120,7 +156,7 @@ The `File Steward` governs whether each file is born correctly, has the required
 
 Minimum base structure required for every file:
 
-- `System`: `ID`, `History`
+- `System`: `ID`, `History`, `Status`
 - `General`: `Name` required, `Summary` optional
 - `LDB`: empty relationship view derived from the declared system-file universe
 

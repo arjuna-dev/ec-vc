@@ -155,8 +155,14 @@ Current checkpoint:
 - duplicate token-label enforcement and n+1 draft naming have been removed from the local draft-token surface
 - draft-side `tokenOrder` assignment has been removed from `Add/Edit File Shell`
 - `History` remains an approved special system column in `File Shell`
-- `Status` remains partly governed through special system/default-value behavior
+- `Status` is being moved into the governed `System View` path with `ID` and `History`
 - remaining `tokenOrder` usage is now in bootstrap seeding and passive runtime parsing
+- token definitions are the intended home for default verification state
+- approved token/field default status vocabulary is now:
+  - `Pre-Selected`
+  - `Suggested`
+  - `Verified`
+  - `Input`
 
 ## PMP Checkpoints
 
