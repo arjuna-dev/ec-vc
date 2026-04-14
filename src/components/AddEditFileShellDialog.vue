@@ -219,7 +219,6 @@
 
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
-import { useQuasar } from 'quasar'
 import DialogShellFrame from 'src/components/DialogShellFrame.vue'
 import RecordFieldsBox from 'src/components/RecordFieldsBox.vue'
 import DialogShellTitleRow from 'src/components/DialogShellTitleRow.vue'
@@ -248,7 +247,6 @@ const props = defineProps({
 
 const emit = defineEmits(['update:shellSelectorValue', 'change'])
 const FILE_GUIDE_DOC_URL = 'file:///C:/Users/erikc/Coding_Repository/ec-vc/docs/000/c. System.md'
-const $q = useQuasar()
 
 const shellSelectorOpen = ref(false)
 const runtimeStructureVersion = ref(getRuntimeStructureVersion())
