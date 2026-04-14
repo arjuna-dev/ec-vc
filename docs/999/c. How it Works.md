@@ -184,6 +184,37 @@ Working rule:
 - token-backed rendering should come from the token contract
 - page-local patches should not become the long-term answer when the token contract is missing or wrong
 
+## How Surfaces Work
+
+Shared surfaces and data contracts do different jobs.
+
+The current intended logic is:
+
+1. one shared renderer may be reused across many paths
+2. the shared renderer provides the reading grammar and control behavior
+3. each path still declares its own explicit data contract
+4. that contract tells the renderer what the current path is carrying
+
+Short reading:
+
+- same surface does not mean same payload
+- it means same renderer with different explicit contracts underneath
+
+Examples:
+
+- `File Views` -> file-view contract
+- `Tokens` -> token-metadata contract
+- `Views` -> view-metadata contract
+- translator surfaces -> translator contract
+- intake surfaces -> intake contract
+- companion surfaces -> companion contract
+
+Working rule:
+
+- the shared renderer reduces mistakes
+- the contract carries the path-specific provisions for that data set
+- the renderer should not guess which fields matter
+
 ## Future Sections
 
 Placeholders for future mini-guides:

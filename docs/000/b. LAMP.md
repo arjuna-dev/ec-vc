@@ -131,6 +131,9 @@ Drift signal:
 
 - shell payloads should come from governed structure plus governed translator logic
 - do not let local page code invent payload meaning
+- the shared renderer may stay the same across paths
+- each data-bearing path should still declare its own explicit data contract
+- the contract should say what that path is carrying and why
 
 Drift signal:
 
@@ -297,6 +300,7 @@ Shared row/data rendering should begin from one governed contract:
 Current clean-birth direction:
 
 - `Row Surface` and `Card Surface` remain the shared names
+- `Row Surface` is the shared renderer for governed row data and governed metadata
 - row surfaces begin with `Select` and `View`
 - token-backed column titles come from `Token Label`
 - editable = blue
@@ -306,6 +310,21 @@ Current clean-birth direction:
 - verified = black
 
 These should be born as governed defaults, not rediscovered through page drift.
+
+Shared-surface rule:
+
+- one shared renderer may be reused across many paths
+- that renderer acts as a shell that reduces mistakes and drift
+- each path still needs its own explicit data contract underneath
+
+Examples:
+
+- `File Views` should expose a file-view contract
+- `Tokens` should expose a token-metadata contract
+- `Views` should expose a view-metadata contract
+- translator paths should expose a translator data contract
+- intake paths should expose an intake data contract
+- companion paths should expose a companion data contract
 
 ## Launch Translator Rule
 

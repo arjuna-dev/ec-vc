@@ -144,6 +144,27 @@ Stop conditions:
 - verification status cannot be represented clearly
 - the extraction handoff into a governed translator is missing enough context to tell whether a later mistake is upstream or translator-side
 
+## Intake Data Contract
+
+Intake should use the shared renderer where appropriate, but it still needs its own explicit intake contract.
+
+That contract should carry the intake-specific provisions for the current data set, such as:
+
+- source
+- companion
+- target file
+- tokens
+- token definitions
+- provenance
+- verification state
+- pending intake action
+
+Working rule:
+
+- the shared surface reduces renderer mistakes
+- the intake contract declares what intake is actually carrying
+- intake should not depend on loose UI memory or implied context
+
 ## Front-And-Center Rules
 
 ### 1. No Frontend Drift In The Four Feeder Surfaces

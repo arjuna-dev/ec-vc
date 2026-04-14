@@ -192,6 +192,27 @@ Working interpretation:
 - the shared data-surface contract governs how that input is rendered into a reusable row surface
 - local shells should not invent their own row grammar when they are meant to share this surface logic
 
+## Translator Data Contract
+
+The shared renderer may stay the same, but translator paths still need their own explicit data contract.
+
+That contract should carry the translator-specific provisions needed for that data set, such as:
+
+- companion
+- source id
+- source type
+- tokens
+- token definitions
+- provenance
+- verification state
+- pending action or handoff state
+
+Working rule:
+
+- the shared `Row Surface` reduces renderer mistakes
+- the translator contract declares what the translator path is actually carrying
+- translator surfaces should not rely on remembered page context or local guesses
+
 ## Shared Structure Rules
 
 These translator rules work across shared structure work too:

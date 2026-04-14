@@ -43,6 +43,7 @@ Working interpretation:
 
 - `Row Surface` is the default row/data reading mode under an active file path or dialog path
 - `Card Surface` is the card-based reading mode for the same governed data
+- the shared surface may stay the same while the data contract underneath changes by path
 
 These should be treated as shared surface names, not one-off labels inside individual pages.
 
@@ -89,6 +90,35 @@ These color rules should remain governed and legible.
 They should not be treated as ad hoc decoration.
 - keep the canonical result explicit underneath the UI
 - do not let a visual shortcut bypass file birth rules
+
+### Shared Renderer Rule
+
+The same surface should be reused wherever the same surface family is intended.
+
+That means:
+
+- same renderer
+- same reading grammar
+- same control behavior
+
+But:
+
+- each path still needs its own data contract underneath
+- that contract should include the specific provisions relevant to that data set
+
+Examples:
+
+- file-view data
+- token metadata
+- view metadata
+- translator data
+- intake data
+- companion data
+
+Working interpretation:
+
+- the shared renderer acts as the shell that reduces mistakes
+- the contract tells the shell what the current path is carrying
 
 Approved status vocabulary behind those tones:
 
