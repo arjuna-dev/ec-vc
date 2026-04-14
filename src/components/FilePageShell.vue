@@ -32,9 +32,7 @@
       />
 
       <div
-        ref="dashboardRowRef"
         class="file-shell__dashboard-row"
-        :style="{ gridTemplateColumns: dashboardRowTemplateColumns }"
         aria-label="Dashboard row marker"
       >
         <div class="file-shell__dashboard-lane">
@@ -83,21 +81,44 @@
             </q-btn>
           </div>
         </div>
-        <button
-          type="button"
-          class="file-shell__dashboard-divider"
-          aria-label="Resize dashboard lanes"
-          @mousedown.prevent="startDashboardLaneResize(0, $event)"
-        />
         <div class="file-shell__dashboard-lane">
-          <div class="file-shell__dashboard-lane-box" />
+          <div class="file-shell__dashboard-lane-box file-shell__dashboard-lane-box--views">
+            <div
+              ref="dashboardViewsScrollRef"
+              class="file-shell__dashboard-views-scroll ds-mini-scrollbar"
+              @scroll="updateDashboardViewsScrollState"
+            >
+              <button
+                v-for="section in dashboardViewLabels"
+                :key="`dashboard-view:${section.key}`"
+                type="button"
+                class="file-shell__dashboard-chip"
+              >
+                {{ section.label }}
+              </button>
+            </div>
+            <div v-if="dashboardViewsCanScrollPrev || dashboardViewsCanScrollNext" class="file-shell__dashboard-views-nav">
+              <button
+                type="button"
+                class="file-shell__dashboard-views-nav-btn"
+                :disabled="!dashboardViewsCanScrollPrev"
+                aria-label="Scroll view labels left"
+                @click="scrollDashboardViews(-1)"
+              >
+                <q-icon name="chevron_left" size="14px" />
+              </button>
+              <button
+                type="button"
+                class="file-shell__dashboard-views-nav-btn"
+                :disabled="!dashboardViewsCanScrollNext"
+                aria-label="Scroll view labels right"
+                @click="scrollDashboardViews(1)"
+              >
+                <q-icon name="chevron_right" size="14px" />
+              </button>
+            </div>
+          </div>
         </div>
-        <button
-          type="button"
-          class="file-shell__dashboard-divider"
-          aria-label="Resize dashboard lanes"
-          @mousedown.prevent="startDashboardLaneResize(1, $event)"
-        />
         <div class="file-shell__dashboard-lane">
           <div class="file-shell__dashboard-lane-box file-shell__dashboard-lane-box--governance">
             <div class="file-shell__dashboard-governance-set">
@@ -118,12 +139,6 @@
             </div>
           </div>
         </div>
-        <button
-          type="button"
-          class="file-shell__dashboard-divider"
-          aria-label="Resize dashboard lanes"
-          @mousedown.prevent="startDashboardLaneResize(2, $event)"
-        />
         <div class="file-shell__dashboard-lane">
           <div class="file-shell__dashboard-lane-box file-shell__dashboard-lane-box--controls">
             <button type="button" class="file-shell__dashboard-icon-btn" aria-label="Row view">
@@ -987,9 +1002,9 @@ const rowHistoryByRecordId = ref({})
 const rowHistoryLoadingByRecordId = ref({})
 const loaderDiagnostics = ref({})
 const viewMode = ref('page')
-const dashboardRowRef = ref(null)
-const dashboardLaneWidths = ref([])
-const dashboardLaneResizeState = ref(null)
+const dashboardViewsScrollRef = ref(null)
+const dashboardViewsCanScrollPrev = ref(false)
+const dashboardViewsCanScrollNext = ref(false)
 const dataSurfaceCollapsed = ref(false)
 const createDialogOpen = ref(false)
 const createDialogRenderKey = ref(0)
@@ -1009,77 +1024,31 @@ const createDialogPrefillValues = ref({})
 const createDialogFieldMeta = ref({})
 const createDialogInitialArtifacts = ref([])
 const createDialogLastChangeSnapshot = ref(null)
+const dashboardViewLabels = computed(() =>
+  fileViews.value.filter((section) => {
+    const label = String(section?.label || '').trim().toLowerCase()
+    return label && label !== 'system' && label !== 'ldb'
+  }),
+)
 
-const dashboardRowTemplateColumns = computed(() => {
-  if (dashboardLaneWidths.value.length !== 4) {
-    return [
-      'minmax(0, 1fr)',
-      '10px',
-      'minmax(0, 1fr)',
-      '10px',
-      'minmax(0, 1fr)',
-      '10px',
-      'minmax(0, 1fr)',
-    ].join(' ')
+function updateDashboardViewsScrollState() {
+  const element = dashboardViewsScrollRef.value
+  if (!element) {
+    dashboardViewsCanScrollPrev.value = false
+    dashboardViewsCanScrollNext.value = false
+    return
   }
-  return [
-    `${Math.round(dashboardLaneWidths.value[0])}px`,
-    '10px',
-    `${Math.round(dashboardLaneWidths.value[1])}px`,
-    '10px',
-    `${Math.round(dashboardLaneWidths.value[2])}px`,
-    '10px',
-    `${Math.round(dashboardLaneWidths.value[3])}px`,
-  ].join(' ')
-})
-
-function ensureDashboardLaneWidths() {
-  const row = dashboardRowRef.value
-  if (!row) return
-  if (dashboardLaneResizeState.value) return
-  if (dashboardLaneWidths.value.length === 4) return
-  const styles = window.getComputedStyle(row)
-  const paddingLeft = Number.parseFloat(styles.paddingLeft || '0') || 0
-  const paddingRight = Number.parseFloat(styles.paddingRight || '0') || 0
-  const dividerTotal = 10 * 3
-  const availableWidth = Math.max(320, row.clientWidth - paddingLeft - paddingRight - dividerTotal)
-  const laneWidth = availableWidth / 4
-  dashboardLaneWidths.value = [laneWidth, laneWidth, laneWidth, laneWidth]
+  const maxScrollLeft = Math.max(0, element.scrollWidth - element.clientWidth)
+  dashboardViewsCanScrollPrev.value = element.scrollLeft > 2
+  dashboardViewsCanScrollNext.value = element.scrollLeft < (maxScrollLeft - 2)
 }
 
-function startDashboardLaneResize(index, event) {
-  ensureDashboardLaneWidths()
-  if (dashboardLaneWidths.value.length !== 4 || typeof window === 'undefined') return
-  dashboardLaneResizeState.value = {
-    index,
-    startX: event.clientX,
-    startCurrent: dashboardLaneWidths.value[index],
-    startNext: dashboardLaneWidths.value[index + 1],
-  }
-  window.addEventListener('mousemove', onDashboardLaneResizeMove)
-  window.addEventListener('mouseup', stopDashboardLaneResize)
-}
-
-function onDashboardLaneResizeMove(event) {
-  const state = dashboardLaneResizeState.value
-  if (!state) return
-  const delta = event.clientX - state.startX
-  const nextCurrent = state.startCurrent + delta
-  const nextNeighbor = state.startNext - delta
-  const minWidth = 80
-  if (nextCurrent < minWidth || nextNeighbor < minWidth) return
-  const nextWidths = [...dashboardLaneWidths.value]
-  nextWidths[state.index] = nextCurrent
-  nextWidths[state.index + 1] = nextNeighbor
-  dashboardLaneWidths.value = nextWidths
-}
-
-function stopDashboardLaneResize() {
-  dashboardLaneResizeState.value = null
-  if (typeof window !== 'undefined') {
-    window.removeEventListener('mousemove', onDashboardLaneResizeMove)
-    window.removeEventListener('mouseup', stopDashboardLaneResize)
-  }
+function scrollDashboardViews(direction = 1) {
+  const element = dashboardViewsScrollRef.value
+  if (!element) return
+  const delta = Math.max(90, Math.round(element.clientWidth * 0.5)) * (direction >= 0 ? 1 : -1)
+  element.scrollBy({ left: delta, behavior: 'smooth' })
+  window.setTimeout(updateDashboardViewsScrollState, 180)
 }
 const createDialogLastSavedSignature = ref('')
 const createDialogAutosavePending = ref(false)
@@ -2864,7 +2833,6 @@ function startColumnResize(columnKey, minWidth, event) {
 
 onBeforeUnmount(() => {
   stopColumnResize()
-  stopDashboardLaneResize()
   if (runtimeStructureUnsub) runtimeStructureUnsub()
   runtimeStructureUnsub = null
 })
@@ -2874,7 +2842,9 @@ onMounted(() => {
     runtimeStructureVersion.value = version
   })
   if (typeof window !== 'undefined') {
-    window.setTimeout(() => ensureDashboardLaneWidths(), 0)
+    window.setTimeout(() => {
+      updateDashboardViewsScrollState()
+    }, 0)
   }
 })
 
@@ -5282,9 +5252,9 @@ function isBbGraphLinkToken(tokenRow) {
   width: 100%;
   min-height: 40px;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 10px minmax(0, 1fr) 10px minmax(0, 1fr) 10px minmax(0, 1fr);
+  grid-template-columns: max-content minmax(0, 1fr) max-content max-content;
   align-items: center;
-  column-gap: 0;
+  column-gap: 10px;
   padding: 8px;
   margin-top: 12px;
   margin-bottom: 12px;
@@ -5294,12 +5264,13 @@ function isBbGraphLinkToken(tokenRow) {
 }
 
 .file-shell__dashboard-lane {
+  display: flex;
+  align-items: center;
   position: relative;
   min-width: 0;
 }
 
 .file-shell__dashboard-lane-box {
-  width: 100%;
   min-height: 24px;
   box-sizing: border-box;
   display: flex;
@@ -5315,6 +5286,7 @@ function isBbGraphLinkToken(tokenRow) {
   justify-content: flex-end;
   gap: 6px;
   padding: 0 6px;
+  width: auto;
 }
 
 .file-shell__dashboard-lane-box--left-controls {
@@ -5323,6 +5295,16 @@ function isBbGraphLinkToken(tokenRow) {
   justify-content: flex-start;
   gap: 6px;
   padding: 0 6px;
+  width: auto;
+}
+
+.file-shell__dashboard-lane-box--views {
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: center;
+  gap: 4px;
+  padding: 4px 6px;
+  width: 100%;
 }
 
 .file-shell__dashboard-lane-box--governance {
@@ -5331,6 +5313,7 @@ function isBbGraphLinkToken(tokenRow) {
   justify-content: space-between;
   gap: 8px;
   padding: 0 8px;
+  width: auto;
 }
 
 .file-shell__dashboard-governance-set {
@@ -5340,30 +5323,41 @@ function isBbGraphLinkToken(tokenRow) {
   min-width: 0;
 }
 
-.file-shell__dashboard-divider {
-  position: relative;
-  width: 10px;
-  min-width: 10px;
-  height: 100%;
+.file-shell__dashboard-views-scroll {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 6px;
+  min-width: 0;
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  white-space: nowrap;
+}
+
+.file-shell__dashboard-views-nav {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+}
+
+.file-shell__dashboard-views-nav-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  min-width: 18px;
+  height: 16px;
   padding: 0;
+  color: rgba(15, 23, 42, 0.72);
   background: transparent;
   border: 0;
-  cursor: col-resize;
+  border-radius: 4px;
 }
 
-.file-shell__dashboard-divider::before {
-  content: '';
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  width: 1px;
-  height: 50%;
-  transform: translate(-50%, -50%);
-  background: rgba(15, 23, 42, 0.22);
-}
-
-.file-shell__dashboard-divider:hover::before {
-  background: rgba(15, 23, 42, 0.42);
+.file-shell__dashboard-views-nav-btn:disabled {
+  opacity: 0.35;
 }
 
 .file-shell__dashboard-select-all {
@@ -5435,6 +5429,10 @@ function isBbGraphLinkToken(tokenRow) {
   color: var(--ds-color-text-muted);
 }
 
+.file-shell__dashboard-filter :deep(.q-icon) {
+  font-size: 15.456px;
+}
+
 .file-shell__dashboard-icon-btn {
   display: inline-flex;
   align-items: center;
@@ -5466,13 +5464,24 @@ function isBbGraphLinkToken(tokenRow) {
   justify-content: center;
   min-height: 20px;
   padding: 0 8px;
-  color: rgba(15, 23, 42, 0.78);
+  color: var(--ds-color-text-primary);
   background: transparent;
   border: 1px solid rgba(15, 23, 42, 0.12);
-  border-radius: 6px;
-  font-size: 11px;
+  border-radius: 4px;
+  font-family: var(--ds-font-body);
+  font-weight: var(--ds-font-weight-regular);
+  font-size: var(--ds-font-size-sm);
   line-height: 1;
   white-space: nowrap;
+}
+
+.file-shell__dashboard-chip--ldb,
+.file-shell__dashboard-chip--system {
+  font-size: var(--ds-font-size-sm);
+}
+
+.file-shell__dashboard-chip--governance {
+  font-size: var(--ds-font-size-xs);
 }
 
 .file-shell__toolbar-search {
