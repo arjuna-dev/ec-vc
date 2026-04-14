@@ -469,18 +469,18 @@
                 />
                 <th
                   class="test-shell-table__head test-shell-table__head--name"
-                  :style="getTableColumnStyle('name', NAME_COLUMN_DEFAULT_WIDTH)"
-                >
-                  <div class="test-shell-table__head-inner">
-                    <span>Name</span>
-                    <button
-                      type="button"
-                      class="test-shell-table__resize-handle"
-                      aria-label="Resize Name column"
-                      @pointerdown.stop.prevent="startColumnResize('name', 0, $event)"
-                    />
-                  </div>
-                </th>
+                    :style="getTableColumnStyle(leadTitleColumnKey, NAME_COLUMN_DEFAULT_WIDTH)"
+                  >
+                    <div class="test-shell-table__head-inner">
+                      <span>{{ leadTitleColumnLabel }}</span>
+                      <button
+                        type="button"
+                        class="test-shell-table__resize-handle"
+                        :aria-label="`Resize ${leadTitleColumnLabel} column`"
+                        @pointerdown.stop.prevent="startColumnResize(leadTitleColumnKey, 0, $event)"
+                      />
+                    </div>
+                  </th>
                 <th
                   v-for="token in tableViewTokens"
                   :key="token.key"
@@ -546,8 +546,8 @@
                 </td>
                 <td
                   class="test-shell-table__cell test-shell-table__cell--name"
-                  :style="getTableColumnStyle('name', NAME_COLUMN_DEFAULT_WIDTH)"
-                >
+                    :style="getTableColumnStyle(leadTitleColumnKey, NAME_COLUMN_DEFAULT_WIDTH)"
+                  >
                   <div
                     class="test-shell-table__name-row"
                     :class="{
@@ -1175,6 +1175,8 @@ const sharedLdbViewTokens = computed(() => {
 
 const canonicalTitleToken = computed(() => getRegistryTitleTokenForSource(activeSourceKey.value) || null)
 const canonicalSummaryToken = computed(() => getRegistrySummaryTokenForSource(activeSourceKey.value) || null)
+const leadTitleColumnKey = computed(() => String(canonicalTitleToken.value?.key || 'name').trim() || 'name')
+const leadTitleColumnLabel = computed(() => String(canonicalTitleToken.value?.label || 'Missing title token').trim() || 'Missing title token')
 const selectedRecordShellLevel3Keys = computed(() => {
   if (!isRecordShellMode.value) return []
   const rawValue = route.query.l3
@@ -2527,6 +2529,8 @@ watch(
     () => viewMode.value,
     () => activeContentSourceKey.value,
     () => activeViewKey.value,
+    () => leadTitleColumnKey.value,
+    () => leadTitleColumnLabel.value,
     () => tableViewTokens.value.map((token) => token.key).join('|'),
     () => displayRows.value.length,
   ],
@@ -2557,7 +2561,7 @@ function getTableColumnStyle(columnKey, fallbackWidth) {
 function getInitialTableColumns() {
   const getColumnLabelWidth = (label = '') => Math.max(72, (String(label || '').trim().length * 7) + 28)
   return [
-    { key: 'name', defaultWidth: Math.max(NAME_COLUMN_DEFAULT_WIDTH, getColumnLabelWidth('Name')) },
+    { key: leadTitleColumnKey.value, defaultWidth: Math.max(NAME_COLUMN_DEFAULT_WIDTH, getColumnLabelWidth(leadTitleColumnLabel.value)) },
     ...tableViewTokens.value.map((token) => ({
       key: token.key,
       defaultWidth: Math.max(
