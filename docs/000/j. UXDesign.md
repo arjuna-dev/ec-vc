@@ -31,6 +31,62 @@ That means:
 - show the user the relevant fork
 - explain the consequence in plain language
 - prefer guided questions over raw architecture labels
+
+## Surface Names
+
+The current shared surface names should be:
+
+- `Row Surface`
+- `Card Surface`
+
+Working interpretation:
+
+- `Row Surface` is the default row/data reading mode under an active file path or dialog path
+- `Card Surface` is the card-based reading mode for the same governed data
+
+These should be treated as shared surface names, not one-off labels inside individual pages.
+
+## Data Surface Contract
+
+`UXDesign` should treat `Data Surface Contract` as the top-level UX rule for shared row/data reading surfaces.
+
+That contract should help make shared row/data surfaces feel:
+
+- clean
+- readable the same way everywhere
+- multi-functional without looking crowded
+- strict enough that bugs are visible instead of hidden by surface variation
+
+### Row Surface Rules
+
+Current working `Row Surface` rules:
+
+- row surfaces should begin with two fixed control columns on the left:
+  - `Select`
+  - `View`
+- a separate `Edit` control column is not required when editable cells are already clearly marked and support the approved double-click edit path
+- token-backed data columns should follow file structure and token contracts
+- row surfaces should not stretch artificially to fill the full window width
+- if content exceeds height or width, the approved sleek dark scrollbars should appear
+- column width should be resizable by dragging the divider
+- double-clicking the divider should contract the column to hug
+- width initialization should begin from the input-box minimum or visible content width
+- long-text columns should be the special case that may initialize wider and keep a max-width rule
+
+### Row Surface Reading Rules
+
+Cell reading grammar should stay stable:
+
+- all ordinary cell text should use the shared body/xs/light reading style
+- editable input cells should read blue
+- linked or other-page data should read green
+- suggested data should read yellow
+- pre-selected data should read light grey
+- verified data should read black
+
+These color rules should remain governed and legible.
+
+They should not be treated as ad hoc decoration.
 - keep the canonical result explicit underneath the UI
 - do not let a visual shortcut bypass file birth rules
 

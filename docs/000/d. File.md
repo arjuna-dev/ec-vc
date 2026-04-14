@@ -248,6 +248,7 @@ That means:
   - have no header text
   - hug their content
   - stay aligned with the same shared row pattern used in other canonical shells
+- a separate `Edit` control column is not required when editable cells are clearly marked and the row surface already supports the approved double-click edit path
 
 For file-backed data columns, the `File Steward` should keep table headers and lead columns governed by file structure.
 
@@ -257,7 +258,7 @@ That means:
 - shared base fields such as `Name` and `Summary` must render from the file structure/token contract, not from local hardcodes
 - duplicated or drifting base-field columns should be treated as file-structure drift
 - `History` and `Status` may remain approved special system columns when they are explicitly governed as record-state/provenance columns
-- local control columns such as `Select`, `View`, and `Edit` are not file tokens and should remain fixed control columns on the left
+- local control columns such as `Select` and `View` are not file tokens and should remain fixed control columns on the left
 
 If a file table shows a better label than the token contract provides, the `File Steward` should fix the token label or file structure instead of patching the table header locally.
 
@@ -266,6 +267,12 @@ Token meaning rule:
 - each governed token should also be able to carry a `Definition`
 - `Definition` should remain visible and editable
 - extraction and translator work should prefer that local token definition when comparing outside source language to file-owned meaning
+
+Row surface working rule:
+
+- row surfaces should stay visually clean and read the same way across file and edit paths
+- row surfaces should not expand artificially to fill unused window width
+- overflow should be handled through the approved scroll behavior rather than by distorting the row grammar
 
 For editable field rows, the selection box should not be treated as the way to enter editing.
 

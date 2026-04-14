@@ -164,6 +164,34 @@ Its current role is:
 
 This makes it a useful first example of translator architecture.
 
+## Data Surface Contract
+
+`Data Surface Contract` should be treated as a translator-governed shared behavior.
+
+It is not just table styling.
+
+It is the governed interpretation layer that helps shared row/data surfaces read the same way across active paths.
+
+This contract should govern:
+
+- `File Shell` row/table surfaces
+- row/data views inside edit shells
+- future reusable row surfaces in other active paths
+
+That means the user should feel:
+
+- same reading grammar
+- same controls
+- same cell-state meaning
+- same scrolling behavior
+- same resize behavior
+
+Working interpretation:
+
+- canonical file structure and token contracts provide the input
+- the shared data-surface contract governs how that input is rendered into a reusable row surface
+- local shells should not invent their own row grammar when they are meant to share this surface logic
+
 ## Working Rule
 
 When a shared behavior starts appearing in many places, ask:
