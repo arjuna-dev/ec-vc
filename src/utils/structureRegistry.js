@@ -415,6 +415,13 @@ export function setRuntimeFileStructures(fileRows = []) {
           optionSource: String(token?.optionSource || token?.option_source || '').trim(),
           optionEntity: String(token?.optionEntity || token?.option_entity || '').trim(),
           optionList: String(token?.optionList || token?.option_list || '').trim(),
+          definition: String(token?.definition || token?.Definition || '').trim(),
+          defaultVerificationState: String(
+            token?.defaultVerificationState || token?.default_verification_state || '',
+          ).trim(),
+          defaultVerificationSource: String(
+            token?.defaultVerificationSource || token?.default_verification_source || '',
+          ).trim(),
           dbFieldAliases: Array.isArray(token?.dbFieldAliases) ? token.dbFieldAliases : [],
           dbWriteField: String(token?.dbWriteField || token?.db_write_field || '').trim(),
           relationshipGroup: String(token?.relationshipGroup || token?.relationship_group || '').trim(),

@@ -186,7 +186,10 @@ function ensureStatusColumns(database) {
     'Companion_Roles',
     'Intake',
   ]
-  tables.forEach((tableName) => ensureColumn(database, tableName, 'Status', 'TEXT'))
+  tables.forEach((tableName) => {
+    ensureColumn(database, tableName, 'Status', 'TEXT')
+    ensureColumn(database, tableName, 'Data_Status', 'TEXT')
+  })
 }
 
 function columnMeta(database, tableName, columnName) {

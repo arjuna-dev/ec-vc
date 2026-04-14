@@ -33,7 +33,7 @@ defineProps({
   variant: {
     type: String,
     default: 'default',
-    validator: (value) => ['default', 'record-feed'].includes(value),
+    validator: (value) => ['default', 'record-feed', 'toolbar'].includes(value),
   },
 })
 
@@ -133,5 +133,27 @@ defineEmits(['click'])
   background: var(--ds-color-brand-white);
   color: var(--ds-color-brand-black);
   border-radius: 2px;
+}
+
+.plus-with-label-button--toolbar {
+  min-width: 0;
+  min-height: var(--ds-control-height-md);
+  height: var(--ds-control-height-md);
+  padding: 0 var(--ds-space-10);
+  border-radius: 8px;
+}
+
+.plus-with-label-button--toolbar .plus-with-label-button__inner {
+  gap: var(--ds-space-8);
+}
+
+.plus-with-label-button--toolbar .plus-with-label-button__label {
+  font-size: var(--ds-font-size-sm);
+  line-height: 1;
+}
+
+.plus-with-label-button--toolbar :deep(.plus-icon-chip) {
+  --plus-icon-chip-size: 16px;
+  --plus-icon-chip-glyph-size: 10px;
 }
 </style>

@@ -341,6 +341,7 @@ import MiniToolbar from 'src/components/MiniToolbar.vue'
 import ShellSectionToolbar from 'src/components/ShellSectionToolbar.vue'
 import BuildingBlockPreviewTile from 'src/components/BuildingBlockPreviewTile.vue'
 import { buildStructureToolbarItems } from 'src/utils/structureToolbarContract'
+import { buildShellToolbarFeed } from 'src/utils/shellToolbarFeeder'
 import B10Logo from 'src/components/B10Logo.vue'
 import B10Button from 'src/components/buttons/B10Button.vue'
 import B10IconButton from 'src/components/buttons/B10IconButton.vue'
@@ -419,21 +420,20 @@ const toolbarItems = [
   { title: 'System', value: 'system', isSystem: true },
 ]
 
-const miniToolbarItems = buildStructureToolbarItems({
-  leftItems: [
-    { title: 'General', value: 'general' },
-    { title: 'Overview', value: 'overview' },
-  ],
-  rightItems: [
-    { title: 'System', value: 'system', label: 'System' },
-    { title: 'LDB', value: 'ldb', label: 'LDB' },
+const miniToolbarFeed = buildShellToolbarFeed({
+  sections: [
+    { key: 'general', label: 'General' },
+    { key: 'overview', label: 'Overview' },
+    { key: 'system', label: 'System' },
+    { key: 'ldb', label: 'LDB' },
   ],
   governanceItems: [
     { title: 'Tokens', value: 'tokens' },
     { title: 'Views', value: 'views' },
   ],
-  isRelationshipSectionLabel: (label) => String(label || '').trim().toLowerCase() === 'ldb',
 })
+
+const miniToolbarItems = buildStructureToolbarItems(miniToolbarFeed)
 
 const homeDashboardStats = [
   { label: 'Open tasks', value: '27' },
