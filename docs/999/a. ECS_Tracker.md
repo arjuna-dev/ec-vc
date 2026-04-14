@@ -165,6 +165,17 @@ Current checkpoint:
   - `Verified`
   - `Input`
 
+### 6. DAMP To LAMP Distillation
+
+Status: active
+
+Focus:
+
+- compare dense architecture truth in `DAMP` against the cleaner birth rules in `LAMP`
+- identify older wording, ambiguous patterns, and mixed concepts still living in `DAMP`
+- decide which mismatches should become explicit PMP cleanup targets
+- keep `Recipe` limited to tested patterns we would truly carry forward
+
 ## PMP Checkpoints
 
 ### 1. Architecture Checkpoint
@@ -210,6 +221,7 @@ If not, it should not be promoted into `Recipe`.
 3. Tighten the next table rules around column width initialization, scroll behavior, and special handling for long-text fields.
 4. Keep cleaning live docs so active guidance never speaks in the retired `Active/Draft` folder language.
 5. Define the first translator inspection surface from an already trusted shared behavior before broader translator rollout.
+6. Use `LAMP` strict rules as a drift-review list against `DAMP` and current runtime behavior.
 
 ## Tomorrow's Proposed Workstream
 
@@ -228,6 +240,10 @@ If not, it should not be promoted into `Recipe`.
 4. Keep momentum through one small renderer change only after the contract is clear.
    Goal:
    avoid bundling broad table rewrites; keep the next checkpoint visible and testable.
+
+5. Continue DAMP -> LAMP cleanup review.
+   Goal:
+   turn older wording and mixed architecture language into explicit PMP cleanup targets instead of letting them linger as background ambiguity.
 
 ## Stop Conditions
 

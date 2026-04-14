@@ -49,6 +49,115 @@ Working use:
 - use `LAMP` to capture the clean birth version of that truth
 - use `Recipe` to keep only the parts we have already tested and want to reuse
 
+## Strict Rules
+
+Use this section as the compact rule list we expect the cleaner build to follow from birth.
+
+Each rule here should help us review drift signals in the current app too.
+
+### 1. Reference Input Rule
+
+- workbook and canonical JSON are reference inputs only
+- they must not act as live shell payload truth
+
+Drift signal:
+
+- the UI behaves as if a reference file is runtime authority
+
+### 2. Shared Base Structure Rule
+
+- files begin from:
+  - `System`
+  - `General`
+  - `LDB`
+  - `Other`
+- bootstrap shared views must stay explicit and protected
+
+Drift signal:
+
+- new section names appear casually
+- shared base fields move without governed structure change
+
+### 3. Token Contract Rule
+
+- token-backed rendering must come from token contract
+- token-backed column titles come from `Token Label`
+- token meaning comes from `Definition`
+
+Drift signal:
+
+- hardcoded replacement labels or local field guessing reappear
+
+### 4. Structure Surface Rule
+
+- `Views` edits section/view metadata
+- `Tokens` edits token metadata
+- both regulate `Defined_Structure` directly
+
+Drift signal:
+
+- structure governance surfaces become side tables instead of direct structure editing
+
+### 5. Data Surface Contract Rule
+
+- shared row/data surfaces must read the same way everywhere
+- control columns, cell-state meaning, scroll behavior, and resize behavior should stay governed
+
+Drift signal:
+
+- one page or dialog starts inventing its own row grammar
+
+### 6. Translator Rule
+
+- shared interpretation should flow through:
+  - canonical input
+  - translator
+  - builder
+  - renderer
+
+Drift signal:
+
+- page-local shaping starts doing translator work
+
+### 7. Meaning Drift Rule
+
+- what the surface says
+- what the system means
+- what runtime does
+
+must stay aligned.
+
+Drift signal:
+
+- wording, behavior, and ownership stop matching each other
+
+### 8. Natural System Tube Rule
+
+- important actions should happen by following the declared system path
+- not by hidden bootstrap exceptions or side helpers
+
+Drift signal:
+
+- a path only works through bootstrap magic and not through declared structure ownership
+
+### 9. File Creation Orchestration Rule
+
+- file birth should be an orchestrated bootstrap pass
+- not a long manual assembly task across disconnected layers
+
+Drift signal:
+
+- creating one file still requires too many hand-touched places
+
+### 10. Master Translator Rule
+
+- user files remain the durable home of meaningful data
+- the app is the viewing, organizing, translating, and workflow layer
+
+Drift signal:
+
+- the app becomes the only place where truth effectively lives
+
 ## Related Docs
 
 - `docs/000/a. DAMP.md`

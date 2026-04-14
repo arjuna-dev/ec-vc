@@ -140,6 +140,38 @@ When the migration becomes real, it should enforce at least:
 - explicit ownership of source, actor, action, and verification state
 - cleaner bootstrap and creation order
 
+## DAMP To LAMP Cleanup Targets
+
+Current PMP cleanup should also compare `DAMP` against `LAMP`.
+
+The goal is:
+
+- keep `DAMP` as the dense authority
+- keep `LAMP` as the cleaner birth-rule version
+- use the mismatch between them as a drift signal
+
+Current target list:
+
+1. remove older wording that still conflicts with the newer shared base:
+   - `Data.Status`
+   - `Other`
+   - protected shared views
+
+2. reduce older workbook-heavy wording where the newer rule is already:
+   - workbook/canonical JSON are reference inputs only
+   - runtime truth should come from stored file structure and governed contracts
+
+3. keep one clean structure-governance rule:
+   - `Views` edits section metadata
+   - `Tokens` edits token metadata
+   - both regulate `Defined_Structure`
+
+4. continue removing wording that suggests old page-local or heuristic rendering paths are acceptable long-term
+
+5. keep compact strict rules in `LAMP` and use them to review new implementation work
+
+6. promote tested patterns into `Recipe` only after they are truly stable
+
 ## Current Tested Patterns Worth Preserving
 
 These already read like migration-worthy patterns:
