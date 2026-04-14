@@ -350,15 +350,24 @@
             @toggle="recordDataCollapsed = !recordDataCollapsed"
           >
             <div class="create-record-shell__toolbar-slot-debug">
-              <MiniToolbar
-                v-model="miniToolbarActiveKey"
-                aria-label="Shell mini toolbar"
-                :items="miniToolbarItems"
-                :view-mode="miniToolbarViewMode"
-                :view-options="miniToolbarViewOptions"
-                :show-view-toggle="false"
+              <FileShellControlBar
+                v-model="activeSectionKey"
+                aria-label="Add/edit record shell control bar"
+                :items="controlBarItems"
+                :disabled="true"
+                :select-disabled="true"
+                :add-disabled="true"
+                :search-disabled="true"
+                :filter-disabled="true"
+                search-placeholder="Search disabled for this shell"
+                :view-mode="'page'"
+                :view-mode-disabled="true"
+                :collapsed="recordDataSurfaceCollapsed"
+                collapse-aria-label="Collapse record data surface"
+                expand-aria-label="Expand record data surface"
+                @toggle-collapse="recordDataSurfaceCollapsed = !recordDataSurfaceCollapsed"
               >
-                <template #suffix>
+                <template #controls-prefix>
                   <ViewSettingsMenu
                     v-if="isGeneralSectionActive && generalSettingsGroups.length"
                     title="General"
@@ -367,10 +376,10 @@
                     @toggle-item="emit('toggle-general-settings-item', $event[0], $event[1])"
                   />
                 </template>
-              </MiniToolbar>
+              </FileShellControlBar>
             </div>
 
-            <div class="create-record-shell__panel ds-mini-scrollbar">
+            <div v-if="!recordDataSurfaceCollapsed" class="create-record-shell__panel ds-mini-scrollbar">
               <div
                 v-if="isViewsSectionActive"
                 class="create-record-shell__governance-surface"
@@ -989,7 +998,7 @@ import DialogShellTitleRow from 'src/components/DialogShellTitleRow.vue'
 import CollapsibleSectionShell from 'src/components/CollapsibleSectionShell.vue'
 import DropZone from 'src/components/DropZone.vue'
 import ArtifactRow from 'src/components/ArtifactRow.vue'
-import MiniToolbar from 'src/components/MiniToolbar.vue'
+import FileShellControlBar from 'src/components/FileShellControlBar.vue'
 import StructureGovernancePanel from 'src/components/StructureGovernancePanel.vue'
 import { buildTokenGovernanceColumns } from 'src/utils/structureGovernanceColumns'
 import ProcessingBox from 'src/components/ProcessingBox.vue'
@@ -1105,12 +1114,6 @@ const dialogPayloadResetSignature = computed(() => JSON.stringify({
 }))
 
 const activeSectionKey = ref('')
-const miniToolbarActiveKey = computed({
-  get: () => activeSectionKey.value,
-  set: (value) => {
-    activeSectionKey.value = value
-  },
-})
 const formValues = ref({})
 const stagedFieldValues = ref({})
 const artifactDragOver = ref(false)
@@ -1133,6 +1136,7 @@ const selectedBlurbEntryIds = ref([])
 const expandedEntryIds = ref([])
 const supportResourcesCollapsed = ref(false)
 const recordDataCollapsed = ref(false)
+const recordDataSurfaceCollapsed = ref(false)
 const dialogWidth = ref(760)
 const dialogHeight = ref(780)
 const fieldVerificationStates = ref({})
@@ -1198,7 +1202,7 @@ const leftPanelSections = computed(() => {
 })
 
 const rightSections = computed(() => (branchSelectionSettled.value ? props.rightSections : []))
-const miniToolbarFeed = computed(() =>
+const controlBarFeed = computed(() =>
   buildShellToolbarFeed({
     sections: [...leftPanelSections.value, ...rightSections.value],
     governanceItems: [
@@ -1209,12 +1213,12 @@ const miniToolbarFeed = computed(() =>
     systemLabels: ['system'],
   }),
 )
-const miniToolbarItems = computed(() =>
+const controlBarItems = computed(() =>
   buildStructureToolbarItems({
-    leftItems: miniToolbarFeed.value.leftItems,
-    rightItems: miniToolbarFeed.value.rightItems,
-    governanceItems: miniToolbarFeed.value.governanceItems,
-    isRelationshipSectionLabel: miniToolbarFeed.value.isRelationshipSectionLabel,
+    leftItems: controlBarFeed.value.leftItems,
+    rightItems: controlBarFeed.value.rightItems,
+    governanceItems: controlBarFeed.value.governanceItems,
+    isRelationshipSectionLabel: controlBarFeed.value.isRelationshipSectionLabel,
   }),
 )
 
@@ -1258,12 +1262,6 @@ const processingArtifacts = computed(() =>
 )
 const canOpenIntakeShell = computed(() => stagedArtifacts.value.length > 0 || processingArtifacts.value.length > 0)
 const activeFieldLabelWidth = computed(() => '10ch')
-const viewOptions = [
-  { label: '', value: 'card', icon: 'grid_view' },
-  { label: '', value: 'table', icon: 'table_rows' },
-]
-const miniToolbarViewMode = computed(() => 'card')
-const miniToolbarViewOptions = computed(() => viewOptions)
 const optionEntityOptions = Object.freeze(
   FILE_SOURCE_REGISTRY
     .map((entry) => {
@@ -1479,6 +1477,7 @@ function createUndoSnapshot() {
     selectedProjectIds: [...selectedProjectIds.value],
     supportResourcesCollapsed: supportResourcesCollapsed.value,
     recordDataCollapsed: recordDataCollapsed.value,
+    recordDataSurfaceCollapsed: recordDataSurfaceCollapsed.value,
   }
 }
 
@@ -1518,6 +1517,7 @@ function restoreUndoSnapshot(snapshot) {
   selectedProjectIds.value = Array.isArray(snapshot?.selectedProjectIds) ? [...snapshot.selectedProjectIds] : []
   supportResourcesCollapsed.value = Boolean(snapshot?.supportResourcesCollapsed)
   recordDataCollapsed.value = Boolean(snapshot?.recordDataCollapsed)
+  recordDataSurfaceCollapsed.value = Boolean(snapshot?.recordDataSurfaceCollapsed)
   hasUserChanges.value = true
   syncUndoSignature()
   isApplyingUndo.value = false
@@ -1582,6 +1582,7 @@ function initializeDialogState() {
     : []
   supportResourcesCollapsed.value = props.preferAddLayout ? false : Boolean(props.initialResourcesCollapsed)
   recordDataCollapsed.value = props.preferAddLayout ? true : Boolean(props.initialRecordDataCollapsed)
+  recordDataSurfaceCollapsed.value = false
   dialogWidth.value = 760
   dialogHeight.value = 780
   formValues.value = Object.fromEntries(

@@ -56,17 +56,26 @@
         </template>
       </RecordHero>
 
-      <MiniToolbar
-        v-if="miniToolbarItems.length"
-        v-model="miniToolbarActiveKey"
-        aria-label="Shell mini toolbar"
-        :items="miniToolbarItems"
-        :view-mode="miniToolbarViewMode"
-        :view-options="miniToolbarViewOptions"
-        :show-view-toggle="false"
+      <FileShellControlBar
+        v-if="controlBarItems.length"
+        v-model="activeViewGroupKey"
+        aria-label="Record shell control bar"
+        :items="controlBarItems"
+        :disabled="true"
+        :select-disabled="true"
+        :add-disabled="true"
+        :search-disabled="true"
+        :filter-disabled="true"
+        search-placeholder="Search disabled for this shell"
+        :view-mode="'page'"
+        :view-mode-disabled="true"
+        :collapsed="recordDataSurfaceCollapsed"
+        collapse-aria-label="Collapse record data surface"
+        expand-aria-label="Expand record data surface"
+        @toggle-collapse="recordDataSurfaceCollapsed = !recordDataSurfaceCollapsed"
       />
 
-      <div v-if="activeGovernanceToolbarKey" class="record-shell__governance-surface">
+      <div v-if="!recordDataSurfaceCollapsed && activeGovernanceToolbarKey" class="record-shell__governance-surface">
           <StructureGovernancePanel
             :mode="activeGovernanceToolbarKey === 'governance:views' ? 'views' : 'tokens'"
             :view-rows="governanceViewRows"
@@ -78,7 +87,7 @@
           />
       </div>
 
-      <section v-else class="record-shell__panel">
+      <section v-else-if="!recordDataSurfaceCollapsed" class="record-shell__panel">
         <div v-if="isSystemViewActive" class="record-shell__system-grid">
           <div class="record-shell__system-column">
             <div class="record-shell__field-grid">
@@ -505,7 +514,7 @@ import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useQuasar } from 'quasar'
 import { useRoute, useRouter } from 'vue-router'
 import AddEditRecordShellDialog from 'src/components/AddEditRecordShellDialog.vue'
-import MiniToolbar from 'src/components/MiniToolbar.vue'
+import FileShellControlBar from 'src/components/FileShellControlBar.vue'
 import RecordHistoryBox from 'src/components/RecordHistoryBox.vue'
 import { buildTokenGovernanceColumns } from 'src/utils/structureGovernanceColumns'
 import RecordHero from 'src/components/RecordHero.vue'
@@ -539,10 +548,6 @@ import { getTokenMetadataOverride, loadTokenMetadataOverrides, mergeTokenMetadat
 const route = useRoute()
 const router = useRouter()
 const $q = useQuasar()
-const CONTACT_LDB_VIEW_OPTIONS = [
-  { value: 'grid', icon: 'grid_view' },
-  { value: 'table', icon: 'view_list' },
-]
 const createDialogOpen = ref(false)
 const createDialogRenderKey = ref(0)
 const createDialogLoading = ref(false)
@@ -555,21 +560,7 @@ const contactHeroGradient = ref({ x: 50, y: 30, size: 60, opacity: 0 })
 const runtimeStructureVersion = ref(getRuntimeStructureVersion())
 let runtimeStructureUnsub = null
 const activeRecordFeedTab = ref('events')
-const recordShellTopNavViewMode = ref('grid')
-const miniToolbarItems = computed(() => recordShellNavItems.value)
-const miniToolbarActiveKey = computed({
-  get: () => activeViewGroupKey.value,
-  set: (value) => {
-    activeViewGroupKey.value = value
-  },
-})
-const miniToolbarViewMode = computed({
-  get: () => recordShellTopNavViewMode.value,
-  set: (value) => {
-    recordShellTopNavViewMode.value = value
-  },
-})
-const miniToolbarViewOptions = computed(() => CONTACT_LDB_VIEW_OPTIONS)
+const recordDataSurfaceCollapsed = ref(false)
 const bridge = computed(() => (typeof window !== 'undefined' ? window.ecvc : null))
 const isElectronRuntime = computed(() => typeof window !== 'undefined')
 const hasBridge = computed(() => Boolean(bridge.value))
@@ -1059,7 +1050,7 @@ const recordShellToolbarFeed = computed(() =>
     getGroupTitle: (group) => group?.title,
   }),
 )
-const recordShellNavItems = computed(() =>
+const controlBarItems = computed(() =>
   buildStructureToolbarItems({
     leftItems: recordShellToolbarFeed.value.leftItems,
     rightItems: recordShellToolbarFeed.value.rightItems,

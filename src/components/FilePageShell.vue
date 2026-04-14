@@ -31,173 +31,37 @@
         @action-item-click="handleHeroActionItemClick"
       />
 
-      <div
-        class="file-shell__control-row"
-        aria-label="control row marker"
+      <FileShellControlBar
+        v-model="activeViewKey"
+        aria-label="File shell control bar"
+        :items="controlBarItems"
+        :all-visible-selected="allVisibleSelected"
+        :some-visible-selected="someVisibleSelected"
+        :loading="loading"
+        :add-disabled="!supportsActiveSourceEditing || !canCreateWithShell"
+        :search-query="searchQuery"
+        :search-placeholder="searchPlaceholder"
+        :view-mode="viewMode"
+        :collapsed="dataSurfaceCollapsed"
+        collapse-aria-label="Collapse file data surface"
+        expand-aria-label="Expand file data surface"
+        @toggle-select-all="toggleSelectAllVisible"
+        @add="handleToolbarAdd"
+        @update:search-query="searchQuery = $event"
+        @update:view-mode="viewMode = $event"
+        @toggle-collapse="dataSurfaceCollapsed = !dataSurfaceCollapsed"
       >
-        <div class="file-shell__control-lane">
-          <div class="file-shell__control-lane-box file-shell__control-lane-box--left-controls">
-            <q-checkbox
-              :model-value="allVisibleSelected"
-              :indeterminate="someVisibleSelected && !allVisibleSelected"
-              :disable="loading"
-              dense
-              color="dark"
-              class="file-shell__control-select-all"
-              @update:model-value="toggleSelectAllVisible"
-            />
-            <button
-              type="button"
-              class="file-shell__control-add"
-              :disabled="loading || !supportsActiveSourceEditing || !canCreateWithShell"
-              aria-label="Add Record"
-              @click="handleToolbarAdd"
-            >
-              <PlusIconChip />
-            </button>
-            <SearchBarInput
-              :model-value="searchQuery"
-              class="file-shell__control-search"
-              :placeholder="searchPlaceholder"
-              :disable="loading"
-              @update:model-value="searchQuery = $event"
-            />
-            <q-btn flat round dense class="file-shell__control-filter" icon="filter_list" aria-label="File shell filters">
-              <q-menu
-                anchor="top left"
-                self="top right"
-                class="test-shell-filters-menu"
-                content-class="test-shell-filters-menu__content"
-              >
-                <FileFilterMenu
-                  :title="isBbFileSource ? 'Building Block Filter' : 'File Filter'"
-                  :sections="fileFilterMenuSections"
-                  :expanded-section-key="isBbFileSource ? expandedBbFilterCategoryKey : expandedFilterViewKey"
-                  @toggle-section="handleFileFilterToggleView"
-                  @toggle-item="handleFileFilterToggleItem"
-                  @toggle-item-checkbox="handleFileFilterToggleItemCheckbox"
-                />
-              </q-menu>
-            </q-btn>
-          </div>
-        </div>
-        <div class="file-shell__control-lane">
-          <div class="file-shell__control-lane-box file-shell__control-lane-box--views">
-            <div
-              ref="controlViewsScrollRef"
-              class="file-shell__control-views-scroll ds-mini-scrollbar"
-              @scroll="updatecontrolViewsScrollState"
-            >
-              <button
-                v-for="section in controlViewLabels"
-                :key="`control-view:${section.key}`"
-                type="button"
-                class="file-shell__control-chip"
-                :class="{ 'file-shell__control-chip--active': activeViewKey === section.key }"
-                @click="activeViewKey = section.key"
-              >
-                {{ section.label }}
-              </button>
-            </div>
-            <div v-if="controlViewsCanScrollPrev || controlViewsCanScrollNext" class="file-shell__control-views-nav">
-              <button
-                type="button"
-                class="file-shell__control-views-nav-btn"
-                :disabled="!controlViewsCanScrollPrev"
-                aria-label="Scroll view labels left"
-                @click="scrollcontrolViews(-1)"
-              >
-                <q-icon name="chevron_left" size="14px" />
-              </button>
-              <button
-                type="button"
-                class="file-shell__control-views-nav-btn"
-                :disabled="!controlViewsCanScrollNext"
-                aria-label="Scroll view labels right"
-                @click="scrollcontrolViews(1)"
-              >
-                <q-icon name="chevron_right" size="14px" />
-              </button>
-            </div>
-          </div>
-        </div>
-        <div class="file-shell__control-lane">
-          <div class="file-shell__control-lane-box file-shell__control-lane-box--governance">
-            <div class="file-shell__control-governance-set">
-              <button
-                type="button"
-                class="shell-section-toolbar__item shell-section-toolbar__item--ldb"
-                :class="{ 'shell-section-toolbar__item--active': activeViewKey === controlLdbViewKey }"
-                @click="controlLdbViewKey && (activeViewKey = controlLdbViewKey)"
-              >
-                <span class="shell-section-toolbar__item-label">LDB</span>
-              </button>
-              <button
-                type="button"
-                class="shell-section-toolbar__item shell-section-toolbar__item--system"
-                :class="{ 'shell-section-toolbar__item--active': activeViewKey === controlSystemViewKey }"
-                @click="controlSystemViewKey && (activeViewKey = controlSystemViewKey)"
-              >
-                <span class="shell-section-toolbar__item-label">System</span>
-              </button>
-            </div>
-            <div class="file-shell__control-governance-set">
-              <button
-                type="button"
-                class="shell-section-toolbar__item shell-section-toolbar__item--governance"
-                :class="{ 'shell-section-toolbar__item--active': activeViewKey === 'tokens' }"
-                @click="activeViewKey = 'tokens'"
-              >
-                <span class="shell-section-toolbar__item-label">Tokens</span>
-              </button>
-              <button
-                type="button"
-                class="shell-section-toolbar__item shell-section-toolbar__item--governance"
-                :class="{ 'shell-section-toolbar__item--active': activeViewKey === 'views' }"
-                @click="activeViewKey = 'views'"
-              >
-                <span class="shell-section-toolbar__item-label">Views</span>
-              </button>
-            </div>
-          </div>
-        </div>
-        <div class="file-shell__control-lane">
-          <div class="file-shell__control-lane-box file-shell__control-lane-box--controls">
-            <button
-              type="button"
-              class="file-shell__control-icon-btn"
-              :class="{ 'file-shell__control-icon-btn--active': viewMode === 'page' }"
-              aria-label="Row view"
-              @click="viewMode = 'page'"
-            >
-              <svg viewBox="0 0 24 24" aria-hidden="true" class="file-shell__control-row-icon">
-                <path d="M5 7.25H19" />
-                <path d="M5 12H19" />
-                <path d="M5 16.75H19" />
-              </svg>
-            </button>
-            <button
-              type="button"
-              class="file-shell__control-icon-btn"
-              :class="{ 'file-shell__control-icon-btn--active': viewMode === 'card' }"
-              aria-label="Card view"
-              @click="viewMode = 'card'"
-            >
-              <q-icon name="grid_view" size="14px" />
-            </button>
-            <button
-              type="button"
-              class="file-shell__control-icon-btn"
-              aria-label="Expand row"
-              @click="dataSurfaceCollapsed = !dataSurfaceCollapsed"
-            >
-              <svg viewBox="0 0 24 24" aria-hidden="true" class="file-shell__control-chevron-icon">
-                <path :d="dataSurfaceCollapsed ? 'M7 10L12 15L17 10' : 'M7 14L12 9L17 14'" />
-              </svg>
-            </button>
-          </div>
-        </div>
-      </div>
+        <template #filters>
+          <FileFilterMenu
+            :title="isBbFileSource ? 'Building Block Filter' : 'File Filter'"
+            :sections="fileFilterMenuSections"
+            :expanded-section-key="isBbFileSource ? expandedBbFilterCategoryKey : expandedFilterViewKey"
+            @toggle-section="handleFileFilterToggleView"
+            @toggle-item="handleFileFilterToggleItem"
+            @toggle-item-checkbox="handleFileFilterToggleItemCheckbox"
+          />
+        </template>
+      </FileShellControlBar>
 
       <q-banner v-if="showDebugBanner" class="bg-grey-2 text-black" rounded>
         <div>Debug: File Shell payload</div>
@@ -797,15 +661,15 @@ import { useRoute, useRouter } from 'vue-router'
 import AddEditRecordShellDialog from 'components/AddEditRecordShellDialog.vue'
 import FileFilterMenu from 'components/FileFilterMenu.vue'
 import FileHero from 'components/FileHero.vue'
+import FileShellControlBar from 'components/FileShellControlBar.vue'
 import ViewSettingsMenu from 'components/ViewSettingsMenu.vue'
-import PlusIconChip from 'components/PlusIconChip.vue'
 import RecordHistoryBox from 'components/RecordHistoryBox.vue'
-import SearchBarInput from 'components/SearchBarInput.vue'
 import BuildingBlockPreviewTile from 'components/BuildingBlockPreviewTile.vue'
 import StructureGovernancePanel from 'components/StructureGovernancePanel.vue'
 import { buildTokenGovernanceColumns } from 'src/utils/structureGovernanceColumns'
 import EyeIconButton from 'components/buttons/EyeIconButton.vue'
 import SelectionActionBar from 'components/SelectionActionBar.vue'
+import { buildStructureToolbarItems } from 'src/utils/structureToolbarContract'
   import {
     getCreateBranchEntry,
     getCreateBranches,
@@ -869,9 +733,6 @@ const rowHistoryByRecordId = ref({})
 const rowHistoryLoadingByRecordId = ref({})
 const loaderDiagnostics = ref({})
 const viewMode = ref('page')
-const controlViewsScrollRef = ref(null)
-const controlViewsCanScrollPrev = ref(false)
-const controlViewsCanScrollNext = ref(false)
 const dataSurfaceCollapsed = ref(false)
 const createDialogOpen = ref(false)
 const createDialogRenderKey = ref(0)
@@ -891,38 +752,6 @@ const createDialogPrefillValues = ref({})
 const createDialogFieldMeta = ref({})
 const createDialogInitialArtifacts = ref([])
 const createDialogLastChangeSnapshot = ref(null)
-const controlLdbViewKey = computed(
-  () => fileViews.value.find((section) => isRelationshipSectionLabel(section?.label))?.key || '',
-)
-const controlSystemViewKey = computed(
-  () => fileViews.value.find((section) => String(section?.label || '').trim().toLowerCase() === 'system')?.key || '',
-)
-const controlViewLabels = computed(() =>
-  fileViews.value.filter((section) => {
-    const label = String(section?.label || '').trim().toLowerCase()
-    return label && label !== 'system' && label !== 'ldb'
-  }),
-)
-
-function updatecontrolViewsScrollState() {
-  const element = controlViewsScrollRef.value
-  if (!element) {
-    controlViewsCanScrollPrev.value = false
-    controlViewsCanScrollNext.value = false
-    return
-  }
-  const maxScrollLeft = Math.max(0, element.scrollWidth - element.clientWidth)
-  controlViewsCanScrollPrev.value = element.scrollLeft > 2
-  controlViewsCanScrollNext.value = element.scrollLeft < (maxScrollLeft - 2)
-}
-
-function scrollcontrolViews(direction = 1) {
-  const element = controlViewsScrollRef.value
-  if (!element) return
-  const delta = Math.max(90, Math.round(element.clientWidth * 0.5)) * (direction >= 0 ? 1 : -1)
-  element.scrollBy({ left: delta, behavior: 'smooth' })
-  window.setTimeout(updatecontrolViewsScrollState, 180)
-}
 const createDialogLastSavedSignature = ref('')
 const createDialogAutosavePending = ref(false)
 const heroDocumentDialogOpen = ref(false)
@@ -2064,6 +1893,17 @@ const toolbarRightViews = computed(() =>
     return isRelationshipSectionLabel(label) || label === 'system'
   }),
 )
+const controlBarItems = computed(() =>
+  buildStructureToolbarItems({
+    leftItems: toolbarLeftViews.value,
+    rightItems: toolbarRightViews.value,
+    governanceItems: [
+      { value: 'tokens', title: 'Tokens' },
+      { value: 'views', title: 'Views' },
+    ],
+    isRelationshipSectionLabel,
+  }),
+)
 const governanceViewRows = computed(() =>
   [...toolbarLeftViews.value, ...toolbarRightViews.value].map((view) => ({
     key: view.key,
@@ -2609,11 +2449,6 @@ onMounted(() => {
   runtimeStructureUnsub = subscribeRuntimeFileStructures((version) => {
     runtimeStructureVersion.value = version
   })
-  if (typeof window !== 'undefined') {
-    window.setTimeout(() => {
-      updatecontrolViewsScrollState()
-    }, 0)
-  }
 })
 
 async function loadRows() {

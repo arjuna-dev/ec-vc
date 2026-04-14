@@ -127,15 +127,24 @@
     </div>
 
     <div class="file-structure-shell__toolbar-row">
-      <MiniToolbar
-        v-model="miniToolbarActiveKey"
-        aria-label="Shell mini toolbar"
-        :items="miniToolbarItems"
-        :view-mode="miniToolbarViewMode"
-        :view-options="miniToolbarViewOptions"
-        :show-view-toggle="false"
+      <FileShellControlBar
+        v-model="activeToolbarView"
+        aria-label="Add/edit file shell control bar"
+        :items="controlBarItems"
+        :disabled="true"
+        :select-disabled="true"
+        :add-disabled="true"
+        :search-disabled="true"
+        :filter-disabled="true"
+        search-placeholder="Search disabled for this shell"
+        :view-mode="'page'"
+        :view-mode-disabled="true"
+        :collapsed="leafItemsCollapsed"
+        collapse-aria-label="Collapse file shell data surface"
+        expand-aria-label="Expand file shell data surface"
+        @toggle-collapse="leafItemsCollapsed = !leafItemsCollapsed"
       >
-        <template #suffix>
+        <template #controls-prefix>
           <button
             v-if="isTokensToolbarActive && selectedTokenKeys.length"
             type="button"
@@ -144,18 +153,8 @@
           >
             Delete Selected
           </button>
-          <button
-            type="button"
-            class="file-structure-shell__chevron-button file-structure-shell__chevron-button--toolbar"
-            :aria-label="leafItemsCollapsed ? 'Expand leaf items' : 'Collapse leaf items'"
-            @click="leafItemsCollapsed = !leafItemsCollapsed"
-          >
-            <svg viewBox="0 0 24 24" aria-hidden="true" class="file-structure-shell__chevron-icon">
-              <path :d="leafItemsCollapsed ? 'M7 10L12 15L17 10' : 'M7 14L12 9L17 14'" />
-            </svg>
-          </button>
         </template>
-      </MiniToolbar>
+      </FileShellControlBar>
     </div>
 
     <div v-if="!leafItemsCollapsed" class="file-structure-shell__leaf-area">
@@ -206,7 +205,7 @@ import MainMenuGroupRow from 'src/components/MainMenuGroupRow.vue'
 import PlusWithLabelButton from 'src/components/PlusWithLabelButton.vue'
 import RecordTitle from 'src/components/RecordTitle.vue'
 import RecordSummaryBox from 'src/components/RecordSummaryBox.vue'
-import MiniToolbar from 'src/components/MiniToolbar.vue'
+import FileShellControlBar from 'src/components/FileShellControlBar.vue'
 import StructureGovernancePanel from 'src/components/StructureGovernancePanel.vue'
 import {
   buildTokenGovernanceColumns,
@@ -242,12 +241,6 @@ const shellSelectorButton = ref(null)
 const shellSelectorMenu = ref(null)
 const pendingShellSelectorValue = ref('')
 const activeToolbarView = ref('')
-const miniToolbarActiveKey = computed({
-  get: () => activeToolbarView.value,
-  set: (value) => {
-    activeToolbarView.value = value
-  },
-})
 const boxesCollapsed = ref(false)
 const leafItemsCollapsed = ref(false)
 const draftLeafRowsBySource = ref({})
@@ -258,12 +251,6 @@ const selectedLeafKeysBySource = ref({})
 const selectedTokenKeysBySource = ref({})
 const deletedTokenKeysBySource = ref({})
 const requiredFieldKeysBySource = ref({})
-const viewOptions = [
-  { label: '', value: 'card', icon: 'grid_view' },
-  { label: '', value: 'table', icon: 'table_rows' },
-]
-const miniToolbarViewMode = computed(() => 'card')
-const miniToolbarViewOptions = computed(() => viewOptions)
 const optionEntityOptions = computed(() =>
   (Array.isArray(props.shellSelectorOptions) ? props.shellSelectorOptions : [])
     .map((option) => {
@@ -326,7 +313,7 @@ function isRelationshipSectionLabel(value = '') {
   const normalized = String(value || '').trim().toLowerCase()
   return normalized === 'ldb'
 }
-const miniToolbarFeed = computed(() =>
+const controlBarFeed = computed(() =>
   buildShellToolbarFeed({
     sections: fileViewGroups.value,
     governanceItems: [
@@ -337,12 +324,12 @@ const miniToolbarFeed = computed(() =>
     systemLabels: ['system'],
   }),
 )
-const miniToolbarItems = computed(() =>
+const controlBarItems = computed(() =>
   buildStructureToolbarItems({
-    leftItems: miniToolbarFeed.value.leftItems,
-    rightItems: miniToolbarFeed.value.rightItems,
-    governanceItems: miniToolbarFeed.value.governanceItems,
-    isRelationshipSectionLabel: miniToolbarFeed.value.isRelationshipSectionLabel,
+    leftItems: controlBarFeed.value.leftItems,
+    rightItems: controlBarFeed.value.rightItems,
+    governanceItems: controlBarFeed.value.governanceItems,
+    isRelationshipSectionLabel: controlBarFeed.value.isRelationshipSectionLabel,
   }),
 )
 const isGovernanceToolbarActive = computed(() => activeToolbarView.value === 'tokens' || activeToolbarView.value === 'views')
@@ -669,7 +656,7 @@ onBeforeUnmount(() => {
 })
 
 watch(
-  miniToolbarItems,
+  controlBarItems,
   (items) => {
     if (items.some((item) => item.value === activeToolbarView.value)) return
     activeToolbarView.value = items[0]?.value || ''
