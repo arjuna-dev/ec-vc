@@ -151,7 +151,7 @@ These already read like migration-worthy patterns:
 
 Anything that proves itself should be moved into:
 
-- `docs/000/h. Recipe.md`
+- `docs/000/i. Recipe.md`
 
 Only if it is:
 

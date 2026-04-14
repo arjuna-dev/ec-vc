@@ -26,7 +26,7 @@ The clean rule is:
 - `docs/000/a. DAMP.md`
 - `docs/002/a. Companion.md`
 - `docs/000/d. File.md`
-- `docs/000/i. UXDesign.md`
+- `docs/000/j. UXDesign.md`
 - `docs/000-canonical-structure.json`
 
 ## Glossary
@@ -58,6 +58,19 @@ This is not just a menu list.
 
 It is the file-definition governance surface.
 
+## File Structure Ownership Chain
+
+`System` should be read as the first layer in the active file-structure chain:
+
+- `System Files` / file structure declares the file
+- that file owns sections/views
+- those sections/views own tokens
+- those tokens are the canonical token layer the shell should render from
+
+That means `System` should not stop at file identity only.
+
+It should also make it clear that token-backed rendering ultimately depends on the file-owned section/view/token contract.
+
 ## Parent File Guide Rule
 
 `System.md` now carries the parent file-guide rule for the system-file layer.
@@ -85,6 +98,7 @@ This means:
 - Treat canonical JSON as the first birth source for file structure; registry rows should register that structure, not invent it afterward.
 - Every file row must include a `Defined_Structure` payload that the shells can render.
 - Shells must refuse to infer fields when `Defined_Structure` is missing.
+- Token-backed labels and meanings should come from the declared token layer inside that structure, not from local table or page hardcodes.
 - Do not create a file row without a clear file source key, class, owner, steward, guide path, and structure declaration.
 - Do not treat file visibility as equivalent to file birth.
 - Do not add file visibility in layout code as a substitute for registry/canon acceptance.
@@ -117,6 +131,7 @@ Table/rendering implication:
 - shared base fields such as `Name` and `Summary` should come from the declared file structure
 - they should not be reintroduced later as local hardcoded table headers
 - approved system columns such as `History` and `Status` should be declared and governed as system-level columns, not improvised per surface
+- token definitions should remain visible enough that extraction and local meaning can be compared against outside sources when needed
 
 ## Birth Checklist
 

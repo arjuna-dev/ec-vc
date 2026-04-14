@@ -35,5 +35,21 @@ That means this file should eventually help answer:
 ## Related Docs
 
 - `docs/000/a. DAMP.md`
-- `docs/000/h. Recipe.md`
-- `docs/000/e. Translator.md`
+- `docs/000/i. Recipe.md`
+- `docs/000/f. Translator.md`
+- `docs/000/e. Token.md`
+
+## Launch Token Rule
+
+The launch/setup path should assume the same ownership chain used by the architecture layer:
+
+- `System Files` / file structure declares the file
+- that file owns sections/views
+- those sections/views own tokens
+- those tokens are the canonical token layer the shell should render from
+
+For clean-birth thinking, this matters because a future setup path should not invent file fields or column names after the fact.
+
+It should be able to scaffold from the governed token layer directly.
+
+Each token should also be able to carry a visible `Definition`, so launch/setup, extraction, and later comparison work can follow one local meaning source instead of relying on vague remembered intent.

@@ -37,9 +37,9 @@ They should help humans, companions, and future bots understand:
 ## Related Docs
 
 - `docs/000/a. DAMP.md`
-- `docs/000/g. Game.md`
+- `docs/000/h. Game.md`
 
-`docs/000/g. Game.md` is the active companion-facing guide for the `Games` layer. This file defines the `Games` layer itself.
+`docs/000/h. Game.md` is the active companion-facing guide for the `Games` layer. This file defines the `Games` layer itself.
 
 ## Root Rules
 

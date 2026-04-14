@@ -18,9 +18,10 @@ Companion behavior and ingestion-side structural discipline should also stay ali
 
 - `docs/002/a. Companion.md`
 - `docs/003/a. Games.md`
-- `docs/000/g. Game.md`
-- `docs/000/f. Intake.md`
+- `docs/000/h. Game.md`
+- `docs/000/g. Intake.md`
 - `docs/000/c. System.md`
+- `docs/000/e. Token.md`
 - `docs/010/Archive/010-files-system-birth-audit.md`
 - `docs/999/a. ECS_Tracker.md`
 
@@ -28,7 +29,7 @@ Docs-domain rule:
 
 - `docs/003/a. Games.md` is the single active `Games` guide
 - it carries root `Games` rules, `Games` operation, and the current rulebook
-- `docs/000/g. Game.md` is the active companion-facing guide that explains and governs the game layer
+- `docs/000/h. Game.md` is the active companion-facing guide that explains and governs the game layer
 
 When decisions change:
 
@@ -135,6 +136,7 @@ Key active glossary anchors:
 - `File` is the entity/file level in canonical structure
 - `View` is the subsection grouping level
 - `Token` is the leaf structural level
+- `Definition` is the editable meaning layer attached to a token
 - `System`, `General`, and `LDB` remain canonical subsection anchors
 - `Record Shell` is the snapshot surface for current record truth
 - `Add/Edit Record Shell` is the active record-formation surface
@@ -159,6 +161,13 @@ This section is the current source of truth. If anything below conflicts, this s
 - file-owned tokens and view forks are the live shell payload source.
 - shared relationships are stored and read through `LDB_Relationships`.
 - workbook and canonical JSON are reference inputs only; they do not drive live shell payload truth.
+
+Safe ownership chain:
+
+- `System Files` / file structure declares the file
+- that file owns sections/views
+- those sections/views own tokens
+- those tokens are the canonical token layer the shell should render from
 
 Reference inputs remain useful for:
 
@@ -2841,6 +2850,7 @@ That means:
 - `token type` governs input/edit behavior
 - `write target` governs persistence path
 - `visibility` and `editability` govern whether the column should render and how it may be edited
+- `definition` governs the local meaning the token is supposed to carry
 
 ### Shared Base Column Rule
 

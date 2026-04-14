@@ -525,7 +525,7 @@ const companionDocumentMenu = [
     layer: '020 Companion Stewards',
     label: 'Game Steward',
     short: 'Guide behavior',
-    path: 'docs/000/g. Game.md',
+    path: 'docs/000/h. Game.md',
     eyebrow: 'Game Steward',
     heroTitle: 'Master',
   },

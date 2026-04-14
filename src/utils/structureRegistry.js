@@ -15,8 +15,8 @@ const FILE_PAGE_ROUTE_META = Object.freeze({
     primaryStewardDoc: {
       id: 'design-steward',
       label: 'Design',
-      caption: 'docs/000/i. UXDesign.md',
-      path: 'docs/000/i. UXDesign.md',
+      caption: 'docs/000/j. UXDesign.md',
+      path: 'docs/000/j. UXDesign.md',
       icon: 'description',
     },
     requiredSubsections: ['General', 'Usage', 'Anatomy', 'Source', 'Reconstruction', 'Variants'],
@@ -101,8 +101,8 @@ const FILE_PAGE_ROUTE_META = Object.freeze({
     primaryStewardDoc: {
       id: 'provenance-steward',
       label: 'Provenance Steward',
-      caption: 'docs/000/f. Intake.md',
-      path: 'docs/000/f. Intake.md',
+      caption: 'docs/000/g. Intake.md',
+      path: 'docs/000/g. Intake.md',
       icon: 'description',
     },
   },
@@ -139,8 +139,8 @@ const FILE_PAGE_ROUTE_META = Object.freeze({
     primaryStewardDoc: {
       id: 'provenance-steward',
       label: 'Provenance Steward',
-      caption: 'docs/000/f. Intake.md',
-      path: 'docs/000/f. Intake.md',
+      caption: 'docs/000/g. Intake.md',
+      path: 'docs/000/g. Intake.md',
       icon: 'description',
     },
   },
@@ -590,8 +590,8 @@ export function getFilePageReferenceDocs(sourceKey = '') {
   docs.push({
     id: 'ux-steward',
     label: 'UX',
-    caption: 'docs/000/i. UXDesign.md',
-    path: 'docs/000/i. UXDesign.md',
+    caption: 'docs/000/j. UXDesign.md',
+    path: 'docs/000/j. UXDesign.md',
     icon: 'description',
   })
 

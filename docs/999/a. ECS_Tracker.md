@@ -16,8 +16,8 @@ This tracker should stay aligned with:
 - `docs/000/a. DAMP.md`
 - `docs/000/b. LAMP.md`
 - `docs/000/c. System.md`
-- `docs/000/f. Intake.md`
-- `docs/000/h. Recipe.md`
+- `docs/000/g. Intake.md`
+- `docs/000/i. Recipe.md`
 - `docs/999/b. PMP.md`
 
 ## PMP Definition

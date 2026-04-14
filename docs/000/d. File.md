@@ -63,6 +63,19 @@ After that shared base is declared, the `File` may add:
 
 This keeps every file compatible with the same shell activation paths while still allowing entity-specific structure.
 
+## File Ownership Chain
+
+The `File Steward` should use this mental model:
+
+- `System Files` / file structure declares the file
+- that file owns sections/views
+- those sections/views own tokens
+- those tokens are the canonical token layer the shell should render from
+
+This is the safe chain to use when a table, card, dialog, translator, or extraction flow appears to be inventing structure locally.
+
+If the surface and the token layer disagree, repair the file structure contract first.
+
 ## Authority
 
 The `File Steward` should not improvise file structure.
@@ -172,6 +185,7 @@ The `File Steward` should:
   - conditional-required rules
   - multi-condition requirement support
   - system-governed vs user-input vs LDB-linked vs derived status
+  - editable token definition
 - use each file guide's `UX Steward` section to guide the user through structural forks
 - declare whether a file uses create branches, view forks, or no forks before exposing fork controls in shared shells
 - make sure `System Files` records declare `fork_mode` and `fork_enabled` before fork behavior is treated as real
@@ -247,6 +261,12 @@ That means:
 
 If a file table shows a better label than the token contract provides, the `File Steward` should fix the token label or file structure instead of patching the table header locally.
 
+Token meaning rule:
+
+- each governed token should also be able to carry a `Definition`
+- `Definition` should remain visible and editable
+- extraction and translator work should prefer that local token definition when comparing outside source language to file-owned meaning
+
 For editable field rows, the selection box should not be treated as the way to enter editing.
 
 Its purpose is to support explicit field actions such as:
@@ -275,7 +295,7 @@ The `File Steward` should stay aligned with:
 
 - `docs/000/c. System.md`
 - `docs/000/a. DAMP.md`
-- `docs/000/f. Intake.md`
+- `docs/000/g. Intake.md`
 - `docs/000/c. System.md`
 - `docs/000/c. System.md`
 - `docs/000-canonical-structure.json`
