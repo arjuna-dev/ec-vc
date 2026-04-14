@@ -6128,17 +6128,21 @@ function isBbGraphLinkToken(tokenRow) {
 }
 
 .test-shell-table__cell--editable {
-  cursor: pointer;
+  cursor: text;
 }
 
 .test-shell-table__cell--direct {
-  color: #2647ff;
+  color: var(--ds-color-text-primary);
+}
+
+.test-shell-table__cell--editable:hover {
+  background: rgba(17, 17, 17, 0.028);
 }
 
 .test-shell-table__inline-editor {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
   width: 100%;
 }
 
@@ -6146,11 +6150,26 @@ function isBbGraphLinkToken(tokenRow) {
   width: 100%;
 }
 
+.test-shell-table__inline-input :deep(.q-field__control) {
+  min-height: 34px;
+  border-radius: 6px;
+}
+
+.test-shell-table__inline-input :deep(.q-field__native),
+.test-shell-table__inline-input :deep(.q-field__input) {
+  color: var(--ds-color-text-primary);
+  font: inherit;
+}
+
 .test-shell-table__inline-actions {
   display: flex;
   align-items: center;
   justify-content: flex-end;
   gap: 6px;
+}
+
+.test-shell-table__inline-actions :deep(.q-btn) {
+  color: var(--ds-color-text-secondary);
 }
 
 .test-shell-table__eye {
