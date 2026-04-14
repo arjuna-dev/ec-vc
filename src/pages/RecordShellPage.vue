@@ -531,6 +531,7 @@ import { buildDialogViews, groupDialogViews, splitDialogViews } from 'src/utils/
 import { filterRecordFeedTabs, RECORD_FEED_GROUP_OPTIONS } from 'src/utils/recordFeedContract'
 import { setPendingIntakeShellRequest } from 'src/utils/intakeShellState'
 import { loadShellFieldSelectionMap, persistShellFieldSelectionMap } from 'src/utils/shellFieldSelection'
+import { buildShellToolbarFeed } from 'src/utils/shellToolbarFeeder'
 import { buildStructureToolbarItems } from 'src/utils/structureToolbarContract'
 import { buildTokenUpdateChanges, tokenSupportsRecordUpdate } from 'src/utils/tokenWriteChanges'
 import { getTokenMetadataOverride, loadTokenMetadataOverrides, mergeTokenMetadata, persistTokenMetadataOverrides } from 'src/utils/tokenMetadataOverrides'
@@ -941,17 +942,6 @@ const isLdbViewActive = computed(() =>
 )
 const isSystemViewActive = computed(() => activeViewEntries.value.some((view) => String(view.label || '').trim().toLowerCase() === 'system'))
 const systemViewTokens = computed(() => activeViewTokens.value.filter((token) => !isHistoryDerivedSystemToken(token)))
-const toolbarLeftViews = computed(() =>
-  groupedViews.value.filter(
-    (group) => !group.views.some((view) => isRelationshipViewLabel(view.label) || String(view.label || '').trim().toLowerCase() === 'system'),
-  ),
-)
-const toolbarRightViews = computed(() =>
-  groupedViews.value.filter(
-    (group) => group.views.some((view) => isRelationshipViewLabel(view.label) || String(view.label || '').trim().toLowerCase() === 'system'),
-  ),
-)
-
 const heroInitials = computed(() => {
   const label = String(activeRegistryEntry.value?.singularLabel || '').trim()
   return label ? label.slice(0, 2).toUpperCase() : '??'
@@ -1055,15 +1045,26 @@ const historySummaryItems = computed(() => {
     },
   ].filter((item) => item.value)
 })
-const recordShellNavItems = computed(() =>
-  buildStructureToolbarItems({
-    leftItems: toolbarLeftViews.value,
-    rightItems: toolbarRightViews.value,
+const recordShellToolbarFeed = computed(() =>
+  buildShellToolbarFeed({
+    sections: groupedViews.value,
     governanceItems: [
       { value: 'governance:tokens', title: 'Tokens' },
       { value: 'governance:views', title: 'Views' },
     ],
-    isRelationshipViewLabel,
+    relationshipLabels: ['ldb'],
+    systemLabels: ['system'],
+    groupBy: 'none',
+    getGroupValue: (group) => group?.value,
+    getGroupTitle: (group) => group?.title,
+  }),
+)
+const recordShellNavItems = computed(() =>
+  buildStructureToolbarItems({
+    leftItems: recordShellToolbarFeed.value.leftItems,
+    rightItems: recordShellToolbarFeed.value.rightItems,
+    governanceItems: recordShellToolbarFeed.value.governanceItems,
+    isRelationshipSectionLabel: recordShellToolbarFeed.value.isRelationshipSectionLabel,
   }),
 )
 const createDialogMode = computed(() => (isRecordRoute.value ? 'edit' : 'create'))

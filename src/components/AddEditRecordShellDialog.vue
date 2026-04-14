@@ -997,6 +997,7 @@ import ShellSelector from 'src/components/ShellSelector.vue'
 import FieldMapRow from 'src/components/FieldMapRow.vue'
 import ViewSettingsMenu from 'src/components/ViewSettingsMenu.vue'
 import RecordHistoryBox from 'src/components/RecordHistoryBox.vue'
+import { buildShellToolbarFeed } from 'src/utils/shellToolbarFeeder'
 import { buildStructureToolbarItems } from 'src/utils/structureToolbarContract'
 import { buildRecordViewLocation } from 'src/utils/recordViewNavigation'
 import { setPendingIntakeShellRequest } from 'src/utils/intakeShellState'
@@ -1197,18 +1198,23 @@ const leftPanelSections = computed(() => {
 })
 
 const rightSections = computed(() => (branchSelectionSettled.value ? props.rightSections : []))
-const miniToolbarItems = computed(() =>
-  buildStructureToolbarItems({
-    leftItems: leftPanelSections.value,
-    rightItems: rightSections.value,
+const miniToolbarFeed = computed(() =>
+  buildShellToolbarFeed({
+    sections: [...leftPanelSections.value, ...rightSections.value],
     governanceItems: [
       { value: 'tokens', title: 'Tokens' },
       { value: 'views', title: 'Views' },
     ],
-    isRelationshipSectionLabel: (label) => {
-      const normalized = String(label || '').trim().toLowerCase()
-      return normalized === 'ldb'
-    },
+    relationshipLabels: ['ldb'],
+    systemLabels: ['system'],
+  }),
+)
+const miniToolbarItems = computed(() =>
+  buildStructureToolbarItems({
+    leftItems: miniToolbarFeed.value.leftItems,
+    rightItems: miniToolbarFeed.value.rightItems,
+    governanceItems: miniToolbarFeed.value.governanceItems,
+    isRelationshipSectionLabel: miniToolbarFeed.value.isRelationshipSectionLabel,
   }),
 )
 

@@ -214,6 +214,7 @@ import {
   TOKEN_GOVERNANCE_OPTION_SOURCE_OPTIONS,
   TOKEN_GOVERNANCE_TYPE_OPTIONS,
 } from 'src/utils/structureGovernanceColumns'
+import { buildShellToolbarFeed } from 'src/utils/shellToolbarFeeder'
 import { buildStructureToolbarItems } from 'src/utils/structureToolbarContract'
 import { splitDialogViews } from 'src/utils/dialogShellPayload'
 import {
@@ -325,15 +326,23 @@ function isRelationshipSectionLabel(value = '') {
   const normalized = String(value || '').trim().toLowerCase()
   return normalized === 'ldb'
 }
-const miniToolbarItems = computed(() =>
-  buildStructureToolbarItems({
-    leftItems: toolbarViewSplit.value.leftSections,
-    rightItems: toolbarViewSplit.value.rightSections,
+const miniToolbarFeed = computed(() =>
+  buildShellToolbarFeed({
+    sections: fileViewGroups.value,
     governanceItems: [
       { value: 'tokens', title: 'Tokens' },
       { value: 'views', title: 'Views' },
     ],
-    isRelationshipSectionLabel,
+    relationshipLabels: ['ldb'],
+    systemLabels: ['system'],
+  }),
+)
+const miniToolbarItems = computed(() =>
+  buildStructureToolbarItems({
+    leftItems: miniToolbarFeed.value.leftItems,
+    rightItems: miniToolbarFeed.value.rightItems,
+    governanceItems: miniToolbarFeed.value.governanceItems,
+    isRelationshipSectionLabel: miniToolbarFeed.value.isRelationshipSectionLabel,
   }),
 )
 const isGovernanceToolbarActive = computed(() => activeToolbarView.value === 'tokens' || activeToolbarView.value === 'views')
