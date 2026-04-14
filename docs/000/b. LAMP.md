@@ -55,14 +55,16 @@ Use this section as the compact rule list we expect the cleaner build to follow 
 
 Each rule here should help us review drift signals in the current app too.
 
-### 1. Reference Input Rule
+### 1. Durable Local Source Rule
 
-- workbook and canonical JSON are reference inputs only
-- they must not act as live shell payload truth
+- meaningful data should remain preservable in user-owned local files
+- the app may mirror, refresh, and reload that data
+- runtime surfaces should not depend on unstable reference files as live truth
 
 Drift signal:
 
-- the UI behaves as if a reference file is runtime authority
+- the app becomes the only practical place where truth lives
+- a local source cannot be refreshed or reloaded cleanly
 
 ### 2. Shared Base Structure Rule
 
@@ -107,7 +109,16 @@ Drift signal:
 
 - one page or dialog starts inventing its own row grammar
 
-### 6. Translator Rule
+### 6. Payload Contract Rule
+
+- shell payloads should come from governed structure plus governed translator logic
+- do not let local page code invent payload meaning
+
+Drift signal:
+
+- a renderer only works because a page shaped the payload ad hoc
+
+### 7. Translator Rule
 
 - shared interpretation should flow through:
   - canonical input
@@ -119,22 +130,10 @@ Drift signal:
 
 - page-local shaping starts doing translator work
 
-### 7. Meaning Drift Rule
+### 8. Declared System Path Rule
 
-- what the surface says
-- what the system means
-- what runtime does
-
-must stay aligned.
-
-Drift signal:
-
-- wording, behavior, and ownership stop matching each other
-
-### 8. Natural System Tube Rule
-
-- important actions should happen by following the declared system path
-- not by hidden bootstrap exceptions or side helpers
+- important actions should follow declared ownership and relationship paths
+- do not rely on hidden bootstrap exceptions or side helpers as the real operating path
 
 Drift signal:
 
@@ -149,7 +148,17 @@ Drift signal:
 
 - creating one file still requires too many hand-touched places
 
-### 10. Master Translator Rule
+### 10. Directional LDB Join Rule
+
+- explicit LDB join contracts must preserve direction
+- reverse direction must swap join ownership correctly when needed
+
+Drift signal:
+
+- linking only works from one side
+- reverse linking writes into the wrong foreign-key path
+
+### 11. Master Translator Rule
 
 - user files remain the durable home of meaningful data
 - the app is the viewing, organizing, translating, and workflow layer

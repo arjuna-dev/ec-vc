@@ -181,6 +181,8 @@ These already read like migration-worthy patterns:
 - `Inspectable Translator Rule`
 - `Short-Loop Convergence`
 
+These are especially useful during current convergence work, even if they do not all survive as permanent `LAMP` launch rules.
+
 Anything that proves itself should be moved into:
 
 - `docs/000/i. Recipe.md`
@@ -221,6 +223,18 @@ That means translator work done now should help answer:
 - what translator layer owns classification
 - what builder layer owns normalization
 - what renderer layer stays simple
+
+## Current-Build Rules That May Stay In PMP
+
+These are especially useful while the app is still converging and we are still exposing drift:
+
+- `Inspectable Translator Rule`
+- `Meaning Drift Rule`
+- `Two-Layer Asset Rule`
+- `Strict Feeder Chain`
+- `Shared BB Rendering Rule`
+
+These may remain valuable long-term, but they currently read more like convergence and migration rules than clean end-state birth rules.
 
 ## Suggested Future Phases
 
