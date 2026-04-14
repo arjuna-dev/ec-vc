@@ -53,3 +53,34 @@ For clean-birth thinking, this matters because a future setup path should not in
 It should be able to scaffold from the governed token layer directly.
 
 Each token should also be able to carry a visible `Definition`, so launch/setup, extraction, and later comparison work can follow one local meaning source instead of relying on vague remembered intent.
+
+## Master Translator Rule
+
+The app should not become the place where truth is trapped.
+
+The intended launch-side posture is:
+
+- user files remain the durable home for meaningful data
+- the app acts as the viewing, organizing, translating, and workflow layer
+- the app should behave like a `Master Translator`, not like a hidden truth vault
+
+That means launch and setup architecture should keep these concerns separate:
+
+1. `Data Persistence`
+   lives with user-owned files and the governed file system
+
+2. `Structure Refresh`
+   updates how the app understands, scaffolds, and maps that data
+
+3. `Runtime Reload`
+   refreshes the app's active interpretation and rendered view of that data
+
+These should not be collapsed into one vague action.
+
+For launch/birth thinking, this matters because a clean future build should aim for:
+
+- preservable data
+- refreshable structure
+- reloadable runtime
+
+without forcing the operator to treat all three as the same thing.
