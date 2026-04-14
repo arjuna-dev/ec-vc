@@ -16,8 +16,12 @@ This tracker should stay aligned with:
 - `docs/000/a. DAMP.md`
 - `docs/000/b. LAMP.md`
 - `docs/000/c. System.md`
+- `docs/000/d. File.md`
+- `docs/000/e. Token.md`
+- `docs/000/f. Translator.md`
 - `docs/000/g. Intake.md`
 - `docs/000/i. Recipe.md`
+- `docs/000/j. UXDesign.md`
 - `docs/999/b. PMP.md`
 
 ## PMP Definition
@@ -54,11 +58,12 @@ Active authority should live in `docs/000` and read in this order:
 - `b. LAMP.md`
 - `c. System.md`
 - `d. File.md`
-- `e. Translator.md`
-- `f. Intake.md`
-- `g. Game.md`
-- `h. Recipe.md`
-- `i. UXDesign.md`
+- `e. Token.md`
+- `f. Translator.md`
+- `g. Intake.md`
+- `h. Game.md`
+- `i. Recipe.md`
+- `j. UXDesign.md`
 
 ### 2. User / Companion / Context
 
@@ -73,6 +78,8 @@ Single-file layers should stay simple:
 Selected live file guides should stay active in `docs/100`.
 
 Archive-only file guides should remain in `docs/100/Archive`.
+
+Current live file guides should remain directly in `docs/100`.
 
 ### 4. Archive Discipline
 
@@ -131,6 +138,17 @@ Focus:
 - keep feeder surfaces strict
 - avoid frontend variation hiding backend problems
 
+### 5. Token And Row-Surface Cleanup
+
+Status: active
+
+Focus:
+
+- remove token-order scaffolding that no longer deserves authority
+- move table and row surfaces toward token/file contract truth
+- stop local draft naming workarounds from pretending to be canonical structure
+- keep `parentKey` as the structural owner path while removing legacy ordering drift
+
 ## PMP Checkpoints
 
 ### 1. Architecture Checkpoint
@@ -171,11 +189,29 @@ If not, it should not be promoted into `Recipe`.
 
 ## Near-Term To-Do
 
-1. Finish linting live references so active docs never point at retired active paths.
-2. Continue cleaning the shared data/table surfaces before deeper intake work.
-3. Define the first real translator inspection surface from an already trusted shared behavior.
-4. Rebuild the edit/intake dialog family around the stricter shared contract.
-5. Keep separating current truth from archived direction.
+1. Continue the File Shell row-surface pass by reviewing special system columns such as `History` and `Status` under the new token/file contract.
+2. Audit remaining `tokenOrder` runtime/bootstrap usage and decide what should be removed versus explicitly replaced.
+3. Tighten the next table rules around column width initialization, scroll behavior, and special handling for long-text fields.
+4. Keep cleaning live docs so active guidance never speaks in the retired `Active/Draft` folder language.
+5. Define the first translator inspection surface from an already trusted shared behavior before broader translator rollout.
+
+## Tomorrow's Proposed Workstream
+
+1. Review `File Shell` special system columns.
+   Goal:
+   decide the honest contract for `History` and `Status`, and confirm they stay approved system columns rather than token-backed data columns.
+
+2. Finish the `tokenOrder` unwind audit.
+   Goal:
+   inspect runtime/bootstrap seeding in `electron-main.js` and passive parsing in `structureRegistry.js`, then decide what can be removed next without weakening file birth.
+
+3. Continue the `Row Surface` rules with width behavior.
+   Goal:
+   review current width initialization, minimum input-box width, long-text max-width behavior, and scroll rules before making another renderer pass.
+
+4. Keep momentum through one small renderer change only after the contract is clear.
+   Goal:
+   avoid bundling broad table rewrites; keep the next checkpoint visible and testable.
 
 ## Stop Conditions
 

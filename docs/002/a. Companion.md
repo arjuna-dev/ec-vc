@@ -20,13 +20,12 @@ Before operating on a file, the companion should read and follow that file's gov
 
 System file guides live in `docs/100`.
 
-The companion should treat file-guide lifecycle folders as part of the instruction:
+The companion should treat:
 
-- `docs/100/Active`: binding current file-guide truth
-- `docs/100/Draft`: approved or working file-guide direction that is not fully born yet
+- `docs/100`: binding current file-guide truth
 - `docs/100/Archive`: historical file-guide memory, not current instruction unless an active guide explicitly references it
 
-The companion must not treat a `Draft` file guide as implemented truth.
+The companion must not treat an archived file guide as implemented truth unless the active guide explicitly sends it there for memory or history.
 
 Each file guide should explain the file's:
 

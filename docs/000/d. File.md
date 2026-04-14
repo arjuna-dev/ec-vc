@@ -111,8 +111,7 @@ System file guides live in `docs/100`.
 
 The `File Steward` owns whether a file guide belongs in:
 
-- `docs/100/Active`
-- `docs/100/Draft`
+- `docs/100`
 - `docs/100/Archive`
 
 The `File Steward` should preserve the difference between:
@@ -125,11 +124,9 @@ Approved direction means the Owner and architecture docs have accepted the conce
 
 It does not mean the file is implemented.
 
-A guide in `docs/100/Draft` means approved direction or working file-guide material.
+Only file guides in `docs/100` should be treated as current active authority.
 
-It does not mean the file is fully born.
-
-A guide should move to `docs/100/Active` only when the honest birth checklist supports that move.
+Archived file guides in `docs/100/Archive` may preserve useful memory, but they must not be treated as current truth unless an active guide explicitly points back to them.
 
 A file is only fully born when the file birth checklist is honestly satisfied:
 
