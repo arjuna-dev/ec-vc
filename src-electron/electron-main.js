@@ -1839,7 +1839,8 @@ function ensureBaseStructureCompleteness(existing = null, base = null) {
 
   const baseSections = Array.isArray(base.sections) ? base.sections : []
   const existingSections = Array.isArray(existing.sections) ? existing.sections : []
-  const normalizedExisting = existingSections.map((section) => {
+  let mutated = false
+  const initialNormalizedExisting = existingSections.map((section) => {
     const nextSection = {
       ...section,
       tokens: Array.isArray(section?.tokens) ? section.tokens : [],
@@ -1857,12 +1858,48 @@ function ensureBaseStructureCompleteness(existing = null, base = null) {
     }
     return nextSection
   })
+  const collapsedExistingByLabel = []
+  initialNormalizedExisting.forEach((section) => {
+    const labelKey = String(section?.label || '').trim().toLowerCase()
+    if (!labelKey) {
+      collapsedExistingByLabel.push(section)
+      return
+    }
+    const existingIndex = collapsedExistingByLabel.findIndex(
+      (entry) => String(entry?.label || '').trim().toLowerCase() === labelKey,
+    )
+    if (existingIndex === -1) {
+      collapsedExistingByLabel.push(section)
+      return
+    }
+    const existingSection = collapsedExistingByLabel[existingIndex]
+    const tokenMap = new Map(
+      (Array.isArray(existingSection.tokens) ? existingSection.tokens : []).map((token) => [
+        resolveTokenIdentity(token),
+        token,
+      ]),
+    )
+    ;(Array.isArray(section.tokens) ? section.tokens : []).forEach((token) => {
+      const tokenKey = resolveTokenIdentity(token)
+      if (!tokenKey) return
+      if (!tokenMap.has(tokenKey)) {
+        tokenMap.set(tokenKey, token)
+        return
+      }
+      tokenMap.set(tokenKey, mergeMissingTokenFields(tokenMap.get(tokenKey), token))
+    })
+    collapsedExistingByLabel[existingIndex] = {
+      ...existingSection,
+      tokens: Array.from(tokenMap.values()),
+    }
+    mutated = true
+  })
   const normalizedBase = baseSections.map((section) => ({
     ...section,
     tokens: Array.isArray(section?.tokens) ? section.tokens : [],
   }))
 
-  let mutated = false
+  const normalizedExisting = collapsedExistingByLabel
   const findSectionIndex = (sections, label) =>
     sections.findIndex(
       (section) => String(section?.label || '').trim().toLowerCase() === label.toLowerCase(),
