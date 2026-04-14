@@ -66,6 +66,7 @@ const props = defineProps({
   columns: { type: Array, default: () => [] },
   rows: { type: Array, default: () => [] },
   emptyLabel: { type: String, default: 'No rows available.' },
+  columnWidthKey: { type: String, default: '' },
 })
 
 defineEmits(['cell-dblclick'])
@@ -76,6 +77,10 @@ const resolvedColumns = computed(() =>
     key: String(column?.key || '').trim(),
   })).filter((column) => column.key),
 )
+const resolvedColumnWidthStorageKey = computed(() => {
+  const key = String(props.columnWidthKey || '').trim()
+  return key ? `ecvc:shared-row-surface-widths:${key}` : ''
+})
 const columnWidths = ref({})
 const resizeState = ref({
   columnKey: '',
@@ -84,14 +89,38 @@ const resizeState = ref({
   startWidth: 0,
 })
 
+function loadStoredColumnWidths() {
+  const storageKey = String(resolvedColumnWidthStorageKey.value || '').trim()
+  if (!storageKey || typeof window === 'undefined' || !window.localStorage) return {}
+  try {
+    const raw = window.localStorage.getItem(storageKey)
+    if (!raw) return {}
+    const parsed = JSON.parse(raw)
+    return parsed && typeof parsed === 'object' ? parsed : {}
+  } catch {
+    return {}
+  }
+}
+
+function persistColumnWidths(nextWidths = {}) {
+  const storageKey = String(resolvedColumnWidthStorageKey.value || '').trim()
+  if (!storageKey || typeof window === 'undefined' || !window.localStorage) return
+  try {
+    window.localStorage.setItem(storageKey, JSON.stringify(nextWidths))
+  } catch {
+    // Ignore storage errors and keep the live widths in memory.
+  }
+}
+
 watch(
-  resolvedColumns,
-  (columns) => {
+  [resolvedColumns, resolvedColumnWidthStorageKey],
+  ([columns]) => {
+    const storedWidths = loadStoredColumnWidths()
     const next = {}
-    columns.forEach((column) => {
+    ;(Array.isArray(columns) ? columns : []).forEach((column) => {
       const key = String(column?.key || '').trim()
       if (!key) return
-      next[key] = columnWidths.value[key] || Number(column?.width || 0)
+      next[key] = Number(columnWidths.value[key] || storedWidths[key] || column?.width || 0)
     })
     columnWidths.value = next
   },
@@ -138,6 +167,7 @@ function handlePointerMove(event) {
     ...columnWidths.value,
     [key]: nextWidth,
   }
+  persistColumnWidths(columnWidths.value)
 }
 
 function stopColumnResize() {
@@ -159,6 +189,7 @@ function resetColumnWidth(column = {}) {
     ...columnWidths.value,
     [key]: Number(column?.width || 0),
   }
+  persistColumnWidths(columnWidths.value)
 }
 
 onBeforeUnmount(() => {
@@ -167,9 +198,21 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
+.shared-row-surface {
+  min-width: 0;
+  max-width: 100%;
+}
+
 .shared-row-surface__scroll {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
   overflow: auto;
   padding-bottom: 4px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.96);
+  box-sizing: border-box;
 }
 
 .shared-row-surface__table {

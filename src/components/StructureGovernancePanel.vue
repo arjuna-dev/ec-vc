@@ -1,6 +1,7 @@
 <template>
   <SharedRowSurfaceTable
     v-if="mode === 'views'"
+    column-width-key="governance:views"
     :columns="resolvedViewSurfaceColumns"
     :rows="resolvedViewSurfaceRows"
     :empty-label="emptyViewsLabel"
@@ -24,6 +25,7 @@
 
   <SharedRowSurfaceTable
     v-else-if="mode === 'tokens'"
+    column-width-key="governance:tokens"
     :columns="resolvedTokenSurfaceColumns"
     :rows="resolvedTokenSurfaceRows"
     :empty-label="emptyTokensLabel"
@@ -88,6 +90,7 @@
 
   <SharedRowSurfaceTable
     v-else-if="mode === 'data'"
+    column-width-key="governance:data"
     :columns="resolvedDataSurfaceColumns"
     :rows="resolvedDataSurfaceRows"
     :empty-label="emptyDataLabel"
