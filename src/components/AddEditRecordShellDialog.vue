@@ -357,21 +357,20 @@
                 :view-mode="miniToolbarViewMode"
                 :view-options="miniToolbarViewOptions"
                 :show-view-toggle="false"
-              />
+              >
+                <template #suffix>
+                  <ViewSettingsMenu
+                    v-if="isGeneralSectionActive && generalSettingsGroups.length"
+                    title="General"
+                    :groups="generalSettingsGroups"
+                    @toggle-group="emit('toggle-general-settings-group', $event)"
+                    @toggle-item="emit('toggle-general-settings-item', $event[0], $event[1])"
+                  />
+                </template>
+              </MiniToolbar>
             </div>
 
             <div class="create-record-shell__panel ds-mini-scrollbar">
-              <div class="create-record-shell__panel-head">
-                <div class="create-record-shell__panel-meta">{{ activeFields.length }} fields</div>
-                <ViewSettingsMenu
-                  v-if="isGeneralSectionActive && generalSettingsGroups.length"
-                  title="General"
-                  :groups="generalSettingsGroups"
-                  @toggle-group="emit('toggle-general-settings-group', $event)"
-                  @toggle-item="emit('toggle-general-settings-item', $event[0], $event[1])"
-                />
-              </div>
-
               <div
                 v-if="isViewsSectionActive"
                 class="create-record-shell__governance-surface"

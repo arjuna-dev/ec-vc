@@ -134,48 +134,28 @@
         :view-mode="miniToolbarViewMode"
         :view-options="miniToolbarViewOptions"
         :show-view-toggle="false"
-      />
-      <q-input
-        v-model="searchQuery"
-        dense
-        outlined
-        placeholder="Search"
-        class="file-structure-shell__toolbar-search"
-      />
-      <button
-        v-if="isTokensToolbarActive"
-        type="button"
-        class="file-structure-shell__delete-btn"
-        @click="addTokenElement"
       >
-        Add Token
-      </button>
-      <button
-        v-if="!isGovernanceToolbarActive"
-        type="button"
-        class="file-structure-shell__delete-btn"
-        @click="addLeafElement"
-      >
-        Add Row
-      </button>
-      <button
-        v-if="isTokensToolbarActive && selectedTokenKeys.length"
-        type="button"
-        class="file-structure-shell__delete-btn"
-        @click="deleteSelectedTokens"
-      >
-        Delete Selected
-      </button>
-      <button
-        type="button"
-        class="file-structure-shell__chevron-button file-structure-shell__chevron-button--toolbar"
-        :aria-label="leafItemsCollapsed ? 'Expand leaf items' : 'Collapse leaf items'"
-        @click="leafItemsCollapsed = !leafItemsCollapsed"
-      >
-        <svg viewBox="0 0 24 24" aria-hidden="true" class="file-structure-shell__chevron-icon">
-          <path :d="leafItemsCollapsed ? 'M7 10L12 15L17 10' : 'M7 14L12 9L17 14'" />
-        </svg>
-      </button>
+        <template #suffix>
+          <button
+            v-if="isTokensToolbarActive && selectedTokenKeys.length"
+            type="button"
+            class="file-structure-shell__delete-btn"
+            @click="deleteSelectedTokens"
+          >
+            Delete Selected
+          </button>
+          <button
+            type="button"
+            class="file-structure-shell__chevron-button file-structure-shell__chevron-button--toolbar"
+            :aria-label="leafItemsCollapsed ? 'Expand leaf items' : 'Collapse leaf items'"
+            @click="leafItemsCollapsed = !leafItemsCollapsed"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true" class="file-structure-shell__chevron-icon">
+              <path :d="leafItemsCollapsed ? 'M7 10L12 15L17 10' : 'M7 14L12 9L17 14'" />
+            </svg>
+          </button>
+        </template>
+      </MiniToolbar>
     </div>
 
     <div v-if="!leafItemsCollapsed" class="file-structure-shell__leaf-area">
@@ -276,7 +256,6 @@ const tokenFieldOverridesBySource = ref({})
 const selectedLeafKeysBySource = ref({})
 const selectedTokenKeysBySource = ref({})
 const deletedTokenKeysBySource = ref({})
-const searchQuery = ref('')
 const requiredFieldKeysBySource = ref({})
 const viewOptions = [
   { label: '', value: 'card', icon: 'grid_view' },
@@ -449,13 +428,10 @@ const tokenGroupsByView = computed(() =>
     const draftTokens = draftTokenRowsBySource.value[activeSettingsSourceKey.value] || []
     const groupTokens = [...draftTokens, ...baseTokens]
       const requiredKeys = new Set(requiredFieldKeysBySource.value[activeSettingsSourceKey.value] || [])
-    const filteredTokens = searchQuery.value
-      ? groupTokens.filter((token) => String(token.label || '').toLowerCase().includes(searchQuery.value.toLowerCase()))
-      : groupTokens
-    return {
-      key: view.key,
-      label: view.label,
-      tokens: filteredTokens.map((token, index) => {
+      return {
+        key: view.key,
+        label: view.label,
+        tokens: groupTokens.map((token, index) => {
         const writeTarget = getCanonicalTokenWriteTarget(token, activeShellSelectorOption.value.label, 'id')
         const overrides = tokenFieldOverridesBySource.value[activeSettingsSourceKey.value]?.[token.key] || {}
         return {
@@ -479,10 +455,6 @@ const tokenGroupsByView = computed(() =>
   )
 const displayLeafTokens = computed(() =>
   activeLeafTokens.value
-    .filter((token) => {
-      if (!searchQuery.value) return true
-      return String(token.label || '').toLowerCase().includes(searchQuery.value.toLowerCase())
-    })
     .map((token) => {
     const overrides = leafFieldOverridesBySource.value[activeSettingsSourceKey.value]?.[token.key] || {}
     return {

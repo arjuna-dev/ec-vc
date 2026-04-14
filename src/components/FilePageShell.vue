@@ -47,92 +47,103 @@
         v-model="miniToolbarActiveKey"
         aria-label="Shell mini toolbar"
         :items="miniToolbarItems"
-        :view-mode="miniToolbarViewMode"
-        :view-options="miniToolbarViewOptions"
-        :show-view-toggle="false"
-      />
-
-      <div v-if="activeGovernanceToolbarKey" class="test-shell-table-surface">
-        <StructureGovernancePanel
-          :mode="activeGovernanceToolbarKey"
-          :view-rows="governanceViewRows"
-          :token-groups="tokenGroupsByView"
-          :token-columns="tokenGovernanceColumns"
-          empty-views-label="No views declared for this file."
-          empty-tokens-label="No tokens declared in this view."
-          @update-token-cell="updateTokenCell"
-        />
-      </div>
-
-      <template v-else>
-      <FilePageToolbar
-        :all-visible-selected="allVisibleSelected"
-        :some-visible-selected="someVisibleSelected"
-        :disabled="false"
-        :loading="loading"
-        :add-disabled="!supportsActiveSourceEditing || !canCreateWithShell"
-        :fork-value="''"
-        :fork-options="[]"
-        :search-query="searchQuery"
-        :search-placeholder="searchPlaceholder"
         :view-mode="viewMode"
         :view-options="viewOptions"
-        :show-view-toggle="true"
-        @toggle-select-all="toggleSelectAllVisible"
-        @add="handleToolbarAdd"
-        @update:search-query="searchQuery = $event"
+        :show-view-toggle="!activeGovernanceToolbarKey"
         @update:view-mode="viewMode = $event"
       >
-        <template #primary-trailing>
-          <div v-if="draftCount" class="file-shell__draft-chip">
-            <button
-              type="button"
-              class="file-shell__draft-chip-btn"
-              :aria-label="`Drafts (${draftCount})`"
-            >
-              <q-icon name="edit_note" size="16px" />
-              <span>Drafts ({{ draftCount }})</span>
-              <q-menu
-                anchor="bottom left"
-                self="top left"
-                class="file-shell__draft-menu"
-                content-class="file-shell__draft-menu-content"
+        <template #prefix>
+          <template v-if="!activeGovernanceToolbarKey">
+            <q-checkbox
+              :model-value="allVisibleSelected"
+              :indeterminate="someVisibleSelected && !allVisibleSelected"
+              :disable="loading"
+              dense
+              color="dark"
+              class="file-shell__toolbar-select-all"
+              @update:model-value="toggleSelectAllVisible"
+            />
+            <PlusWithLabelButton
+              label="Add Record"
+              :disable="loading || !supportsActiveSourceEditing || !canCreateWithShell"
+              @click="handleToolbarAdd"
+            />
+            <div v-if="draftCount" class="file-shell__draft-chip">
+              <button
+                type="button"
+                class="file-shell__draft-chip-btn"
+                :aria-label="`Drafts (${draftCount})`"
               >
-                <div class="file-shell__draft-menu-panel">
-                  <div class="file-shell__draft-menu-tabs">
-                    <button
-                      v-for="tab in draftTabs"
-                      :key="`draft-tab:${tab.key}`"
-                      type="button"
-                      class="file-shell__draft-menu-tab"
-                      :class="{ 'file-shell__draft-menu-tab--active': tab.key === draftTabKey }"
-                      @click="draftTabKey = tab.key"
-                    >
-                      <span class="file-shell__draft-menu-tab-label">{{ tab.label }}</span>
-                      <span class="file-shell__draft-menu-tab-count">{{ tab.count }}</span>
-                    </button>
-                  </div>
-
-                  <div class="file-shell__draft-menu-rows">
-                    <div v-if="!draftRowsForActiveTab.length" class="file-shell__draft-menu-empty">
-                      No draft rows in this file yet.
+                <q-icon name="edit_note" size="16px" />
+                <span>Drafts ({{ draftCount }})</span>
+                <q-menu
+                  anchor="bottom left"
+                  self="top left"
+                  class="file-shell__draft-menu"
+                  content-class="file-shell__draft-menu-content"
+                >
+                  <div class="file-shell__draft-menu-panel">
+                    <div class="file-shell__draft-menu-tabs">
+                      <button
+                        v-for="tab in draftTabs"
+                        :key="`draft-tab:${tab.key}`"
+                        type="button"
+                        class="file-shell__draft-menu-tab"
+                        :class="{ 'file-shell__draft-menu-tab--active': tab.key === draftTabKey }"
+                        @click="draftTabKey = tab.key"
+                      >
+                        <span class="file-shell__draft-menu-tab-label">{{ tab.label }}</span>
+                        <span class="file-shell__draft-menu-tab-count">{{ tab.count }}</span>
+                      </button>
                     </div>
-                    <button
-                      v-for="row in draftRowsForActiveTab"
-                      :key="`draft-row:${draftTabKey}:${row.recordId}`"
-                      type="button"
-                      class="file-shell__draft-menu-row"
-                      @click="openDraftRow(draftTabKey, row)"
-                    >
-                      <span class="file-shell__draft-menu-row-label">{{ getDraftRowLabel(row, draftTabKey) }}</span>
-                      <q-icon name="open_in_new" size="14px" />
-                    </button>
+
+                    <div class="file-shell__draft-menu-rows">
+                      <div v-if="!draftRowsForActiveTab.length" class="file-shell__draft-menu-empty">
+                        No draft rows in this file yet.
+                      </div>
+                      <button
+                        v-for="row in draftRowsForActiveTab"
+                        :key="`draft-row:${draftTabKey}:${row.recordId}`"
+                        type="button"
+                        class="file-shell__draft-menu-row"
+                        @click="openDraftRow(draftTabKey, row)"
+                      >
+                        <span class="file-shell__draft-menu-row-label">{{ getDraftRowLabel(row, draftTabKey) }}</span>
+                        <q-icon name="open_in_new" size="14px" />
+                      </button>
+                    </div>
                   </div>
-                </div>
+                </q-menu>
+              </button>
+            </div>
+            <q-btn flat round dense class="test-shell-filters-trigger" icon="filter_list" aria-label="File shell filters">
+              <q-menu
+                anchor="top left"
+                self="top right"
+                class="test-shell-filters-menu"
+                content-class="test-shell-filters-menu__content"
+              >
+                <FileFilterMenu
+                  :title="isBbFileSource ? 'Building Block Filter' : 'File Filter'"
+                  :sections="fileFilterMenuSections"
+                  :expanded-section-key="isBbFileSource ? expandedBbFilterCategoryKey : expandedFilterViewKey"
+                  @toggle-section="handleFileFilterToggleView"
+                  @toggle-item="handleFileFilterToggleItem"
+                  @toggle-item-checkbox="handleFileFilterToggleItemCheckbox"
+                />
               </q-menu>
-            </button>
-          </div>
-          <div v-if="isBbFileSource && activeBbFilterGroup" class="bb-shell-toolbar-filter">
+            </q-btn>
+            <SearchBarInput
+              :model-value="searchQuery"
+              class="file-shell__toolbar-search"
+              :placeholder="searchPlaceholder"
+              :disable="loading"
+              @update:model-value="searchQuery = $event"
+            />
+          </template>
+        </template>
+        <template #suffix>
+          <div v-if="!activeGovernanceToolbarKey && isBbFileSource && activeBbFilterGroup" class="bb-shell-toolbar-filter">
             <button
               type="button"
               class="bb-shell-toolbar-filter__chip"
@@ -185,30 +196,24 @@
             </button>
           </div>
         </template>
+      </MiniToolbar>
 
-        <template #filters>
-          <q-btn flat round dense class="test-shell-filters-trigger" icon="filter_list" aria-label="File shell filters">
-            <q-menu
-              anchor="top left"
-              self="top right"
-              class="test-shell-filters-menu"
-              content-class="test-shell-filters-menu__content"
-            >
-              <FileFilterMenu
-                :title="isBbFileSource ? 'Building Block Filter' : 'File Filter'"
-                :sections="fileFilterMenuSections"
-                :expanded-section-key="isBbFileSource ? expandedBbFilterCategoryKey : expandedFilterViewKey"
-                @toggle-section="handleFileFilterToggleView"
-                @toggle-item="handleFileFilterToggleItem"
-                @toggle-item-checkbox="handleFileFilterToggleItemCheckbox"
-              />
-            </q-menu>
-          </q-btn>
-        </template>
-      </FilePageToolbar>
+      <div v-if="activeGovernanceToolbarKey" class="test-shell-table-surface">
+        <StructureGovernancePanel
+          :mode="activeGovernanceToolbarKey"
+          :view-rows="governanceViewRows"
+          :token-groups="tokenGroupsByView"
+          :token-columns="tokenGovernanceColumns"
+          empty-views-label="No views declared for this file."
+          empty-tokens-label="No tokens declared in this view."
+          @update-token-cell="updateTokenCell"
+        />
+      </div>
 
-      <q-banner v-if="error" class="bg-red-2 text-black" rounded>
-        {{ error }}
+      <template v-else>
+
+        <q-banner v-if="error" class="bg-red-2 text-black" rounded>
+          {{ error }}
       </q-banner>
 
       <div v-if="viewMode === 'card' && isBbFileSource" class="bb-shell-tiles-surface">
@@ -781,9 +786,10 @@ import AddEditRecordShellDialog from 'components/AddEditRecordShellDialog.vue'
 import FileFilterMenu from 'components/FileFilterMenu.vue'
 import FileHero from 'components/FileHero.vue'
 import ViewSettingsMenu from 'components/ViewSettingsMenu.vue'
-import FilePageToolbar from 'components/FilePageToolbar.vue'
 import MiniToolbar from 'components/MiniToolbar.vue'
+import PlusWithLabelButton from 'components/PlusWithLabelButton.vue'
 import RecordHistoryBox from 'components/RecordHistoryBox.vue'
+import SearchBarInput from 'components/SearchBarInput.vue'
 import BuildingBlockPreviewTile from 'components/BuildingBlockPreviewTile.vue'
 import StructureGovernancePanel from 'components/StructureGovernancePanel.vue'
 import { buildTokenGovernanceColumns } from 'src/utils/structureGovernanceColumns'
@@ -5063,6 +5069,16 @@ function isBbGraphLinkToken(tokenRow) {
 
 .test-shell-filters-trigger {
   color: var(--ds-color-text-muted);
+}
+
+.file-shell__toolbar-select-all {
+  min-height: var(--ds-toolbar-toggle-button-size);
+  margin-left: -1px;
+  color: var(--ds-color-text-primary);
+}
+
+.file-shell__toolbar-search {
+  flex: 0 0 auto;
 }
 
 .test-shell-filters-menu {

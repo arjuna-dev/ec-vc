@@ -9,7 +9,14 @@
     variant="mini"
     @update:model-value="$emit('update:modelValue', $event)"
     @update:view-mode="$emit('update:viewMode', $event)"
-  />
+  >
+    <template #prefix>
+      <slot name="prefix" />
+    </template>
+    <template #suffix>
+      <slot name="suffix" />
+    </template>
+  </ShellSectionToolbar>
 </template>
 
 <script setup>

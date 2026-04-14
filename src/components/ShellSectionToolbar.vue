@@ -5,7 +5,11 @@
     :class="{ 'shell-section-toolbar--mini': variant === 'mini' }"
     :aria-label="ariaLabel"
   >
-    <div class="shell-section-toolbar__lane shell-section-toolbar__lane--left">
+    <div
+      v-if="hasPrefixSlot || leftItems.length"
+      class="shell-section-toolbar__lane shell-section-toolbar__lane--left"
+    >
+      <slot name="prefix" />
       <button
         v-for="section in leftItems"
         :key="section.value"
@@ -20,22 +24,50 @@
       </button>
     </div>
 
-    <div v-if="structuralItems.length" class="shell-section-toolbar__lane shell-section-toolbar__lane--mid">
+    <div v-if="structuralItems.length" class="shell-section-toolbar__lane shell-section-toolbar__lane--data">
       <button
-        v-for="section in structuralItems"
-        :key="section.value"
+        v-if="showDataLaneScrollControls"
         type="button"
-        class="shell-section-toolbar__item"
-        :class="{
-          'shell-section-toolbar__item--active': modelValue === section.value,
-          'shell-section-toolbar__item--ldb': itemTone(section) === 'ldb',
-          'shell-section-toolbar__item--system': itemTone(section) === 'system',
-          'shell-section-toolbar__item--governance': itemTone(section) === 'governance',
-        }"
-        @click="$emit('update:modelValue', section.value)"
+        class="shell-section-toolbar__scroll-btn"
+        :disabled="!canScrollDataPrev"
+        aria-label="Scroll data labels left"
+        @click="scrollDataLane(-1)"
       >
-        <span class="shell-section-toolbar__item-label">{{ section.title }}</span>
-        <q-icon v-if="itemTone(section) === 'ldb'" name="share" :size="'var(--ds-toolbar-chip-toggle-icon-size)'" class="shell-section-toolbar__item-icon" />
+        <q-icon name="chevron_left" size="16px" />
+      </button>
+
+      <div
+        ref="dataLaneScrollRef"
+        class="shell-section-toolbar__lane-scroll ds-mini-scrollbar"
+        @scroll="updateDataLaneScrollState"
+      >
+        <button
+          v-for="section in structuralItems"
+          :key="section.value"
+          type="button"
+          class="shell-section-toolbar__item"
+          :class="{
+            'shell-section-toolbar__item--active': modelValue === section.value,
+            'shell-section-toolbar__item--ldb': itemTone(section) === 'ldb',
+            'shell-section-toolbar__item--system': itemTone(section) === 'system',
+            'shell-section-toolbar__item--governance': itemTone(section) === 'governance',
+          }"
+          @click="$emit('update:modelValue', section.value)"
+        >
+          <span class="shell-section-toolbar__item-label">{{ section.title }}</span>
+          <q-icon v-if="itemTone(section) === 'ldb'" name="share" :size="'var(--ds-toolbar-chip-toggle-icon-size)'" class="shell-section-toolbar__item-icon" />
+        </button>
+      </div>
+
+      <button
+        v-if="showDataLaneScrollControls"
+        type="button"
+        class="shell-section-toolbar__scroll-btn"
+        :disabled="!canScrollDataNext"
+        aria-label="Scroll data labels right"
+        @click="scrollDataLane(1)"
+      >
+        <q-icon name="chevron_right" size="16px" />
       </button>
     </div>
 
@@ -63,11 +95,15 @@
         @update:model-value="$emit('update:viewMode', $event)"
       />
     </div>
+
+    <div v-if="hasSuffixSlot" class="shell-section-toolbar__lane shell-section-toolbar__lane--suffix">
+      <slot name="suffix" />
+    </div>
   </section>
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, useSlots, watch } from 'vue'
 import ViewModeToggle from 'src/components/ViewModeToggle.vue'
 
 const props = defineProps({
@@ -82,6 +118,12 @@ const props = defineProps({
 
 defineEmits(['update:modelValue', 'update:viewMode'])
 
+const slots = useSlots()
+const dataLaneScrollRef = ref(null)
+const canScrollDataPrev = ref(false)
+const canScrollDataNext = ref(false)
+let dataLaneResizeObserver = null
+
 const leftItems = computed(() =>
   props.items.filter((section) => itemLane(section) === 'left'),
 )
@@ -91,6 +133,9 @@ const structuralItems = computed(() =>
 const governanceItems = computed(() =>
   props.items.filter((section) => itemLane(section) === 'governance'),
 )
+const hasPrefixSlot = computed(() => Boolean(slots.prefix))
+const hasSuffixSlot = computed(() => Boolean(slots.suffix))
+const showDataLaneScrollControls = computed(() => canScrollDataPrev.value || canScrollDataNext.value)
 
 function itemLane(section = {}) {
   if (section?.lane) return String(section.lane).trim().toLowerCase()
@@ -101,6 +146,53 @@ function itemTone(section = {}) {
   if (section?.tone) return String(section.tone).trim().toLowerCase()
   return 'default'
 }
+
+function updateDataLaneScrollState() {
+  const element = dataLaneScrollRef.value
+  if (!element) {
+    canScrollDataPrev.value = false
+    canScrollDataNext.value = false
+    return
+  }
+  const maxScrollLeft = Math.max(0, element.scrollWidth - element.clientWidth)
+  canScrollDataPrev.value = element.scrollLeft > 2
+  canScrollDataNext.value = element.scrollLeft < (maxScrollLeft - 2)
+}
+
+function scrollDataLane(direction = 1) {
+  const element = dataLaneScrollRef.value
+  if (!element) return
+  const delta = Math.max(120, Math.round(element.clientWidth * 0.45)) * (direction >= 0 ? 1 : -1)
+  element.scrollBy({ left: delta, behavior: 'smooth' })
+  window.setTimeout(updateDataLaneScrollState, 180)
+}
+
+watch(
+  () => structuralItems.value.map((item) => item.value).join('|'),
+  async () => {
+    await nextTick()
+    updateDataLaneScrollState()
+  },
+  { immediate: true },
+)
+
+onMounted(() => {
+  if (typeof window !== 'undefined') {
+    window.addEventListener('resize', updateDataLaneScrollState)
+  }
+  if (typeof ResizeObserver !== 'undefined' && dataLaneScrollRef.value) {
+    dataLaneResizeObserver = new ResizeObserver(() => updateDataLaneScrollState())
+    dataLaneResizeObserver.observe(dataLaneScrollRef.value)
+  }
+  nextTick(() => updateDataLaneScrollState())
+})
+
+onBeforeUnmount(() => {
+  if (typeof window !== 'undefined') {
+    window.removeEventListener('resize', updateDataLaneScrollState)
+  }
+  dataLaneResizeObserver?.disconnect?.()
+})
 </script>
 
 <style scoped>
@@ -110,7 +202,7 @@ function itemTone(section = {}) {
   z-index: 3;
   display: grid;
   width: 100%;
-  grid-template-columns: minmax(0, 1fr) max-content max-content;
+  grid-template-columns: max-content minmax(0, 1fr) max-content max-content max-content;
   align-items: center;
   column-gap: var(--ds-toolbar-gap-sm);
   row-gap: var(--ds-toolbar-gap-sm);
@@ -135,10 +227,28 @@ function itemTone(section = {}) {
 }
 
 .shell-section-toolbar__lane--mid,
+.shell-section-toolbar__lane--data,
 .shell-section-toolbar__lane--governance,
-.shell-section-toolbar__lane--right {
+.shell-section-toolbar__lane--right,
+.shell-section-toolbar__lane--suffix {
   justify-content: flex-start;
   white-space: nowrap;
+}
+
+.shell-section-toolbar__lane--data {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  width: 100%;
+}
+
+.shell-section-toolbar__lane-scroll {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-toolbar-gap-sm);
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-behavior: smooth;
 }
 
 .shell-section-toolbar__item {
@@ -170,6 +280,32 @@ function itemTone(section = {}) {
   background: var(--ds-color-fill-subtle);
   border-color: var(--ds-color-border-dashed);
   transform: translateY(-1px);
+}
+
+.shell-section-toolbar__scroll-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  min-width: 24px;
+  height: 24px;
+  padding: 0;
+  color: var(--ds-color-text-subtle);
+  background: transparent;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.shell-section-toolbar__scroll-btn:hover:not(:disabled) {
+  color: var(--ds-color-text-primary);
+  background: rgba(255, 255, 255, 0.78);
+  border-color: rgba(15, 23, 42, 0.18);
+}
+
+.shell-section-toolbar__scroll-btn:disabled {
+  opacity: 0.36;
+  cursor: default;
 }
 
 .shell-section-toolbar__item--active {
@@ -212,7 +348,7 @@ function itemTone(section = {}) {
 }
 
 .shell-section-toolbar--mini .shell-section-toolbar__lane--left,
-.shell-section-toolbar--mini .shell-section-toolbar__lane--mid,
+.shell-section-toolbar--mini .shell-section-toolbar__lane--data,
 .shell-section-toolbar--mini .shell-section-toolbar__lane--governance {
   padding: 4px;
   border: 0;
@@ -228,8 +364,12 @@ function itemTone(section = {}) {
   backdrop-filter: none;
 }
 
-.shell-section-toolbar--mini .shell-section-toolbar__lane--mid,
+.shell-section-toolbar--mini .shell-section-toolbar__lane--data,
 .shell-section-toolbar--mini .shell-section-toolbar__lane--governance {
+  gap: calc(var(--ds-toolbar-gap-sm) * 0.75);
+}
+
+.shell-section-toolbar--mini .shell-section-toolbar__lane-scroll {
   gap: calc(var(--ds-toolbar-gap-sm) * 0.75);
 }
 
@@ -303,10 +443,15 @@ function itemTone(section = {}) {
   }
 
   .shell-section-toolbar__lane--left,
-  .shell-section-toolbar__lane--mid,
+  .shell-section-toolbar__lane--data,
   .shell-section-toolbar__lane--governance,
-  .shell-section-toolbar__lane--right {
+  .shell-section-toolbar__lane--right,
+  .shell-section-toolbar__lane--suffix {
     flex-wrap: wrap;
+  }
+
+  .shell-section-toolbar__lane--data {
+    grid-template-columns: 1fr;
   }
 }
 
