@@ -32,6 +32,23 @@ That means this file should eventually help answer:
 - which recipe entries are important enough to carry into a future clean birth
 - which launch/setup paths should be orchestrated instead of manually patched
 
+## Foundational Rules
+
+`LAMP` should carry the clean foundational rules we would want from birth.
+
+That means:
+
+- keep wording precise from the start
+- keep ownership explicit from the start
+- keep bootstrap structure honest from the start
+- prefer one governed rule over many near-duplicates
+
+Working use:
+
+- use `DAMP` to see full current architecture truth
+- use `LAMP` to capture the clean birth version of that truth
+- use `Recipe` to keep only the parts we have already tested and want to reuse
+
 ## Related Docs
 
 - `docs/000/a. DAMP.md`
@@ -53,6 +70,102 @@ For clean-birth thinking, this matters because a future setup path should not in
 It should be able to scaffold from the governed token layer directly.
 
 Each token should also be able to carry a visible `Definition`, so launch/setup, extraction, and later comparison work can follow one local meaning source instead of relying on vague remembered intent.
+
+## Launch Base Structure Rule
+
+The clean birth structure should begin from one governed shared base:
+
+- `System`
+- `General`
+- `LDB`
+- `Other`
+
+Working rule:
+
+- `System`, `General`, and `LDB` are protected shared views
+- `Other` is the first governed extension lane
+- user-added views may exist beyond `Other`
+- bootstrap should not begin from vague or drifting section names
+
+Shared base expectation:
+
+- `System`
+  - `ID`
+  - `History`
+  - `Data.Status`
+- `General`
+  - `Name`
+  - `Summary`
+- `LDB`
+  - empty by default
+- `Other`
+  - empty by default
+
+Important distinction:
+
+- `Data.Status` is the governed status of the data itself
+- file-specific business or entity status belongs in `Other` or another file-owned view
+
+## Launch Structure Surface Rule
+
+The structure-governance surfaces should be born as direct JSON-governance paths.
+
+That means:
+
+- `Views` edits section/view metadata
+- `Tokens` edits token metadata
+- both surfaces should regulate `Defined_Structure`
+- they should not become side tables that only look structural
+
+Visual reading rule:
+
+- blue = editable
+- grey = locked
+
+Current target behavior:
+
+- bootstrap shared views and tokens stay protected
+- editable cells should expose the governed structure directly
+- the app should not invent a second parallel structure model in the UI
+
+## Launch Data Surface Rule
+
+Shared row/data rendering should begin from one governed contract:
+
+- one reading grammar
+- one control pattern
+- one cell-state language
+- one scroll behavior
+- one resize behavior
+
+Current clean-birth direction:
+
+- `Row Surface` and `Card Surface` remain the shared names
+- row surfaces begin with `Select` and `View`
+- token-backed column titles come from `Token Label`
+- editable = blue
+- linked = green
+- suggested = yellow
+- pre-selected = grey
+- verified = black
+
+These should be born as governed defaults, not rediscovered through page drift.
+
+## Launch Translator Rule
+
+Important shared interpretation work should be born as governed translator paths.
+
+That means:
+
+- canonical input first
+- translator classification second
+- builder normalization third
+- renderer last
+
+Working rule:
+
+- do not let shared interpretation begin as page-local helper code if it is obviously cross-surface behavior
+- if a shared behavior needs inspection, give it a named translator path early
 
 ## Master Translator Rule
 
