@@ -28,7 +28,9 @@
         :action-label="heroActionLabel"
         :action-title="heroActionTitle"
         :action-items="heroActionItems"
+        :collapsed="heroCollapsed"
         @action-item-click="handleHeroActionItemClick"
+        @toggle-collapse="heroCollapsed = !heroCollapsed"
       />
 
       <FileShellControlBar
@@ -732,6 +734,7 @@ const rawRows = ref([])
 const rowHistoryByRecordId = ref({})
 const rowHistoryLoadingByRecordId = ref({})
 const loaderDiagnostics = ref({})
+const heroCollapsed = ref(false)
 const viewMode = ref('page')
 const dataSurfaceCollapsed = ref(false)
 const createDialogOpen = ref(false)

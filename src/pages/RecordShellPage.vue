@@ -33,6 +33,7 @@
         :feed-groups="recordFeedGroupOptions"
         :feed-items="feedItems"
         feed-empty-message="No feed items yet for this record."
+        :collapsed="heroCollapsed"
         @pointerenter="startContactHeroPointerTracking"
         @pointermove="onContactHeroPointerMove"
         @pointerleave="onContactHeroPointerLeave"
@@ -41,6 +42,7 @@
         @toggle-settings-item="setTokenSelected"
         @open-feed-log="openFeedItemLog"
         @request-feed-add="handleRecordFeedAdd"
+        @toggle-collapse="heroCollapsed = !heroCollapsed"
       >
         <template #portrait>
           <figure class="record-shell__portrait record-shell__portrait--initials-only">
@@ -560,6 +562,7 @@ const contactHeroGradient = ref({ x: 50, y: 30, size: 60, opacity: 0 })
 const runtimeStructureVersion = ref(getRuntimeStructureVersion())
 let runtimeStructureUnsub = null
 const activeRecordFeedTab = ref('events')
+const heroCollapsed = ref(false)
 const recordDataSurfaceCollapsed = ref(false)
 const bridge = computed(() => (typeof window !== 'undefined' ? window.ecvc : null))
 const isElectronRuntime = computed(() => typeof window !== 'undefined')

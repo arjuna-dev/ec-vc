@@ -1,5 +1,17 @@
 <template>
-  <HeroSurface>
+  <HeroSurface
+    :collapsed="collapsed"
+    :show-collapse-toggle="true"
+    collapse-aria-label="Collapse record hero"
+    expand-aria-label="Expand record hero"
+    @toggle-collapse="$emit('toggle-collapse')"
+  >
+    <template #collapsed>
+      <div class="hero-sandbox__collapsed-bar">
+        <div class="hero-sandbox__collapsed-title">{{ title }}</div>
+        <div class="hero-sandbox__collapsed-summary">{{ collapsedSummaryText }}</div>
+      </div>
+    </template>
     <Hero3ColOverlay>
       <template #left>
         <div class="hero-sandbox__portrait-holder">
@@ -66,6 +78,7 @@
 </template>
 
 <script setup>
+import { computed } from 'vue'
 import Hero3ColOverlay from 'src/components/Hero3ColOverlay.vue'
 import HeroSurface from 'src/components/HeroSurface.vue'
 import ViewSettingsMenu from 'src/components/ViewSettingsMenu.vue'
@@ -79,7 +92,7 @@ defineOptions({
   name: 'RecordHero',
 })
 
-defineProps({
+const props = defineProps({
   title: {
     type: String,
     default: 'Record Title',
@@ -128,6 +141,10 @@ defineProps({
     type: String,
     default: 'No feed items yet for this record.',
   },
+  collapsed: {
+    type: Boolean,
+    default: false,
+  },
 })
 
 const emit = defineEmits([
@@ -136,14 +153,44 @@ const emit = defineEmits([
   'toggle-settings-item',
   'open-feed-log',
   'request-feed-add',
+  'toggle-collapse',
 ])
 
 function handleToggleSettingsItem(itemKey, value) {
   emit('toggle-settings-item', itemKey, value)
 }
+
+const collapsedSummaryText = computed(() => {
+  const summary = String(props.summaryValue || '').trim()
+  if (!summary) return 'Record hero collapsed'
+  return summary.length > 120 ? `${summary.slice(0, 117)}...` : summary
+})
 </script>
 
 <style scoped>
+.hero-sandbox__collapsed-bar {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.hero-sandbox__collapsed-title {
+  color: var(--ds-color-text-primary);
+  font-family: var(--ds-font-title);
+  font-size: var(--ds-font-size-lg);
+  font-weight: var(--ds-font-weight-bold);
+  line-height: 1;
+}
+
+.hero-sandbox__collapsed-summary {
+  min-width: 0;
+  color: var(--ds-color-text-secondary);
+  font-family: var(--ds-font-body);
+  font-size: var(--ds-font-size-sm-medium);
+  font-weight: var(--ds-font-weight-medium);
+  line-height: var(--ds-line-height-sm);
+}
+
 .hero-sandbox__portrait-holder {
   display: flex;
   flex: 1 1 auto;
