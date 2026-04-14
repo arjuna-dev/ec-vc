@@ -107,6 +107,38 @@ That means `System` should not stop at file identity only.
 
 It should also make it clear that token-backed rendering ultimately depends on the file-owned section/view/token contract.
 
+## How It Works
+
+The active file-structure path works like this:
+
+1. `src-electron/electron-main.js`
+   - defines the bootstrap template for file structure
+   - `buildBaseFileStructure(entry)` creates the default `Defined_Structure` JSON for a file
+
+2. `Files.Defined_Structure`
+   - stores the actual structure contract for each file
+   - this is the main runtime truth holder for structure
+
+3. `src/utils/structureRegistry.js`
+   - reads `Files.Defined_Structure`
+   - parses the stored JSON
+   - turns it into runtime sections and tokens
+
+4. shell surfaces
+   - surfaces such as `FilePageShell.vue` and `AddEditFileShellDialog.vue` render from that parsed token structure
+
+Short reading:
+
+- `electron-main.js` = birth template and repair logic
+- `Files.Defined_Structure` = stored structure truth
+- `structureRegistry.js` = runtime parser
+- shell surfaces = renderer
+
+Working rule:
+
+- changing bootstrap alone does not mean every existing file structure changed everywhere
+- if an old field contract is still stored in `Defined_Structure`, the UI should honestly keep reading that older contract until the stored structure is rewritten or repaired
+
 ## Parent File Guide Rule
 
 `System.md` now carries the parent file-guide rule for the system-file layer.

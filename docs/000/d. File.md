@@ -76,6 +76,39 @@ This is the safe chain to use when a table, card, dialog, translator, or extract
 
 If the surface and the token layer disagree, repair the file structure contract first.
 
+## How It Works
+
+For active file structure, the backend and runtime chain is:
+
+1. `src-electron/electron-main.js`
+   - defines the file birth template
+   - creates default `Defined_Structure` JSON for new file rows
+
+2. `Files.Defined_Structure`
+   - stores the file's real structure contract after birth
+   - this is what current runtime should trust
+
+3. `src/utils/structureRegistry.js`
+   - parses the stored structure
+   - exposes file-owned sections and tokens to shared shells
+
+4. shared shell surfaces
+   - render from the parsed file-owned token structure
+
+This means:
+
+- bootstrap changes affect future birth first
+- existing stored structure only changes when it is explicitly rewritten or repaired
+- renderer surfaces should expose stored structure honestly instead of silently pretending the newer bootstrap is already everywhere
+
+Working lesson:
+
+- when we say a field was `changed`, we should be precise about which layer changed:
+  - bootstrap template
+  - stored `Defined_Structure`
+  - runtime parser
+  - renderer
+
 ## Authority
 
 The `File Steward` should not improvise file structure.
