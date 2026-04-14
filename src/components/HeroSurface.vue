@@ -2,29 +2,12 @@
   <section
     ref="rootRef"
     class="hero-surface"
-    :class="{ 'hero-surface--collapsed': collapsed }"
     :style="surfaceStyle"
     @pointermove="handlePointerMove"
     @pointerleave="handlePointerLeave"
   >
     <div class="hero-surface__base" />
-    <button
-      v-if="showCollapseToggle"
-      type="button"
-      class="hero-surface__collapse-toggle"
-      :aria-label="collapsed ? expandAriaLabel : collapseAriaLabel"
-      @click="$emit('toggle-collapse')"
-    >
-      <svg viewBox="0 0 24 24" aria-hidden="true" class="hero-surface__collapse-icon">
-        <path :d="collapsed ? 'M7 10L12 15L17 10' : 'M7 14L12 9L17 14'" />
-      </svg>
-    </button>
-    <div v-if="collapsed" class="hero-surface__collapsed">
-      <slot name="collapsed" />
-    </div>
-    <div v-else class="hero-surface__content">
-      <slot />
-    </div>
+    <slot />
   </section>
 </template>
 
@@ -32,25 +15,6 @@
 import { computed, ref } from 'vue'
 
 defineOptions({ name: 'HeroSurface' })
-defineProps({
-  collapsed: {
-    type: Boolean,
-    default: false,
-  },
-  showCollapseToggle: {
-    type: Boolean,
-    default: false,
-  },
-  collapseAriaLabel: {
-    type: String,
-    default: 'Collapse hero',
-  },
-  expandAriaLabel: {
-    type: String,
-    default: 'Expand hero',
-  },
-})
-defineEmits(['toggle-collapse'])
 
 const rootRef = ref(null)
 const pointerX = ref('50%')
@@ -97,10 +61,6 @@ function handlePointerLeave() {
   isolation: isolate;
 }
 
-.hero-surface--collapsed {
-  min-height: 86px;
-}
-
 .hero-surface::before {
   position: absolute;
   inset: 0;
@@ -121,54 +81,5 @@ function handlePointerLeave() {
   backdrop-filter: blur(30px);
   -webkit-backdrop-filter: blur(30px);
   z-index: 0;
-}
-
-.hero-surface__content,
-.hero-surface__collapsed {
-  position: relative;
-  z-index: 1;
-  width: 100%;
-  height: 100%;
-}
-
-.hero-surface__collapsed {
-  display: flex;
-  align-items: center;
-  min-height: 86px;
-  padding: 18px 56px 18px 20px;
-}
-
-.hero-surface__collapse-toggle {
-  position: absolute;
-  top: 14px;
-  right: 14px;
-  z-index: 2;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  padding: 0;
-  color: rgba(17, 17, 17, 0.72);
-  background: rgba(255, 255, 255, 0.8);
-  border: 1px solid rgba(17, 17, 17, 0.08);
-  border-radius: 999px;
-  cursor: pointer;
-  backdrop-filter: blur(10px);
-}
-
-.hero-surface__collapse-toggle:hover {
-  color: rgba(17, 17, 17, 0.92);
-  background: rgba(255, 255, 255, 0.92);
-}
-
-.hero-surface__collapse-icon {
-  width: 14px;
-  height: 14px;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 1.8;
-  stroke-linecap: round;
-  stroke-linejoin: round;
 }
 </style>

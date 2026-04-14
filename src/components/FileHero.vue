@@ -1,17 +1,5 @@
 <template>
-  <HeroSurface
-    :collapsed="collapsed"
-    :show-collapse-toggle="true"
-    collapse-aria-label="Collapse file hero"
-    expand-aria-label="Expand file hero"
-    @toggle-collapse="emit('toggle-collapse')"
-  >
-    <template #collapsed>
-      <div class="file-hero-sandbox__collapsed-bar">
-        <div class="file-hero-sandbox__collapsed-label">{{ actionLabelText }}</div>
-        <div class="file-hero-sandbox__collapsed-text">{{ collapsedText }}</div>
-      </div>
-    </template>
+  <HeroSurface>
     <Hero2ColOverlay>
       <template #left>
         <div class="file-hero-sandbox__copy">
@@ -73,7 +61,7 @@ import HeroSurface from 'src/components/HeroSurface.vue'
 import L3Box from 'src/components/L3Box.vue'
 
 defineOptions({ name: 'FileHero' })
-const emit = defineEmits(['action-item-click', 'toggle-collapse'])
+const emit = defineEmits(['action-item-click'])
 
 const props = defineProps({
   text: {
@@ -104,10 +92,6 @@ const props = defineProps({
     type: Array,
     default: () => [],
   },
-  collapsed: {
-    type: Boolean,
-    default: false,
-  },
 })
 
 const normalizedStats = computed(() => (Array.isArray(props.stats) ? props.stats : []))
@@ -126,39 +110,9 @@ const normalizedActionItems = computed(() =>
 )
 const actionLabelText = computed(() => String(props.actionLabel || '').trim() || 'File Health')
 const actionTitleText = computed(() => String(props.actionTitle || '').trim() || 'Reference Documents')
-const collapsedText = computed(() => {
-  const heroText = String(props.text || '').trim()
-  if (!heroText) return 'File hero collapsed'
-  return heroText.length > 120 ? `${heroText.slice(0, 117)}...` : heroText
-})
 </script>
 
 <style scoped>
-.file-hero-sandbox__collapsed-bar {
-  display: grid;
-  gap: 4px;
-  min-width: 0;
-}
-
-.file-hero-sandbox__collapsed-label {
-  color: var(--ds-color-text-muted);
-  font-family: var(--ds-font-body);
-  font-size: var(--ds-font-size-xs-medium);
-  font-weight: var(--ds-font-weight-medium);
-  line-height: var(--ds-line-height-xs);
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-}
-
-.file-hero-sandbox__collapsed-text {
-  min-width: 0;
-  color: var(--ds-color-text-primary);
-  font-family: var(--ds-font-body);
-  font-size: var(--ds-font-size-sm-medium);
-  font-weight: var(--ds-font-weight-medium);
-  line-height: var(--ds-line-height-sm);
-}
-
 .file-hero-sandbox__copy {
   display: flex;
   flex-direction: column;
