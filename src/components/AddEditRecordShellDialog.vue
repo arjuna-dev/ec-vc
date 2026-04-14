@@ -992,6 +992,7 @@ import DropZone from 'src/components/DropZone.vue'
 import ArtifactRow from 'src/components/ArtifactRow.vue'
 import MiniToolbar from 'src/components/MiniToolbar.vue'
 import StructureGovernancePanel from 'src/components/StructureGovernancePanel.vue'
+import { buildTokenGovernanceColumns } from 'src/utils/structureGovernanceColumns'
 import ProcessingBox from 'src/components/ProcessingBox.vue'
 import ShellSelector from 'src/components/ShellSelector.vue'
 import FieldMapRow from 'src/components/FieldMapRow.vue'
@@ -1258,33 +1259,6 @@ const viewOptions = [
 ]
 const miniToolbarViewMode = computed(() => 'card')
 const miniToolbarViewOptions = computed(() => viewOptions)
-const tokenTypeOptions = [
-  { value: 'text', label: 'Text' },
-  { value: 'long_text', label: 'Long Text' },
-  { value: 'textarea', label: 'Textarea' },
-  { value: 'rich_text', label: 'Rich Text' },
-  { value: 'number', label: 'Number' },
-  { value: 'date', label: 'Date' },
-  { value: 'datetime', label: 'Datetime' },
-  { value: 'email', label: 'Email' },
-  { value: 'phone', label: 'Phone' },
-  { value: 'url', label: 'URL' },
-  { value: 'select_single', label: 'Select Single' },
-  { value: 'select_multi', label: 'Select Multi' },
-  { value: 'creator', label: 'Creator' },
-]
-const optionSourceOptions = [
-  { value: 'live_entity', label: 'Live Entity' },
-  { value: 'option_list', label: 'Option List' },
-  { value: 'shared_file_universe', label: 'Shared File Universe' },
-  { value: 'manual', label: 'Manual' },
-]
-const fieldClassOptions = [
-  { value: 'owned', label: 'Owned' },
-  { value: 'directional', label: 'Directional' },
-  { value: 'ldb_relationship', label: 'LDB Relationship' },
-  { value: 'system', label: 'System' },
-]
 const optionEntityOptions = Object.freeze(
   FILE_SOURCE_REGISTRY
     .map((entry) => {
@@ -1293,17 +1267,14 @@ const optionEntityOptions = Object.freeze(
     })
     .filter(Boolean),
 )
-const tokenGovernanceColumns = computed(() => [
-  { key: 'label', label: 'Label', width: 180, cellClass: 'create-record-shell__cell--label', editable: true, kind: 'text' },
-  { key: 'type', label: 'Type', width: 112, headerClass: 'create-record-shell__cell--meta', cellClass: 'create-record-shell__cell--meta', editable: true, kind: 'select', options: tokenTypeOptions },
-  { key: 'optionSource', label: 'Option Source', width: 150, headerClass: 'create-record-shell__cell--meta', cellClass: 'create-record-shell__cell--meta', editable: true, kind: 'select', options: optionSourceOptions },
-  { key: 'optionEntity', label: 'Option Entity', width: 160, headerClass: 'create-record-shell__cell--meta', cellClass: 'create-record-shell__cell--meta', editable: true, kind: 'select', options: optionEntityOptions },
-  { key: 'optionList', label: 'Option List', width: 140, headerClass: 'create-record-shell__cell--meta', cellClass: 'create-record-shell__cell--meta', editable: true, kind: 'text' },
-  { key: 'dbWriteField', label: 'DB Write Field', width: 180, headerClass: 'create-record-shell__cell--meta', cellClass: 'create-record-shell__cell--meta', editable: true, kind: 'text' },
-  { key: 'fieldClass', label: 'Field Class', width: 140, headerClass: 'create-record-shell__cell--meta', cellClass: 'create-record-shell__cell--meta', editable: true, kind: 'select', options: fieldClassOptions },
-  { key: 'required', label: 'Required', width: 84, headerClass: 'create-record-shell__cell--meta', cellClass: 'create-record-shell__cell--meta', kind: 'checkbox' },
-  { key: 'writeTarget', label: 'Write Target / Alias', width: 220, headerClass: 'create-record-shell__cell--meta', cellClass: 'create-record-shell__cell--meta', editable: true, kind: 'text' },
-])
+const tokenGovernanceColumns = computed(() =>
+  buildTokenGovernanceColumns({
+    labelCellClass: 'structure-governance-panel__cell--label',
+    dataHeaderClass: 'structure-governance-panel__cell--data',
+    dataCellClass: 'structure-governance-panel__cell--data',
+    optionEntityOptions,
+  }),
+)
 
 const activeSection = computed(() => {
   if (activeSectionKey.value === 'tokens' || activeSectionKey.value === 'views') return null

@@ -52,12 +52,7 @@
         :show-view-toggle="false"
       />
 
-      <section v-if="activeGovernanceToolbarKey" class="event-shell__panel">
-        <div class="event-shell__panel-head">
-          <div class="event-shell__panel-title">{{ activeGovernanceTitle }}</div>
-          <div class="event-shell__panel-meta">Structure governance</div>
-        </div>
-
+      <div v-if="activeGovernanceToolbarKey" class="test-shell-table-surface">
         <StructureGovernancePanel
           :mode="activeGovernanceToolbarKey"
           :view-rows="governanceViewRows"
@@ -67,7 +62,7 @@
           empty-tokens-label="No tokens declared in this view."
           @update-token-cell="updateTokenCell"
         />
-      </section>
+      </div>
 
       <template v-else>
       <FilePageToolbar
@@ -791,6 +786,7 @@ import MiniToolbar from 'components/MiniToolbar.vue'
 import RecordHistoryBox from 'components/RecordHistoryBox.vue'
 import BuildingBlockPreviewTile from 'components/BuildingBlockPreviewTile.vue'
 import StructureGovernancePanel from 'components/StructureGovernancePanel.vue'
+import { buildTokenGovernanceColumns } from 'src/utils/structureGovernanceColumns'
 import { buildStructureToolbarItems } from 'src/utils/structureToolbarContract'
 import EyeIconButton from 'components/buttons/EyeIconButton.vue'
 import SelectionActionBar from 'components/SelectionActionBar.vue'
@@ -902,33 +898,6 @@ const cardItemKeysBySource = ref(loadShellFieldSelectionMap())
 const liveOptionRowsBySource = ref({})
 const localDraftRowsBySource = ref({})
   const tokenMetaOverridesBySource = ref(loadTokenMetadataOverrides())
-  const tokenTypeOptions = [
-    { value: 'text', label: 'Text' },
-    { value: 'long_text', label: 'Long Text' },
-    { value: 'textarea', label: 'Textarea' },
-    { value: 'rich_text', label: 'Rich Text' },
-    { value: 'number', label: 'Number' },
-    { value: 'date', label: 'Date' },
-    { value: 'datetime', label: 'Datetime' },
-    { value: 'email', label: 'Email' },
-    { value: 'phone', label: 'Phone' },
-    { value: 'url', label: 'URL' },
-    { value: 'select_single', label: 'Select Single' },
-    { value: 'select_multi', label: 'Select Multi' },
-    { value: 'creator', label: 'Creator' },
-  ]
-  const optionSourceOptions = [
-    { value: 'live_entity', label: 'Live Entity' },
-    { value: 'option_list', label: 'Option List' },
-    { value: 'shared_file_universe', label: 'Shared File Universe' },
-    { value: 'manual', label: 'Manual' },
-  ]
-  const fieldClassOptions = [
-    { value: 'owned', label: 'Owned' },
-    { value: 'directional', label: 'Directional' },
-    { value: 'ldb_relationship', label: 'LDB Relationship' },
-    { value: 'system', label: 'System' },
-  ]
   const optionEntityOptions = Object.freeze(
     FILE_SOURCE_REGISTRY
       .map((entry) => {
@@ -937,17 +906,14 @@ const localDraftRowsBySource = ref({})
       })
       .filter(Boolean),
   )
-  const tokenGovernanceColumns = computed(() => [
-    { key: 'label', label: 'Label', width: 180, cellClass: 'file-structure-shell__cell--label', editable: true, kind: 'text' },
-    { key: 'type', label: 'Type', width: 112, headerClass: 'file-structure-shell__colhead--data', cellClass: 'file-structure-shell__cell--data', editable: true, kind: 'select', options: tokenTypeOptions },
-    { key: 'optionSource', label: 'Option Source', width: 150, headerClass: 'file-structure-shell__colhead--data', cellClass: 'file-structure-shell__cell--data', editable: true, kind: 'select', options: optionSourceOptions },
-    { key: 'optionEntity', label: 'Option Entity', width: 160, headerClass: 'file-structure-shell__colhead--data', cellClass: 'file-structure-shell__cell--data', editable: true, kind: 'select', options: optionEntityOptions },
-    { key: 'optionList', label: 'Option List', width: 140, headerClass: 'file-structure-shell__colhead--data', cellClass: 'file-structure-shell__cell--data', editable: true, kind: 'text' },
-    { key: 'dbWriteField', label: 'DB Write Field', width: 180, headerClass: 'file-structure-shell__colhead--data', cellClass: 'file-structure-shell__cell--data', editable: true, kind: 'text' },
-    { key: 'fieldClass', label: 'Field Class', width: 140, headerClass: 'file-structure-shell__colhead--data', cellClass: 'file-structure-shell__cell--data', editable: true, kind: 'select', options: fieldClassOptions },
-    { key: 'required', label: 'Required', width: 84, headerClass: 'file-structure-shell__colhead--data', cellClass: 'file-structure-shell__cell--data', kind: 'checkbox' },
-    { key: 'writeTarget', label: 'Write Target / Alias', width: 220, headerClass: 'file-structure-shell__colhead--data', cellClass: 'file-structure-shell__cell--data', editable: true, kind: 'text' },
-  ])
+  const tokenGovernanceColumns = computed(() =>
+    buildTokenGovernanceColumns({
+      labelCellClass: 'structure-governance-panel__cell--label',
+      dataHeaderClass: 'structure-governance-panel__cell--data',
+      dataCellClass: 'structure-governance-panel__cell--data',
+      optionEntityOptions,
+    }),
+  )
 const sharedLdbLinksByRecordId = ref({})
 
 const DEFAULT_COLUMN_MIN_WIDTH = 120
@@ -1128,11 +1094,6 @@ const activeView = computed(() => {
 const activeGovernanceToolbarKey = computed(() => {
   const normalized = String(activeViewKey.value || '').trim().toLowerCase()
   if (normalized === 'tokens' || normalized === 'views') return normalized
-  return ''
-})
-const activeGovernanceTitle = computed(() => {
-  if (activeGovernanceToolbarKey.value === 'tokens') return 'Tokens'
-  if (activeGovernanceToolbarKey.value === 'views') return 'Views'
   return ''
 })
 const isLdbViewActive = computed(() => isRelationshipSectionLabel(activeView.value?.label))
@@ -3364,7 +3325,9 @@ function getTableCellVerificationState(row, token, tokenRow = null) {
   const rowFieldMeta = row?.raw?.__fieldMeta && typeof row.raw.__fieldMeta === 'object'
     ? row.raw.__fieldMeta[tokenKey]
     : null
-  return String(rowFieldMeta?.verificationState || '').trim().toLowerCase()
+  const rowState = String(rowFieldMeta?.verificationState || '').trim().toLowerCase()
+  if (rowState) return rowState
+  return String(token?.defaultVerificationState || '').trim().toLowerCase()
 }
 
 function isLinkedTableCellToken(token, tokenRow = null) {
@@ -3380,6 +3343,7 @@ function getTableCellToneClass(row, token, tokenRow = null) {
   if (verificationState === 'suggested_unverified') return 'test-shell-table__tone--suggested'
   if (verificationState === 'default_preselected_unverified') return 'test-shell-table__tone--preselected'
   if (verificationState === 'verified') return 'test-shell-table__tone--verified'
+  if (verificationState === 'input') return 'test-shell-table__tone--editable'
   if (isLinkedTableCellToken(token, tokenRow)) return 'test-shell-table__tone--linked'
   if (canInlineEditTableCell(row, token)) return 'test-shell-table__tone--editable'
   return ''

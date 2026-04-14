@@ -66,15 +66,7 @@
         :show-view-toggle="false"
       />
 
-      <section class="record-shell__panel">
-        <div class="record-shell__panel-head">
-        <div class="record-shell__panel-title">{{ activeGovernanceTitle || activeViewGroup?.title || activeView?.label || 'View' }}</div>
-          <div class="record-shell__panel-meta">
-            {{ activeGovernanceToolbarKey ? 'Structure governance' : `${activeViewTokens.length} fields` }}
-          </div>
-        </div>
-
-        <div v-if="activeGovernanceToolbarKey" class="record-shell__governance-surface">
+      <div v-if="activeGovernanceToolbarKey" class="record-shell__governance-surface">
           <StructureGovernancePanel
             :mode="activeGovernanceToolbarKey === 'governance:views' ? 'views' : 'tokens'"
             :view-rows="governanceViewRows"
@@ -84,9 +76,10 @@
             empty-tokens-label="No tokens declared in this view."
             @update-token-cell="updateTokenCell"
           />
-        </div>
+      </div>
 
-        <div v-else-if="isSystemViewActive" class="record-shell__system-grid">
+      <section v-else class="record-shell__panel">
+        <div v-if="isSystemViewActive" class="record-shell__system-grid">
           <div class="record-shell__system-column">
             <div class="record-shell__field-grid">
               <div
@@ -514,6 +507,7 @@ import { useRoute, useRouter } from 'vue-router'
 import AddEditRecordShellDialog from 'src/components/AddEditRecordShellDialog.vue'
 import MiniToolbar from 'src/components/MiniToolbar.vue'
 import RecordHistoryBox from 'src/components/RecordHistoryBox.vue'
+import { buildTokenGovernanceColumns } from 'src/utils/structureGovernanceColumns'
 import RecordHero from 'src/components/RecordHero.vue'
 import StructureGovernancePanel from 'src/components/StructureGovernancePanel.vue'
 import { setPendingAddEditShellRequest } from 'src/utils/addEditShellState'
@@ -708,17 +702,14 @@ const OPTION_ENTITY_OPTIONS = Object.freeze(
     })
     .filter(Boolean),
 )
-const tokenGovernanceColumns = computed(() => [
-  { key: 'label', label: 'Label', width: 180, cellClass: 'record-shell__cell--label', editable: true, kind: 'text' },
-  { key: 'type', label: 'Type', width: 112, headerClass: 'record-shell__cell--meta', cellClass: 'record-shell__cell--meta', editable: true, kind: 'select', options: TOKEN_TYPE_OPTIONS },
-  { key: 'optionSource', label: 'Option Source', width: 150, headerClass: 'record-shell__cell--meta', cellClass: 'record-shell__cell--meta', editable: true, kind: 'select', options: OPTION_SOURCE_OPTIONS },
-  { key: 'optionEntity', label: 'Option Entity', width: 160, headerClass: 'record-shell__cell--meta', cellClass: 'record-shell__cell--meta', editable: true, kind: 'select', options: OPTION_ENTITY_OPTIONS },
-  { key: 'optionList', label: 'Option List', width: 140, headerClass: 'record-shell__cell--meta', cellClass: 'record-shell__cell--meta', editable: true, kind: 'text' },
-  { key: 'dbWriteField', label: 'DB Write Field', width: 180, headerClass: 'record-shell__cell--meta', cellClass: 'record-shell__cell--meta', editable: true, kind: 'text' },
-  { key: 'fieldClass', label: 'Field Class', width: 140, headerClass: 'record-shell__cell--meta', cellClass: 'record-shell__cell--meta', editable: true, kind: 'select', options: FIELD_CLASS_OPTIONS },
-  { key: 'required', label: 'Required', width: 84, headerClass: 'record-shell__cell--meta', cellClass: 'record-shell__cell--meta', kind: 'checkbox' },
-  { key: 'writeTarget', label: 'Write Target / Alias', width: 220, headerClass: 'record-shell__cell--meta', cellClass: 'record-shell__cell--meta', editable: true, kind: 'text' },
-])
+const tokenGovernanceColumns = computed(() =>
+  buildTokenGovernanceColumns({
+    labelCellClass: 'structure-governance-panel__cell--label',
+    dataHeaderClass: 'structure-governance-panel__cell--data',
+    dataCellClass: 'structure-governance-panel__cell--data',
+    optionEntityOptions: OPTION_ENTITY_OPTIONS,
+  }),
+)
 
 watch(
   tokenMetaOverridesBySource,
@@ -940,7 +931,6 @@ const activeViewGroup = computed(() => {
   if (activeGovernanceToolbarKey.value) return null
   return groupedViews.value.find((group) => group.value === activeViewGroupKey.value) || groupedViews.value[0] || null
 })
-const activeView = computed(() => activeViewGroup.value?.views?.[0] || null)
 const activeViewEntries = computed(() => activeViewGroup.value?.views || [])
 const activeViewTokens = computed(() => {
   if (isLdbViewActive.value) return sharedLdbViewTokens.value
@@ -1064,11 +1054,6 @@ const historySummaryItems = computed(() => {
       value: String(createdEvent.meta || '').trim(),
     },
   ].filter((item) => item.value)
-})
-const activeGovernanceTitle = computed(() => {
-  if (activeGovernanceToolbarKey.value === 'governance:tokens') return 'Tokens'
-  if (activeGovernanceToolbarKey.value === 'governance:views') return 'Views'
-  return ''
 })
 const recordShellNavItems = computed(() =>
   buildStructureToolbarItems({

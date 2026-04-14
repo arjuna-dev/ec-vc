@@ -1,260 +1,160 @@
 <template>
-  <div v-if="mode === 'views'" class="structure-governance-panel">
-    <table class="structure-governance-panel__table">
-      <colgroup>
-        <col class="structure-governance-panel__col structure-governance-panel__col--select">
-        <col class="structure-governance-panel__col structure-governance-panel__col--view">
-        <col class="structure-governance-panel__col structure-governance-panel__col--label">
-        <col class="structure-governance-panel__col structure-governance-panel__col--side">
-        <col class="structure-governance-panel__col structure-governance-panel__col--count">
-      </colgroup>
-      <thead>
-        <tr>
-          <th aria-label="Selection"></th>
-          <th aria-label="View"></th>
-          <th>View</th>
-          <th>Side</th>
-          <th>Tokens</th>
-          <th>Tokens</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="view in viewRows" :key="view.key">
-          <td class="structure-governance-panel__cell--data">
-            <SettingsCheckbox
-              :model-value="Boolean(view.selected)"
-              tone="light"
-              @update:model-value="$emit('toggle-view-select', view.key, $event)"
-            />
-          </td>
-          <td class="structure-governance-panel__cell--control">
-            <q-icon name="visibility" size="14px" class="structure-governance-panel__eye-icon" />
-          </td>
-          <td class="structure-governance-panel__cell--label">{{ view.label }}</td>
-          <td class="structure-governance-panel__cell--data">{{ view.side }}</td>
-          <td class="structure-governance-panel__cell--data">{{ view.tokenCount }}</td>
-        </tr>
-        <tr v-if="!viewRows.length">
-          <td colspan="5" class="structure-governance-panel__empty">{{ emptyViewsLabel }}</td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
+  <SharedRowSurfaceTable
+    v-if="mode === 'views'"
+    :columns="resolvedViewSurfaceColumns"
+    :rows="resolvedViewSurfaceRows"
+    :empty-label="emptyViewsLabel"
+  >
+    <template #cell="{ row, column }">
+      <SettingsCheckbox
+        v-if="column.key === '__select__'"
+        :model-value="Boolean(row.selected)"
+        tone="light"
+        @update:model-value="$emit('toggle-view-select', row.key, $event)"
+      />
+      <q-icon
+        v-else-if="column.key === '__view__'"
+        name="visibility"
+        size="14px"
+        class="structure-governance-panel__eye-icon"
+      />
+      <span v-else>{{ row[column.key] }}</span>
+    </template>
+  </SharedRowSurfaceTable>
 
-  <div v-else-if="mode === 'tokens'" class="structure-governance-panel structure-governance-panel--groups">
-    <table class="structure-governance-panel__table structure-governance-panel__table--shared-head">
-      <colgroup>
-        <col class="structure-governance-panel__col structure-governance-panel__col--select">
-        <col class="structure-governance-panel__col structure-governance-panel__col--view">
-        <col
-          v-for="column in resolvedTokenColumns"
-          :key="column.key"
-          :style="columnStyle(column)"
-        >
-      </colgroup>
-      <thead>
-        <tr>
-          <th aria-label="Selection"></th>
-          <th aria-label="View"></th>
-          <th
-            v-for="column in resolvedTokenColumns"
-            :key="column.key"
-            :class="column.headerClass"
-          >
-            {{ column.label }}
-          </th>
-        </tr>
-      </thead>
-    </table>
-
-    <section
-      v-for="group in tokenGroups"
-      :key="group.key"
-      class="structure-governance-panel__group"
-    >
-      <button
-        type="button"
-        class="structure-governance-panel__group-toggle"
-        :aria-label="`${isGroupExpanded(group.key) ? 'Collapse' : 'Expand'} ${group.label}`"
-        @click="toggleGroup(group.key)"
+  <SharedRowSurfaceTable
+    v-else-if="mode === 'tokens'"
+    :columns="resolvedTokenSurfaceColumns"
+    :rows="resolvedTokenSurfaceRows"
+    :empty-label="emptyTokensLabel"
+    @cell-dblclick="handleTokenSurfaceCellDblclick"
+  >
+    <template #cell="{ row, column }">
+      <SettingsCheckbox
+        v-if="column.key === '__select__'"
+        :model-value="selectedTokenKeySet.has(row.key)"
+        tone="light"
+        @update:model-value="$emit('toggle-token-select', row.key, $event)"
+      />
+      <q-icon
+        v-else-if="column.key === '__view__'"
+        name="visibility"
+        size="14px"
+        class="structure-governance-panel__eye-icon"
+      />
+      <SettingsCheckbox
+        v-else-if="column.kind === 'checkbox'"
+        :model-value="Boolean(row[column.key])"
+        tone="light"
+        @update:model-value="$emit('toggle-required', row.key, $event)"
+      />
+      <select
+        v-else-if="isTokenCellEditing(row.key, column.key) && column.kind === 'select'"
+        :value="editingCellValue"
+        class="structure-governance-panel__cell-input"
+        @blur="commitTokenCellEdit(row.key, column.key, $event.target.value)"
+        @change="commitTokenCellEdit(row.key, column.key, $event.target.value)"
+        @keydown.esc.prevent="cancelDataCellEdit"
       >
-        <div class="structure-governance-panel__group-head">
-          <div class="structure-governance-panel__group-spacer" aria-hidden="true"></div>
-          <div class="structure-governance-panel__group-head-leading">
-            <q-icon
-              :name="isGroupExpanded(group.key) ? 'expand_more' : 'chevron_right'"
-              size="14px"
-              class="structure-governance-panel__group-toggle-icon"
-            />
-            <div class="structure-governance-panel__group-title">{{ group.label }}</div>
-            <div class="structure-governance-panel__group-meta">{{ group.tokens.length }} tokens</div>
-          </div>
-        </div>
-      </button>
-
-      <table v-if="isGroupExpanded(group.key)" class="structure-governance-panel__table">
-        <colgroup>
-          <col class="structure-governance-panel__col structure-governance-panel__col--select">
-          <col class="structure-governance-panel__col structure-governance-panel__col--view">
-          <col
-            v-for="column in resolvedTokenColumns"
-            :key="column.key"
-            :style="columnStyle(column)"
-          >
-        </colgroup>
-        <tbody>
-          <tr v-for="token in group.tokens" :key="token.key">
-            <td class="structure-governance-panel__cell--data">
-              <SettingsCheckbox
-                :model-value="selectedTokenKeySet.has(token.key)"
-                tone="light"
-                @update:model-value="$emit('toggle-token-select', token.key, $event)"
-              />
-            </td>
-            <td class="structure-governance-panel__cell--control">
-              <q-icon name="visibility" size="14px" class="structure-governance-panel__eye-icon" />
-            </td>
-            <td
-              v-for="column in resolvedTokenColumns"
-              :key="`${token.key}:${column.key}`"
-              :class="[column.cellClass, { 'structure-governance-panel__cell--editable': isTokenEditable(token, column) }]"
-              @dblclick="startTokenCellEdit(token, column)"
-            >
-              <SettingsCheckbox
-                v-if="column.kind === 'checkbox'"
-                :model-value="Boolean(token[column.key])"
-                tone="light"
-                @update:model-value="$emit('toggle-required', token.key, $event)"
-              />
-              <select
-                v-else-if="isTokenCellEditing(token.key, column.key) && column.kind === 'select'"
-                :value="editingCellValue"
-                class="structure-governance-panel__cell-input"
-                @blur="commitTokenCellEdit(token.key, column.key, $event.target.value)"
-                @change="commitTokenCellEdit(token.key, column.key, $event.target.value)"
-                @keydown.esc.prevent="cancelDataCellEdit"
-              >
-                <option
-                  v-for="option in column.options || []"
-                  :key="option.value"
-                  :value="option.value"
-                >
-                  {{ option.label }}
-                </option>
-              </select>
-              <input
-                v-else-if="isTokenCellEditing(token.key, column.key)"
-                :value="editingCellValue"
-                class="structure-governance-panel__cell-input"
-                type="text"
-                @input="editingCellValue = $event.target.value"
-                @blur="commitTokenCellEdit(token.key, column.key, $event.target.value)"
-                @keydown.enter.prevent="commitTokenCellEdit(token.key, column.key, $event.target.value)"
-                @keydown.esc.prevent="cancelDataCellEdit"
-              >
-              <span v-else>{{ token[column.key] }}</span>
-            </td>
-          </tr>
-          <tr v-if="!group.tokens.length">
-            <td :colspan="resolvedTokenColumns.length + 2" class="structure-governance-panel__empty">{{ emptyTokensLabel }}</td>
-          </tr>
-        </tbody>
-      </table>
-    </section>
-
-    <div v-if="!tokenGroups.length" class="structure-governance-panel__empty structure-governance-panel__empty--standalone">
-      {{ emptyTokensLabel }}
-    </div>
-  </div>
-
-  <div v-else-if="mode === 'data'" class="structure-governance-panel">
-    <table class="structure-governance-panel__table">
-      <colgroup>
-        <col class="structure-governance-panel__col structure-governance-panel__col--select">
-        <col class="structure-governance-panel__col structure-governance-panel__col--view">
-        <col
-          v-for="column in dataColumns"
-          :key="column.key"
-          :style="columnStyle(column)"
+        <option
+          v-for="option in column.options || []"
+          :key="option.value"
+          :value="option.value"
         >
-      </colgroup>
-      <thead>
-        <tr>
-          <th aria-label="Selection"></th>
-          <th aria-label="View"></th>
-          <th
-            v-for="column in dataColumns"
-            :key="column.key"
-            :class="column.headerClass"
-          >
-            {{ column.label }}
-          </th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="row in dataRows" :key="row.key">
-          <td class="structure-governance-panel__cell--data">
-            <SettingsCheckbox
-              :model-value="selectedRowKeySet.has(row.key)"
-              tone="light"
-              @update:model-value="$emit('toggle-data-select', row.key, $event)"
-            />
-          </td>
-          <td class="structure-governance-panel__cell--control">
-            <q-icon name="visibility" size="14px" class="structure-governance-panel__eye-icon" />
-          </td>
-          <td
-            v-for="column in dataColumns"
-            :key="`${row.key}:${column.key}`"
-            :class="[column.cellClass, { 'structure-governance-panel__cell--editable': isEditableColumn(row, column) }]"
-            @dblclick="startDataCellEdit(row, column)"
-          >
-            <SettingsCheckbox
-              v-if="column.kind === 'checkbox'"
-              :model-value="Boolean(row[column.key])"
-              tone="light"
-              @update:model-value="$emit('update-data-cell', row.key, column.key, $event)"
-            />
-            <select
-              v-else-if="isDataCellEditing(row.key, column.key) && column.kind === 'select'"
-              :value="editingCellValue"
-              class="structure-governance-panel__cell-input"
-              @blur="commitDataCellEdit(row.key, column.key, $event.target.value)"
-              @change="commitDataCellEdit(row.key, column.key, $event.target.value)"
-              @keydown.esc.prevent="cancelDataCellEdit"
-            >
-              <option
-                v-for="option in column.options || []"
-                :key="option.value"
-                :value="option.value"
-              >
-                {{ option.label }}
-              </option>
-            </select>
-            <input
-              v-else-if="isDataCellEditing(row.key, column.key)"
-              :value="editingCellValue"
-              class="structure-governance-panel__cell-input"
-              type="text"
-              @input="editingCellValue = $event.target.value"
-              @blur="commitDataCellEdit(row.key, column.key, $event.target.value)"
-              @keydown.enter.prevent="commitDataCellEdit(row.key, column.key, $event.target.value)"
-              @keydown.esc.prevent="cancelDataCellEdit"
-            >
-            <span v-else>{{ row[column.key] }}</span>
-          </td>
-        </tr>
-        <tr v-if="!dataRows.length">
-          <td :colspan="dataColumns.length + 2" class="structure-governance-panel__empty">{{ emptyDataLabel }}</td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
+          {{ option.label }}
+        </option>
+      </select>
+      <textarea
+        v-else-if="isTokenCellEditing(row.key, column.key) && column.kind === 'textarea'"
+        :value="editingCellValue"
+        class="structure-governance-panel__cell-input structure-governance-panel__cell-input--textarea"
+        @input="editingCellValue = $event.target.value"
+        @blur="commitTokenCellEdit(row.key, column.key, $event.target.value)"
+        @keydown.esc.prevent="cancelDataCellEdit"
+      />
+      <input
+        v-else-if="isTokenCellEditing(row.key, column.key)"
+        :value="editingCellValue"
+        class="structure-governance-panel__cell-input"
+        type="text"
+        @input="editingCellValue = $event.target.value"
+        @blur="commitTokenCellEdit(row.key, column.key, $event.target.value)"
+        @keydown.enter.prevent="commitTokenCellEdit(row.key, column.key, $event.target.value)"
+        @keydown.esc.prevent="cancelDataCellEdit"
+      >
+      <span v-else>{{ row[column.key] }}</span>
+    </template>
+  </SharedRowSurfaceTable>
+
+  <SharedRowSurfaceTable
+    v-else-if="mode === 'data'"
+    :columns="resolvedDataSurfaceColumns"
+    :rows="resolvedDataSurfaceRows"
+    :empty-label="emptyDataLabel"
+    @cell-dblclick="handleDataSurfaceCellDblclick"
+  >
+    <template #cell="{ row, column }">
+      <SettingsCheckbox
+        v-if="column.key === '__select__'"
+        :model-value="selectedRowKeySet.has(row.key)"
+        tone="light"
+        @update:model-value="$emit('toggle-data-select', row.key, $event)"
+      />
+      <q-icon
+        v-else-if="column.key === '__view__'"
+        name="visibility"
+        size="14px"
+        class="structure-governance-panel__eye-icon"
+      />
+      <SettingsCheckbox
+        v-else-if="column.kind === 'checkbox'"
+        :model-value="Boolean(row[column.key])"
+        tone="light"
+        @update:model-value="$emit('update-data-cell', row.key, column.key, $event)"
+      />
+      <select
+        v-else-if="isDataCellEditing(row.key, column.key) && column.kind === 'select'"
+        :value="editingCellValue"
+        class="structure-governance-panel__cell-input"
+        @blur="commitDataCellEdit(row.key, column.key, $event.target.value)"
+        @change="commitDataCellEdit(row.key, column.key, $event.target.value)"
+        @keydown.esc.prevent="cancelDataCellEdit"
+      >
+        <option
+          v-for="option in column.options || []"
+          :key="option.value"
+          :value="option.value"
+        >
+          {{ option.label }}
+        </option>
+      </select>
+      <textarea
+        v-else-if="isDataCellEditing(row.key, column.key) && column.kind === 'textarea'"
+        :value="editingCellValue"
+        class="structure-governance-panel__cell-input structure-governance-panel__cell-input--textarea"
+        @input="editingCellValue = $event.target.value"
+        @blur="commitDataCellEdit(row.key, column.key, $event.target.value)"
+        @keydown.esc.prevent="cancelDataCellEdit"
+      />
+      <input
+        v-else-if="isDataCellEditing(row.key, column.key)"
+        :value="editingCellValue"
+        class="structure-governance-panel__cell-input"
+        type="text"
+        @input="editingCellValue = $event.target.value"
+        @blur="commitDataCellEdit(row.key, column.key, $event.target.value)"
+        @keydown.enter.prevent="commitDataCellEdit(row.key, column.key, $event.target.value)"
+        @keydown.esc.prevent="cancelDataCellEdit"
+      >
+      <span v-else>{{ row[column.key] }}</span>
+    </template>
+  </SharedRowSurfaceTable>
 </template>
 
 <script setup>
-import { nextTick, ref, watch, computed } from 'vue'
+import { nextTick, ref, computed } from 'vue'
 import SettingsCheckbox from 'src/components/SettingsCheckbox.vue'
+import SharedRowSurfaceTable from 'src/components/SharedRowSurfaceTable.vue'
 
 defineOptions({ name: 'StructureGovernancePanel' })
 
@@ -283,11 +183,60 @@ const props = defineProps({
   tokenColumns: { type: Array, default: () => [] },
 })
 
-const expandedGroupKeys = ref([])
 const editingCell = ref({ rowKey: '', columnKey: '' })
 const editingCellValue = ref('')
 const selectedRowKeySet = computed(() => new Set((Array.isArray(props.selectedRowKeys) ? props.selectedRowKeys : []).map((key) => String(key || '').trim())))
 const selectedTokenKeySet = computed(() => new Set((Array.isArray(props.selectedTokenKeys) ? props.selectedTokenKeys : []).map((key) => String(key || '').trim())))
+const resolvedViewSurfaceColumns = computed(() => [
+  { key: '__select__', label: '', width: 22, isControl: true },
+  { key: '__view__', label: '', width: 22, isControl: true },
+  { key: 'label', label: 'Name', width: 180, isPrimary: true },
+  { key: 'side', label: 'Side', width: 84 },
+  { key: 'tokenCount', label: 'Tokens', width: 84 },
+])
+const resolvedViewSurfaceRows = computed(() =>
+  (Array.isArray(props.viewRows) ? props.viewRows : []).map((row) => ({
+    ...row,
+    editableColumns: [],
+  })),
+)
+const resolvedTokenRows = computed(() =>
+  (Array.isArray(props.tokenGroups) ? props.tokenGroups : []).flatMap((group) => {
+    const parentView = String(group?.label || '').trim() || '—'
+    return (Array.isArray(group?.tokens) ? group.tokens : []).map((token) => ({
+      ...token,
+      parentView,
+    }))
+  }),
+)
+const resolvedDataSurfaceColumns = computed(() => [
+  { key: '__select__', label: '', width: 22, isControl: true },
+  { key: '__view__', label: '', width: 22, isControl: true },
+  ...(Array.isArray(props.dataColumns) ? props.dataColumns : []),
+])
+const resolvedDataSurfaceRows = computed(() =>
+  (Array.isArray(props.dataRows) ? props.dataRows : []).map((row) => ({
+    ...row,
+    editableColumns: (Array.isArray(props.dataColumns) ? props.dataColumns : [])
+      .filter((column) => isEditableColumn(row, column))
+      .map((column) => column.key),
+  })),
+)
+const resolvedTokenSurfaceColumns = computed(() => [
+  { key: '__select__', label: '', width: 22, isControl: true },
+  { key: '__view__', label: '', width: 22, isControl: true },
+  { key: 'label', label: 'Name', width: 180, isPrimary: true },
+  { key: 'parentView', label: 'View', width: 140 },
+  ...resolvedTokenColumns.value.filter((column) => column.key !== 'label'),
+])
+const resolvedTokenSurfaceRows = computed(() =>
+  resolvedTokenRows.value.map((row) => ({
+    ...row,
+    editableColumns: resolvedTokenColumns.value
+      .filter((column) => isTokenEditable(row, column))
+      .map((column) => column.key),
+  })),
+)
 const resolvedTokenColumns = computed(() => {
   if (Array.isArray(props.tokenColumns) && props.tokenColumns.length) return props.tokenColumns
   const columns = [
@@ -300,35 +249,6 @@ const resolvedTokenColumns = computed(() => {
   }
   return columns
 })
-
-watch(
-  () => props.tokenGroups,
-  (groups) => {
-    const groupKeys = (Array.isArray(groups) ? groups : []).map((group) => String(group?.key || '').trim()).filter(Boolean)
-    expandedGroupKeys.value = groupKeys.filter((key) => expandedGroupKeys.value.includes(key))
-    if (!expandedGroupKeys.value.length && groupKeys.length) {
-      expandedGroupKeys.value = [...groupKeys]
-    }
-  },
-  { immediate: true },
-)
-
-function isGroupExpanded(groupKey = '') {
-  return expandedGroupKeys.value.includes(String(groupKey || '').trim())
-}
-
-function toggleGroup(groupKey = '') {
-  const normalized = String(groupKey || '').trim()
-  if (!normalized) return
-  expandedGroupKeys.value = isGroupExpanded(normalized)
-    ? expandedGroupKeys.value.filter((key) => key !== normalized)
-    : [...expandedGroupKeys.value, normalized]
-}
-
-function columnStyle(column = {}) {
-  const width = Number(column?.width || 0)
-  return width > 0 ? { width: `${width}px`, minWidth: `${width}px` } : {}
-}
 
 function isEditableColumn(row = {}, column = {}) {
   const isRowEditable = String(row?.editable || '').trim().toLowerCase() !== 'no'
@@ -381,6 +301,18 @@ function commitTokenCellEdit(rowKey = '', columnKey = '', value = '') {
   emit('update-token-cell', rowKey, columnKey, value)
   editingCell.value = { rowKey: '', columnKey: '' }
   editingCellValue.value = ''
+}
+
+function handleTokenSurfaceCellDblclick(row, column) {
+  if (!row || !column) return
+  if (column.key === '__select__' || column.key === '__view__' || column.key === 'parentView') return
+  startTokenCellEdit(row, column)
+}
+
+function handleDataSurfaceCellDblclick(row, column) {
+  if (!row || !column) return
+  if (column.key === '__select__' || column.key === '__view__') return
+  startDataCellEdit(row, column)
 }
 
 function cancelDataCellEdit() {
@@ -550,6 +482,11 @@ function cancelDataCellEdit() {
   border: 1px solid var(--ds-color-border-default);
   border-radius: 6px;
   font: inherit;
+}
+
+.structure-governance-panel__cell-input--textarea {
+  min-height: 84px;
+  resize: vertical;
 }
 
 .structure-governance-panel__empty {

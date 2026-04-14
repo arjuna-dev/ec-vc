@@ -187,7 +187,7 @@
         />
       </div>
 
-      <div v-else-if="isTokensToolbarActive" class="file-structure-shell__token-groups">
+      <div v-else-if="isTokensToolbarActive" class="file-structure-shell__leaf-table-wrap ds-mini-scrollbar">
         <StructureGovernancePanel
           mode="tokens"
           :token-groups="tokenGroupsByView"
@@ -228,6 +228,12 @@ import RecordTitle from 'src/components/RecordTitle.vue'
 import RecordSummaryBox from 'src/components/RecordSummaryBox.vue'
 import MiniToolbar from 'src/components/MiniToolbar.vue'
 import StructureGovernancePanel from 'src/components/StructureGovernancePanel.vue'
+import {
+  buildTokenGovernanceColumns,
+  TOKEN_GOVERNANCE_FIELD_CLASS_OPTIONS,
+  TOKEN_GOVERNANCE_OPTION_SOURCE_OPTIONS,
+  TOKEN_GOVERNANCE_TYPE_OPTIONS,
+} from 'src/utils/structureGovernanceColumns'
 import { buildStructureToolbarItems } from 'src/utils/structureToolbarContract'
 import { splitDialogViews } from 'src/utils/dialogShellPayload'
 import {
@@ -278,33 +284,6 @@ const viewOptions = [
 ]
 const miniToolbarViewMode = computed(() => 'card')
 const miniToolbarViewOptions = computed(() => viewOptions)
-const tokenTypeOptions = [
-  { value: 'text', label: 'Text' },
-  { value: 'long_text', label: 'Long Text' },
-  { value: 'textarea', label: 'Textarea' },
-  { value: 'rich_text', label: 'Rich Text' },
-  { value: 'number', label: 'Number' },
-  { value: 'date', label: 'Date' },
-  { value: 'datetime', label: 'Datetime' },
-  { value: 'email', label: 'Email' },
-  { value: 'phone', label: 'Phone' },
-  { value: 'url', label: 'URL' },
-  { value: 'select_single', label: 'Select Single' },
-  { value: 'select_multi', label: 'Select Multi' },
-  { value: 'creator', label: 'Creator' },
-]
-const optionSourceOptions = [
-  { value: 'live_entity', label: 'Live Entity' },
-  { value: 'option_list', label: 'Option List' },
-  { value: 'shared_file_universe', label: 'Shared File Universe' },
-  { value: 'manual', label: 'Manual' },
-]
-const fieldClassOptions = [
-  { value: 'owned', label: 'Owned' },
-  { value: 'directional', label: 'Directional' },
-  { value: 'ldb_relationship', label: 'LDB Relationship' },
-  { value: 'system', label: 'System' },
-]
 const optionEntityOptions = computed(() =>
   (Array.isArray(props.shellSelectorOptions) ? props.shellSelectorOptions : [])
     .map((option) => {
@@ -313,30 +292,28 @@ const optionEntityOptions = computed(() =>
     })
     .filter(Boolean),
 )
-const tokenGovernanceColumns = computed(() => [
-  { key: 'label', label: 'Label', width: 180, cellClass: 'file-structure-shell__cell--label', editable: true, kind: 'text' },
-  { key: 'type', label: 'Type', width: 112, headerClass: 'file-structure-shell__colhead--data', cellClass: 'file-structure-shell__cell--data', editable: true, kind: 'select', options: tokenTypeOptions },
-  { key: 'optionSource', label: 'Option Source', width: 150, headerClass: 'file-structure-shell__colhead--data', cellClass: 'file-structure-shell__cell--data', editable: true, kind: 'select', options: optionSourceOptions },
-  { key: 'optionEntity', label: 'Option Entity', width: 160, headerClass: 'file-structure-shell__colhead--data', cellClass: 'file-structure-shell__cell--data', editable: true, kind: 'select', options: optionEntityOptions.value },
-  { key: 'optionList', label: 'Option List', width: 140, headerClass: 'file-structure-shell__colhead--data', cellClass: 'file-structure-shell__cell--data', editable: true, kind: 'text' },
-  { key: 'dbWriteField', label: 'DB Write Field', width: 180, headerClass: 'file-structure-shell__colhead--data', cellClass: 'file-structure-shell__cell--data', editable: true, kind: 'text' },
-  { key: 'fieldClass', label: 'Field Class', width: 140, headerClass: 'file-structure-shell__colhead--data', cellClass: 'file-structure-shell__cell--data', editable: true, kind: 'select', options: fieldClassOptions },
-  { key: 'required', label: 'Required', width: 84, headerClass: 'file-structure-shell__colhead--data', cellClass: 'file-structure-shell__cell--data', kind: 'checkbox' },
-  { key: 'writeTarget', label: 'Write Target / Alias', width: 220, headerClass: 'file-structure-shell__colhead--data', cellClass: 'file-structure-shell__cell--data', editable: true, kind: 'text' },
-])
+const tokenGovernanceColumns = computed(() =>
+  buildTokenGovernanceColumns({
+    labelCellClass: 'structure-governance-panel__cell--label',
+    dataHeaderClass: 'structure-governance-panel__cell--data',
+    dataCellClass: 'structure-governance-panel__cell--data',
+    optionEntityOptions: optionEntityOptions.value,
+  }),
+)
 const leafDataColumns = computed(() => [
-  { key: 'parentView', label: 'View', width: 140, headerClass: 'file-structure-shell__colhead--structure', cellClass: 'file-structure-shell__cell--structure' },
-  { key: 'key', label: 'Token Key', width: 108, headerClass: 'file-structure-shell__colhead--structure', cellClass: 'file-structure-shell__cell--l3-key' },
-  { key: 'label', label: 'Label', width: 180, cellClass: 'file-structure-shell__cell--label', editable: true, kind: 'text' },
-  { key: 'type', label: 'Type', width: 112, headerClass: 'file-structure-shell__colhead--data', cellClass: 'file-structure-shell__cell--data', editable: true, kind: 'select', options: tokenTypeOptions },
-  { key: 'optionSource', label: 'Option Source', width: 150, headerClass: 'file-structure-shell__colhead--data', cellClass: 'file-structure-shell__cell--data', editable: true, kind: 'select', options: optionSourceOptions },
-  { key: 'optionEntity', label: 'Option Entity', width: 160, headerClass: 'file-structure-shell__colhead--data', cellClass: 'file-structure-shell__cell--data', editable: true, kind: 'select', options: optionEntityOptions.value },
-  { key: 'optionList', label: 'Option List', width: 140, headerClass: 'file-structure-shell__colhead--data', cellClass: 'file-structure-shell__cell--data', editable: true, kind: 'text' },
-  { key: 'dbWriteField', label: 'DB Write Field', width: 180, headerClass: 'file-structure-shell__colhead--data', cellClass: 'file-structure-shell__cell--data', editable: true, kind: 'text' },
-  { key: 'fieldClass', label: 'Field Class', width: 140, headerClass: 'file-structure-shell__colhead--data', cellClass: 'file-structure-shell__cell--data', editable: true, kind: 'select', options: fieldClassOptions },
-  { key: 'visible', label: 'Visible', width: 72, headerClass: 'file-structure-shell__colhead--data', cellClass: 'file-structure-shell__cell--data', editable: true, kind: 'select', options: [{ value: 'Yes', label: 'Yes' }, { value: 'No', label: 'No' }] },
-  { key: 'required', label: 'Required', width: 84, headerClass: 'file-structure-shell__colhead--data', cellClass: 'file-structure-shell__cell--data', kind: 'checkbox' },
-  { key: 'writeTarget', label: 'Write Target / Alias', width: 220, headerClass: 'file-structure-shell__colhead--data', cellClass: 'file-structure-shell__cell--data', editable: true, kind: 'text' },
+  { key: 'parentView', label: 'View', width: 140, headerClass: 'structure-governance-panel__cell--data', cellClass: 'structure-governance-panel__cell--label' },
+  { key: 'key', label: 'Token Key', width: 108, headerClass: 'structure-governance-panel__cell--data', cellClass: 'structure-governance-panel__cell--data' },
+  { key: 'label', label: 'Label', width: 180, cellClass: 'structure-governance-panel__cell--label', editable: true, kind: 'text' },
+  { key: 'type', label: 'Type', width: 112, headerClass: 'structure-governance-panel__cell--data', cellClass: 'structure-governance-panel__cell--data', editable: true, kind: 'select', options: TOKEN_GOVERNANCE_TYPE_OPTIONS },
+  { key: 'optionSource', label: 'Option Source', width: 150, headerClass: 'structure-governance-panel__cell--data', cellClass: 'structure-governance-panel__cell--data', editable: true, kind: 'select', options: TOKEN_GOVERNANCE_OPTION_SOURCE_OPTIONS },
+  { key: 'optionEntity', label: 'Option Entity', width: 160, headerClass: 'structure-governance-panel__cell--data', cellClass: 'structure-governance-panel__cell--data', editable: true, kind: 'select', options: optionEntityOptions.value },
+  { key: 'optionList', label: 'Option List', width: 140, headerClass: 'structure-governance-panel__cell--data', cellClass: 'structure-governance-panel__cell--data', editable: true, kind: 'text' },
+  { key: 'definition', label: 'Definition', width: 280, headerClass: 'structure-governance-panel__cell--data', cellClass: 'structure-governance-panel__cell--data', editable: true, kind: 'textarea' },
+  { key: 'dbWriteField', label: 'DB Write Field', width: 180, headerClass: 'structure-governance-panel__cell--data', cellClass: 'structure-governance-panel__cell--data', editable: true, kind: 'text' },
+  { key: 'fieldClass', label: 'Field Class', width: 140, headerClass: 'structure-governance-panel__cell--data', cellClass: 'structure-governance-panel__cell--data', editable: true, kind: 'select', options: TOKEN_GOVERNANCE_FIELD_CLASS_OPTIONS },
+  { key: 'visible', label: 'Visible', width: 72, headerClass: 'structure-governance-panel__cell--data', cellClass: 'structure-governance-panel__cell--data', editable: true, kind: 'select', options: [{ value: 'Yes', label: 'Yes' }, { value: 'No', label: 'No' }] },
+  { key: 'required', label: 'Required', width: 84, headerClass: 'structure-governance-panel__cell--data', cellClass: 'structure-governance-panel__cell--data', kind: 'checkbox' },
+  { key: 'writeTarget', label: 'Write Target / Alias', width: 220, headerClass: 'structure-governance-panel__cell--data', cellClass: 'structure-governance-panel__cell--data', editable: true, kind: 'text' },
 ])
 const activeShellSelectorOption = computed(() =>
   props.shellSelectorOptions.find((option) => option.value === (pendingShellSelectorValue.value || props.shellSelectorValue))
@@ -450,6 +427,7 @@ const activeLeafTokens = computed(() => {
         optionSource: token.optionSource || '—',
         optionEntity: token.optionEntity || '—',
         optionList: token.optionList || '—',
+        definition: token.definition || '—',
         dbWriteField: token.dbWriteField || token.dbFieldAliases?.[0] || '—',
         fieldClass: token.fieldClass || token.field_class || '—',
         visible: 'Yes',
@@ -487,6 +465,7 @@ const tokenGroupsByView = computed(() =>
             optionSource: (overrides.optionSource ?? token.optionSource) || '—',
             optionEntity: (overrides.optionEntity ?? token.optionEntity) || '—',
             optionList: (overrides.optionList ?? token.optionList) || '—',
+            definition: (overrides.definition ?? token.definition) || '—',
             dbWriteField: (overrides.dbWriteField ?? token.dbWriteField) || token.dbFieldAliases?.[0] || '—',
             fieldClass: (overrides.fieldClass ?? token.fieldClass ?? token.field_class) || '—',
             required: requiredKeys.has(token.key),
@@ -513,6 +492,7 @@ const displayLeafTokens = computed(() =>
       optionSource: overrides.optionSource ?? token.optionSource,
       optionEntity: overrides.optionEntity ?? token.optionEntity,
       optionList: overrides.optionList ?? token.optionList,
+      definition: overrides.definition ?? token.definition,
       dbWriteField: overrides.dbWriteField ?? token.dbWriteField,
       fieldClass: overrides.fieldClass ?? token.fieldClass,
       visible: overrides.visible ?? token.visible,
@@ -571,6 +551,7 @@ function addLeafElement() {
         dbFieldAliases: [],
         optionList: '',
         optionSource: '',
+        definition: '',
       },
     ],
   }
@@ -598,6 +579,7 @@ function addTokenElement() {
         optionList: '',
         optionSource: '',
         optionEntity: '',
+        definition: '',
         fieldClass: '',
         editable: true,
       },
