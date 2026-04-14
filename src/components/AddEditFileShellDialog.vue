@@ -533,36 +533,6 @@ function addLeafElement() {
   }
 }
 
-function addTokenElement() {
-  const sourceKey = activeSettingsSourceKey.value
-  const currentDrafts = draftTokenRowsBySource.value[sourceKey] || []
-  const nextIndex = currentDrafts.length + 1
-  const nextKey = `${sourceKey}-draft-token-${nextIndex}`
-  draftTokenRowsBySource.value = {
-    ...draftTokenRowsBySource.value,
-    [sourceKey]: [
-      ...currentDrafts,
-      {
-        isDraft: true,
-        key: nextKey,
-        label: 'Nameless',
-        tokenType: 'text',
-        dbFieldAliases: [],
-        optionList: '',
-        optionSource: '',
-        optionEntity: '',
-        definition: '',
-        fieldClass: '',
-        editable: true,
-      },
-    ],
-  }
-  selectedTokenKeysBySource.value = {
-    ...selectedTokenKeysBySource.value,
-    [sourceKey]: [...selectedTokenKeys.value, nextKey],
-  }
-}
-
 function toggleLeafSelection(tokenKey) {
   const sourceKey = activeSettingsSourceKey.value
   const current = selectedLeafKeys.value

@@ -2119,13 +2119,6 @@ const miniToolbarActiveKey = computed({
     activeViewKey.value = String(value || '').trim()
   },
 })
-const miniToolbarViewMode = computed({
-  get: () => viewMode.value,
-  set: (value) => {
-    viewMode.value = value
-  },
-})
-const miniToolbarViewOptions = computed(() => viewOptions)
 
 function isStatusToken(token) {
   const role = String(token?.tokenRole || '').trim().toLowerCase()
