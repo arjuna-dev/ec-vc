@@ -577,7 +577,10 @@
                     <div
                       v-else
                       class="test-shell-table__name"
-                      :class="{ 'test-shell-card__value--placeholder': !row.titleValue }"
+                      :class="[
+                        { 'test-shell-card__value--placeholder': !row.titleValue },
+                        getTableCellToneClass(row, canonicalTitleToken),
+                      ]"
                     >
                       {{ row.titleValue || 'Missing title value' }}
                     </div>
@@ -653,6 +656,7 @@
                       v-if="getLdbDisplayItems(tokenRow).length"
                       class="test-shell-table__ldb-list"
                       :class="[
+                        getTableCellToneClass(row, tokenRow.token, tokenRow),
                         { 'test-shell-table__cell--editable': canInlineEditTableCell(row, tokenRow.token) },
                         { 'test-shell-table__cell--direct': canInlineEditTableCell(row, tokenRow.token) },
                       ]"
@@ -675,6 +679,7 @@
                       v-else
                       :class="[
                         'test-shell-card__value--placeholder',
+                        getTableCellToneClass(row, tokenRow.token, tokenRow),
                         { 'test-shell-table__cell--editable': canInlineEditTableCell(row, tokenRow.token) },
                         { 'test-shell-table__cell--direct': canInlineEditTableCell(row, tokenRow.token) },
                       ]"
@@ -686,6 +691,7 @@
                   <span
                     v-else
                     :class="[
+                      getTableCellToneClass(row, tokenRow.token, tokenRow),
                       { 'test-shell-card__value--placeholder': !tokenRow.value },
                       { 'test-shell-table__cell--editable': canInlineEditTableCell(row, tokenRow.token, 'token') },
                       { 'test-shell-table__cell--direct': canInlineEditTableCell(row, tokenRow.token, 'token') },
@@ -945,8 +951,10 @@ const localDraftRowsBySource = ref({})
 const sharedLdbLinksByRecordId = ref({})
 
 const DEFAULT_COLUMN_MIN_WIDTH = 120
+const DEFAULT_COLUMN_MAX_WIDTH = 220
+const LONG_TEXT_COLUMN_DEFAULT_WIDTH = 320
 const LDB_COLUMN_DEFAULT_WIDTH = 72
-const NAME_COLUMN_DEFAULT_WIDTH = 84
+const NAME_COLUMN_DEFAULT_WIDTH = 120
 const TABLE_CONTROL_COLUMN_WIDTH = 22
 
 const SECTION_LOADERS = {
@@ -2559,15 +2567,37 @@ function getTableColumnStyle(columnKey, fallbackWidth) {
 }
 
 function getInitialTableColumns() {
-  const getColumnLabelWidth = (label = '') => Math.max(72, (String(label || '').trim().length * 7) + 28)
+  const getColumnTextWidth = (value = '', minWidth = DEFAULT_COLUMN_MIN_WIDTH, maxWidth = DEFAULT_COLUMN_MAX_WIDTH) => {
+    const measured = (String(value || '').trim().length * 7) + 28
+    return Math.min(maxWidth, Math.max(minWidth, measured))
+  }
+  const isLongTextToken = (token = {}) => {
+    const tokenType = String(token?.tokenType || '').trim().toLowerCase()
+    const tokenRole = String(token?.tokenRole || '').trim().toLowerCase()
+    return ['long_text', 'textarea', 'rich_text'].includes(tokenType) || tokenRole === 'summary'
+  }
+  const getTokenContentWidth = (token = {}) => {
+    if (isLongTextToken(token)) return LONG_TEXT_COLUMN_DEFAULT_WIDTH
+    const contentWidths = displayRows.value
+      .slice(0, 25)
+      .map((row) => {
+        const rawValue = token?.isSharedLdbToken ? getSharedLdbTokenRawValue(row, token) : getCanonicalTokenValue(row?.raw || {}, token)
+        return getColumnTextWidth(stringifyValue(rawValue), DEFAULT_COLUMN_MIN_WIDTH, DEFAULT_COLUMN_MAX_WIDTH)
+      })
+    const labelWidth = getColumnTextWidth(token?.label, DEFAULT_COLUMN_MIN_WIDTH, DEFAULT_COLUMN_MAX_WIDTH)
+    return Math.max(labelWidth, ...contentWidths, DEFAULT_COLUMN_MIN_WIDTH)
+  }
+  const titleContentWidths = displayRows.value
+    .slice(0, 25)
+    .map((row) => getColumnTextWidth(stringifyValue(row?.titleValue), NAME_COLUMN_DEFAULT_WIDTH, DEFAULT_COLUMN_MAX_WIDTH))
+  const titleLabelWidth = getColumnTextWidth(leadTitleColumnLabel.value, NAME_COLUMN_DEFAULT_WIDTH, DEFAULT_COLUMN_MAX_WIDTH)
   return [
-    { key: leadTitleColumnKey.value, defaultWidth: Math.max(NAME_COLUMN_DEFAULT_WIDTH, getColumnLabelWidth(leadTitleColumnLabel.value)) },
+    { key: leadTitleColumnKey.value, defaultWidth: Math.max(titleLabelWidth, ...titleContentWidths, NAME_COLUMN_DEFAULT_WIDTH) },
     ...tableViewTokens.value.map((token) => ({
       key: token.key,
-      defaultWidth: Math.max(
-        isLdbViewActive.value ? LDB_COLUMN_DEFAULT_WIDTH : DEFAULT_COLUMN_MIN_WIDTH,
-        getColumnLabelWidth(token?.label),
-      ),
+      defaultWidth: token?.isSharedLdbToken
+        ? getColumnTextWidth(token?.label, LDB_COLUMN_DEFAULT_WIDTH, DEFAULT_COLUMN_MAX_WIDTH)
+        : getTokenContentWidth(token),
     })),
   ]
 }
@@ -3324,6 +3354,35 @@ function canInlineEditTableCell(row, token) {
     activeLoader.value?.recordIdField || 'id',
   )
   return Boolean(writeTarget?.tableName && writeTarget?.fieldName)
+}
+
+function getTableCellVerificationState(row, token, tokenRow = null) {
+  const tokenKey = String(token?.key || '').trim()
+  if (!tokenKey) return ''
+  const tokenRowState = String(tokenRow?.verificationState || '').trim().toLowerCase()
+  if (tokenRowState) return tokenRowState
+  const rowFieldMeta = row?.raw?.__fieldMeta && typeof row.raw.__fieldMeta === 'object'
+    ? row.raw.__fieldMeta[tokenKey]
+    : null
+  return String(rowFieldMeta?.verificationState || '').trim().toLowerCase()
+}
+
+function isLinkedTableCellToken(token, tokenRow = null) {
+  if (tokenRow?.links?.length) return true
+  if (token?.isSharedLdbToken) return true
+  const entityName = String(activeRegistryEntry.value?.entityName || '').trim()
+  if (!entityName) return false
+  return tokenHasRelationshipWriteContract(token, entityName)
+}
+
+function getTableCellToneClass(row, token, tokenRow = null) {
+  const verificationState = getTableCellVerificationState(row, token, tokenRow)
+  if (verificationState === 'suggested_unverified') return 'test-shell-table__tone--suggested'
+  if (verificationState === 'default_preselected_unverified') return 'test-shell-table__tone--preselected'
+  if (verificationState === 'verified') return 'test-shell-table__tone--verified'
+  if (isLinkedTableCellToken(token, tokenRow)) return 'test-shell-table__tone--linked'
+  if (canInlineEditTableCell(row, token)) return 'test-shell-table__tone--editable'
+  return ''
 }
 
 function canOpenCardEdit(row) {
@@ -6137,6 +6196,26 @@ function isBbGraphLinkToken(tokenRow) {
 
 .test-shell-table__cell--direct {
   color: var(--ds-color-text-primary);
+}
+
+.test-shell-table__tone--editable {
+  color: #2f6bff;
+}
+
+.test-shell-table__tone--linked {
+  color: #1f7a3d;
+}
+
+.test-shell-table__tone--suggested {
+  color: #ba810d;
+}
+
+.test-shell-table__tone--preselected {
+  color: #8a8a8a;
+}
+
+.test-shell-table__tone--verified {
+  color: #111111;
 }
 
 .test-shell-table__cell--editable:hover {
