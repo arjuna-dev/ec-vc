@@ -329,7 +329,6 @@ const tokenGovernanceColumns = computed(() => [
 const leafDataColumns = computed(() => [
   { key: 'parentView', label: 'View', width: 140, headerClass: 'file-structure-shell__colhead--structure', cellClass: 'file-structure-shell__cell--structure' },
   { key: 'key', label: 'Token Key', width: 108, headerClass: 'file-structure-shell__colhead--structure', cellClass: 'file-structure-shell__cell--l3-key' },
-  { key: 'order', label: 'Order', width: 54, headerClass: 'file-structure-shell__colhead--structure', cellClass: 'file-structure-shell__cell--structure' },
   { key: 'label', label: 'Label', width: 180, cellClass: 'file-structure-shell__cell--label', editable: true, kind: 'text' },
   { key: 'type', label: 'Type', width: 112, headerClass: 'file-structure-shell__colhead--data', cellClass: 'file-structure-shell__cell--data', editable: true, kind: 'select', options: tokenTypeOptions },
   { key: 'optionSource', label: 'Option Source', width: 150, headerClass: 'file-structure-shell__colhead--data', cellClass: 'file-structure-shell__cell--data', editable: true, kind: 'select', options: optionSourceOptions },
@@ -443,7 +442,7 @@ const activeLeafTokens = computed(() => {
   const draftTokens = draftLeafRowsBySource.value[activeSettingsSourceKey.value] || []
   const tokens = [...draftTokens, ...sourceTokens].filter((token) => !deletedKeys.has(token.key))
 
-  return tokens.map((token, index) => {
+  return tokens.map((token) => {
       const requiredKeys = new Set(requiredFieldKeysBySource.value[activeSettingsSourceKey.value] || [])
       const writeTarget = token.isDraft ? null : getCanonicalTokenWriteTarget(token, activeShellSelectorOption.value.label, 'id')
       return {
@@ -461,7 +460,6 @@ const activeLeafTokens = computed(() => {
         editable: token.editable === false ? 'No' : token.editable === true ? 'Yes' : '—',
         relationshipMeaning: token.relationshipGroup || '—',
         writeTarget: writeTarget?.fieldName ? `${writeTarget.tableName}.${writeTarget.fieldName}` : token.dbFieldAliases?.join(', ') || '—',
-        order: token.tokenOrder || String(index + 1),
         uiTreatment: token.tokenType || token.optionList || token.optionSource || '—',
       }
   })
@@ -562,7 +560,6 @@ function addLeafElement() {
   const currentDrafts = draftLeafRowsBySource.value[sourceKey] || []
   const nextIndex = currentDrafts.length + 1
   const nextKey = `${sourceKey}-draft-leaf-${nextIndex}`
-  const nextLabel = ensureUniqueTokenLabel(`Draft Leaf ${nextIndex}`, sourceKey)
   draftLeafRowsBySource.value = {
     ...draftLeafRowsBySource.value,
     [sourceKey]: [
@@ -570,7 +567,7 @@ function addLeafElement() {
       {
         isDraft: true,
         key: nextKey,
-        label: nextLabel,
+        label: 'Nameless',
         parentLabel: activeViewSection.value?.label || '—',
         tokenType: 'text',
         relationshipGroup: '',
@@ -592,7 +589,6 @@ function addTokenElement() {
   const currentDrafts = draftTokenRowsBySource.value[sourceKey] || []
   const nextIndex = currentDrafts.length + 1
   const nextKey = `${sourceKey}-draft-token-${nextIndex}`
-  const nextLabel = ensureUniqueTokenLabel(`Draft Token ${nextIndex}`, sourceKey)
   draftTokenRowsBySource.value = {
     ...draftTokenRowsBySource.value,
     [sourceKey]: [
@@ -600,7 +596,7 @@ function addTokenElement() {
       {
         isDraft: true,
         key: nextKey,
-        label: nextLabel,
+        label: 'Nameless',
         tokenType: 'text',
         tokenOrder: String(nextIndex),
         dbFieldAliases: [],
@@ -640,14 +636,6 @@ function updateLeafCell(tokenKey, field, value) {
     toggleRequiredField(tokenKey, Boolean(value))
     return
   }
-  if (field === 'label') {
-    const nextLabel = String(value ?? '').trim()
-    if (!nextLabel) return
-    if (isDuplicateTokenLabel(tokenKey, nextLabel)) {
-      notifyDuplicateTokenLabel(nextLabel)
-      return
-    }
-  }
   const sourceKey = activeSettingsSourceKey.value
   const currentBySource = leafFieldOverridesBySource.value[sourceKey] || {}
   const currentToken = currentBySource[tokenKey] || {}
@@ -667,14 +655,6 @@ function updateTokenCell(tokenKey, field, value) {
   if (field === 'required') {
     toggleRequiredField(tokenKey, Boolean(value))
     return
-  }
-  if (field === 'label') {
-    const nextLabel = String(value ?? '').trim()
-    if (!nextLabel) return
-    if (isDuplicateTokenLabel(tokenKey, nextLabel)) {
-      notifyDuplicateTokenLabel(nextLabel)
-      return
-    }
   }
   const sourceKey = activeSettingsSourceKey.value
   const currentBySource = tokenFieldOverridesBySource.value[sourceKey] || {}
@@ -700,55 +680,6 @@ function toggleRequiredField(tokenKey, value) {
     ...requiredFieldKeysBySource.value,
     [sourceKey]: Array.from(current),
   }
-}
-
-function normalizeTokenLabel(value) {
-  return String(value || '').trim().toLowerCase()
-}
-
-function notifyDuplicateTokenLabel(label) {
-  $q?.notify?.({
-    type: 'negative',
-    message: `Token labels must be unique. "${label}" already exists in this file.`,
-  })
-}
-
-function collectTokenLabelsForSource(sourceKey, excludedKey) {
-  const labels = new Set()
-  const tokenOverrides = tokenFieldOverridesBySource.value[sourceKey] || {}
-  const leafOverrides = leafFieldOverridesBySource.value[sourceKey] || {}
-  const addToken = (token) => {
-    if (!token) return
-    const tokenKey = String(token.key || '').trim()
-    if (excludedKey && tokenKey === excludedKey) return
-    const overrideLabel = tokenOverrides[tokenKey]?.label ?? leafOverrides[tokenKey]?.label
-    const label = normalizeTokenLabel(overrideLabel || token.label || token.tokenName || token.key)
-    if (label) labels.add(label)
-  }
-
-  ;(Array.isArray(payloadTokens.value) ? payloadTokens.value : []).forEach(addToken)
-  ;(draftTokenRowsBySource.value[sourceKey] || []).forEach(addToken)
-  ;(draftLeafRowsBySource.value[sourceKey] || []).forEach(addToken)
-  return labels
-}
-
-function isDuplicateTokenLabel(tokenKey, nextLabel) {
-  const sourceKey = activeSettingsSourceKey.value
-  const normalized = normalizeTokenLabel(nextLabel)
-  if (!normalized) return false
-  const labels = collectTokenLabelsForSource(sourceKey, tokenKey)
-  return labels.has(normalized)
-}
-
-function ensureUniqueTokenLabel(baseLabel, sourceKey) {
-  const labels = collectTokenLabelsForSource(sourceKey)
-  let nextLabel = String(baseLabel || '').trim() || 'New Token'
-  if (!labels.has(normalizeTokenLabel(nextLabel))) return nextLabel
-  let counter = 2
-  while (labels.has(normalizeTokenLabel(`${nextLabel} ${counter}`))) {
-    counter += 1
-  }
-  return `${nextLabel} ${counter}`
 }
 
 function toggleTokenSelection(tokenKey, value) {
