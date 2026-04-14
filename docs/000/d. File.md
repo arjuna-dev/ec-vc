@@ -419,3 +419,42 @@ The practical principle is:
 
 `The File Steward should create and maintain file entities through explicit canonical building blocks and view contracts so file architecture stays stable, reusable, and drift-resistant.`
 
+## Current JSON Structure
+
+Current working `File` JSON shape:
+
+```json
+{
+  "id": "file-row-id",
+  "File_Source_Key": "companies",
+  "File_Name": "Companies",
+  "File_Guide_Path": "docs/100/c1. Companies.md",
+  "Defined_Structure": {
+    "version": 1,
+    "sections": [
+      {
+        "key": "companies-system",
+        "label": "System",
+        "tokens": []
+      },
+      {
+        "key": "companies-general",
+        "label": "General",
+        "tokens": []
+      },
+      {
+        "key": "companies-ldb",
+        "label": "LDB",
+        "tokens": []
+      }
+    ]
+  }
+}
+```
+
+Reading note:
+
+- `File` owns the stored `Defined_Structure`
+- `Defined_Structure` owns sections/views
+- sections/views own tokens
+

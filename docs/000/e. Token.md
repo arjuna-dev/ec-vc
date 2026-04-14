@@ -152,3 +152,31 @@ If a shared table needs a better column name, update the token contract instead 
 - `docs/000/c. System.md`
 - `docs/000/d. File.md`
 - `docs/000/f. Translator.md`
+
+## Current JSON Structure
+
+Current working `Token` JSON shape:
+
+```json
+{
+  "key": "Company_Name",
+  "tokenName": "Company_Name",
+  "tokenRole": "title",
+  "label": "Name",
+  "tokenType": "text",
+  "parentKey": "companies-general",
+  "parentLabel": "General",
+  "dbFieldAliases": ["Company_Name"],
+  "dbWriteField": "Company_Name",
+  "dbWriteTable": "Companies",
+  "dbWriteIdColumn": "id",
+  "definition": "",
+  "defaultVerificationState": "input",
+  "defaultVerificationSource": "system_defined"
+}
+```
+
+Reading note:
+
+- `Token` is the leaf-definition layer inside a file-owned section/view
+- row, card, and dialog surfaces should read from this governed token shape instead of inventing local meaning

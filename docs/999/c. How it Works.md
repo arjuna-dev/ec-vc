@@ -42,6 +42,26 @@ The system chain works like this:
 - `structureRegistry.js` = runtime parser
 - shell surfaces = renderer
 
+Quick nesting summary:
+
+1. `Files`
+   - says the file exists
+
+2. `Files.Defined_Structure`
+   - stores how the file is built
+
+3. `sections/views`
+   - group the file into governed reading/editing areas
+
+4. `tokens`
+   - define the leaf fields inside each section/view
+
+Working interpretation:
+
+- `Files.Defined_Structure` = container contract
+- `section/view structure` = grouping layer
+- `token structure` = leaf-definition layer
+
 ### Why This Matters
 
 Changing bootstrap in `electron-main.js` does not automatically mean every existing file structure has changed everywhere.
