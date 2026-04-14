@@ -31,6 +31,77 @@
         @action-item-click="handleHeroActionItemClick"
       />
 
+      <div
+        ref="dashboardRowRef"
+        class="file-shell__dashboard-row"
+        :style="{ gridTemplateColumns: dashboardRowTemplateColumns }"
+        aria-label="Dashboard row marker"
+      >
+        <div class="file-shell__dashboard-lane">
+          <div class="file-shell__dashboard-lane-box" />
+        </div>
+        <button
+          type="button"
+          class="file-shell__dashboard-divider"
+          aria-label="Resize dashboard lanes"
+          @mousedown.prevent="startDashboardLaneResize(0, $event)"
+        />
+        <div class="file-shell__dashboard-lane">
+          <div class="file-shell__dashboard-lane-box" />
+        </div>
+        <button
+          type="button"
+          class="file-shell__dashboard-divider"
+          aria-label="Resize dashboard lanes"
+          @mousedown.prevent="startDashboardLaneResize(1, $event)"
+        />
+        <div class="file-shell__dashboard-lane">
+          <div class="file-shell__dashboard-lane-box file-shell__dashboard-lane-box--governance">
+            <div class="file-shell__dashboard-governance-set">
+              <button type="button" class="file-shell__dashboard-chip file-shell__dashboard-chip--ldb">
+                LDB
+              </button>
+              <button type="button" class="file-shell__dashboard-chip file-shell__dashboard-chip--system">
+                System
+              </button>
+            </div>
+            <div class="file-shell__dashboard-governance-set">
+              <button type="button" class="file-shell__dashboard-chip file-shell__dashboard-chip--governance">
+                Tokens
+              </button>
+              <button type="button" class="file-shell__dashboard-chip file-shell__dashboard-chip--governance">
+                Views
+              </button>
+            </div>
+          </div>
+        </div>
+        <button
+          type="button"
+          class="file-shell__dashboard-divider"
+          aria-label="Resize dashboard lanes"
+          @mousedown.prevent="startDashboardLaneResize(2, $event)"
+        />
+        <div class="file-shell__dashboard-lane">
+          <div class="file-shell__dashboard-lane-box file-shell__dashboard-lane-box--controls">
+            <button type="button" class="file-shell__dashboard-icon-btn" aria-label="Row view">
+              <svg viewBox="0 0 24 24" aria-hidden="true" class="file-shell__dashboard-row-icon">
+                <path d="M5 7.25H19" />
+                <path d="M5 12H19" />
+                <path d="M5 16.75H19" />
+              </svg>
+            </button>
+            <button type="button" class="file-shell__dashboard-icon-btn" aria-label="Card view">
+              <q-icon name="grid_view" size="14px" />
+            </button>
+            <button type="button" class="file-shell__dashboard-icon-btn" aria-label="Expand row">
+              <svg viewBox="0 0 24 24" aria-hidden="true" class="file-shell__dashboard-chevron-icon">
+                <path d="M7 10L12 15L17 10" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
       <q-banner v-if="showDebugBanner" class="bg-grey-2 text-black" rounded>
         <div>Debug: File Shell payload</div>
         <div>source: {{ activeSourceKey }}</div>
@@ -63,11 +134,15 @@
               class="file-shell__toolbar-select-all"
               @update:model-value="toggleSelectAllVisible"
             />
-            <PlusWithLabelButton
-              label="Add Record"
-              :disable="loading || !supportsActiveSourceEditing || !canCreateWithShell"
+            <button
+              type="button"
+              class="file-shell__toolbar-add"
+              :disabled="loading || !supportsActiveSourceEditing || !canCreateWithShell"
+              aria-label="Add Record"
               @click="handleToolbarAdd"
-            />
+            >
+              <PlusIconChip />
+            </button>
             <div v-if="draftCount" class="file-shell__draft-chip">
               <button
                 type="button"
@@ -116,6 +191,13 @@
                 </q-menu>
               </button>
             </div>
+            <SearchBarInput
+              :model-value="searchQuery"
+              class="file-shell__toolbar-search"
+              :placeholder="searchPlaceholder"
+              :disable="loading"
+              @update:model-value="searchQuery = $event"
+            />
             <q-btn flat round dense class="test-shell-filters-trigger" icon="filter_list" aria-label="File shell filters">
               <q-menu
                 anchor="top left"
@@ -133,13 +215,6 @@
                 />
               </q-menu>
             </q-btn>
-            <SearchBarInput
-              :model-value="searchQuery"
-              class="file-shell__toolbar-search"
-              :placeholder="searchPlaceholder"
-              :disable="loading"
-              @update:model-value="searchQuery = $event"
-            />
           </template>
         </template>
         <template #suffix>
@@ -195,10 +270,20 @@
               <q-icon name="close" size="14px" />
             </button>
           </div>
+          <button
+            type="button"
+            class="file-shell__toolbar-chevron"
+            :aria-label="dataSurfaceCollapsed ? 'Expand data surface' : 'Collapse data surface'"
+            @click="dataSurfaceCollapsed = !dataSurfaceCollapsed"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true" class="file-shell__toolbar-chevron-icon">
+              <path :d="dataSurfaceCollapsed ? 'M7 10L12 15L17 10' : 'M7 14L12 9L17 14'" />
+            </svg>
+          </button>
         </template>
       </MiniToolbar>
 
-      <div v-if="activeGovernanceToolbarKey" class="test-shell-table-surface">
+      <div v-if="!dataSurfaceCollapsed && activeGovernanceToolbarKey" class="test-shell-table-surface">
         <StructureGovernancePanel
           :mode="activeGovernanceToolbarKey"
           :view-rows="governanceViewRows"
@@ -210,7 +295,7 @@
         />
       </div>
 
-      <template v-else>
+      <template v-else-if="!dataSurfaceCollapsed">
 
         <q-banner v-if="error" class="bg-red-2 text-black" rounded>
           {{ error }}
@@ -787,7 +872,7 @@ import FileFilterMenu from 'components/FileFilterMenu.vue'
 import FileHero from 'components/FileHero.vue'
 import ViewSettingsMenu from 'components/ViewSettingsMenu.vue'
 import MiniToolbar from 'components/MiniToolbar.vue'
-import PlusWithLabelButton from 'components/PlusWithLabelButton.vue'
+import PlusIconChip from 'components/PlusIconChip.vue'
 import RecordHistoryBox from 'components/RecordHistoryBox.vue'
 import SearchBarInput from 'components/SearchBarInput.vue'
 import BuildingBlockPreviewTile from 'components/BuildingBlockPreviewTile.vue'
@@ -859,6 +944,10 @@ const rowHistoryByRecordId = ref({})
 const rowHistoryLoadingByRecordId = ref({})
 const loaderDiagnostics = ref({})
 const viewMode = ref('page')
+const dashboardRowRef = ref(null)
+const dashboardLaneWidths = ref([])
+const dashboardLaneResizeState = ref(null)
+const dataSurfaceCollapsed = ref(false)
 const createDialogOpen = ref(false)
 const createDialogRenderKey = ref(0)
 const createDialogLoading = ref(false)
@@ -877,6 +966,78 @@ const createDialogPrefillValues = ref({})
 const createDialogFieldMeta = ref({})
 const createDialogInitialArtifacts = ref([])
 const createDialogLastChangeSnapshot = ref(null)
+
+const dashboardRowTemplateColumns = computed(() => {
+  if (dashboardLaneWidths.value.length !== 4) {
+    return [
+      'minmax(0, 1fr)',
+      '10px',
+      'minmax(0, 1fr)',
+      '10px',
+      'minmax(0, 1fr)',
+      '10px',
+      'minmax(0, 1fr)',
+    ].join(' ')
+  }
+  return [
+    `${Math.round(dashboardLaneWidths.value[0])}px`,
+    '10px',
+    `${Math.round(dashboardLaneWidths.value[1])}px`,
+    '10px',
+    `${Math.round(dashboardLaneWidths.value[2])}px`,
+    '10px',
+    `${Math.round(dashboardLaneWidths.value[3])}px`,
+  ].join(' ')
+})
+
+function ensureDashboardLaneWidths() {
+  const row = dashboardRowRef.value
+  if (!row) return
+  if (dashboardLaneResizeState.value) return
+  if (dashboardLaneWidths.value.length === 4) return
+  const styles = window.getComputedStyle(row)
+  const paddingLeft = Number.parseFloat(styles.paddingLeft || '0') || 0
+  const paddingRight = Number.parseFloat(styles.paddingRight || '0') || 0
+  const dividerTotal = 10 * 3
+  const availableWidth = Math.max(320, row.clientWidth - paddingLeft - paddingRight - dividerTotal)
+  const laneWidth = availableWidth / 4
+  dashboardLaneWidths.value = [laneWidth, laneWidth, laneWidth, laneWidth]
+}
+
+function startDashboardLaneResize(index, event) {
+  ensureDashboardLaneWidths()
+  if (dashboardLaneWidths.value.length !== 4 || typeof window === 'undefined') return
+  dashboardLaneResizeState.value = {
+    index,
+    startX: event.clientX,
+    startCurrent: dashboardLaneWidths.value[index],
+    startNext: dashboardLaneWidths.value[index + 1],
+  }
+  window.addEventListener('mousemove', onDashboardLaneResizeMove)
+  window.addEventListener('mouseup', stopDashboardLaneResize)
+}
+
+function onDashboardLaneResizeMove(event) {
+  const state = dashboardLaneResizeState.value
+  if (!state) return
+  const delta = event.clientX - state.startX
+  const nextCurrent = state.startCurrent + delta
+  const nextNeighbor = state.startNext - delta
+  const minWidth = 80
+  if (nextCurrent < minWidth || nextNeighbor < minWidth) return
+  const nextWidths = [...dashboardLaneWidths.value]
+  nextWidths[state.index] = nextCurrent
+  nextWidths[state.index + 1] = nextNeighbor
+  dashboardLaneWidths.value = nextWidths
+}
+
+function stopDashboardLaneResize() {
+  dashboardLaneResizeState.value = null
+  if (typeof window !== 'undefined') {
+    window.removeEventListener('mousemove', onDashboardLaneResizeMove)
+    window.removeEventListener('mouseup', stopDashboardLaneResize)
+  }
+}
 const createDialogLastSavedSignature = ref('')
 const createDialogAutosavePending = ref(false)
 const heroDocumentDialogOpen = ref(false)
@@ -2660,6 +2821,7 @@ function startColumnResize(columnKey, minWidth, event) {
 
 onBeforeUnmount(() => {
   stopColumnResize()
+  stopDashboardLaneResize()
   if (runtimeStructureUnsub) runtimeStructureUnsub()
   runtimeStructureUnsub = null
 })
@@ -2668,6 +2830,9 @@ onMounted(() => {
   runtimeStructureUnsub = subscribeRuntimeFileStructures((version) => {
     runtimeStructureVersion.value = version
   })
+  if (typeof window !== 'undefined') {
+    window.setTimeout(() => ensureDashboardLaneWidths(), 0)
+  }
 })
 
 async function loadRows() {
@@ -5042,7 +5207,7 @@ function isBbGraphLinkToken(tokenRow) {
 .test-shell-body {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 10px;
 }
 
 .file-shell__toolbar-slot-debug {
@@ -5070,8 +5235,186 @@ function isBbGraphLinkToken(tokenRow) {
   color: var(--ds-color-text-primary);
 }
 
+.file-shell__dashboard-row {
+  width: 100%;
+  min-height: 40px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 10px minmax(0, 1fr) 10px minmax(0, 1fr) 10px minmax(0, 1fr);
+  align-items: stretch;
+  column-gap: 0;
+  padding: 8px;
+  margin-top: 12px;
+  margin-bottom: 12px;
+  background: rgba(255, 159, 67, 0.35);
+  border: 1px solid rgba(15, 23, 42, 0.14);
+  border-radius: 6px;
+}
+
+.file-shell__dashboard-lane {
+  position: relative;
+  min-width: 0;
+}
+
+.file-shell__dashboard-lane-box {
+  width: 100%;
+  min-height: 24px;
+  box-sizing: border-box;
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 6px;
+}
+
+.file-shell__dashboard-lane-box--controls {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  padding: 0 6px;
+}
+
+.file-shell__dashboard-lane-box--governance {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 0 8px;
+}
+
+.file-shell__dashboard-governance-set {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.file-shell__dashboard-divider {
+  position: relative;
+  width: 10px;
+  min-width: 10px;
+  height: 100%;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  cursor: col-resize;
+}
+
+.file-shell__dashboard-divider::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 1px;
+  height: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(15, 23, 42, 0.22);
+}
+
+.file-shell__dashboard-divider:hover::before {
+  background: rgba(15, 23, 42, 0.42);
+}
+
+.file-shell__dashboard-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  min-width: 22px;
+  height: 22px;
+  padding: 0;
+  color: rgba(15, 23, 42, 0.78);
+  background: transparent;
+  border: 0;
+  border-radius: 6px;
+}
+
+.file-shell__dashboard-row-icon,
+.file-shell__dashboard-chevron-icon {
+  width: 14px;
+  height: 14px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.file-shell__dashboard-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 20px;
+  padding: 0 8px;
+  color: rgba(15, 23, 42, 0.78);
+  background: transparent;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  border-radius: 6px;
+  font-size: 11px;
+  line-height: 1;
+  white-space: nowrap;
+}
+
 .file-shell__toolbar-search {
-  flex: 0 0 auto;
+  width: min(100%, calc(var(--ds-toolbar-search-width) * 0.5));
+  min-width: min(100%, calc(var(--ds-toolbar-search-width) * 0.5));
+  flex: 0 0 min(100%, calc(var(--ds-toolbar-search-width) * 0.5));
+}
+
+.file-shell__toolbar-add {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  min-width: 24px;
+  height: 24px;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  border-radius: var(--ds-radius-round);
+  cursor: pointer;
+}
+
+.file-shell__toolbar-add:hover:not(:disabled) {
+  background: rgba(15, 23, 42, 0.04);
+}
+
+.file-shell__toolbar-add:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.file-shell__toolbar-add :deep(.plus-icon-chip) {
+  --plus-icon-chip-size: 18px;
+  --plus-icon-chip-glyph-size: 12px;
+}
+
+.file-shell__toolbar-chevron {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  min-width: 28px;
+  height: 28px;
+  padding: 0;
+  color: var(--ds-color-text-primary);
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.file-shell__toolbar-chevron:hover {
+  background: rgba(255, 255, 255, 0.92);
+  border-color: rgba(15, 23, 42, 0.2);
+}
+
+.file-shell__toolbar-chevron-icon {
+  width: 14px;
+  height: 14px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 .test-shell-filters-menu {
