@@ -6204,22 +6204,21 @@ function isBbGraphLinkToken(tokenRow) {
   align-items: center;
   min-height: 24px;
   padding: 0 9px;
-  color: #111111;
-  background: rgba(255, 255, 255, 0.92);
-  border: 1px solid rgba(15, 23, 42, 0.14);
-  border-radius: 999px;
-  font-family: var(--font-title);
-  font-size: 0.68rem;
-  font-weight: var(--font-weight-black);
-  letter-spacing: 0.03em;
-  line-height: 1;
+  color: var(--ds-color-text-primary);
+  background: rgba(17, 17, 17, 0.04);
+  border: 1px solid rgba(17, 17, 17, 0.1);
+  border-radius: 6px;
+  font-family: var(--ds-font-family-body);
+  font-size: 11px;
+  font-weight: var(--ds-font-weight-medium);
+  line-height: 1.2;
   cursor: pointer;
-  white-space: nowrap;
+  white-space: normal;
 }
 
 .test-shell-table__bb-link:hover {
-  border-color: rgba(15, 23, 42, 0.26);
-  background: rgba(248, 250, 252, 1);
+  border-color: rgba(17, 17, 17, 0.18);
+  background: rgba(17, 17, 17, 0.07);
 }
 
 .test-shell-table__ldb-item {
@@ -6230,10 +6229,10 @@ function isBbGraphLinkToken(tokenRow) {
   max-width: 100%;
   min-width: 0;
   padding: 4px 7px;
-  color: #1f7a3d;
-  background: rgba(31, 122, 61, 0.06);
-  border: 1px solid rgba(31, 122, 61, 0.18);
-  border-radius: 3px;
+  color: var(--ds-color-text-primary);
+  background: rgba(17, 17, 17, 0.04);
+  border: 1px solid rgba(17, 17, 17, 0.1);
+  border-radius: 6px;
 }
 
 .test-shell-table__ldb-icon {
@@ -6243,17 +6242,22 @@ function isBbGraphLinkToken(tokenRow) {
   width: 14px;
   height: 14px;
   flex: 0 0 14px;
-  color: rgba(17, 17, 17, 0.7);
+  color: var(--ds-color-text-secondary);
 }
 
 .test-shell-table__ldb-text {
   min-width: 0;
-  color: #111111;
+  color: var(--ds-color-text-primary);
   font-family: var(--ds-font-family-body);
-  font-size: 10px;
-  font-weight: var(--ds-font-weight-light);
-  line-height: 1.2;
+  font-size: 11px;
+  font-weight: var(--ds-font-weight-medium);
+  line-height: 1.3;
   overflow-wrap: anywhere;
+}
+
+.test-shell-table__ldb-item--linkable:hover {
+  border-color: rgba(17, 17, 17, 0.18);
+  background: rgba(17, 17, 17, 0.07);
 }
 
 .test-shell-table__name {
