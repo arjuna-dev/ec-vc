@@ -3844,7 +3844,13 @@ function requestEditRecordShell(row, options = {}) {
     : {}
   createDialogInitialArtifacts.value = []
   createDialogInitialSnapshot.value = { uiState: { activeSectionKey: createDialogInitialSectionKey.value }, hasUserChanges: true }
-  upsertLocalDraftRow(activeContentSourceKey.value, createDialogDraftRecordId.value, createDialogInitialValues.value)
+  upsertLocalDraftRow(
+    activeContentSourceKey.value,
+    createDialogDraftRecordId.value,
+    createDialogInitialValues.value,
+    createDialogFieldMeta.value,
+    {},
+  )
   createDialogRenderKey.value += 1
   createDialogOpen.value = true
 }
@@ -4334,20 +4340,43 @@ async function flushCreateDialogAutosave(snapshot, { immediate = false, reloadRo
   }
 }
 
-function buildLocalDraftRowPayload(values = {}) {
+function buildDraftRowFieldMeta(fieldMeta = {}, fieldVerificationStates = {}) {
+  const nextFieldMeta = {}
+  const keys = new Set([
+    ...Object.keys(fieldMeta && typeof fieldMeta === 'object' ? fieldMeta : {}),
+    ...Object.keys(fieldVerificationStates && typeof fieldVerificationStates === 'object' ? fieldVerificationStates : {}),
+  ])
+
+  keys.forEach((key) => {
+    const baseMeta = fieldMeta?.[key] && typeof fieldMeta[key] === 'object' ? { ...fieldMeta[key] } : {}
+    const verificationState = String(fieldVerificationStates?.[key] || baseMeta.verificationState || '').trim()
+    const verificationSource = String(baseMeta.verificationSource || '').trim()
+    if (!verificationState && !verificationSource) return
+    nextFieldMeta[key] = {
+      ...baseMeta,
+      ...(verificationState ? { verificationState } : {}),
+      ...(verificationSource ? { verificationSource } : {}),
+    }
+  })
+
+  return nextFieldMeta
+}
+
+function buildLocalDraftRowPayload(values = {}, fieldMeta = {}, fieldVerificationStates = {}) {
   const payload = buildCreatePayload(values)
   return {
     id: createDialogDraftRecordId.value,
     ...payload,
+    __fieldMeta: buildDraftRowFieldMeta(fieldMeta, fieldVerificationStates),
   }
 }
 
-function upsertLocalDraftRow(sourceKey, draftId, values = {}) {
+function upsertLocalDraftRow(sourceKey, draftId, values = {}, fieldMeta = {}, fieldVerificationStates = {}) {
   const normalizedSourceKey = String(sourceKey || '').trim().toLowerCase()
   const normalizedDraftId = String(draftId || '').trim()
   if (!normalizedSourceKey || !normalizedDraftId) return
 
-  const nextRow = buildLocalDraftRowPayload(values)
+  const nextRow = buildLocalDraftRowPayload(values, fieldMeta, fieldVerificationStates)
   localDraftRowsBySource.value = {
     ...localDraftRowsBySource.value,
     [normalizedSourceKey]: [
@@ -4397,7 +4426,13 @@ function updateLocalDraftRowFromSnapshot(snapshot) {
     removeLocalDraftRow(createDialogDraftSourceKey.value, createDialogDraftRecordId.value)
     return
   }
-  upsertLocalDraftRow(createDialogDraftSourceKey.value, createDialogDraftRecordId.value, values)
+  upsertLocalDraftRow(
+    createDialogDraftSourceKey.value,
+    createDialogDraftRecordId.value,
+    values,
+    createDialogFieldMeta.value,
+    snapshot?.fieldVerificationStates || {},
+  )
   upsertDraftRegistryEntry(
     createDialogDraftSourceKey.value,
     createDialogDraftRecordId.value,
