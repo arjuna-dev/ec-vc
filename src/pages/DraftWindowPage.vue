@@ -19,7 +19,7 @@
           Temporary workbench for shaping the dialog shell structure before it is promoted into the live add/edit flows.
         </q-banner>
 
-        <AddEditFileShellDialog
+        <DraftWindowShell
           :shell-selector-value="activeSourceKey"
           :shell-selector-options="TEST_SHELL_SECTION_OPTIONS"
           @update:shell-selector-value="updateShellSelector"
@@ -33,7 +33,7 @@
 <script setup>
 import { computed, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import AddEditFileShellDialog from 'src/components/AddEditFileShellDialog.vue'
+import DraftWindowShell from 'src/components/DraftWindowShell.vue'
 import { TEST_SHELL_SECTION_OPTIONS, resolveApprovedFileSectionKey } from 'src/utils/structureRegistry'
 
 const route = useRoute()
