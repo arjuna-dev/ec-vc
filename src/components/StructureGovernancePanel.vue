@@ -5,6 +5,7 @@
     :columns="resolvedViewSurfaceColumns"
     :rows="resolvedViewSurfaceRows"
     :empty-label="emptyViewsLabel"
+    @cell-dblclick="handleViewSurfaceCellDblclick"
   >
     <template #head="{ column }">
       <SettingsCheckbox
@@ -22,6 +23,16 @@
         tone="light"
         @update:model-value="$emit('toggle-view-select', row.key, $event)"
       />
+      <input
+        v-else-if="isViewCellEditing(row.key, column.key)"
+        :value="editingCellValue"
+        class="structure-governance-panel__cell-input"
+        type="text"
+        @input="editingCellValue = $event.target.value"
+        @blur="commitViewCellEdit(row.key, column.key, $event.target.value)"
+        @keydown.enter.prevent="commitViewCellEdit(row.key, column.key, $event.target.value)"
+        @keydown.esc.prevent="cancelDataCellEdit"
+      >
       <span v-else>{{ row[column.key] }}</span>
     </template>
   </SharedRowSurfaceTable>
@@ -176,6 +187,7 @@ const emit = defineEmits([
   'toggle-view-select',
   'toggle-data-select',
   'toggle-select-all',
+  'update-view-cell',
   'update-data-cell',
   'update-token-cell',
 ])
@@ -214,7 +226,7 @@ const resolvedViewSurfaceColumns = computed(() => [
 const resolvedViewSurfaceRows = computed(() =>
   (Array.isArray(props.viewRows) ? props.viewRows : []).map((row) => ({
     ...row,
-    editableColumns: [],
+    editableColumns: ['label'],
   })),
 )
 const resolvedTokenRows = computed(() =>
@@ -272,6 +284,27 @@ function isEditableColumn(row = {}, column = {}) {
   return Boolean(column?.editable) && column.kind !== 'checkbox' && isRowEditable
 }
 
+function isViewCellEditing(rowKey = '', columnKey = '') {
+  return editingCell.value.rowKey === String(rowKey || '').trim()
+    && editingCell.value.columnKey === String(columnKey || '').trim()
+}
+
+async function startViewCellEdit(row = {}, column = {}) {
+  if (String(column?.key || '').trim() !== 'label') return
+  editingCell.value = {
+    rowKey: String(row?.key || '').trim(),
+    columnKey: String(column?.key || '').trim(),
+  }
+  editingCellValue.value = row?.[column.key] ?? ''
+  await nextTick()
+}
+
+function commitViewCellEdit(rowKey = '', columnKey = '', value = '') {
+  emit('update-view-cell', rowKey, columnKey, value)
+  editingCell.value = { rowKey: '', columnKey: '' }
+  editingCellValue.value = ''
+}
+
 function isDataCellEditing(rowKey = '', columnKey = '') {
   return editingCell.value.rowKey === String(rowKey || '').trim()
     && editingCell.value.columnKey === String(columnKey || '').trim()
@@ -324,6 +357,12 @@ function handleTokenSurfaceCellDblclick(row, column) {
   if (!row || !column) return
   if (column.key === '__select__' || column.key === '__view__' || column.key === 'parentView') return
   startTokenCellEdit(row, column)
+}
+
+function handleViewSurfaceCellDblclick(row, column) {
+  if (!row || !column) return
+  if (column.key === '__select__' || column.key === '__view__' || column.key !== 'label') return
+  startViewCellEdit(row, column)
 }
 
 function handleDataSurfaceCellDblclick(row, column) {

@@ -208,6 +208,7 @@
               :select-all-indeterminate="governanceSurfaceContract.someVisibleSelected"
               @toggle-select-all="toggleGovernanceSelectAll"
               @toggle-view-select="toggleViewSelection"
+              @update-view-cell="updateViewCell"
               @toggle-token-select="toggleTokenSelection"
               @update-token-cell="updateTokenCell"
             />
@@ -284,6 +285,7 @@ const governanceSearchQuery = ref('')
 const viewMode = ref('page')
 const governanceViewMode = ref('page')
 const rawRowsBySource = ref({})
+const viewFieldOverridesBySource = ref({})
 const tokenFieldOverridesBySource = ref({})
 const selectedLeafKeysBySource = ref({})
 const selectedTokenKeysBySource = ref({})
@@ -339,7 +341,39 @@ const activeRegistryEntry = computed(() => activeFilePayload.value.registryEntry
 const payloadSections = computed(() => activeFilePayload.value.sections)
 const payloadTokens = computed(() => activeFilePayload.value.tokens)
 const fileViewGroups = computed(() => payloadSections.value)
-const toolbarViewSplit = computed(() => splitDialogViews(fileViewGroups.value))
+const effectiveFileViewGroups = computed(() => {
+  const sourceKey = activeSettingsSourceKey.value
+  const viewOverrides = viewFieldOverridesBySource.value[sourceKey] || {}
+  const tokenOverrides = tokenFieldOverridesBySource.value[sourceKey] || {}
+  const deletedKeys = new Set(deletedTokenKeysBySource.value[sourceKey] || [])
+
+  return fileViewGroups.value.map((section) => {
+    const sectionOverrides = viewOverrides[section.key] || {}
+    const effectiveTokens = (Array.isArray(section?.tokens) ? section.tokens : [])
+      .filter((token) => !deletedKeys.has(token.key))
+      .map((token) => {
+        const overrides = tokenOverrides[token.key] || {}
+        return {
+          ...token,
+          label: String(overrides.label ?? token.label ?? '').trim() || token.label || token.key,
+          tokenType: String(overrides.type ?? token.tokenType ?? '').trim() || token.tokenType || '',
+          optionSource: String(overrides.optionSource ?? token.optionSource ?? '').trim(),
+          optionEntity: String(overrides.optionEntity ?? token.optionEntity ?? '').trim(),
+          optionList: String(overrides.optionList ?? token.optionList ?? '').trim(),
+          definition: String(overrides.definition ?? token.definition ?? '').trim(),
+          dbWriteField: String(overrides.dbWriteField ?? token.dbWriteField ?? '').trim(),
+          fieldClass: String(overrides.fieldClass ?? token.fieldClass ?? token.field_class ?? '').trim(),
+        }
+      })
+
+    return {
+      ...section,
+      label: String(sectionOverrides.label ?? section.label ?? '').trim() || section.label || section.key,
+      tokens: effectiveTokens,
+    }
+  })
+})
+const toolbarViewSplit = computed(() => splitDialogViews(effectiveFileViewGroups.value))
 
 function isRelationshipSectionLabel(value = '') {
   return String(value || '').trim().toLowerCase() === 'ldb'
@@ -347,7 +381,7 @@ function isRelationshipSectionLabel(value = '') {
 
 const controlBarFeed = computed(() =>
   buildShellToolbarFeed({
-    sections: fileViewGroups.value,
+    sections: effectiveFileViewGroups.value,
     governanceItems: [
       { value: 'tokens', title: 'Tokens' },
       { value: 'views', title: 'Views' },
@@ -376,7 +410,7 @@ const governanceControlItems = computed(() =>
 )
 
 const activeViewSection = computed(() => {
-  return fileViewGroups.value.find((section) => section.key === dataToolbarView.value) || fileViewGroups.value[0] || null
+  return effectiveFileViewGroups.value.find((section) => section.key === dataToolbarView.value) || effectiveFileViewGroups.value[0] || null
 })
 
 const activeGovernanceToolbarKey = computed(() => (
@@ -447,9 +481,8 @@ const sharedLdbLeafTokens = computed(() => {
 
 const tokenGroupsByView = computed(() =>
   governanceViewRows.value.map((view) => {
-    const section = fileViewGroups.value.find((entry) => entry.key === view.key)
-    const deletedKeys = new Set(deletedTokenKeysBySource.value[activeSettingsSourceKey.value] || [])
-    const baseTokens = (Array.isArray(section?.tokens) ? section.tokens : []).filter((token) => !deletedKeys.has(token.key))
+    const section = effectiveFileViewGroups.value.find((entry) => entry.key === view.key)
+    const baseTokens = Array.isArray(section?.tokens) ? section.tokens : []
     const ldbTokens = view.key === activeViewSection.value?.key && isRelationshipSettingsSection.value ? sharedLdbLeafTokens.value : []
     const requiredKeys = new Set(requiredFieldKeysBySource.value[activeSettingsSourceKey.value] || [])
 
@@ -458,21 +491,20 @@ const tokenGroupsByView = computed(() =>
       label: view.label,
       tokens: [...ldbTokens, ...baseTokens].map((token, index) => {
         const writeTarget = getCanonicalTokenWriteTarget(token, activeShellSelectorOption.value.label, 'id')
-        const overrides = tokenFieldOverridesBySource.value[activeSettingsSourceKey.value]?.[token.key] || {}
 
         return {
           key: token.key || `token-${index}`,
-          label: (overrides.label ?? token.label) || '-',
-          type: (overrides.type ?? token.tokenType) || '-',
-          optionSource: (overrides.optionSource ?? token.optionSource) || '-',
-          optionEntity: (overrides.optionEntity ?? token.optionEntity) || '-',
-          optionList: (overrides.optionList ?? token.optionList) || '-',
-          definition: (overrides.definition ?? token.definition) || '-',
-          dbWriteField: (overrides.dbWriteField ?? token.dbWriteField) || token.dbFieldAliases?.[0] || '-',
-          fieldClass: (overrides.fieldClass ?? token.fieldClass ?? token.field_class) || '-',
+          label: token.label || '-',
+          type: token.tokenType || '-',
+          optionSource: token.optionSource || '-',
+          optionEntity: token.optionEntity || '-',
+          optionList: token.optionList || '-',
+          definition: token.definition || '-',
+          dbWriteField: token.dbWriteField || token.dbFieldAliases?.[0] || '-',
+          fieldClass: token.fieldClass || token.field_class || '-',
           required: requiredKeys.has(token.key),
           visible: 'Yes',
-          writeTarget: overrides.writeTarget ?? (writeTarget?.fieldName ? `${writeTarget.tableName}.${writeTarget.fieldName}` : token.dbFieldAliases?.join(', ') || '-'),
+          writeTarget: writeTarget?.fieldName ? `${writeTarget.tableName}.${writeTarget.fieldName}` : token.dbFieldAliases?.join(', ') || '-',
           editable: token.editable === false ? 'No' : token.editable === true ? 'Yes' : '-',
         }
       }),
@@ -654,6 +686,23 @@ function updateTokenCell(tokenKey, field, value) {
       [tokenKey]: {
         ...currentToken,
         [field]: String(value ?? '').trim() || '-',
+      },
+    },
+  }
+}
+
+function updateViewCell(viewKey, field, value) {
+  if (String(field || '').trim() !== 'label') return
+  const sourceKey = activeSettingsSourceKey.value
+  const currentBySource = viewFieldOverridesBySource.value[sourceKey] || {}
+  const currentView = currentBySource[viewKey] || {}
+  viewFieldOverridesBySource.value = {
+    ...viewFieldOverridesBySource.value,
+    [sourceKey]: {
+      ...currentBySource,
+      [viewKey]: {
+        ...currentView,
+        label: String(value ?? '').trim() || currentView.label || viewKey,
       },
     },
   }

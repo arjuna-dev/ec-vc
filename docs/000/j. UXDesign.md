@@ -4,6 +4,11 @@
 
 This document defines how `UXDesign` should behave as the combined top-layer architecture guide for user experience and design-system clarity.
 
+## TLDR
+
+Governance defines structure.
+Data reflects structure.
+
 `UXDesign` is charged with making structural choices understandable to the user and keeping shared UI structure disciplined.
 
 Its job is to translate architecture decisions into clear user-facing forks, questions, labels, and flows.
@@ -197,6 +202,10 @@ When the user is in structure governance:
 - `Views` should read as the place where section/view metadata is governed
 - `Tokens` should read as the place where token metadata is governed
 - both surfaces should feel like direct structure editing, not side tables
+- governance is upstream for the active file
+- data is downstream for that same active file
+- if a `View` changes in governance, the corresponding label should change in `DataControl`
+- if a `Token` changes in governance, the corresponding column should change in `DataSurface`
 
 Color rule:
 

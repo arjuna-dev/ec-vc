@@ -4,6 +4,11 @@
 
 This document is the launch-side counterpart to `DAMP.md`.
 
+## TLDR
+
+Governance defines structure.
+Data reflects structure.
+
 `DAMP.md` holds the broader draft architecture and product-reference layer.
 
 `LAMP.md` should hold the cleaner launch and setup path we want the app to follow as governance stabilizes.
@@ -122,6 +127,12 @@ Drift signal:
 
 - shared row/data surfaces must read the same way everywhere
 - control columns, cell-state meaning, scroll behavior, and resize behavior should stay governed
+- governance defines structure
+- data reflects structure
+- governance surfaces are upstream for an active file
+- data surfaces are downstream for that same active file
+- changing a `View` in governance changes the corresponding label in `DataControl`
+- changing a `Token` in governance changes the corresponding column in `DataSurface`
 
 Drift signal:
 

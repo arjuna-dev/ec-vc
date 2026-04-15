@@ -4,6 +4,11 @@
 
 This document is the single active system-file authority.
 
+## TLDR
+
+Governance defines structure.
+Data reflects structure.
+
 It now carries:
 
 - the canonical `Files` registry meaning
@@ -129,6 +134,10 @@ That means:
 - `Views` edits section/view metadata
 - `Tokens` edits token metadata
 - both surfaces should be treated as governed structure surfaces, not as local convenience tables
+- governance is upstream for the active file
+- data is downstream for that same active file
+- changing a governed `View` changes the corresponding label in `DataControl`
+- changing a governed `Token` changes the corresponding column in `DataSurface`
 
 Visual rule:
 
