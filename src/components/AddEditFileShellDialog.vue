@@ -8,11 +8,6 @@
       <div class="file-structure-shell__header-copy">
         <div class="file-structure-shell__title-row">
           <RecordTitle title="Add/Edit File Shell" />
-          <PlusWithLabelButton
-            label="Add Element"
-            aria-label="Add Element"
-            @click="addLeafElement"
-          />
           <button
             v-if="shellSelectorOptions.length"
             ref="shellSelectorButton"
@@ -202,7 +197,6 @@ import DialogShellFrame from 'src/components/DialogShellFrame.vue'
 import RecordFieldsBox from 'src/components/RecordFieldsBox.vue'
 import DialogShellTitleRow from 'src/components/DialogShellTitleRow.vue'
 import MainMenuGroupRow from 'src/components/MainMenuGroupRow.vue'
-import PlusWithLabelButton from 'src/components/PlusWithLabelButton.vue'
 import RecordTitle from 'src/components/RecordTitle.vue'
 import RecordSummaryBox from 'src/components/RecordSummaryBox.vue'
 import FileShellControlBar from 'src/components/FileShellControlBar.vue'
@@ -498,35 +492,6 @@ function openFileGuideDoc() {
 
 function toggleShellSelector() {
   shellSelectorOpen.value = !shellSelectorOpen.value
-}
-
-function addLeafElement() {
-  const sourceKey = activeSettingsSourceKey.value
-  const currentDrafts = draftLeafRowsBySource.value[sourceKey] || []
-  const nextIndex = currentDrafts.length + 1
-  const nextKey = `${sourceKey}-draft-leaf-${nextIndex}`
-  draftLeafRowsBySource.value = {
-    ...draftLeafRowsBySource.value,
-    [sourceKey]: [
-      ...currentDrafts,
-      {
-        isDraft: true,
-        key: nextKey,
-        label: 'Nameless',
-        parentLabel: activeViewSection.value?.label || '—',
-        tokenType: 'text',
-        relationshipGroup: '',
-        dbFieldAliases: [],
-        optionList: '',
-        optionSource: '',
-        definition: '',
-      },
-    ],
-  }
-  selectedLeafKeysBySource.value = {
-    ...selectedLeafKeysBySource.value,
-    [sourceKey]: [...selectedLeafKeys.value, nextKey],
-  }
 }
 
 function toggleLeafSelection(tokenKey) {
