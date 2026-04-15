@@ -203,6 +203,17 @@ If views change, labels change.
 
 If tokens change, columns change.
 
+Shared render rules still apply across renderable views.
+
+At minimum:
+
+- `Name` should remain the first visible identifying column across renderable views
+- `ID` should remain carried in the row contract as a hidden identity field
+
+This means data rendering should not be reduced to only the locally declared tokens of one selected view.
+
+The local view still contributes its view-specific columns, but the shared identifying layer must remain present.
+
 ### 6. Context extends the system
 
 Domain or project-specific repositories add contextual meaning on top of the core local system.
@@ -217,6 +228,28 @@ Short rule:
 - governance defines structure changes
 - data reflects structure
 - context extends the system
+
+## Relationship View Rule
+
+`LDB` should not be treated as an ordinary local token bucket.
+
+It is a governed relationship view.
+
+That means:
+
+- it is hydrated from the governed local file universe
+- it expresses the local closed-system relationship threading
+- it should not be interpreted as just another static set of local view columns
+
+Working rule:
+
+- ordinary views may render mainly from their local declared tokens
+- `LDB` must render through its governed relationship path
+
+Drift signal:
+
+- `LDB` is treated as if it were just another local extension view
+- relationship hydration disappears unless local placeholder tokens are added manually
 
 ## Foundational Rules
 

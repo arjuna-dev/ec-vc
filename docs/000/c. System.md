@@ -207,6 +207,47 @@ Visual rule:
 - blue = editable
 - grey = locked
 
+## Shared Render Rule
+
+Shared identifying render rules should remain present across renderable views.
+
+At minimum:
+
+- `Name` should remain the first visible identifying column
+- `ID` should remain carried in the row contract as a hidden identity field
+
+Working rule:
+
+- view-specific tokens add view-specific columns
+- but shared identifying structure must not disappear just because the selected view has few or no local tokens
+
+Drift signal:
+
+- a renderable view shows rows but loses its identifying `Name` column
+- surfaces behave as if only local view tokens exist and shared identifying structure does not
+
+## LDB Relationship View Rule
+
+`LDB` should not be treated as an ordinary local view section.
+
+It is a governed relationship view inside the local file system.
+
+That means:
+
+- it is hydrated from the local `System Files` universe
+- it expresses relationship threading across the local closed system
+- it should not depend on ad hoc placeholder token lists to appear meaningful
+
+Working rule:
+
+- `LDB` is a special governed relationship path
+- do not interpret it as just another local token bucket
+
+Drift signal:
+
+- `LDB` only renders when treated like an ordinary local token section
+- relationship rendering disappears because the system is expecting static local token definitions instead of governed relationship hydration
+
 ## Token Ownership And Value Editability
 
 Keep these three distinctions explicit:
