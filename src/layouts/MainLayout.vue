@@ -423,6 +423,7 @@ const testShellNavigationItems = [
   { label: 'Record Shell', to: '/record-shell?section=tasks', exact: true, icon: 'album' },
   { label: 'Add/Edit File Shell', to: '/file-dialog-shell?section=file-system', exact: true, icon: 'web_asset' },
   { label: 'Add/Edit Record Shell', to: '/dialog-shell?section=tasks', exact: true, icon: 'web_asset' },
+  { label: 'Draft Window', to: '/draft-window?section=file-system', exact: true, icon: 'design_services' },
   { label: 'Intake Shell', to: '/intake-shell', exact: true, icon: 'hourglass_top' },
   { label: 'Fork Shell', to: '/fork-shell', exact: true, icon: 'call_split' },
 ].map((item) => ({
@@ -451,6 +452,7 @@ const routeLabelByName = {
   'fork-shell': 'Fork Shell',
   'file-dialog-shell': 'Add/Edit File Shell',
   'dialog-shell': 'Add/Edit Record Shell',
+  'draft-window': 'Draft Window',
   'intake-shell': 'Intake Shell',
   'user-roles': 'User Roles',
   'companion-roles': 'Companion Roles',

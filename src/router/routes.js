@@ -34,6 +34,7 @@ const routes = [
       { path: 'building-blocks', redirect: { name: 'bb-file' } },
       { path: 'file-dialog-shell', name: 'file-dialog-shell', component: () => import('pages/FileDialogShellPage.vue') },
       { path: 'dialog-shell', name: 'dialog-shell', component: () => import('pages/DialogShellPage.vue') },
+      { path: 'draft-window', name: 'draft-window', component: () => import('pages/DraftWindowPage.vue') },
       { path: 'intake-shell', name: 'intake-shell', component: () => import('pages/IntakeShellPage.vue') },
       { path: 'ingestion-shell', redirect: { name: 'intake-shell' } },
       { path: 'user-roles', name: 'user-roles', component: () => import('pages/AssistantsPage.vue') },
