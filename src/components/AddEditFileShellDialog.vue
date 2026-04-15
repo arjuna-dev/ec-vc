@@ -45,6 +45,24 @@
             :title="activeShellSelectorOption.label"
             class="file-structure-shell__dialog-title-copy"
           />
+          <div class="file-structure-shell__level-toggle" role="group" aria-label="Edit shell level">
+            <button
+              type="button"
+              class="file-structure-shell__level-toggle-btn"
+              :class="{ 'file-structure-shell__level-toggle-btn--active': editingLevel === 'file' }"
+              @click="setEditingLevel('file')"
+            >
+              File Level
+            </button>
+            <button
+              type="button"
+              class="file-structure-shell__level-toggle-btn"
+              :class="{ 'file-structure-shell__level-toggle-btn--active': editingLevel === 'token' }"
+              @click="setEditingLevel('token')"
+            >
+              Token Level
+            </button>
+          </div>
           <button
             type="button"
             class="file-structure-shell__chevron-button"
@@ -235,6 +253,8 @@ const shellSelectorButton = ref(null)
 const shellSelectorMenu = ref(null)
 const pendingShellSelectorValue = ref('')
 const activeToolbarView = ref('')
+const editingLevel = ref('file')
+const lastFileLevelToolbarBySource = ref({})
 const boxesCollapsed = ref(false)
 const leafItemsCollapsed = ref(false)
 const draftLeafRowsBySource = ref({})
@@ -494,6 +514,26 @@ function toggleShellSelector() {
   shellSelectorOpen.value = !shellSelectorOpen.value
 }
 
+function setEditingLevel(nextLevel) {
+  const normalizedLevel = nextLevel === 'token' ? 'token' : 'file'
+  const sourceKey = activeSettingsSourceKey.value
+  if (normalizedLevel === 'token') {
+    if (activeToolbarView.value && activeToolbarView.value !== 'tokens') {
+      lastFileLevelToolbarBySource.value = {
+        ...lastFileLevelToolbarBySource.value,
+        [sourceKey]: activeToolbarView.value,
+      }
+    }
+    editingLevel.value = 'token'
+    activeToolbarView.value = 'tokens'
+    return
+  }
+
+  editingLevel.value = 'file'
+  const nextToolbarValue = String(lastFileLevelToolbarBySource.value[sourceKey] || '').trim()
+  activeToolbarView.value = nextToolbarValue || fileViewGroups.value[0]?.key || 'views'
+}
+
 function toggleLeafSelection(tokenKey) {
   const sourceKey = activeSettingsSourceKey.value
   const current = selectedLeafKeys.value
@@ -623,8 +663,28 @@ onBeforeUnmount(() => {
 watch(
   controlBarItems,
   (items) => {
+    if (editingLevel.value === 'token' && items.some((item) => item.value === 'tokens')) {
+      activeToolbarView.value = 'tokens'
+      return
+    }
     if (items.some((item) => item.value === activeToolbarView.value)) return
-    activeToolbarView.value = items[0]?.value || ''
+    const sourceKey = activeSettingsSourceKey.value
+    const preferredFileToolbarValue = String(lastFileLevelToolbarBySource.value[sourceKey] || '').trim()
+    activeToolbarView.value = items.find((item) => item.value === preferredFileToolbarValue)?.value || items[0]?.value || ''
+  },
+  { immediate: true },
+)
+
+watch(
+  activeToolbarView,
+  (value) => {
+    const normalizedValue = String(value || '').trim()
+    if (!normalizedValue || normalizedValue === 'tokens') return
+    const sourceKey = activeSettingsSourceKey.value
+    lastFileLevelToolbarBySource.value = {
+      ...lastFileLevelToolbarBySource.value,
+      [sourceKey]: normalizedValue,
+    }
   },
   { immediate: true },
 )
@@ -704,6 +764,40 @@ watch(
 
 .file-structure-shell__dialog-title-copy {
   min-width: 0;
+}
+
+.file-structure-shell__level-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  border-radius: 999px;
+  background: rgba(248, 250, 252, 0.92);
+}
+
+.file-structure-shell__level-toggle-btn {
+  padding: 7px 12px;
+  border: 0;
+  border-radius: 999px;
+  color: rgba(15, 23, 42, 0.68);
+  background: transparent;
+  font-family: var(--font-title);
+  font-size: 0.73rem;
+  font-weight: var(--font-weight-black);
+  line-height: 1;
+  cursor: pointer;
+  transition: background-color 140ms ease, color 140ms ease, box-shadow 140ms ease;
+}
+
+.file-structure-shell__level-toggle-btn:hover {
+  color: #111827;
+}
+
+.file-structure-shell__level-toggle-btn--active {
+  color: #fff;
+  background: #111827;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.16);
 }
 
 .file-structure-shell__content-grid {
