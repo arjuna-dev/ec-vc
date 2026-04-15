@@ -371,6 +371,7 @@ watch(
     const normalizedRecordId = String(editRecordId || '').trim()
   if (!normalizedRecordId) {
     const pending = consumePendingAddEditShellRequest(activeSourceKey.value)
+    const hasExplicitCreateRequest = String(route.query.create || '').trim().length > 0
     dialogMode.value = 'create'
     dialogRecordId.value = ''
     dialogEntityName.value = ''
@@ -380,7 +381,7 @@ watch(
       dialogInitialFieldMeta.value = buildCreateDialogInitialFieldMeta(pending)
       dialogInitialSnapshot.value = pending?.snapshot || null
       dialogInitialSectionKey.value = 'general'
-    if (!pending) {
+    if (!pending && hasExplicitCreateRequest) {
       setPendingAddEditShellRequest({
         sourceKey: activeSourceKey.value,
         initialValues: dialogInitialValues.value,
@@ -402,11 +403,13 @@ watch(
       activeSourceKey.value
     upsertDraftRegistryEntry(dialogDraftSourceKey.value, dialogDraftId.value, dialogInitialValues.value)
     dialogOpen.value = true
-    void ensureDraftRecord({
-      values: dialogInitialValues.value,
-      verification: { changes: dialogInitialFieldMeta.value },
-      hasUserChanges: true,
-    })
+    if (pending || hasExplicitCreateRequest) {
+      void ensureDraftRecord({
+        values: dialogInitialValues.value,
+        verification: { changes: dialogInitialFieldMeta.value },
+        hasUserChanges: true,
+      })
+    }
     return
   }
 
