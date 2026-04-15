@@ -3,6 +3,7 @@
     <div class="file-shell__control-lane">
       <div class="file-shell__control-lane-box file-shell__control-lane-box--left-controls">
         <q-checkbox
+          v-if="showSelectAll"
           :model-value="allVisibleSelected"
           :indeterminate="someVisibleSelected && !allVisibleSelected"
           :disable="loading || disabled || selectDisabled"
@@ -180,6 +181,7 @@ const props = defineProps({
   loading: { type: Boolean, default: false },
   disabled: { type: Boolean, default: false },
   selectDisabled: { type: Boolean, default: false },
+  showSelectAll: { type: Boolean, default: true },
   addDisabled: { type: Boolean, default: false },
   addAriaLabel: { type: String, default: 'Add Record' },
   searchQuery: { type: String, default: '' },
