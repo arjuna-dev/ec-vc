@@ -328,12 +328,16 @@
       </section>
     </section>
 
+    <AddEditBbShell
+      v-model="bbDetailDialogOpen"
+      :detail="bbDetail"
+    />
   </q-page>
 </template>
 
 <script setup>
 import { ref } from 'vue'
-import { useRouter } from 'vue-router'
+import AddEditBbShell from 'src/components/AddEditBbShell.vue'
 import HomeDashboardHero from 'src/components/HomeDashboardHero.vue'
 import L3Box from 'src/components/L3Box.vue'
 import FilePageToolbar from 'src/components/FilePageToolbar.vue'
@@ -355,7 +359,7 @@ import MainMenuGroupRow from 'src/components/MainMenuGroupRow.vue'
 import PageBackSymbol from 'src/components/PageBackSymbol.vue'
 import ToggleRowIcons from 'src/components/ToggleRowIcons.vue'
 import WidgetSettingsMenu from 'src/components/WidgetSettingsMenu.vue'
-import { BUILDING_BLOCK_DETAILS_BY_ID } from 'src/utils/buildingBlocks'
+import { BUILDING_BLOCK_DETAILS_BY_ID, getBuildingBlockDetail } from 'src/utils/buildingBlocks'
 
 const activeToolbarSection = ref('general')
 const activeMiniToolbarSection = ref('general')
@@ -400,7 +404,8 @@ const openSections = ref({
   record: true,
   shell: true,
 })
-const router = useRouter()
+const bbDetailDialogOpen = ref(false)
+const bbDetail = ref(null)
 const viewOptions = [
   { label: '', value: 'card', icon: 'grid_view' },
   { label: '', value: 'table', icon: 'table_rows' },
@@ -466,12 +471,8 @@ function toggleSection(sectionKey) {
 }
 
 function openComponentDetail(componentId) {
-  router.push({
-    name: 'bb-shell',
-    query: {
-      block: componentId,
-    },
-  })
+  bbDetail.value = getBuildingBlockDetail(componentId)
+  bbDetailDialogOpen.value = Boolean(bbDetail.value)
 }
 
 </script>

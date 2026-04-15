@@ -653,6 +653,11 @@
         @submit="submitCreateRecordShell"
       />
 
+      <AddEditBbShell
+        v-model="bbDetailDialogOpen"
+        :detail="bbDetail"
+      />
+
       <q-dialog v-model="heroDocumentDialogOpen" maximized>
         <q-card class="hero-document-dialog">
           <q-card-section class="hero-document-dialog__header">
@@ -677,6 +682,7 @@
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useQuasar } from 'quasar'
 import { useRoute, useRouter } from 'vue-router'
+import AddEditBbShell from 'components/AddEditBbShell.vue'
 import AddEditRecordShellDialog from 'components/AddEditRecordShellDialog.vue'
 import FileFilterMenu from 'components/FileFilterMenu.vue'
 import FileHero from 'components/FileHero.vue'
@@ -688,6 +694,7 @@ import StructureGovernancePanel from 'components/StructureGovernancePanel.vue'
 import { buildTokenGovernanceColumns } from 'src/utils/structureGovernanceColumns'
 import EyeIconButton from 'components/buttons/EyeIconButton.vue'
 import SelectionActionBar from 'components/SelectionActionBar.vue'
+import { getBuildingBlockDetail } from 'src/utils/buildingBlocks'
 import { buildStructureToolbarItems } from 'src/utils/structureToolbarContract'
   import {
     getCreateBranchEntry,
@@ -774,6 +781,8 @@ const createDialogInitialArtifacts = ref([])
 const createDialogLastChangeSnapshot = ref(null)
 const createDialogLastSavedSignature = ref('')
 const createDialogAutosavePending = ref(false)
+const bbDetailDialogOpen = ref(false)
+const bbDetail = ref(null)
 const heroDocumentDialogOpen = ref(false)
 const heroDocumentDialogTitle = ref('')
 const heroDocumentDialogContent = ref('')
@@ -3342,12 +3351,8 @@ async function commitInlineTableEdit(row, token, immediateValue) {
 function openBbShellByBlockKey(blockKey) {
   const normalizedBlockKey = String(blockKey || '').trim()
   if (!normalizedBlockKey) return
-  router.push({
-    name: 'bb-shell',
-    query: {
-      block: normalizedBlockKey,
-    },
-  })
+  bbDetail.value = getBuildingBlockDetail(normalizedBlockKey)
+  bbDetailDialogOpen.value = Boolean(bbDetail.value)
 }
 
 function canCreateForSourceKey(sourceKey) {

@@ -14,9 +14,9 @@
           />
         </div>
 
-        <div v-if="isDialogShellRoute || isForkShellRoute || isBbShellRoute" class="ec-shell-toolbar-center">
+        <div v-if="isDialogShellRoute || isForkShellRoute" class="ec-shell-toolbar-center">
           <ShellOpenDialogButton
-            :kind="isForkShellRoute ? 'fork' : isBbShellRoute ? 'bb' : 'record'"
+            :kind="isForkShellRoute ? 'fork' : 'record'"
             @click="reopenActiveRouteShellFromHeader"
           />
         </div>
@@ -421,7 +421,6 @@ const testShellNavigationItems = [
   { label: 'BB Shell', to: '/bb-file', exact: true, icon: 'dashboard_customize' },
   { label: 'File Shell', to: '/test-shell', exact: true, icon: 'science' },
   { label: 'Record Shell', to: '/record-shell?section=tasks', exact: true, icon: 'album' },
-  { label: 'Add/Edit BB Shell', to: '/bb-shell', exact: true, icon: 'web_asset' },
   { label: 'Add/Edit File Shell', to: '/file-dialog-shell?section=file-system', exact: true, icon: 'web_asset' },
   { label: 'Add/Edit Record Shell', to: '/dialog-shell?section=tasks', exact: true, icon: 'web_asset' },
   { label: 'Intake Shell', to: '/intake-shell', exact: true, icon: 'hourglass_top' },
@@ -450,7 +449,6 @@ const routeLabelByName = {
   'test-shell': 'File Shell',
   'record-shell': 'Record Shell',
   'fork-shell': 'Fork Shell',
-  'bb-shell': 'Add/Edit BB Shell',
   'file-dialog-shell': 'Add/Edit File Shell',
   'dialog-shell': 'Add/Edit Record Shell',
   'intake-shell': 'Intake Shell',
@@ -587,7 +585,6 @@ const developerHoverStyle = computed(() => ({
 const isSelectableShellRoute = computed(() => ['test-shell', 'record-shell'].includes(String(route.name || '')))
 const isDialogShellRoute = computed(() => String(route.name || '') === 'dialog-shell')
 const isForkShellRoute = computed(() => String(route.name || '') === 'fork-shell')
-const isBbShellRoute = computed(() => String(route.name || '') === 'bb-shell')
 const shellSectionOptions = TEST_SHELL_SECTION_OPTIONS
 const selectedShellSection = computed({
   get() {
@@ -610,10 +607,6 @@ function reopenActiveRouteShellFromHeader() {
   if (typeof window === 'undefined') return
   if (isForkShellRoute.value) {
     window.dispatchEvent(new CustomEvent('ecvc:reopen-fork-shell'))
-    return
-  }
-  if (isBbShellRoute.value) {
-    window.dispatchEvent(new CustomEvent('ecvc:reopen-bb-shell'))
     return
   }
   window.dispatchEvent(new CustomEvent('ecvc:reopen-dialog-shell'))
@@ -1662,10 +1655,6 @@ function handleDrawerItemClick(item) {
   const itemTarget = String(item?.to || '').trim()
   const routeName = String(route.name || '').trim()
   if (typeof window === 'undefined' || typeof window.dispatchEvent !== 'function') return
-  if (itemTarget === '/bb-shell' && routeName === 'bb-shell') {
-    window.dispatchEvent(new CustomEvent('ecvc:reopen-bb-shell'))
-    return
-  }
   if (itemTarget === '/dialog-shell' && routeName === 'dialog-shell') {
     window.dispatchEvent(new CustomEvent('ecvc:reopen-dialog-shell'))
     return
