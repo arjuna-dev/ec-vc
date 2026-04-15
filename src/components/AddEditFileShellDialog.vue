@@ -7,7 +7,7 @@
     <template #header>
       <div class="file-structure-shell__header-copy">
         <div class="file-structure-shell__title-row">
-          <RecordTitle title="Add/Edit File Shell" />
+          <RecordTitle title="Edit Shell" />
           <button
             v-if="shellSelectorOptions.length"
             ref="shellSelectorButton"
