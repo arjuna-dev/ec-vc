@@ -18,43 +18,62 @@
         {{ error }}
       </q-banner>
 
-      <RecordHero
-        ref="contactHeroRef"
-        :style="structuredRecordHeroStyle"
-        :title="heroName"
-        :initials="heroInitials"
-        :settings-groups="heroSettingsGroups"
-        :field-cards="selectedHeroFieldCards"
-        :summary-value="heroSummaryValue"
-        :summary-status-icon="heroSummaryStatusIcon"
-        :interactive="isRecordRoute"
-        :feed-tab="activeRecordFeedTab"
-        :feed-tabs="recordFeedTabOptions"
-        :feed-groups="recordFeedGroupOptions"
-        :feed-items="feedItems"
-        feed-empty-message="No feed items yet for this record."
-        @pointerenter="startContactHeroPointerTracking"
-        @pointermove="onContactHeroPointerMove"
-        @pointerleave="onContactHeroPointerLeave"
-        @update:feed-tab="activeRecordFeedTab = $event"
-        @toggle-settings-group="toggleHeroGroup"
-        @toggle-settings-item="setTokenSelected"
-        @open-feed-log="openFeedItemLog"
-        @request-feed-add="handleRecordFeedAdd"
-      >
-        <template #portrait>
-          <figure class="record-shell__portrait record-shell__portrait--initials-only">
-            <div class="record-shell__portrait-placeholder" aria-hidden="true">
-              <div
-                class="record-shell__portrait-placeholder-initials"
-                :style="{ backgroundColor: heroAvatarColor }"
-              >
-                {{ heroInitials }}
+      <div class="record-shell__hero-frame">
+        <button
+          type="button"
+          class="record-shell__hero-chevron"
+          :aria-label="heroCollapsed ? 'Expand record hero' : 'Collapse record hero'"
+          @click="heroCollapsed = !heroCollapsed"
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true" class="record-shell__hero-chevron-icon">
+            <path :d="heroCollapsed ? 'M7 10L12 15L17 10' : 'M7 14L12 9L17 14'" />
+          </svg>
+        </button>
+
+        <div v-if="heroCollapsed" class="record-shell__hero-collapsed">
+          <div class="record-shell__hero-collapsed-title">{{ heroName }}</div>
+          <div class="record-shell__hero-collapsed-summary">{{ recordHeroCollapsedText }}</div>
+        </div>
+
+        <RecordHero
+          v-else
+          ref="contactHeroRef"
+          :style="structuredRecordHeroStyle"
+          :title="heroName"
+          :initials="heroInitials"
+          :settings-groups="heroSettingsGroups"
+          :field-cards="selectedHeroFieldCards"
+          :summary-value="heroSummaryValue"
+          :summary-status-icon="heroSummaryStatusIcon"
+          :interactive="isRecordRoute"
+          :feed-tab="activeRecordFeedTab"
+          :feed-tabs="recordFeedTabOptions"
+          :feed-groups="recordFeedGroupOptions"
+          :feed-items="feedItems"
+          feed-empty-message="No feed items yet for this record."
+          @pointerenter="startContactHeroPointerTracking"
+          @pointermove="onContactHeroPointerMove"
+          @pointerleave="onContactHeroPointerLeave"
+          @update:feed-tab="activeRecordFeedTab = $event"
+          @toggle-settings-group="toggleHeroGroup"
+          @toggle-settings-item="setTokenSelected"
+          @open-feed-log="openFeedItemLog"
+          @request-feed-add="handleRecordFeedAdd"
+        >
+          <template #portrait>
+            <figure class="record-shell__portrait record-shell__portrait--initials-only">
+              <div class="record-shell__portrait-placeholder" aria-hidden="true">
+                <div
+                  class="record-shell__portrait-placeholder-initials"
+                  :style="{ backgroundColor: heroAvatarColor }"
+                >
+                  {{ heroInitials }}
+                </div>
               </div>
-            </div>
-          </figure>
-        </template>
-      </RecordHero>
+            </figure>
+          </template>
+        </RecordHero>
+      </div>
 
       <FileShellControlBar
         v-if="controlBarItems.length"
@@ -560,6 +579,7 @@ const contactHeroGradient = ref({ x: 50, y: 30, size: 60, opacity: 0 })
 const runtimeStructureVersion = ref(getRuntimeStructureVersion())
 let runtimeStructureUnsub = null
 const activeRecordFeedTab = ref('events')
+const heroCollapsed = ref(false)
 const recordDataSurfaceCollapsed = ref(false)
 const bridge = computed(() => (typeof window !== 'undefined' ? window.ecvc : null))
 const isElectronRuntime = computed(() => typeof window !== 'undefined')
@@ -961,6 +981,11 @@ const heroSummaryValue = computed(() => {
   if (!canonicalSummaryToken.value) return 'Missing canonical Summary token'
   const value = getTokenDisplayValue(canonicalSummaryToken.value)
   return value || 'Summary not set'
+})
+const recordHeroCollapsedText = computed(() => {
+  const summary = String(heroSummaryValue.value || '').trim()
+  if (!summary) return 'Record hero collapsed'
+  return summary.length > 160 ? `${summary.slice(0, 157)}...` : summary
 })
 const heroSummaryStatusIcon = computed(() => (tokenHasStoredValue(canonicalSummaryToken.value) ? 'task_alt' : ''))
 const recordFeedArtifactContext = computed(() => {
@@ -2590,6 +2615,67 @@ function onContactHeroPointerLeave() {
   font-family: var(--ds-font-family-body);
   font-size: var(--ds-font-size-xs-regular);
   line-height: var(--ds-line-height-xs);
+}
+.record-shell__hero-frame {
+  position: relative;
+}
+.record-shell__hero-chevron {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  z-index: 3;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  color: rgba(17, 17, 17, 0.72);
+  background: rgba(255, 255, 255, 0.82);
+  border: 1px solid rgba(17, 17, 17, 0.08);
+  border-radius: 999px;
+  cursor: pointer;
+  backdrop-filter: blur(10px);
+}
+.record-shell__hero-chevron:hover {
+  color: rgba(17, 17, 17, 0.92);
+  background: rgba(255, 255, 255, 0.94);
+}
+.record-shell__hero-chevron-icon {
+  width: 14px;
+  height: 14px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.record-shell__hero-collapsed {
+  display: grid;
+  gap: 4px;
+  min-height: 88px;
+  padding: 22px 56px 20px 20px;
+  background:
+    radial-gradient(circle at 18% 22%, rgba(38, 71, 255, 0.18), transparent 30%),
+    radial-gradient(circle at 80% 78%, rgba(17, 17, 17, 0.1), transparent 34%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.94) 0%, rgba(244, 240, 232, 0.94) 100%);
+  border: 1px solid rgba(17, 17, 17, 0.08);
+  border-radius: 24px;
+  box-shadow: 0 20px 50px rgba(17, 17, 17, 0.06);
+}
+.record-shell__hero-collapsed-title {
+  color: var(--ds-color-text-primary);
+  font-family: var(--ds-font-title);
+  font-size: clamp(1.1rem, 2vw, 1.5rem);
+  font-weight: var(--ds-font-weight-black);
+  line-height: 1;
+}
+.record-shell__hero-collapsed-summary {
+  color: var(--ds-color-text-secondary);
+  font-family: var(--ds-font-body);
+  font-size: var(--ds-font-size-sm-medium);
+  font-weight: var(--ds-font-weight-medium);
+  line-height: var(--ds-line-height-sm);
 }
 .record-shell__panel { display:grid; gap:12px; padding:16px; border:1px solid rgba(17,17,17,.08); border-radius:8px; background:rgba(255,255,255,.96); }
 .record-shell__panel-head { display:flex; align-items:baseline; justify-content:space-between; gap:12px; }

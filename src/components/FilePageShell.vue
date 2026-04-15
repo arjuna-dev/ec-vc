@@ -20,16 +20,35 @@
     </div>
 
     <div v-else class="test-shell-body">
-      <FileHero
-        :text="heroText"
-        :stats="heroStats"
-        :health-text="healthText"
-        :health-segments="healthSegments"
-        :action-label="heroActionLabel"
-        :action-title="heroActionTitle"
-        :action-items="heroActionItems"
-        @action-item-click="handleHeroActionItemClick"
-      />
+      <div class="file-shell__hero-frame">
+        <button
+          type="button"
+          class="file-shell__hero-chevron"
+          :aria-label="heroCollapsed ? 'Expand file hero' : 'Collapse file hero'"
+          @click="heroCollapsed = !heroCollapsed"
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true" class="file-shell__hero-chevron-icon">
+            <path :d="heroCollapsed ? 'M7 10L12 15L17 10' : 'M7 14L12 9L17 14'" />
+          </svg>
+        </button>
+
+        <div v-if="heroCollapsed" class="file-shell__hero-collapsed">
+          <div class="file-shell__hero-collapsed-label">{{ heroActionLabel }}</div>
+          <div class="file-shell__hero-collapsed-text">{{ fileHeroCollapsedText }}</div>
+        </div>
+
+        <FileHero
+          v-else
+          :text="heroText"
+          :stats="heroStats"
+          :health-text="healthText"
+          :health-segments="healthSegments"
+          :action-label="heroActionLabel"
+          :action-title="heroActionTitle"
+          :action-items="heroActionItems"
+          @action-item-click="handleHeroActionItemClick"
+        />
+      </div>
 
       <FileShellControlBar
         v-model="activeViewKey"
@@ -732,6 +751,7 @@ const rawRows = ref([])
 const rowHistoryByRecordId = ref({})
 const rowHistoryLoadingByRecordId = ref({})
 const loaderDiagnostics = ref({})
+const heroCollapsed = ref(false)
 const viewMode = ref('page')
 const dataSurfaceCollapsed = ref(false)
 const createDialogOpen = ref(false)
@@ -1730,6 +1750,11 @@ const healthSegments = computed(() => heroPayload.value.healthSegments)
 const heroActionLabel = computed(() => heroPayload.value.actionLabel)
 const heroActionTitle = computed(() => heroPayload.value.actionTitle)
 const heroActionItems = computed(() => heroPayload.value.actionItems)
+const fileHeroCollapsedText = computed(() => {
+  const text = String(heroText.value || '').trim()
+  if (!text) return 'File hero collapsed'
+  return text.length > 160 ? `${text.slice(0, 157)}...` : text
+})
 
 const fileSystemValidation = computed(() =>
   activeSourceKey.value === 'file-system' && loaderDiagnostics.value && typeof loaderDiagnostics.value === 'object'
@@ -4824,6 +4849,76 @@ function isBbGraphLinkToken(tokenRow) {
   display: flex;
   flex-direction: column;
   gap: 10px;
+}
+
+.file-shell__hero-frame {
+  position: relative;
+}
+
+.file-shell__hero-chevron {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  z-index: 3;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  color: rgba(17, 17, 17, 0.72);
+  background: rgba(255, 255, 255, 0.82);
+  border: 1px solid rgba(17, 17, 17, 0.08);
+  border-radius: 999px;
+  cursor: pointer;
+  backdrop-filter: blur(10px);
+}
+
+.file-shell__hero-chevron:hover {
+  color: rgba(17, 17, 17, 0.92);
+  background: rgba(255, 255, 255, 0.94);
+}
+
+.file-shell__hero-chevron-icon {
+  width: 14px;
+  height: 14px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.file-shell__hero-collapsed {
+  display: grid;
+  gap: 4px;
+  min-height: 88px;
+  padding: 22px 56px 20px 20px;
+  background:
+    radial-gradient(circle at 18% 22%, rgba(38, 71, 255, 0.18), transparent 30%),
+    radial-gradient(circle at 80% 78%, rgba(17, 17, 17, 0.1), transparent 34%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.94) 0%, rgba(244, 240, 232, 0.94) 100%);
+  border: 1px solid rgba(17, 17, 17, 0.08);
+  border-radius: var(--ds-radius-lg);
+  box-shadow: 0 24px 64px rgba(17, 17, 17, 0.08);
+}
+
+.file-shell__hero-collapsed-label {
+  color: var(--ds-color-text-muted);
+  font-family: var(--ds-font-body);
+  font-size: var(--ds-font-size-xs-medium);
+  font-weight: var(--ds-font-weight-medium);
+  line-height: var(--ds-line-height-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.file-shell__hero-collapsed-text {
+  color: var(--ds-color-text-primary);
+  font-family: var(--ds-font-body);
+  font-size: var(--ds-font-size-sm-medium);
+  font-weight: var(--ds-font-weight-medium);
+  line-height: var(--ds-line-height-sm);
 }
 
 .file-shell__toolbar-slot-debug {
