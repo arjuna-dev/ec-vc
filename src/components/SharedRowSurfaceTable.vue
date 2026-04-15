@@ -13,6 +13,7 @@
               ]"
               :style="columnStyle(column)"
             >
+              <slot name="head" :column="column">
               <div v-if="!column.isControl" class="shared-row-surface__head-inner">
                 <span>{{ column.label }}</span>
                 <button
@@ -24,6 +25,7 @@
                   @dblclick.stop.prevent="resetColumnWidth(column)"
                 />
               </div>
+              </slot>
             </th>
           </tr>
         </thead>

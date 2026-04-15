@@ -114,6 +114,11 @@
             :selected-token-keys="dataSurfaceContract.selectedTokenKeys"
             :empty-views-label="dataSurfaceContract.emptyViewsLabel"
             :empty-tokens-label="dataSurfaceContract.emptyTokensLabel"
+            :hide-view-column="true"
+            :show-select-all-header="true"
+            :select-all-checked="dataSurfaceContract.allVisibleSelected"
+            :select-all-indeterminate="dataSurfaceContract.someVisibleSelected"
+            @toggle-select-all="toggleSelectAllVisible"
             @toggle-token-select="toggleTokenSelection"
             @update-token-cell="updateTokenCell"
           />
@@ -131,6 +136,11 @@
               :data-rows="dataSurfaceContract.dataRows"
               :selected-row-keys="dataSurfaceContract.selectedRowKeys"
               :empty-data-label="dataSurfaceContract.emptyDataLabel"
+              :hide-view-column="true"
+              :show-select-all-header="true"
+              :select-all-checked="dataSurfaceContract.allVisibleSelected"
+              :select-all-indeterminate="dataSurfaceContract.someVisibleSelected"
+              @toggle-select-all="toggleSelectAllVisible"
               @toggle-data-select="toggleLeafSelection"
             />
           </div>
@@ -187,6 +197,12 @@
               :selected-token-keys="governanceSurfaceContract.selectedTokenKeys"
               :empty-views-label="governanceSurfaceContract.emptyViewsLabel"
               :empty-tokens-label="governanceSurfaceContract.emptyTokensLabel"
+              :hide-view-column="true"
+              :show-select-all-header="true"
+              :select-all-checked="governanceSurfaceContract.allVisibleSelected"
+              :select-all-indeterminate="governanceSurfaceContract.someVisibleSelected"
+              @toggle-select-all="toggleGovernanceSelectAll"
+              @toggle-view-select="toggleViewSelection"
               @toggle-token-select="toggleTokenSelection"
               @update-token-cell="updateTokenCell"
             />
@@ -267,6 +283,7 @@ const rawRowsBySource = ref({})
 const tokenFieldOverridesBySource = ref({})
 const selectedLeafKeysBySource = ref({})
 const selectedTokenKeysBySource = ref({})
+const selectedViewKeysBySource = ref({})
 const deletedTokenKeysBySource = ref({})
 const requiredFieldKeysBySource = ref({})
 
@@ -461,7 +478,25 @@ const tokenGroupsByView = computed(() =>
 
 const selectedLeafKeys = computed(() => selectedLeafKeysBySource.value[activeSettingsSourceKey.value] || [])
 const selectedTokenKeys = computed(() => selectedTokenKeysBySource.value[activeSettingsSourceKey.value] || [])
+const selectedViewKeys = computed(() => selectedViewKeysBySource.value[activeSettingsSourceKey.value] || [])
 const activeRequiredFieldKeys = computed(() => requiredFieldKeysBySource.value[activeSettingsSourceKey.value] || [])
+const visibleGovernanceRowKeys = computed(() => (
+  activeGovernanceToolbarKey.value === 'views'
+    ? governanceViewRows.value.map((row) => row.key)
+    : tokenGroupsByView.value.flatMap((group) => (Array.isArray(group.tokens) ? group.tokens.map((token) => token.key) : []))
+))
+const governanceAllVisibleSelected = computed(() => {
+  const keys = visibleGovernanceRowKeys.value
+  if (!keys.length) return false
+  const selected = activeGovernanceToolbarKey.value === 'views' ? selectedViewKeys.value : selectedTokenKeys.value
+  return keys.every((key) => selected.includes(key))
+})
+const governanceSomeVisibleSelected = computed(() => {
+  const keys = visibleGovernanceRowKeys.value
+  if (!keys.length) return false
+  const selected = activeGovernanceToolbarKey.value === 'views' ? selectedViewKeys.value : selectedTokenKeys.value
+  return keys.some((key) => selected.includes(key)) && !governanceAllVisibleSelected.value
+})
 
 const displayRows = computed(() => {
   const searchValue = String(searchQuery.value || '').trim().toLowerCase()
@@ -515,6 +550,8 @@ const dataSurfaceContract = computed(() => ({
   dataColumns: recordDataColumns.value,
   dataRows: displayRows.value,
   selectedRowKeys: selectedLeafKeys.value,
+  allVisibleSelected: allVisibleSelected.value,
+  someVisibleSelected: someVisibleSelected.value,
   emptyDataLabel: `No rows available for ${activeRegistryEntry.value?.label || 'this section'}.`,
   error: error.value,
 }))
@@ -522,8 +559,8 @@ const dataSurfaceContract = computed(() => ({
 const governanceControlContract = computed(() => ({
   activeViewKey: governanceToolbarView.value,
   items: governanceControlItems.value,
-  allVisibleSelected: false,
-  someVisibleSelected: false,
+  allVisibleSelected: governanceAllVisibleSelected.value,
+  someVisibleSelected: governanceSomeVisibleSelected.value,
   loading: false,
   addDisabled: true,
   searchQuery: governanceSearchQuery.value,
@@ -541,6 +578,9 @@ const governanceSurfaceContract = computed(() => ({
   tokenGroups: tokenGroupsByView.value,
   tokenColumns: tokenGovernanceColumns.value,
   selectedTokenKeys: selectedTokenKeys.value,
+  selectedViewKeys: selectedViewKeys.value,
+  allVisibleSelected: governanceAllVisibleSelected.value,
+  someVisibleSelected: governanceSomeVisibleSelected.value,
   emptyViewsLabel: 'No views declared for this file.',
   emptyTokensLabel: 'No tokens declared in this view.',
 }))
@@ -634,6 +674,33 @@ function toggleTokenSelection(tokenKey, value) {
   selectedTokenKeysBySource.value = {
     ...selectedTokenKeysBySource.value,
     [sourceKey]: Array.from(current),
+  }
+}
+
+function toggleViewSelection(viewKey, value) {
+  const sourceKey = activeSettingsSourceKey.value
+  const current = new Set(selectedViewKeysBySource.value[sourceKey] || [])
+  if (value) current.add(viewKey)
+  else current.delete(viewKey)
+  selectedViewKeysBySource.value = {
+    ...selectedViewKeysBySource.value,
+    [sourceKey]: Array.from(current),
+  }
+}
+
+function toggleGovernanceSelectAll(nextValue) {
+  const sourceKey = activeSettingsSourceKey.value
+  const keys = visibleGovernanceRowKeys.value
+  if (activeGovernanceToolbarKey.value === 'views') {
+    selectedViewKeysBySource.value = {
+      ...selectedViewKeysBySource.value,
+      [sourceKey]: nextValue ? keys : [],
+    }
+    return
+  }
+  selectedTokenKeysBySource.value = {
+    ...selectedTokenKeysBySource.value,
+    [sourceKey]: nextValue ? keys : [],
   }
 }
 

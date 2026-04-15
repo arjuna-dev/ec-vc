@@ -6,18 +6,21 @@
     :rows="resolvedViewSurfaceRows"
     :empty-label="emptyViewsLabel"
   >
+    <template #head="{ column }">
+      <SettingsCheckbox
+        v-if="column.key === '__select__' && showSelectAllHeader"
+        :model-value="selectAllChecked"
+        :indeterminate="selectAllIndeterminate"
+        tone="light"
+        @update:model-value="$emit('toggle-select-all', $event)"
+      />
+    </template>
     <template #cell="{ row, column }">
       <SettingsCheckbox
         v-if="column.key === '__select__'"
         :model-value="Boolean(row.selected)"
         tone="light"
         @update:model-value="$emit('toggle-view-select', row.key, $event)"
-      />
-      <q-icon
-        v-else-if="column.key === '__view__'"
-        name="visibility"
-        size="14px"
-        class="structure-governance-panel__eye-icon"
       />
       <span v-else>{{ row[column.key] }}</span>
     </template>
@@ -31,18 +34,21 @@
     :empty-label="emptyTokensLabel"
     @cell-dblclick="handleTokenSurfaceCellDblclick"
   >
+    <template #head="{ column }">
+      <SettingsCheckbox
+        v-if="column.key === '__select__' && showSelectAllHeader"
+        :model-value="selectAllChecked"
+        :indeterminate="selectAllIndeterminate"
+        tone="light"
+        @update:model-value="$emit('toggle-select-all', $event)"
+      />
+    </template>
     <template #cell="{ row, column }">
       <SettingsCheckbox
         v-if="column.key === '__select__'"
         :model-value="selectedTokenKeySet.has(row.key)"
         tone="light"
         @update:model-value="$emit('toggle-token-select', row.key, $event)"
-      />
-      <q-icon
-        v-else-if="column.key === '__view__'"
-        name="visibility"
-        size="14px"
-        class="structure-governance-panel__eye-icon"
       />
       <SettingsCheckbox
         v-else-if="column.kind === 'checkbox'"
@@ -96,18 +102,21 @@
     :empty-label="emptyDataLabel"
     @cell-dblclick="handleDataSurfaceCellDblclick"
   >
+    <template #head="{ column }">
+      <SettingsCheckbox
+        v-if="column.key === '__select__' && showSelectAllHeader"
+        :model-value="selectAllChecked"
+        :indeterminate="selectAllIndeterminate"
+        tone="light"
+        @update:model-value="$emit('toggle-select-all', $event)"
+      />
+    </template>
     <template #cell="{ row, column }">
       <SettingsCheckbox
         v-if="column.key === '__select__'"
         :model-value="selectedRowKeySet.has(row.key)"
         tone="light"
         @update:model-value="$emit('toggle-data-select', row.key, $event)"
-      />
-      <q-icon
-        v-else-if="column.key === '__view__'"
-        name="visibility"
-        size="14px"
-        class="structure-governance-panel__eye-icon"
       />
       <SettingsCheckbox
         v-else-if="column.kind === 'checkbox'"
@@ -166,6 +175,7 @@ const emit = defineEmits([
   'toggle-token-select',
   'toggle-view-select',
   'toggle-data-select',
+  'toggle-select-all',
   'update-data-cell',
   'update-token-cell',
 ])
@@ -184,6 +194,10 @@ const props = defineProps({
   emptyTokensLabel: { type: String, default: 'No tokens declared.' },
   emptyDataLabel: { type: String, default: 'No rows declared.' },
   tokenColumns: { type: Array, default: () => [] },
+  hideViewColumn: { type: Boolean, default: false },
+  showSelectAllHeader: { type: Boolean, default: false },
+  selectAllChecked: { type: Boolean, default: false },
+  selectAllIndeterminate: { type: Boolean, default: false },
 })
 
 const editingCell = ref({ rowKey: '', columnKey: '' })
@@ -192,7 +206,7 @@ const selectedRowKeySet = computed(() => new Set((Array.isArray(props.selectedRo
 const selectedTokenKeySet = computed(() => new Set((Array.isArray(props.selectedTokenKeys) ? props.selectedTokenKeys : []).map((key) => String(key || '').trim())))
 const resolvedViewSurfaceColumns = computed(() => [
   { key: '__select__', label: '', width: 22, isControl: true },
-  { key: '__view__', label: '', width: 22, isControl: true },
+  ...(props.hideViewColumn ? [] : [{ key: '__view__', label: '', width: 22, isControl: true }]),
   { key: 'label', label: 'Name', width: 180, isPrimary: true },
   { key: 'side', label: 'Side', width: 84 },
   { key: 'tokenCount', label: 'Tokens', width: 84 },
@@ -214,7 +228,7 @@ const resolvedTokenRows = computed(() =>
 )
 const resolvedDataSurfaceColumns = computed(() => [
   { key: '__select__', label: '', width: 22, isControl: true },
-  { key: '__view__', label: '', width: 22, isControl: true },
+  ...(props.hideViewColumn ? [] : [{ key: '__view__', label: '', width: 22, isControl: true }]),
   ...(Array.isArray(props.dataColumns) ? props.dataColumns : []),
 ])
 const resolvedDataSurfaceRows = computed(() =>
@@ -227,7 +241,7 @@ const resolvedDataSurfaceRows = computed(() =>
 )
 const resolvedTokenSurfaceColumns = computed(() => [
   { key: '__select__', label: '', width: 22, isControl: true },
-  { key: '__view__', label: '', width: 22, isControl: true },
+  ...(props.hideViewColumn ? [] : [{ key: '__view__', label: '', width: 22, isControl: true }]),
   { key: 'label', label: 'Name', width: 180, isPrimary: true },
   { key: 'parentView', label: 'View', width: 140 },
   ...resolvedTokenColumns.value.filter((column) => column.key !== 'label'),
