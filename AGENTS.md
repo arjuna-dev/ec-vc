@@ -89,3 +89,39 @@ From here on, when working in this area, behave as if:
 - the payload contract should be getting simpler, not more improvised
 - ambiguity is a bug
 - drift should be exposed, not hidden
+
+## Mode Switches
+
+The `Current Mode` block below is the active source of truth.
+Change only the `[ON]` or `[OFF]` state on each line to activate or deactivate a mode.
+
+### Current Mode
+`STRICT_DISCOVERY: [ON]`
+`NEW_MODE: [OFF]`
+
+### Available Modes
+
+#### STRICT_DISCOVERY: [ON] / [OFF]
+
+When `STRICT_DISCOVERY: [ON]` is active, treat the task as strict architecture and contract discovery work.
+
+Rules:
+- Do not optimize for momentum, polish, reassurance, or make-it-work progress.
+- Do not smooth over breakage with local fixes, heuristic mappings, guessed adapters, or page-only workarounds.
+- Do not reinterpret the request into a more convenient implementation.
+- Copy, paste, or transplant shared elements as literally as possible when asked.
+- If something fails or breaks, treat that breakage as useful evidence rather than something to hide.
+- Prefer delete-and-rerender over layering on top of inherited drift.
+- Change only what is necessary for the requested trial.
+- Do not perform cleanup, renaming, redesign, or side improvements unless explicitly requested.
+- Report plainly:
+  1. what was changed
+  2. what worked
+  3. what broke
+  4. why it broke
+  5. what missing contract, dependency, ownership, or rigidity was exposed
+
+When `STRICT_DISCOVERY: [OFF]` is active, return to normal collaborative behavior.
+
+#### NEW_MODE: [ON] / [OFF]
+Add rules here when needed.
