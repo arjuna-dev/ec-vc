@@ -24,18 +24,18 @@
             <button
               type="button"
               class="file-structure-shell__level-toggle-btn"
-              :class="{ 'file-structure-shell__level-toggle-btn--active': editingLevel === 'record' }"
-              @click="setEditingLevel('record')"
-            >
-              Record Level
-            </button>
-            <button
-              type="button"
-              class="file-structure-shell__level-toggle-btn"
               :class="{ 'file-structure-shell__level-toggle-btn--active': editingLevel === 'file' }"
               @click="setEditingLevel('file')"
             >
               File Level
+            </button>
+            <button
+              type="button"
+              class="file-structure-shell__level-toggle-btn"
+              :class="{ 'file-structure-shell__level-toggle-btn--active': editingLevel === 'token' }"
+              @click="setEditingLevel('token')"
+            >
+              Token Level
             </button>
           </div>
           <div
@@ -253,9 +253,8 @@ const shellSelectorButton = ref(null)
 const shellSelectorMenu = ref(null)
 const pendingShellSelectorValue = ref('')
 const activeToolbarView = ref('')
-const editingLevel = ref('record')
+const editingLevel = ref('file')
 const lastFileLevelToolbarBySource = ref({})
-const lastRecordLevelToolbarBySource = ref({})
 const boxesCollapsed = ref(false)
 const leafItemsCollapsed = ref(false)
 const draftLeafRowsBySource = ref({})
@@ -516,40 +515,23 @@ function toggleShellSelector() {
 }
 
 function setEditingLevel(nextLevel) {
-  const normalizedLevel = nextLevel === 'file' ? 'file' : 'record'
+  const normalizedLevel = nextLevel === 'token' ? 'token' : 'file'
   const sourceKey = activeSettingsSourceKey.value
-  if (normalizedLevel === 'file') {
-    if (activeToolbarView.value && activeToolbarView.value !== 'views' && activeToolbarView.value !== 'tokens') {
-      lastRecordLevelToolbarBySource.value = {
-        ...lastRecordLevelToolbarBySource.value,
+  if (normalizedLevel === 'token') {
+    if (activeToolbarView.value && activeToolbarView.value !== 'tokens') {
+      lastFileLevelToolbarBySource.value = {
+        ...lastFileLevelToolbarBySource.value,
         [sourceKey]: activeToolbarView.value,
       }
     }
-    editingLevel.value = 'file'
-    const nextToolbarValue = String(lastFileLevelToolbarBySource.value[sourceKey] || '').trim()
-    if (nextToolbarValue === 'views' || nextToolbarValue === 'tokens') {
-      activeToolbarView.value = nextToolbarValue
-      return
-    }
-    activeToolbarView.value = controlBarItems.value.some((item) => item.value === 'views')
-      ? 'views'
-      : controlBarItems.value.some((item) => item.value === 'tokens')
-        ? 'tokens'
-        : fileViewGroups.value[0]?.key || ''
+    editingLevel.value = 'token'
+    activeToolbarView.value = 'tokens'
     return
   }
 
-  if (activeToolbarView.value === 'views' || activeToolbarView.value === 'tokens') {
-    lastFileLevelToolbarBySource.value = {
-      ...lastFileLevelToolbarBySource.value,
-      [sourceKey]: activeToolbarView.value,
-    }
-  }
-  editingLevel.value = 'record'
-  const nextToolbarValue = String(lastRecordLevelToolbarBySource.value[sourceKey] || '').trim()
-  activeToolbarView.value = fileViewGroups.value.some((section) => section.key === nextToolbarValue)
-    ? nextToolbarValue
-    : fileViewGroups.value[0]?.key || ''
+  editingLevel.value = 'file'
+  const nextToolbarValue = String(lastFileLevelToolbarBySource.value[sourceKey] || '').trim()
+  activeToolbarView.value = nextToolbarValue || fileViewGroups.value[0]?.key || 'views'
 }
 
 function toggleLeafSelection(tokenKey) {
@@ -681,23 +663,14 @@ onBeforeUnmount(() => {
 watch(
   controlBarItems,
   (items) => {
-    if (editingLevel.value === 'file') {
-      const sourceKey = activeSettingsSourceKey.value
-      const preferredFileToolbarValue = String(lastFileLevelToolbarBySource.value[sourceKey] || '').trim()
-      const nextFileToolbarValue = items.find((item) => item.value === preferredFileToolbarValue)?.value
-        || items.find((item) => item.value === 'views')?.value
-        || items.find((item) => item.value === 'tokens')?.value
-      if (nextFileToolbarValue) {
-        activeToolbarView.value = nextFileToolbarValue
-      }
+    if (editingLevel.value === 'token' && items.some((item) => item.value === 'tokens')) {
+      activeToolbarView.value = 'tokens'
       return
     }
     if (items.some((item) => item.value === activeToolbarView.value)) return
     const sourceKey = activeSettingsSourceKey.value
-    const preferredRecordToolbarValue = String(lastRecordLevelToolbarBySource.value[sourceKey] || '').trim()
-    activeToolbarView.value = items.find((item) => item.value === preferredRecordToolbarValue)?.value
-      || items.find((item) => item.value !== 'views' && item.value !== 'tokens')?.value
-      || items[0]?.value || ''
+    const preferredFileToolbarValue = String(lastFileLevelToolbarBySource.value[sourceKey] || '').trim()
+    activeToolbarView.value = items.find((item) => item.value === preferredFileToolbarValue)?.value || items[0]?.value || ''
   },
   { immediate: true },
 )
@@ -706,19 +679,10 @@ watch(
   activeToolbarView,
   (value) => {
     const normalizedValue = String(value || '').trim()
-    if (!normalizedValue) return
+    if (!normalizedValue || normalizedValue === 'tokens') return
     const sourceKey = activeSettingsSourceKey.value
-    if (normalizedValue === 'views' || normalizedValue === 'tokens') {
-      editingLevel.value = 'file'
-      lastFileLevelToolbarBySource.value = {
-        ...lastFileLevelToolbarBySource.value,
-        [sourceKey]: normalizedValue,
-      }
-      return
-    }
-    editingLevel.value = 'record'
-    lastRecordLevelToolbarBySource.value = {
-      ...lastRecordLevelToolbarBySource.value,
+    lastFileLevelToolbarBySource.value = {
+      ...lastFileLevelToolbarBySource.value,
       [sourceKey]: normalizedValue,
     }
   },
