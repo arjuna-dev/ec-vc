@@ -2,18 +2,19 @@
   <section class="draft-window-shell">
     <header class="draft-window-shell__header">
       <div class="draft-window-shell__top-row">
-        <RecordTitle title="Draft Window" />
         <button
           v-if="shellSelectorOptions.length"
           ref="shellSelectorButton"
           type="button"
-          class="draft-window-shell__source-button"
+          class="draft-window-shell__title-button"
           @click.stop="toggleShellSelector"
         >
-          <MainMenuGroupRow
-            :label="activeShellSelectorOption.label"
-            :expanded="shellSelectorOpen"
-          />
+          <span class="draft-window-shell__title-content">
+            <RecordTitle :title="activeShellSelectorOption.label || 'Draft Window'" />
+            <svg viewBox="0 0 24 24" class="draft-window-shell__title-chevron">
+              <path :d="shellSelectorOpen ? 'M7 14L12 9L17 14' : 'M7 10L12 15L17 10'" />
+            </svg>
+          </span>
         </button>
         <div
           v-if="shellSelectorOpen"
@@ -218,7 +219,6 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import DialogShellTitleRow from 'src/components/DialogShellTitleRow.vue'
-import MainMenuGroupRow from 'src/components/MainMenuGroupRow.vue'
 import RecordTitle from 'src/components/RecordTitle.vue'
 import FileShellControlBar from 'src/components/FileShellControlBar.vue'
 import StructureGovernancePanel from 'src/components/StructureGovernancePanel.vue'
@@ -891,26 +891,48 @@ watch(
   position: relative;
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 16px;
 }
 
-.draft-window-shell__source-button {
-  margin-left: auto;
-  padding: 8px 10px;
-  border: 1px solid rgba(15, 23, 42, 0.12);
-  border-radius: 12px;
-  background: #111827;
+.draft-window-shell__title-button {
+  display: inline-flex;
+  align-items: flex-end;
+  padding: 0;
+  background: transparent;
+  border: 0;
   cursor: pointer;
 }
 
-.draft-window-shell__source-button :deep(.main-menu-group-row) {
-  color: #fff;
+.draft-window-shell__title-content {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.draft-window-shell__title-button :deep(.record-title) {
+  margin: 0;
+}
+
+.draft-window-shell__title-button :deep(.record-title__title) {
+  color: #111827;
+}
+
+.draft-window-shell__title-chevron {
+  width: 14px;
+  height: 14px;
+  margin-bottom: 4px;
+  fill: none;
+  stroke: #111827;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
 }
 
 .draft-window-shell__source-menu {
   position: absolute;
   top: calc(100% + 10px);
-  right: 0;
+  left: 0;
   z-index: 20;
   display: grid;
   gap: 8px;
@@ -1049,11 +1071,7 @@ watch(
 @media (max-width: 900px) {
   .draft-window-shell__top-row {
     flex-direction: column;
-    align-items: stretch;
-  }
-
-  .draft-window-shell__source-button {
-    margin-left: 0;
+    align-items: flex-start;
   }
 
   .draft-window-shell__placeholder-grid {
