@@ -76,3 +76,52 @@ export function collectStructureTokenKeys(sections = []) {
     (Array.isArray(section?.tokens) ? section.tokens : []).map((token) => String(token?.key || '').trim()).filter(Boolean),
   )
 }
+
+export function appendDraftStructureView(sections = []) {
+  const nextSections = cloneFileStructureSections(sections)
+  const nextIndex = nextSections.length + 1
+  nextSections.push({
+    key: `draft-view-${Date.now()}`,
+    label: `Draft View ${nextIndex}`,
+    address: '',
+    structureToken: '',
+    displayGroup: '',
+    tokens: [],
+    editable: true,
+    isDraft: true,
+  })
+  return nextSections
+}
+
+export function appendDraftStructureToken(sections = [], parentViewKey = '') {
+  const normalizedParentKey = String(parentViewKey || '').trim()
+  if (!normalizedParentKey) return cloneFileStructureSections(sections)
+
+  return cloneFileStructureSections(sections).map((section) => {
+    if (String(section?.key || '').trim() !== normalizedParentKey) return section
+    const nextIndex = (Array.isArray(section?.tokens) ? section.tokens.length : 0) + 1
+    return {
+      ...section,
+      tokens: [
+        ...(Array.isArray(section?.tokens) ? section.tokens : []),
+        {
+          key: `draft-token-${Date.now()}`,
+          tokenName: `Draft_Token_${nextIndex}`,
+          label: `Draft Token ${nextIndex}`,
+          tokenType: 'text',
+          optionSource: '',
+          optionEntity: '',
+          optionList: '',
+          definition: '',
+          dbFieldAliases: [],
+          dbWriteField: '',
+          fieldClass: '',
+          parentKey: normalizedParentKey,
+          parentLabel: section.label,
+          editable: true,
+          isDraft: true,
+        },
+      ],
+    }
+  })
+}

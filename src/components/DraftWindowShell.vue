@@ -76,7 +76,7 @@
       <div v-if="!dataSurfaceCollapsed" class="draft-window-shell__section-body">
         <div class="draft-window-shell__toolbar-row">
           <FileShellControlBar
-            v-model="dataControlContract.activeViewKey"
+            :model-value="dataToolbarView"
             aria-label="Data control bar"
             :items="dataControlContract.items"
             :all-visible-selected="dataControlContract.allVisibleSelected"
@@ -92,6 +92,7 @@
             :collapsed="dataControlContract.collapsed"
             @toggle-select-all="toggleSelectAllVisible"
             @add="handleToolbarAdd"
+            @update:model-value="dataToolbarView = $event"
             @update:search-query="searchQuery = $event"
             @update:view-mode="viewMode = $event"
           >
@@ -132,7 +133,7 @@
             {{ dataSurfaceContract.error }}
           </q-banner>
 
-          <div class="draft-window-shell__surface-wrap ds-mini-scrollbar">
+          <div v-if="viewMode === 'page'" class="draft-window-shell__surface-wrap ds-mini-scrollbar">
             <StructureGovernancePanel
               :mode="dataSurfaceContract.mode"
               :data-columns="dataSurfaceContract.dataColumns"
@@ -146,6 +147,27 @@
               @toggle-select-all="toggleSelectAllVisible"
               @toggle-data-select="toggleLeafSelection"
             />
+          </div>
+
+          <div v-else class="draft-window-shell__card-grid">
+            <article
+              v-for="row in dataSurfaceContract.dataRows"
+              :key="row.key"
+              class="draft-window-shell__card"
+            >
+              <div class="draft-window-shell__card-title">{{ row[dataSurfaceContract.dataColumns[0]?.key] || row.key }}</div>
+              <div
+                v-for="column in dataSurfaceContract.dataColumns.slice(1)"
+                :key="`${row.key}:${column.key}`"
+                class="draft-window-shell__card-line"
+              >
+                <span class="draft-window-shell__card-label">{{ column.label }}</span>
+                <span class="draft-window-shell__card-value">{{ row[column.key] || '-' }}</span>
+              </div>
+            </article>
+            <div v-if="!dataSurfaceContract.dataRows.length" class="draft-window-shell__card-empty">
+              {{ dataSurfaceContract.emptyDataLabel }}
+            </div>
           </div>
         </div>
       </div>
@@ -169,7 +191,7 @@
       <div v-if="!governanceSurfaceCollapsed" class="draft-window-shell__section-body">
         <div class="draft-window-shell__toolbar-row">
           <FileShellControlBar
-            v-model="governanceControlContract.activeViewKey"
+            :model-value="governanceToolbarView"
             aria-label="Governance draft control bar"
             :items="governanceControlContract.items"
             :all-visible-selected="governanceControlContract.allVisibleSelected"
@@ -184,16 +206,16 @@
             :show-collapse-toggle="false"
             :collapsed="governanceControlContract.collapsed"
             :select-disabled="true"
-            :search-disabled="true"
             :filter-disabled="true"
             @add="handleToolbarAdd"
+            @update:model-value="governanceToolbarView = $event"
             @update:search-query="governanceSearchQuery = $event"
             @update:view-mode="governanceViewMode = $event"
           />
         </div>
 
         <div v-if="!governanceControlContract.collapsed" class="draft-window-shell__surface-stack">
-          <div class="draft-window-shell__surface-wrap ds-mini-scrollbar">
+          <div v-if="governanceViewMode === 'page'" class="draft-window-shell__surface-wrap ds-mini-scrollbar">
             <StructureGovernancePanel
               :mode="governanceSurfaceContract.mode"
               :view-rows="governanceSurfaceContract.viewRows"
@@ -212,6 +234,26 @@
               @toggle-token-select="toggleTokenSelection"
               @update-token-cell="updateTokenCell"
             />
+          </div>
+          <div v-else class="draft-window-shell__card-grid">
+            <article
+              v-for="card in governanceCardRows"
+              :key="card.key"
+              class="draft-window-shell__card"
+            >
+              <div class="draft-window-shell__card-title">{{ card.title }}</div>
+              <div
+                v-for="line in card.lines"
+                :key="`${card.key}:${line.label}`"
+                class="draft-window-shell__card-line"
+              >
+                <span class="draft-window-shell__card-label">{{ line.label }}</span>
+                <span class="draft-window-shell__card-value">{{ line.value || '-' }}</span>
+              </div>
+            </article>
+            <div v-if="!governanceCardRows.length" class="draft-window-shell__card-empty">
+              {{ governanceSurfaceContract.mode === 'views' ? governanceSurfaceContract.emptyViewsLabel : governanceSurfaceContract.emptyTokensLabel }}
+            </div>
           </div>
         </div>
       </div>
@@ -239,12 +281,15 @@ import {
 } from 'src/utils/structureRegistry'
 import { buildFileStructureSessionSnapshot } from 'src/utils/fileStructureSession'
 import {
+  appendDraftStructureToken,
+  appendDraftStructureView,
   cloneFileStructureSections,
   collectStructureTokenKeys,
   deleteStructureTokens,
   renameStructureView,
   updateStructureTokenField,
 } from 'src/utils/fileStructureState'
+import { getCanonicalTokenFieldNames } from 'src/utils/structureRegistry'
 
 const props = defineProps({
   shellSelectorValue: { type: String, default: '' },
@@ -352,10 +397,6 @@ const activeStructureSections = computed(() => {
 })
 const toolbarViewSplit = computed(() => splitDialogViews(activeStructureSections.value))
 
-function isRelationshipSectionLabel(value = '') {
-  return String(value || '').trim().toLowerCase() === 'ldb'
-}
-
 const controlBarFeed = computed(() =>
   buildShellToolbarFeed({
     sections: activeStructureSections.value,
@@ -425,48 +466,27 @@ const governanceViewRows = computed(() =>
     tokenCount: Array.isArray(section.tokens) ? section.tokens.length : 0,
   })),
 )
-
-const isRelationshipSettingsSection = computed(() =>
-  isRelationshipSectionLabel(activeViewSection.value?.label),
-)
-
-const sharedLdbLeafTokens = computed(() => {
-  if (!isRelationshipSettingsSection.value) return []
-
-  return (Array.isArray(props.shellSelectorOptions) ? props.shellSelectorOptions : [])
-    .map((option, index) => {
-      const sourceKey = String(option?.value || '').trim().toLowerCase()
-      if (!sourceKey || sourceKey === 'bb-file') return null
-      return {
-        key: `__shared_ldb__:${sourceKey}`,
-        label: String(option?.label || `File ${index + 1}`).trim() || `File ${index + 1}`,
-        parentLabel: activeViewSection.value?.label || 'LDB',
-        tokenType: 'select_multi',
-        relationshipGroup: 'ldb',
-        dbFieldAliases: [],
-        optionList: '',
-        optionSource: 'shared_file_universe',
-        optionEntity: '',
-        fieldClass: 'ldb_relationship',
-        dbWriteField: '',
-        targetSourceKey: sourceKey,
-        editable: true,
-      }
-    })
-    .filter(Boolean)
+const filteredGovernanceViewRows = computed(() => {
+  const searchValue = String(governanceSearchQuery.value || '').trim().toLowerCase()
+  if (!searchValue) return governanceViewRows.value
+  return governanceViewRows.value.filter((row) =>
+    [row.label, row.side, String(row.tokenCount || '')]
+      .join(' ')
+      .toLowerCase()
+      .includes(searchValue),
+  )
 })
 
 const tokenGroupsByView = computed(() =>
   governanceViewRows.value.map((view) => {
     const section = activeStructureSections.value.find((entry) => entry.key === view.key)
     const baseTokens = Array.isArray(section?.tokens) ? section.tokens : []
-    const ldbTokens = view.key === activeViewSection.value?.key && isRelationshipSettingsSection.value ? sharedLdbLeafTokens.value : []
     const requiredKeys = new Set(requiredFieldKeysBySource.value[activeSettingsSourceKey.value] || [])
 
     return {
       key: view.key,
       label: view.label,
-      tokens: [...ldbTokens, ...baseTokens].map((token, index) => {
+      tokens: baseTokens.map((token, index) => {
         const writeTarget = getCanonicalTokenWriteTarget(token, activeShellSelectorOption.value.label, 'id')
 
         return {
@@ -488,6 +508,28 @@ const tokenGroupsByView = computed(() =>
     }
   }),
 )
+const filteredTokenGroupsByView = computed(() => {
+  const searchValue = String(governanceSearchQuery.value || '').trim().toLowerCase()
+  if (!searchValue) return tokenGroupsByView.value
+  return tokenGroupsByView.value
+    .map((group) => ({
+      ...group,
+      tokens: (Array.isArray(group.tokens) ? group.tokens : []).filter((token) =>
+        [
+          token.label,
+          token.type,
+          token.definition,
+          token.optionSource,
+          token.optionEntity,
+          token.fieldClass,
+        ]
+          .join(' ')
+          .toLowerCase()
+          .includes(searchValue),
+      ),
+    }))
+    .filter((group) => group.tokens.length)
+})
 
 const selectedLeafKeys = computed(() => selectedLeafKeysBySource.value[activeSettingsSourceKey.value] || [])
 const selectedTokenKeys = computed(() => selectedTokenKeysBySource.value[activeSettingsSourceKey.value] || [])
@@ -575,7 +617,7 @@ const governanceControlContract = computed(() => ({
   allVisibleSelected: governanceAllVisibleSelected.value,
   someVisibleSelected: governanceSomeVisibleSelected.value,
   loading: false,
-  addDisabled: true,
+  addDisabled: false,
   searchQuery: governanceSearchQuery.value,
   searchPlaceholder: 'Search governance',
   viewMode: governanceViewMode.value,
@@ -587,8 +629,8 @@ const governanceSurfaceContract = computed(() => ({
   sourceKey: activeSettingsSourceKey.value,
   surfaceKey: activeGovernanceToolbarKey.value || '',
   mode: activeGovernanceToolbarKey.value || 'tokens',
-  viewRows: governanceViewRows.value,
-  tokenGroups: tokenGroupsByView.value,
+  viewRows: filteredGovernanceViewRows.value,
+  tokenGroups: filteredTokenGroupsByView.value,
   tokenColumns: tokenGovernanceColumns.value,
   selectedTokenKeys: selectedTokenKeys.value,
   selectedViewKeys: selectedViewKeys.value,
@@ -597,6 +639,30 @@ const governanceSurfaceContract = computed(() => ({
   emptyViewsLabel: 'No views declared for this file.',
   emptyTokensLabel: 'No tokens declared in this view.',
 }))
+const governanceCardRows = computed(() => {
+  if (governanceSurfaceContract.value.mode === 'views') {
+    return governanceSurfaceContract.value.viewRows.map((row) => ({
+      key: row.key,
+      title: row.label,
+      lines: [
+        { label: 'Side', value: row.side },
+        { label: 'Tokens', value: String(row.tokenCount ?? '-') },
+      ],
+    }))
+  }
+
+  return governanceSurfaceContract.value.tokenGroups.flatMap((group) =>
+    (Array.isArray(group.tokens) ? group.tokens : []).map((token) => ({
+      key: token.key,
+      title: token.label,
+      lines: [
+        { label: 'View', value: group.label },
+        { label: 'Type', value: token.type },
+        { label: 'Definition', value: token.definition },
+      ],
+    })),
+  )
+})
 
 const fileStructureSnapshot = computed(() =>
   buildFileStructureSessionSnapshot({
@@ -743,7 +809,50 @@ function deleteSelectedTokens() {
   }
 }
 
-function handleToolbarAdd() {}
+function handleToolbarAdd() {
+  if (governanceToolbarView.value === 'views' || governanceToolbarView.value === 'tokens') {
+    handleGovernanceAdd()
+    return
+  }
+  handleDataAdd()
+}
+
+function handleGovernanceAdd() {
+  const sourceKey = activeSettingsSourceKey.value
+  if (governanceToolbarView.value === 'views') {
+    structureStateBySource.value = {
+      ...structureStateBySource.value,
+      [sourceKey]: appendDraftStructureView(activeStructureSections.value),
+    }
+    return
+  }
+  structureStateBySource.value = {
+    ...structureStateBySource.value,
+    [sourceKey]: appendDraftStructureToken(activeStructureSections.value, activeViewSection.value?.key),
+  }
+}
+
+function handleDataAdd() {
+  const sourceKey = activeSettingsSourceKey.value
+  const loader = activeLoader.value
+  const recordIdField = String(loader?.recordIdField || 'id').trim() || 'id'
+  const nextRow = {
+    [recordIdField]: `draft-row-${Date.now()}`,
+  }
+
+  orderedViewTokens.value.forEach((token) => {
+    getCanonicalTokenFieldNames(token).forEach((fieldName) => {
+      if (!fieldName) return
+      if (nextRow[fieldName] != null) return
+      nextRow[fieldName] = ''
+    })
+  })
+
+  rawRowsBySource.value = {
+    ...rawRowsBySource.value,
+    [sourceKey]: [...(rawRowsBySource.value[sourceKey] || []), nextRow],
+  }
+}
 
 function stringifyValue(value) {
   if (Array.isArray(value)) return value.map((item) => stringifyValue(item)).filter(Boolean).join(', ')
@@ -1054,6 +1163,56 @@ watch(
   border: 1px solid rgba(15, 23, 42, 0.1);
   border-radius: 14px;
   background: rgba(255, 255, 255, 0.94);
+}
+
+.draft-window-shell__card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+}
+
+.draft-window-shell__card {
+  display: grid;
+  gap: 8px;
+  padding: 14px;
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.96);
+}
+
+.draft-window-shell__card-title {
+  color: #111827;
+  font-family: var(--ds-font-title);
+  font-size: var(--ds-font-size-sm);
+  font-weight: var(--ds-font-weight-bold);
+}
+
+.draft-window-shell__card-line {
+  display: grid;
+  gap: 2px;
+}
+
+.draft-window-shell__card-label {
+  color: rgba(15, 23, 42, 0.58);
+  font-family: var(--ds-font-title);
+  font-size: var(--ds-font-size-xs);
+  font-weight: var(--ds-font-weight-bold);
+  text-transform: uppercase;
+}
+
+.draft-window-shell__card-value {
+  color: var(--ds-color-text-primary);
+  font-family: var(--ds-font-body);
+  font-size: var(--ds-font-size-sm);
+  line-height: 1.45;
+}
+
+.draft-window-shell__card-empty {
+  padding: 18px 12px;
+  color: var(--ds-color-text-secondary);
+  font-family: var(--ds-font-body);
+  font-size: var(--ds-font-size-sm);
+  text-align: center;
 }
 
 .draft-window-shell__delete-btn {
