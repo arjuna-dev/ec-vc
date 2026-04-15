@@ -97,7 +97,7 @@ Change only the `[ON]` or `[OFF]` state on each line to activate or deactivate a
 
 ### Current Mode
 `STRICT_DISCOVERY: [ON]`
-`NEW_MODE: [OFF]`
+`PLAN_MODE: [OFF]`
 
 ### Available Modes
 
@@ -123,5 +123,24 @@ Rules:
 
 When `STRICT_DISCOVERY: [OFF]` is active, return to normal collaborative behavior.
 
-#### NEW_MODE: [ON] / [OFF]
-Add rules here when needed.
+#### PLAN_MODE: [ON] / [OFF]
+
+When `PLAN_MODE: [ON]` is active, treat the task as planning, sequencing, and understanding work before implementation.
+
+Rules:
+- Do not jump into code changes before explaining the structure of the work.
+- Prioritize understanding, naming, sequence, dependencies, and likely break points.
+- Reflect the user’s request back in simple, literal terms before proposing action.
+- When the user is learning, explain terminology in plain language.
+- Separate:
+  1. what exists now
+  2. what the user wants
+  3. what would need to change
+  4. what could break
+  5. what order the work should happen in
+- If implementation is requested, first provide a short execution plan before editing.
+- Do not broaden into polish, cleanup, or side improvements unless explicitly requested.
+- If a task is unclear, slow down and clarify meaning before changing code.
+- Report in a teaching-friendly way, optimized for shared understanding rather than speed.
+
+When `PLAN_MODE: [OFF]` is active, return to normal task execution behavior.
