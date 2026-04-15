@@ -238,6 +238,13 @@ import {
   subscribeRuntimeFileStructures,
 } from 'src/utils/structureRegistry'
 import { buildFileStructureSessionSnapshot } from 'src/utils/fileStructureSession'
+import {
+  cloneFileStructureSections,
+  collectStructureTokenKeys,
+  deleteStructureTokens,
+  renameStructureView,
+  updateStructureTokenField,
+} from 'src/utils/fileStructureState'
 
 const props = defineProps({
   shellSelectorValue: { type: String, default: '' },
@@ -285,12 +292,10 @@ const governanceSearchQuery = ref('')
 const viewMode = ref('page')
 const governanceViewMode = ref('page')
 const rawRowsBySource = ref({})
-const viewFieldOverridesBySource = ref({})
-const tokenFieldOverridesBySource = ref({})
+const structureStateBySource = ref({})
 const selectedLeafKeysBySource = ref({})
 const selectedTokenKeysBySource = ref({})
 const selectedViewKeysBySource = ref({})
-const deletedTokenKeysBySource = ref({})
 const requiredFieldKeysBySource = ref({})
 
 const optionEntityOptions = computed(() =>
@@ -341,39 +346,11 @@ const activeRegistryEntry = computed(() => activeFilePayload.value.registryEntry
 const payloadSections = computed(() => activeFilePayload.value.sections)
 const payloadTokens = computed(() => activeFilePayload.value.tokens)
 const fileViewGroups = computed(() => payloadSections.value)
-const effectiveFileViewGroups = computed(() => {
+const activeStructureSections = computed(() => {
   const sourceKey = activeSettingsSourceKey.value
-  const viewOverrides = viewFieldOverridesBySource.value[sourceKey] || {}
-  const tokenOverrides = tokenFieldOverridesBySource.value[sourceKey] || {}
-  const deletedKeys = new Set(deletedTokenKeysBySource.value[sourceKey] || [])
-
-  return fileViewGroups.value.map((section) => {
-    const sectionOverrides = viewOverrides[section.key] || {}
-    const effectiveTokens = (Array.isArray(section?.tokens) ? section.tokens : [])
-      .filter((token) => !deletedKeys.has(token.key))
-      .map((token) => {
-        const overrides = tokenOverrides[token.key] || {}
-        return {
-          ...token,
-          label: String(overrides.label ?? token.label ?? '').trim() || token.label || token.key,
-          tokenType: String(overrides.type ?? token.tokenType ?? '').trim() || token.tokenType || '',
-          optionSource: String(overrides.optionSource ?? token.optionSource ?? '').trim(),
-          optionEntity: String(overrides.optionEntity ?? token.optionEntity ?? '').trim(),
-          optionList: String(overrides.optionList ?? token.optionList ?? '').trim(),
-          definition: String(overrides.definition ?? token.definition ?? '').trim(),
-          dbWriteField: String(overrides.dbWriteField ?? token.dbWriteField ?? '').trim(),
-          fieldClass: String(overrides.fieldClass ?? token.fieldClass ?? token.field_class ?? '').trim(),
-        }
-      })
-
-    return {
-      ...section,
-      label: String(sectionOverrides.label ?? section.label ?? '').trim() || section.label || section.key,
-      tokens: effectiveTokens,
-    }
-  })
+  return structureStateBySource.value[sourceKey] || cloneFileStructureSections(fileViewGroups.value)
 })
-const toolbarViewSplit = computed(() => splitDialogViews(effectiveFileViewGroups.value))
+const toolbarViewSplit = computed(() => splitDialogViews(activeStructureSections.value))
 
 function isRelationshipSectionLabel(value = '') {
   return String(value || '').trim().toLowerCase() === 'ldb'
@@ -381,7 +358,7 @@ function isRelationshipSectionLabel(value = '') {
 
 const controlBarFeed = computed(() =>
   buildShellToolbarFeed({
-    sections: effectiveFileViewGroups.value,
+    sections: activeStructureSections.value,
     governanceItems: [
       { value: 'tokens', title: 'Tokens' },
       { value: 'views', title: 'Views' },
@@ -410,7 +387,7 @@ const governanceControlItems = computed(() =>
 )
 
 const activeViewSection = computed(() => {
-  return effectiveFileViewGroups.value.find((section) => section.key === dataToolbarView.value) || effectiveFileViewGroups.value[0] || null
+  return activeStructureSections.value.find((section) => section.key === dataToolbarView.value) || activeStructureSections.value[0] || null
 })
 
 const activeGovernanceToolbarKey = computed(() => (
@@ -481,7 +458,7 @@ const sharedLdbLeafTokens = computed(() => {
 
 const tokenGroupsByView = computed(() =>
   governanceViewRows.value.map((view) => {
-    const section = effectiveFileViewGroups.value.find((entry) => entry.key === view.key)
+    const section = activeStructureSections.value.find((entry) => entry.key === view.key)
     const baseTokens = Array.isArray(section?.tokens) ? section.tokens : []
     const ldbTokens = view.key === activeViewSection.value?.key && isRelationshipSettingsSection.value ? sharedLdbLeafTokens.value : []
     const requiredKeys = new Set(requiredFieldKeysBySource.value[activeSettingsSourceKey.value] || [])
@@ -631,7 +608,9 @@ const fileStructureSnapshot = computed(() =>
     leafRows: displayRows.value,
     selectedLeafKeys: selectedLeafKeys.value,
     requiredFieldKeys: activeRequiredFieldKeys.value,
-    deletedTokenKeys: deletedTokenKeysBySource.value[activeSettingsSourceKey.value] || [],
+    deletedTokenKeys: payloadTokens.value
+      .map((token) => String(token?.key || '').trim())
+      .filter((key) => key && !collectStructureTokenKeys(activeStructureSections.value).includes(key)),
   }),
 )
 
@@ -677,34 +656,18 @@ function updateTokenCell(tokenKey, field, value) {
     return
   }
   const sourceKey = activeSettingsSourceKey.value
-  const currentBySource = tokenFieldOverridesBySource.value[sourceKey] || {}
-  const currentToken = currentBySource[tokenKey] || {}
-  tokenFieldOverridesBySource.value = {
-    ...tokenFieldOverridesBySource.value,
-    [sourceKey]: {
-      ...currentBySource,
-      [tokenKey]: {
-        ...currentToken,
-        [field]: String(value ?? '').trim() || '-',
-      },
-    },
+  structureStateBySource.value = {
+    ...structureStateBySource.value,
+    [sourceKey]: updateStructureTokenField(activeStructureSections.value, tokenKey, field, value),
   }
 }
 
 function updateViewCell(viewKey, field, value) {
   if (String(field || '').trim() !== 'label') return
   const sourceKey = activeSettingsSourceKey.value
-  const currentBySource = viewFieldOverridesBySource.value[sourceKey] || {}
-  const currentView = currentBySource[viewKey] || {}
-  viewFieldOverridesBySource.value = {
-    ...viewFieldOverridesBySource.value,
-    [sourceKey]: {
-      ...currentBySource,
-      [viewKey]: {
-        ...currentView,
-        label: String(value ?? '').trim() || currentView.label || viewKey,
-      },
-    },
+  structureStateBySource.value = {
+    ...structureStateBySource.value,
+    [sourceKey]: renameStructureView(activeStructureSections.value, viewKey, value),
   }
 }
 
@@ -762,11 +725,9 @@ function deleteSelectedTokens() {
   const selected = selectedTokenKeysBySource.value[sourceKey] || []
   if (!selected.length) return
 
-  const deleted = new Set(deletedTokenKeysBySource.value[sourceKey] || [])
-  selected.forEach((key) => deleted.add(key))
-  deletedTokenKeysBySource.value = {
-    ...deletedTokenKeysBySource.value,
-    [sourceKey]: Array.from(deleted),
+  structureStateBySource.value = {
+    ...structureStateBySource.value,
+    [sourceKey]: deleteStructureTokens(activeStructureSections.value, selected),
   }
 
   const required = new Set(requiredFieldKeysBySource.value[sourceKey] || [])
@@ -895,9 +856,9 @@ watch(
 )
 
 watch(
-  [activeSettingsSourceKey, payloadTokens],
-  ([sourceKey, tokens]) => {
-    const allowedRequiredKeys = new Set((Array.isArray(tokens) ? tokens : []).map((token) => token.key))
+  [activeSettingsSourceKey, activeStructureSections],
+  ([sourceKey, sections]) => {
+    const allowedRequiredKeys = new Set(collectStructureTokenKeys(sections))
     const existingRequired = Array.isArray(requiredFieldKeysBySource.value[sourceKey])
       ? requiredFieldKeysBySource.value[sourceKey].filter((itemKey) => allowedRequiredKeys.has(itemKey))
       : []
@@ -905,6 +866,18 @@ watch(
     requiredFieldKeysBySource.value = {
       ...requiredFieldKeysBySource.value,
       [sourceKey]: existingRequired.length ? existingRequired : getDefaultRequiredFieldKeysForSource(sourceKey),
+    }
+  },
+  { immediate: true },
+)
+
+watch(
+  [activeSettingsSourceKey, payloadSections],
+  ([sourceKey, sections]) => {
+    if (structureStateBySource.value[sourceKey]) return
+    structureStateBySource.value = {
+      ...structureStateBySource.value,
+      [sourceKey]: cloneFileStructureSections(sections),
     }
   },
   { immediate: true },

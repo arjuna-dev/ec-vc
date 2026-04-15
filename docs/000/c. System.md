@@ -26,6 +26,69 @@ The clean rule is:
 - `System Files` is the app-facing file-definition surface backed by `Files`
 - `System` is the single current document that explains both layers together
 
+## Construct Alignment
+
+`System` should be read inside the larger launch-side construct model defined in `LAMP`.
+
+That means:
+
+- `LAMP` defines the construct-birth minimum for the app as a whole
+- `System` defines file identity, file governance, and file structure inside that construct
+- `System Files` is the file-definition governor inside the construct
+- `System` does not mean that all files are equally birth-critical
+
+Working rule:
+
+- some files are required so the app can be born as a true local system of record
+- some files are general local repositories that extend the local operating layer
+- some files are domain or context repositories that should only layer on after the core construct is already coherent
+
+`System` should remain honest about runtime reality, but it should not let contextual repositories silently become construct-birth requirements.
+
+Short reading:
+
+- `LAMP` defines what must exist
+- `System` defines what each file is
+- `Defined_Structure` defines what each file contains
+
+## Construct Classes
+
+For `System` reading, files should be understood through the same construct classes declared in `LAMP`.
+
+### 1. Core System Files
+
+These are the files required for construct birth.
+
+Current working minimum:
+
+- `System Files`
+- `History`
+- `Users`
+- `Contacts`
+- `User Roles`
+- `Companion Roles`
+- `Projects`
+- `Tasks`
+- `Notes`
+- `Artifacts`
+- `Intake`
+
+These are the minimum files that should be enough for the app to function as a true local system of record, guidance, intake, and work.
+
+### 2. General Local Record / Guidance Repositories
+
+These are local repositories that extend the system without redefining the construct itself.
+
+They may be important to many workflows, but they are not automatically construct-birth requirements.
+
+### 3. Domain / Context Repositories
+
+These are contextual repositories for a specific operating model, project, or domain.
+
+Examples may include venture or deal-sharing repositories.
+
+They should be treated as extension files, not hidden launch requirements.
+
 ## Related Docs
 
 - `docs/000/a. DAMP.md`

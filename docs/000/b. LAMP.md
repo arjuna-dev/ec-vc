@@ -37,6 +37,187 @@ That means this file should eventually help answer:
 - which recipe entries are important enough to carry into a future clean birth
 - which launch/setup paths should be orchestrated instead of manually patched
 
+## Construct Birth Minimum
+
+The app should be able to be born first as a true local system of record.
+
+That means launch should not depend on every possible contextual repository already existing.
+
+The first requirement is a minimum construct that is enough for the app to:
+
+- govern its own files
+- record events and history
+- know who is using the system
+- know who and what the users are working with
+- hold local project and task work
+- accept intake and artifacts
+- preserve guidance and notes locally
+
+Working rule:
+
+- define the minimum construct first
+- prove that this minimum construct works as a coherent local system
+- only then layer contextual or domain-specific repositories on top
+
+Current construct-birth minimum:
+
+- `System Files`
+- `History`
+- `Users`
+- `Contacts`
+- `User Roles`
+- `Companion Roles`
+- `Projects`
+- `Tasks`
+- `Notes`
+- `Artifacts`
+- `Intake`
+
+This minimum set should be enough for the app to function as a true local operating system for records, guidance, intake, and work.
+
+Everything beyond this set should be treated as extension, not birth requirement.
+
+## File Classes
+
+Not all files serve the same role in the construct.
+
+The launch architecture should separate files into three classes.
+
+### 1. Core System Files
+
+These are required for construct birth.
+
+They allow the app to function as a local system of record and workflow.
+
+They regulate identity, structure, actors, events, guidance, intake, and ongoing work.
+
+### 2. General Local Record / Guidance Repositories
+
+These are local repositories that may be important to many workflows, but are not necessarily required for the construct to be born.
+
+They extend the local system without redefining the construct itself.
+
+They should still have clear intention and clear structure ownership.
+
+### 3. Domain / Context Repositories
+
+These are contextual repositories for a specific operating model, project, or domain.
+
+Examples may include venture, deal-sharing, or other future vertical packs.
+
+These are not construct-birth requirements.
+
+They should be layered on only after the core local system is already functioning correctly.
+
+Working rule:
+
+- core files make the system viable
+- general repositories extend the local operating layer
+- domain repositories serve specific contextual intentions
+
+Do not let domain repositories distort the birth requirements of the core construct.
+
+## Layered Local System Rule
+
+The app should be understood as a layered local system.
+
+This means the construct is not just a flat list of files.
+
+It is a local stack of responsibilities.
+
+### Layer 1. Construct Layer
+
+This layer answers:
+
+- what minimum files must exist for the system to be born
+- what kind of local system this app is
+- which files are core versus optional
+
+This is the launch and birth layer.
+
+### Layer 2. Structure Layer
+
+This layer answers:
+
+- what each file contains
+- which views/sections each file owns
+- which tokens each view owns
+- which structure is protected versus extendable
+
+This is the governed file-structure layer.
+
+### Layer 3. Data Layer
+
+This layer answers:
+
+- what rows and values exist inside the file
+- how records are read and written
+- how governed structure appears through shared surfaces
+
+This is the live local record layer.
+
+### Layer 4. Context Layer
+
+This layer answers:
+
+- how domain-specific repositories extend the system
+- how specific operating models use the core construct
+- how contextual files relate to the core without redefining it
+
+This is the extension layer.
+
+Working rule:
+
+- birth comes first
+- structure comes second
+- data comes third
+- context comes after the core is already coherent
+
+## Information Flow Rule
+
+Information should flow through the local system in a declared order.
+
+### 1. Construct defines what must exist
+
+The construct layer declares the minimum viable file set and file classes.
+
+### 2. System Files define what each file is
+
+`System Files` declares the file registry and the owned `Defined_Structure` for each file.
+
+### 3. Structure defines what each file can render
+
+Each file's `Defined_Structure` declares its views and tokens.
+
+### 4. Governance defines structure changes
+
+`Governance` edits structure.
+
+It does not directly tell data what to do.
+
+### 5. Data reflects current structure
+
+`Data` renders through the active file structure.
+
+If views change, labels change.
+
+If tokens change, columns change.
+
+### 6. Context extends the system
+
+Domain or project-specific repositories add contextual meaning on top of the core local system.
+
+They should not become hidden birth requirements.
+
+Short rule:
+
+- construct defines existence
+- system defines files
+- structure defines rendering
+- governance defines structure changes
+- data reflects structure
+- context extends the system
+
 ## Foundational Rules
 
 `LAMP` should carry the clean foundational rules we would want from birth.
