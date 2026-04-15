@@ -8,7 +8,7 @@
         </button>
         <div v-if="isSectionOpen('basic')" class="components-shell-page__board">
       <article class="components-shell-page__card components-shell-page__card--sm">
-        <button type="button" class="components-shell-page__inspect-btn" aria-label="View component details" @click="openComponentDetail('b10-logo')">
+        <button type="button" class="components-shell-page__inspect-btn" aria-label="Component details unavailable" disabled aria-disabled="true">
           <q-icon name="visibility" />
         </button>
         <div class="components-shell-page__card-label">B10 Logo</div>
@@ -19,7 +19,7 @@
       </article>
 
       <article class="components-shell-page__card components-shell-page__card--md">
-        <button type="button" class="components-shell-page__inspect-btn" aria-label="View component details" @click="openComponentDetail('b10-button')">
+        <button type="button" class="components-shell-page__inspect-btn" aria-label="Component details unavailable" disabled aria-disabled="true">
           <q-icon name="visibility" />
         </button>
         <div class="components-shell-page__card-label">B10 Button</div>
@@ -31,7 +31,7 @@
       </article>
 
       <article class="components-shell-page__card components-shell-page__card--md">
-        <button type="button" class="components-shell-page__inspect-btn" aria-label="View component details" @click="openComponentDetail('b10-icon-button')">
+        <button type="button" class="components-shell-page__inspect-btn" aria-label="Component details unavailable" disabled aria-disabled="true">
           <q-icon name="visibility" />
         </button>
         <div class="components-shell-page__card-label">B10 Icon Button</div>
@@ -44,7 +44,7 @@
       </article>
 
       <article class="components-shell-page__card components-shell-page__card--md">
-        <button type="button" class="components-shell-page__inspect-btn" aria-label="View component details" @click="openComponentDetail('main-menu-icon')">
+        <button type="button" class="components-shell-page__inspect-btn" aria-label="Component details unavailable" disabled aria-disabled="true">
           <q-icon name="visibility" />
         </button>
         <div class="components-shell-page__card-label">Main Menu Icon</div>
@@ -62,16 +62,10 @@
           <q-icon :name="isSectionOpen('navigation') ? 'expand_less' : 'expand_more'" size="18px" />
         </button>
         <div v-if="isSectionOpen('navigation')" class="components-shell-page__board">
-      <BuildingBlockPreviewTile block-key="page-title">
-        <template #actions>
-          <button type="button" class="components-shell-page__inspect-btn" aria-label="View component details" @click="openComponentDetail('page-title')">
-            <q-icon name="visibility" />
-          </button>
-        </template>
-      </BuildingBlockPreviewTile>
+      <BuildingBlockPreviewTile block-key="page-title" />
 
       <article class="components-shell-page__card components-shell-page__card--sm">
-        <button type="button" class="components-shell-page__inspect-btn" aria-label="View component details" @click="openComponentDetail('page-back-symbol')">
+        <button type="button" class="components-shell-page__inspect-btn" aria-label="Component details unavailable" disabled aria-disabled="true">
           <q-icon name="visibility" />
         </button>
         <div class="components-shell-page__card-label">Page Back Symbol</div>
@@ -82,7 +76,7 @@
       </article>
 
       <article class="components-shell-page__card components-shell-page__card--toolbar-wide">
-        <button type="button" class="components-shell-page__inspect-btn" aria-label="View component details" @click="openComponentDetail('main-menu-row')">
+        <button type="button" class="components-shell-page__inspect-btn" aria-label="Component details unavailable" disabled aria-disabled="true">
           <q-icon name="visibility" />
         </button>
         <div class="components-shell-page__card-label">Main Menu Row</div>
@@ -93,7 +87,7 @@
       </article>
 
       <article class="components-shell-page__card components-shell-page__card--toolbar-wide">
-        <button type="button" class="components-shell-page__inspect-btn" aria-label="View component details" @click="openComponentDetail('main-menu-group-row')">
+        <button type="button" class="components-shell-page__inspect-btn" aria-label="Component details unavailable" disabled aria-disabled="true">
           <q-icon name="visibility" />
         </button>
         <div class="components-shell-page__card-label">Main Menu View Row</div>
@@ -104,7 +98,7 @@
       </article>
 
       <article class="components-shell-page__card components-shell-page__card--live-link">
-        <button type="button" class="components-shell-page__inspect-btn" aria-label="View component details" @click="openComponentDetail('live-action-l1')">
+        <button type="button" class="components-shell-page__inspect-btn" aria-label="Component details unavailable" disabled aria-disabled="true">
           <q-icon name="visibility" />
         </button>
         <div class="components-shell-page__card-label">Live Action L1</div>
@@ -114,7 +108,7 @@
         </div>
       </article>
       <article class="components-shell-page__card components-shell-page__card--lg">
-        <button type="button" class="components-shell-page__inspect-btn" aria-label="View component details" @click="openComponentDetail('l2-toolbar')">
+        <button type="button" class="components-shell-page__inspect-btn" aria-label="Component details unavailable" disabled aria-disabled="true">
           <q-icon name="visibility" />
         </button>
         <div class="components-shell-page__card-label">View Toolbar</div>
@@ -132,7 +126,7 @@
         </div>
       </article>
       <article class="components-shell-page__card components-shell-page__card--lg">
-        <button type="button" class="components-shell-page__inspect-btn" aria-label="View component details" @click="openComponentDetail('mini-toolbar')">
+        <button type="button" class="components-shell-page__inspect-btn" aria-label="Component details unavailable" disabled aria-disabled="true">
           <q-icon name="visibility" />
         </button>
         <div class="components-shell-page__card-label">Mini Toolbar</div>
@@ -146,15 +140,9 @@
           />
         </div>
       </article>
-      <BuildingBlockPreviewTile block-key="structure-governance-panel">
-        <template #actions>
-          <button type="button" class="components-shell-page__inspect-btn" aria-label="View component details" @click="openComponentDetail('structure-governance-panel')">
-            <q-icon name="visibility" />
-          </button>
-        </template>
-      </BuildingBlockPreviewTile>
+      <BuildingBlockPreviewTile block-key="structure-governance-panel" />
       <article class="components-shell-page__card components-shell-page__card--settings-menu">
-        <button type="button" class="components-shell-page__inspect-btn" aria-label="View component details" @click="openComponentDetail('view-settings-menu')">
+        <button type="button" class="components-shell-page__inspect-btn" aria-label="Component details unavailable" disabled aria-disabled="true">
           <q-icon name="visibility" />
         </button>
         <div class="components-shell-page__card-label">View Settings Menu</div>
@@ -167,7 +155,7 @@
         </div>
       </article>
       <article class="components-shell-page__card components-shell-page__card--widget-settings">
-        <button type="button" class="components-shell-page__inspect-btn" aria-label="View component details" @click="openComponentDetail('widget-settings-menu')">
+        <button type="button" class="components-shell-page__inspect-btn" aria-label="Component details unavailable" disabled aria-disabled="true">
           <q-icon name="visibility" />
         </button>
         <div class="components-shell-page__card-label">Widget Settings Menu</div>
@@ -180,7 +168,7 @@
         </div>
       </article>
       <article class="components-shell-page__card components-shell-page__card--md">
-        <button type="button" class="components-shell-page__inspect-btn" aria-label="View component details" @click="openComponentDetail('toggle-row-icons')">
+        <button type="button" class="components-shell-page__inspect-btn" aria-label="Component details unavailable" disabled aria-disabled="true">
           <q-icon name="visibility" />
         </button>
         <div class="components-shell-page__card-label">Toggle / Row Icons</div>
@@ -200,24 +188,12 @@
           <q-icon :name="isSectionOpen('dialog') ? 'expand_less' : 'expand_more'" size="18px" />
         </button>
         <div v-if="isSectionOpen('dialog')" class="components-shell-page__board">
-      <BuildingBlockPreviewTile block-key="plus-icon">
-        <template #actions>
-          <button type="button" class="components-shell-page__inspect-btn" aria-label="View component details" @click="openComponentDetail('plus-icon')">
-            <q-icon name="visibility" />
-          </button>
-        </template>
-      </BuildingBlockPreviewTile>
+      <BuildingBlockPreviewTile block-key="plus-icon" />
 
-      <BuildingBlockPreviewTile block-key="plus-with-label">
-        <template #actions>
-          <button type="button" class="components-shell-page__inspect-btn" aria-label="View component details" @click="openComponentDetail('plus-with-label')">
-            <q-icon name="visibility" />
-          </button>
-        </template>
-      </BuildingBlockPreviewTile>
+      <BuildingBlockPreviewTile block-key="plus-with-label" />
 
       <article class="components-shell-page__card components-shell-page__card--sm">
-        <button type="button" class="components-shell-page__inspect-btn" aria-label="View component details" @click="openComponentDetail('eye-icon')">
+        <button type="button" class="components-shell-page__inspect-btn" aria-label="Component details unavailable" disabled aria-disabled="true">
           <q-icon name="visibility" />
         </button>
         <div class="components-shell-page__card-label">Eye Icon</div>
@@ -228,7 +204,7 @@
       </article>
 
       <article class="components-shell-page__card components-shell-page__card--sm">
-        <button type="button" class="components-shell-page__inspect-btn" aria-label="View component details" @click="openComponentDetail('edit-button')">
+        <button type="button" class="components-shell-page__inspect-btn" aria-label="Component details unavailable" disabled aria-disabled="true">
           <q-icon name="visibility" />
         </button>
         <div class="components-shell-page__card-label">Edit Button</div>
@@ -239,7 +215,7 @@
       </article>
 
       <article class="components-shell-page__card components-shell-page__card--md">
-        <button type="button" class="components-shell-page__inspect-btn" aria-label="View component details" @click="openComponentDetail('mini-scrollbar')">
+        <button type="button" class="components-shell-page__inspect-btn" aria-label="Component details unavailable" disabled aria-disabled="true">
           <q-icon name="visibility" />
         </button>
         <div class="components-shell-page__card-label">Mini Scrollbar</div>
@@ -262,7 +238,7 @@
         </button>
         <div v-if="isSectionOpen('file')" class="components-shell-page__board">
       <article class="components-shell-page__card components-shell-page__card--dashboard">
-        <button type="button" class="components-shell-page__inspect-btn" aria-label="View component details" @click="openComponentDetail('home-dashboard')">
+        <button type="button" class="components-shell-page__inspect-btn" aria-label="Component details unavailable" disabled aria-disabled="true">
           <q-icon name="visibility" />
         </button>
         <div class="components-shell-page__card-label">Home Dashboard</div>
@@ -279,7 +255,7 @@
       </article>
 
       <article class="components-shell-page__card components-shell-page__card--stat-box">
-        <button type="button" class="components-shell-page__inspect-btn" aria-label="View component details" @click="openComponentDetail('l3-box')">
+        <button type="button" class="components-shell-page__inspect-btn" aria-label="Component details unavailable" disabled aria-disabled="true">
           <q-icon name="visibility" />
         </button>
         <div class="components-shell-page__card-label">Token Box</div>
@@ -290,7 +266,7 @@
       </article>
 
       <article class="components-shell-page__card components-shell-page__card--toolbar-wide">
-        <button type="button" class="components-shell-page__inspect-btn" aria-label="View component details" @click="openComponentDetail('file-toolbar')">
+        <button type="button" class="components-shell-page__inspect-btn" aria-label="Component details unavailable" disabled aria-disabled="true">
           <q-icon name="visibility" />
         </button>
         <div class="components-shell-page__card-label">File Toolbar</div>
@@ -327,17 +303,11 @@
         <div v-if="isSectionOpen('shell')" class="components-shell-page__board"></div>
       </section>
     </section>
-
-    <AddEditBbShell
-      v-model="bbDetailDialogOpen"
-      :detail="bbDetail"
-    />
   </q-page>
 </template>
 
 <script setup>
 import { ref } from 'vue'
-import AddEditBbShell from 'src/components/AddEditBbShell.vue'
 import HomeDashboardHero from 'src/components/HomeDashboardHero.vue'
 import L3Box from 'src/components/L3Box.vue'
 import FilePageToolbar from 'src/components/FilePageToolbar.vue'
@@ -359,7 +329,7 @@ import MainMenuGroupRow from 'src/components/MainMenuGroupRow.vue'
 import PageBackSymbol from 'src/components/PageBackSymbol.vue'
 import ToggleRowIcons from 'src/components/ToggleRowIcons.vue'
 import WidgetSettingsMenu from 'src/components/WidgetSettingsMenu.vue'
-import { BUILDING_BLOCK_DETAILS_BY_ID, getBuildingBlockDetail } from 'src/utils/buildingBlocks'
+import { BUILDING_BLOCK_DETAILS_BY_ID } from 'src/utils/buildingBlocks'
 
 const activeToolbarSection = ref('general')
 const activeMiniToolbarSection = ref('general')
@@ -404,8 +374,6 @@ const openSections = ref({
   record: true,
   shell: true,
 })
-const bbDetailDialogOpen = ref(false)
-const bbDetail = ref(null)
 const viewOptions = [
   { label: '', value: 'card', icon: 'grid_view' },
   { label: '', value: 'table', icon: 'table_rows' },
@@ -468,11 +436,6 @@ function isSectionOpen(sectionKey) {
 
 function toggleSection(sectionKey) {
   openSections.value[sectionKey] = !openSections.value[sectionKey]
-}
-
-function openComponentDetail(componentId) {
-  bbDetail.value = getBuildingBlockDetail(componentId)
-  bbDetailDialogOpen.value = Boolean(bbDetail.value)
 }
 
 </script>

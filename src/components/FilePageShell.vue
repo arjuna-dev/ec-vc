@@ -179,8 +179,7 @@
                 />
                 <EyeIconButton
                   aria-label="View block tile"
-                  :disable="!row.recordId"
-                  @click="openBbShell(row)"
+                  disable
                 />
               </template>
             </BuildingBlockPreviewTile>
@@ -435,8 +434,8 @@
                     size="8px"
                     icon="visibility"
                     class="test-shell-table__eye"
-                    :disable="!row.recordId"
-                    @click="isBbFileSource ? openBbShell(row) : openRecordView(row)"
+                    :disable="!row.recordId || isBbFileSource"
+                    @click="openRecordView(row)"
                   />
                 </td>
                 <td
@@ -539,7 +538,8 @@
                         :key="`${tokenRow.key}:${item.blockKey}`"
                         type="button"
                         class="test-shell-table__bb-link"
-                        @click="openBbShellByBlockKey(item.blockKey)"
+                        disabled
+                        aria-disabled="true"
                       >
                         {{ item.title }}
                       </button>
@@ -653,11 +653,6 @@
         @submit="submitCreateRecordShell"
       />
 
-      <AddEditBbShell
-        v-model="bbDetailDialogOpen"
-        :detail="bbDetail"
-      />
-
       <q-dialog v-model="heroDocumentDialogOpen" maximized>
         <q-card class="hero-document-dialog">
           <q-card-section class="hero-document-dialog__header">
@@ -682,7 +677,6 @@
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useQuasar } from 'quasar'
 import { useRoute, useRouter } from 'vue-router'
-import AddEditBbShell from 'components/AddEditBbShell.vue'
 import AddEditRecordShellDialog from 'components/AddEditRecordShellDialog.vue'
 import FileFilterMenu from 'components/FileFilterMenu.vue'
 import FileHero from 'components/FileHero.vue'
@@ -694,7 +688,6 @@ import StructureGovernancePanel from 'components/StructureGovernancePanel.vue'
 import { buildTokenGovernanceColumns } from 'src/utils/structureGovernanceColumns'
 import EyeIconButton from 'components/buttons/EyeIconButton.vue'
 import SelectionActionBar from 'components/SelectionActionBar.vue'
-import { getBuildingBlockDetail } from 'src/utils/buildingBlocks'
 import { buildStructureToolbarItems } from 'src/utils/structureToolbarContract'
   import {
     getCreateBranchEntry,
@@ -781,8 +774,6 @@ const createDialogInitialArtifacts = ref([])
 const createDialogLastChangeSnapshot = ref(null)
 const createDialogLastSavedSignature = ref('')
 const createDialogAutosavePending = ref(false)
-const bbDetailDialogOpen = ref(false)
-const bbDetail = ref(null)
 const heroDocumentDialogOpen = ref(false)
 const heroDocumentDialogTitle = ref('')
 const heroDocumentDialogContent = ref('')
@@ -3057,12 +3048,6 @@ function openRowHistoryItem(row, item) {
   })
 }
 
-function openBbShell(row) {
-  const blockKey = getBbTileBlockKey(row)
-  if (!blockKey) return
-  openBbShellByBlockKey(blockKey)
-}
-
 function normalizeIpcErrorMessage(errorValue) {
   const raw = String(errorValue?.message || errorValue || '').trim()
   if (!raw) return 'An unexpected error occurred.'
@@ -3346,13 +3331,6 @@ async function commitInlineTableEdit(row, token, immediateValue) {
   } catch (error) {
     $q.notify({ type: 'negative', message: error?.message || String(error) })
   }
-}
-
-function openBbShellByBlockKey(blockKey) {
-  const normalizedBlockKey = String(blockKey || '').trim()
-  if (!normalizedBlockKey) return
-  bbDetail.value = getBuildingBlockDetail(normalizedBlockKey)
-  bbDetailDialogOpen.value = Boolean(bbDetail.value)
 }
 
 function canCreateForSourceKey(sourceKey) {
