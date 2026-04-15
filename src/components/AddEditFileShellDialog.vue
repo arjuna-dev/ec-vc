@@ -20,6 +20,24 @@
               :expanded="shellSelectorOpen"
             />
           </button>
+          <div class="file-structure-shell__level-toggle" role="group" aria-label="Edit shell level">
+            <button
+              type="button"
+              class="file-structure-shell__level-toggle-btn"
+              :class="{ 'file-structure-shell__level-toggle-btn--active': editingLevel === 'file' }"
+              @click="setEditingLevel('file')"
+            >
+              File Level
+            </button>
+            <button
+              type="button"
+              class="file-structure-shell__level-toggle-btn"
+              :class="{ 'file-structure-shell__level-toggle-btn--active': editingLevel === 'token' }"
+              @click="setEditingLevel('token')"
+            >
+              Token Level
+            </button>
+          </div>
           <div
             v-if="shellSelectorOpen"
             ref="shellSelectorMenu"
@@ -45,24 +63,6 @@
             :title="activeShellSelectorOption.label"
             class="file-structure-shell__dialog-title-copy"
           />
-          <div class="file-structure-shell__level-toggle" role="group" aria-label="Edit shell level">
-            <button
-              type="button"
-              class="file-structure-shell__level-toggle-btn"
-              :class="{ 'file-structure-shell__level-toggle-btn--active': editingLevel === 'file' }"
-              @click="setEditingLevel('file')"
-            >
-              File Level
-            </button>
-            <button
-              type="button"
-              class="file-structure-shell__level-toggle-btn"
-              :class="{ 'file-structure-shell__level-toggle-btn--active': editingLevel === 'token' }"
-              @click="setEditingLevel('token')"
-            >
-              Token Level
-            </button>
-          </div>
           <button
             type="button"
             class="file-structure-shell__chevron-button"
