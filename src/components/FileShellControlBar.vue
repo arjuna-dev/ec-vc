@@ -1,5 +1,9 @@
 <template>
-  <div class="file-shell__control-row" :aria-label="ariaLabel">
+  <div
+    class="file-shell__control-row"
+    :class="{ 'file-shell__control-row--merged-middle': mergeMiddleLanes }"
+    :aria-label="ariaLabel"
+  >
     <div class="file-shell__control-lane">
       <div class="file-shell__control-lane-box file-shell__control-lane-box--left-controls">
         <q-checkbox
@@ -51,47 +55,66 @@
     </div>
 
     <div class="file-shell__control-lane">
-      <div class="file-shell__control-lane-box file-shell__control-lane-box--views">
-        <div
-          ref="viewsScrollRef"
-          class="file-shell__control-views-scroll ds-mini-scrollbar"
-          @scroll="updateViewsScrollState"
-        >
-          <button
-            v-for="item in viewItems"
-            :key="`control-view:${item.value}`"
-            type="button"
-            class="file-shell__control-chip"
-            :class="{ 'file-shell__control-chip--active': modelValue === item.value }"
-            @click="$emit('update:modelValue', item.value)"
+      <div
+        class="file-shell__control-lane-box"
+        :class="mergeMiddleLanes ? 'file-shell__control-lane-box--middle' : 'file-shell__control-lane-box--views'"
+      >
+        <template v-if="mergeMiddleLanes">
+          <div class="file-shell__control-middle-scroll ds-mini-scrollbar">
+            <button
+              v-for="item in middleLaneItems"
+              :key="`control-middle:${item.value}`"
+              type="button"
+              class="file-shell__control-middle-chip"
+              :class="{ 'file-shell__control-middle-chip--active': modelValue === item.value }"
+              @click="$emit('update:modelValue', item.value)"
+            >
+              <span>{{ item.title }}</span>
+            </button>
+          </div>
+        </template>
+        <template v-else>
+          <div
+            ref="viewsScrollRef"
+            class="file-shell__control-views-scroll ds-mini-scrollbar"
+            @scroll="updateViewsScrollState"
           >
-            {{ item.title }}
-          </button>
-        </div>
-        <div v-if="viewsCanScrollPrev || viewsCanScrollNext" class="file-shell__control-views-nav">
-          <button
-            type="button"
-            class="file-shell__control-views-nav-btn"
-            :disabled="!viewsCanScrollPrev"
-            aria-label="Scroll view labels left"
-            @click="scrollViews(-1)"
-          >
-            <q-icon name="chevron_left" size="14px" />
-          </button>
-          <button
-            type="button"
-            class="file-shell__control-views-nav-btn"
-            :disabled="!viewsCanScrollNext"
-            aria-label="Scroll view labels right"
-            @click="scrollViews(1)"
-          >
-            <q-icon name="chevron_right" size="14px" />
-          </button>
-        </div>
+            <button
+              v-for="item in viewItems"
+              :key="`control-view:${item.value}`"
+              type="button"
+              class="file-shell__control-chip"
+              :class="{ 'file-shell__control-chip--active': modelValue === item.value }"
+              @click="$emit('update:modelValue', item.value)"
+            >
+              {{ item.title }}
+            </button>
+          </div>
+          <div v-if="viewsCanScrollPrev || viewsCanScrollNext" class="file-shell__control-views-nav">
+            <button
+              type="button"
+              class="file-shell__control-views-nav-btn"
+              :disabled="!viewsCanScrollPrev"
+              aria-label="Scroll view labels left"
+              @click="scrollViews(-1)"
+            >
+              <q-icon name="chevron_left" size="14px" />
+            </button>
+            <button
+              type="button"
+              class="file-shell__control-views-nav-btn"
+              :disabled="!viewsCanScrollNext"
+              aria-label="Scroll view labels right"
+              @click="scrollViews(1)"
+            >
+              <q-icon name="chevron_right" size="14px" />
+            </button>
+          </div>
+        </template>
       </div>
     </div>
 
-    <div class="file-shell__control-lane">
+    <div v-if="!mergeMiddleLanes" class="file-shell__control-lane">
       <div class="file-shell__control-lane-box file-shell__control-lane-box--governance">
         <div class="file-shell__control-governance-set">
           <button
@@ -191,6 +214,7 @@ const props = defineProps({
   filterAriaLabel: { type: String, default: 'Filters' },
   viewMode: { type: String, default: 'page' },
   viewModeDisabled: { type: Boolean, default: false },
+  mergeMiddleLanes: { type: Boolean, default: false },
   showViewModeToggle: { type: Boolean, default: true },
   collapsed: { type: Boolean, default: false },
   collapseDisabled: { type: Boolean, default: false },
@@ -219,6 +243,7 @@ const normalizedItems = computed(() =>
 const viewItems = computed(() => normalizedItems.value.filter((item) => item.lane === 'left'))
 const structuralItems = computed(() => normalizedItems.value.filter((item) => item.lane === 'structural'))
 const governanceItems = computed(() => normalizedItems.value.filter((item) => item.lane === 'governance'))
+const middleLaneItems = computed(() => [...viewItems.value, ...structuralItems.value, ...governanceItems.value])
 const hasFiltersSlot = computed(() => Boolean(slots.filters))
 
 function structuralItemClass(item) {
@@ -284,6 +309,10 @@ onBeforeUnmount(() => {
   border-radius: 6px;
 }
 
+.file-shell__control-row--merged-middle {
+  grid-template-columns: max-content minmax(0, 1fr) max-content;
+}
+
 .file-shell__control-lane {
   display: flex;
   align-items: center;
@@ -328,10 +357,18 @@ onBeforeUnmount(() => {
   width: 100%;
 }
 
+.file-shell__control-lane-box--middle {
+  align-items: center;
+  justify-content: flex-start;
+  gap: 6px;
+  padding: 4px 6px;
+  width: 100%;
+}
+
 .file-shell__control-lane-box--governance {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
   gap: 8px;
   padding: 0 8px;
   width: auto;
@@ -347,8 +384,9 @@ onBeforeUnmount(() => {
 .file-shell__control-lane-box--governance .shell-section-toolbar__item {
   display: inline-flex;
   align-items: center;
+  justify-content: flex-start;
   gap: 6px;
-  padding: 2px 6px;
+  padding: 2px 5px;
   color: var(--ds-color-text-subtle);
   cursor: pointer;
   background: transparent;
@@ -381,8 +419,10 @@ onBeforeUnmount(() => {
 .file-shell__control-lane-box--governance .shell-section-toolbar__item--system .shell-section-toolbar__item-label,
 .file-shell__control-lane-box--governance .shell-section-toolbar__item--structural .shell-section-toolbar__item-label,
 .file-shell__control-lane-box--governance .shell-section-toolbar__item--governance .shell-section-toolbar__item-label {
+  display: inline-block;
   font-family: inherit;
   font-size: 10px;
+  text-align: left;
 }
 
 .file-shell__control-lane-box--governance .shell-section-toolbar__item--ldb.shell-section-toolbar__item--active,
@@ -411,6 +451,42 @@ onBeforeUnmount(() => {
   overflow-x: auto;
   overflow-y: hidden;
   white-space: nowrap;
+}
+
+.file-shell__control-middle-scroll {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: var(--ds-space-4);
+  min-width: 0;
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  white-space: nowrap;
+}
+
+.file-shell__control-middle-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  min-height: 24px;
+  padding: 2px 5px;
+  color: var(--ds-color-brand-black);
+  background: var(--ds-color-brand-white);
+  border: 1px solid var(--ds-color-brand-black);
+  border-radius: var(--ds-radius-micro);
+  font-family: var(--ds-font-body);
+  font-size: var(--ds-font-size-sm);
+  font-weight: var(--ds-font-weight-medium);
+  line-height: 1;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.file-shell__control-middle-chip--active {
+  color: var(--ds-color-brand-white);
+  background: var(--ds-color-brand-black);
+  border-color: var(--ds-color-brand-black);
 }
 
 .file-shell__control-views-nav {
@@ -549,7 +625,8 @@ onBeforeUnmount(() => {
 .file-shell__control-chip {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
+  padding: 0 5px;
   color: var(--ds-color-brand-black);
   background: transparent;
   border: 1px solid var(--ds-color-border-default);
@@ -565,6 +642,11 @@ onBeforeUnmount(() => {
   font-size: 12px;
   background: rgba(255, 255, 255, 0.96);
   border-radius: 4px;
+}
+
+.file-shell__control-lane-box--governance .shell-section-toolbar__item-label,
+.file-shell__control-lane-box--views .file-shell__control-chip {
+  text-align: left;
 }
 
 .file-shell__control-chip--active {
