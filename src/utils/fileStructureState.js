@@ -132,7 +132,6 @@ export function appendDraftStructureToken(sections = [], parentViewKey = '') {
           optionList: '',
           definition: '',
           defaultVerificationState: 'Input',
-          dbFieldAliases: [],
           dbWriteField: '',
           fieldClass: '',
           parentKey: normalizedParentKey,

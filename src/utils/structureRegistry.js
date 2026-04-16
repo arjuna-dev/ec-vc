@@ -425,12 +425,7 @@ function normalizeRuntimeToken(token = {}, section = {}, index = 0, sourceKey = 
     defaultVerificationSource: String(
       token?.defaultVerificationSource || token?.default_verification_source || '',
     ).trim(),
-    dbFieldAliases: Array.isArray(token?.dbFieldAliases)
-      ? token.dbFieldAliases.map((value) => String(value || '').trim()).filter(Boolean)
-      : [],
     dbWriteField: String(token?.dbWriteField || token?.db_write_field || '').trim(),
-    dbWriteTable: String(token?.dbWriteTable || token?.db_write_table || '').trim(),
-    dbWriteIdColumn: String(token?.dbWriteIdColumn || token?.db_write_id_column || '').trim(),
     fieldClass: String(token?.fieldClass || token?.field_class || '').trim(),
     relationshipGroup: String(token?.relationshipGroup || token?.relationship_group || '').trim(),
     editable: typeof token?.editable === 'boolean' ? token.editable : token?.editable,
@@ -742,22 +737,9 @@ export function getFilePageEditSurface(sourceKey = '') {
 
 export function getCanonicalTokenFieldNames(token = {}) {
   const explicitWriteField = String(token?.dbWriteField || '').trim()
-  if (explicitWriteField) {
-    return Array.from(
-      new Set(
-        [
-          explicitWriteField,
-          ...(Array.isArray(token.dbFieldAliases) ? token.dbFieldAliases : []),
-          token.tokenName,
-        ]
-          .map((value) => String(value || '').trim())
-          .filter(Boolean),
-      ),
-    )
-  }
   return Array.from(
     new Set(
-      [token.tokenName, ...(Array.isArray(token.dbFieldAliases) ? token.dbFieldAliases : [])]
+      [explicitWriteField, token.tokenName]
         .map((value) => String(value || '').trim())
         .filter(Boolean),
     ),
@@ -767,10 +749,6 @@ export function getCanonicalTokenFieldNames(token = {}) {
 export function getCanonicalTokenWriteFieldName(token = {}) {
   const explicitWriteField = String(token?.dbWriteField || '').trim()
   if (explicitWriteField) return explicitWriteField
-  const aliases = Array.isArray(token?.dbFieldAliases)
-    ? token.dbFieldAliases.map((value) => String(value || '').trim()).filter(Boolean)
-    : []
-  if (aliases.length) return aliases[0]
   return ''
 }
 
@@ -785,8 +763,8 @@ export function getCanonicalTokenWriteTarget(token = {}, fallbackTableName = '',
   if (!fieldName) return null
 
   return {
-    tableName: String(token?.dbWriteTable || fallbackTableName || '').trim(),
-    idColumn: String(token?.dbWriteIdColumn || fallbackIdColumn || 'id').trim() || 'id',
+    tableName: String(fallbackTableName || '').trim(),
+    idColumn: String(fallbackIdColumn || 'id').trim() || 'id',
     fieldName,
   }
 }

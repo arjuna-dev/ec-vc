@@ -1649,16 +1649,12 @@ const BASE_FILE_TOKEN_FIELDS = Object.freeze({
 
 function buildBaseFileStructure(entry) {
   const sourceKey = String(entry?.key || '').trim().toLowerCase()
-  const runtimeEntityName = String(entry?.entityName || '').trim()
   const mapping = BASE_FILE_TOKEN_FIELDS[sourceKey] || { nameField: '', summaryField: '' }
   const nameField = String(mapping.nameField || '').trim()
   const summaryField = String(mapping.summaryField || '').trim()
   const nameTokenName = nameField || 'Name'
   const summaryTokenName = summaryField || 'Summary'
-  const makeWriteTarget = (fieldName) =>
-    fieldName && runtimeEntityName
-      ? { dbWriteField: fieldName, dbWriteTable: runtimeEntityName, dbWriteIdColumn: 'id' }
-      : { dbWriteField: fieldName, dbWriteTable: '', dbWriteIdColumn: '' }
+  const makeWriteTarget = (fieldName) => ({ dbWriteField: fieldName })
 
   return {
     version: 1,
@@ -1682,7 +1678,6 @@ function buildBaseFileStructure(entry) {
             optionEntity: '',
             optionList: '',
             optionEntities: [],
-            dbFieldAliases: ['id'],
             ...makeWriteTarget('id'),
             relationshipGroup: '',
             definition: '',
@@ -1701,7 +1696,6 @@ function buildBaseFileStructure(entry) {
             optionEntity: '',
             optionList: '',
             optionEntities: [],
-            dbFieldAliases: [],
             ...makeWriteTarget(''),
             relationshipGroup: '',
             definition: '',
@@ -1721,7 +1715,6 @@ function buildBaseFileStructure(entry) {
             optionList: 'Active, Archived',
             optionEntities: [],
             inputOptions: ['Active', 'Archived'],
-            dbFieldAliases: ['File_Status'],
             ...makeWriteTarget('File_Status'),
             relationshipGroup: '',
             definition: '',
@@ -1749,7 +1742,6 @@ function buildBaseFileStructure(entry) {
             optionEntity: '',
             optionList: '',
             optionEntities: [],
-            dbFieldAliases: nameField ? [nameField] : [],
             ...makeWriteTarget(nameField),
             relationshipGroup: '',
             definition: '',
@@ -1768,7 +1760,6 @@ function buildBaseFileStructure(entry) {
             optionEntity: '',
             optionList: '',
             optionEntities: [],
-              dbFieldAliases: summaryField ? [summaryField] : [],
               ...makeWriteTarget(summaryField),
               relationshipGroup: '',
               definition: '',
