@@ -724,11 +724,35 @@ const governanceSomeVisibleSelected = computed(() => {
   return keys.some((key) => selected.includes(key)) && !governanceAllVisibleSelected.value
 })
 
+function getSystemFileRuntimeGroupLabel(row = {}) {
+  const normalizedStatus = String(row?.File_Status || '').trim().toLowerCase()
+  return normalizedStatus === 'archived' ? 'Archived Files' : 'Active Files'
+}
+
+function getSystemFileBucketLabel(row = {}) {
+  const normalizedBucket = String(row?.File_Bucket || '').trim().toLowerCase()
+  if (normalizedBucket === 'owner') return 'Owner Files'
+  if (normalizedBucket === 'companion') return 'Companion Files'
+  if (normalizedBucket === 'work') return 'Work Files'
+  return 'Shared Files'
+}
+
+function getSystemFileRuntimeSortOrder(row = {}) {
+  return getSystemFileRuntimeGroupLabel(row) === 'Archived Files' ? 2 : 1
+}
+
+function getSystemFileBucketSortOrder(row = {}) {
+  const normalizedBucket = String(row?.File_Bucket || '').trim().toLowerCase()
+  if (normalizedBucket === 'owner') return 1
+  if (normalizedBucket === 'companion') return 2
+  if (normalizedBucket === 'work') return 3
+  return 4
+}
+
 const displayRows = computed(() => {
   const searchValue = String(searchQuery.value || '').trim().toLowerCase()
   const rows = rawRowsBySource.value[activeSettingsSourceKey.value] || []
-
-  return rows
+  const mappedRows = rows
     .map((row, index) => {
       const recordId = getRecordIdValue(row, activeSettingsSourceKey.value) || `draft-row-${index + 1}`
       const mappedRow = {
@@ -753,21 +777,69 @@ const displayRows = computed(() => {
       mappedRow.__searchText = searchValues.join(' ')
       mappedRow.editableColumns = editableColumns
       mappedRow.toneClassByColumn = toneClassByColumn
+      mappedRow.__runtimeGroup = getSystemFileRuntimeGroupLabel(row)
+      mappedRow.__bucketGroup = getSystemFileBucketLabel(row)
+      mappedRow.__runtimeGroupOrder = getSystemFileRuntimeSortOrder(row)
+      mappedRow.__bucketGroupOrder = getSystemFileBucketSortOrder(row)
+      mappedRow.__sourceRow = row
       return mappedRow
     })
     .filter((row) => !searchValue || row.__searchText.includes(searchValue))
+
+  if (activeSettingsSourceKey.value !== 'file-system') return mappedRows
+
+  const sortedRows = [...mappedRows].sort((left, right) => {
+    const runtimeDelta = Number(left.__runtimeGroupOrder || 0) - Number(right.__runtimeGroupOrder || 0)
+    if (runtimeDelta !== 0) return runtimeDelta
+    const bucketDelta = Number(left.__bucketGroupOrder || 0) - Number(right.__bucketGroupOrder || 0)
+    if (bucketDelta !== 0) return bucketDelta
+    return String(left[titleToken.value?.key] || left.key || '').localeCompare(String(right[titleToken.value?.key] || right.key || ''))
+  })
+
+  const groupedRows = []
+  let activeRuntimeGroup = ''
+  let activeBucketGroup = ''
+
+  sortedRows.forEach((row) => {
+    if (row.__runtimeGroup !== activeRuntimeGroup) {
+      activeRuntimeGroup = String(row.__runtimeGroup || '').trim()
+      activeBucketGroup = ''
+      groupedRows.push({
+        key: `group:runtime:${activeRuntimeGroup}`,
+        label: activeRuntimeGroup,
+        __groupHeader: true,
+        __groupLevel: 1,
+      })
+    }
+
+    if (row.__bucketGroup !== activeBucketGroup) {
+      activeBucketGroup = String(row.__bucketGroup || '').trim()
+      groupedRows.push({
+        key: `group:bucket:${activeRuntimeGroup}:${activeBucketGroup}`,
+        label: activeBucketGroup,
+        __groupHeader: true,
+        __groupLevel: 2,
+      })
+    }
+
+    groupedRows.push(row)
+  })
+
+  return groupedRows
 })
 
+const selectableDisplayRows = computed(() => displayRows.value.filter((row) => !row.__groupHeader))
+
 const allVisibleSelected = computed(() =>
-  displayRows.value.length > 0 && displayRows.value.every((row) => selectedLeafKeys.value.includes(row.key)),
+  selectableDisplayRows.value.length > 0 && selectableDisplayRows.value.every((row) => selectedLeafKeys.value.includes(row.key)),
 )
 
 const selectedDataRows = computed(() =>
-  displayRows.value.filter((row) => selectedLeafKeys.value.includes(row.key)),
+  selectableDisplayRows.value.filter((row) => selectedLeafKeys.value.includes(row.key)),
 )
 
 const someVisibleSelected = computed(() =>
-  displayRows.value.some((row) => selectedLeafKeys.value.includes(row.key)) && !allVisibleSelected.value,
+  selectableDisplayRows.value.some((row) => selectedLeafKeys.value.includes(row.key)) && !allVisibleSelected.value,
 )
 
 const canDeleteSelectedRows = computed(() =>
@@ -900,7 +972,7 @@ function toggleLeafSelection(rowKey) {
 
 function toggleSelectAllVisible(nextValue) {
   const sourceKey = activeSettingsSourceKey.value
-  const rowKeys = displayRows.value.map((row) => row.key)
+  const rowKeys = selectableDisplayRows.value.map((row) => row.key)
   selectedLeafKeysBySource.value = {
     ...selectedLeafKeysBySource.value,
     [sourceKey]: nextValue ? rowKeys : [],

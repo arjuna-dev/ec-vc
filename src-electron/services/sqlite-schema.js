@@ -1503,6 +1503,7 @@ CREATE TABLE IF NOT EXISTS Files (
   File_Status TEXT,
   File_Guide_Path TEXT,
   File_Class TEXT,
+  File_Bucket TEXT,
   Ownership_Mode TEXT,
   File_Owner TEXT,
   File_Steward TEXT,

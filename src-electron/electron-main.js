@@ -2210,6 +2210,7 @@ function buildDefaultFileRegistryRow(entry, index) {
     File_Status: getDefaultFileStatusForGuidePath(guidePath),
     File_Guide_Path: guidePath,
     File_Class: 'L1',
+    File_Bucket: getDefaultFileBucketForSourceKey(sourceKey),
     Ownership_Mode: 'root_owned',
     File_Owner: 'Owner',
     File_Steward: 'File Steward',
@@ -2235,6 +2236,10 @@ function getFileRegistryEntryBySourceKey(sourceKey) {
 
 function buildDraftFileDefinitionRow(sourceKey, payload = {}) {
   const normalizedSourceKey = String(sourceKey || '').trim()
+  const normalizedFileBucket =
+    normalizeFileBucketValue(payload?.File_Bucket) ||
+    normalizeFileBucketValue(payload?.Bucket) ||
+    getDefaultFileBucketForSourceKey(normalizedSourceKey)
   return {
     id: normalizeNullableString(payload?.id) || `file:${normalizedSourceKey || crypto.randomUUID()}`,
     File_Order: payload?.File_Order ?? null,
@@ -2253,6 +2258,7 @@ function buildDraftFileDefinitionRow(sourceKey, payload = {}) {
       'Draft',
     File_Guide_Path: normalizeNullableString(payload?.File_Guide_Path) || '',
     File_Class: normalizeNullableString(payload?.File_Class) || 'L1',
+    File_Bucket: normalizedFileBucket,
     Ownership_Mode: normalizeNullableString(payload?.Ownership_Mode) || 'root_owned',
     File_Owner: normalizeNullableString(payload?.File_Owner) || 'Owner',
     File_Steward: normalizeNullableString(payload?.File_Steward) || 'File Steward',
@@ -2272,8 +2278,29 @@ function buildDraftFileDefinitionRow(sourceKey, payload = {}) {
 }
 
 const ACCEPTED_FILE_STATUS_VALUES = Object.freeze(['Active', 'Partial', 'Draft', 'Hidden', 'Archived'])
+const ACCEPTED_FILE_BUCKET_VALUES = Object.freeze(['Owner', 'Companion', 'Work', 'Shared'])
 const ACCEPTED_FORK_MODE_VALUES = Object.freeze(['none', 'view', 'create', 'view_and_create'])
 const PROTECTED_BOOTSTRAP_FILE_SOURCE_KEYS = new Set(['file-system', 'events', 'bb-file'])
+const FILE_BUCKET_BY_SOURCE_KEY = Object.freeze({
+  'file-system': 'Shared',
+  events: 'Shared',
+  users: 'Owner',
+  contacts: 'Shared',
+  'user-roles': 'Owner',
+  'companion-roles': 'Companion',
+  projects: 'Work',
+  tasks: 'Work',
+  notes: 'Work',
+  artifacts: 'Work',
+  intake: 'Work',
+  companies: 'Shared',
+  opportunities: 'Shared',
+  funds: 'Shared',
+  rounds: 'Shared',
+  markets: 'Shared',
+  securities: 'Shared',
+  'bb-file': 'Shared',
+})
 const FILE_GUIDE_PATH_BY_SOURCE_KEY = Object.freeze({
   'bb-file': 'docs/100/Archive/100-BB_Shell.md',
   events: 'docs/100/Archive/100-Events.md',
@@ -2308,6 +2335,18 @@ function normalizeFileStatusValue(value) {
   const normalized = String(value || '').trim().toLowerCase()
   if (!normalized) return ''
   const match = ACCEPTED_FILE_STATUS_VALUES.find((status) => status.toLowerCase() === normalized)
+  return match || ''
+}
+
+function getDefaultFileBucketForSourceKey(sourceKey = '') {
+  const normalized = String(sourceKey || '').trim().toLowerCase()
+  return FILE_BUCKET_BY_SOURCE_KEY[normalized] || 'Shared'
+}
+
+function normalizeFileBucketValue(value = '') {
+  const normalized = String(value || '').trim().toLowerCase()
+  if (!normalized) return ''
+  const match = ACCEPTED_FILE_BUCKET_VALUES.find((bucket) => bucket.toLowerCase() === normalized)
   return match || ''
 }
 
@@ -2680,6 +2719,7 @@ function ensureDefaultFiles(database) {
   const hasLegacyFileContractPath = filesMeta.columnsSet.has('File_Contract_Path')
   const requiredColumns = [
     ['File_Class', 'TEXT'],
+    ['File_Bucket', 'TEXT'],
     ['Ownership_Mode', 'TEXT'],
     ['File_Owner', 'TEXT'],
     ['File_Steward', 'TEXT'],
@@ -2712,6 +2752,32 @@ function ensureDefaultFiles(database) {
     `)
   }
 
+  database.exec(`
+    UPDATE Files
+    SET File_Bucket = CASE lower(trim(COALESCE(File_Source_Key, '')))
+      WHEN 'file-system' THEN 'Shared'
+      WHEN 'events' THEN 'Shared'
+      WHEN 'users' THEN 'Owner'
+      WHEN 'contacts' THEN 'Shared'
+      WHEN 'user-roles' THEN 'Owner'
+      WHEN 'companion-roles' THEN 'Companion'
+      WHEN 'projects' THEN 'Work'
+      WHEN 'tasks' THEN 'Work'
+      WHEN 'notes' THEN 'Work'
+      WHEN 'artifacts' THEN 'Work'
+      WHEN 'intake' THEN 'Work'
+      WHEN 'companies' THEN 'Shared'
+      WHEN 'opportunities' THEN 'Shared'
+      WHEN 'funds' THEN 'Shared'
+      WHEN 'rounds' THEN 'Shared'
+      WHEN 'markets' THEN 'Shared'
+      WHEN 'securities' THEN 'Shared'
+      WHEN 'bb-file' THEN 'Shared'
+      ELSE 'Shared'
+    END
+    WHERE COALESCE(TRIM(File_Bucket), '') = ''
+  `)
+
   const rows = FILE_PAGE_REGISTRY
     .map((entry, index) => buildDefaultFileRegistryRow(entry, index))
     .filter((row) => row.File_Source_Key && row.File_Name)
@@ -2725,6 +2791,7 @@ function ensureDefaultFiles(database) {
       File_Status,
       File_Guide_Path,
       File_Class,
+      File_Bucket,
       Ownership_Mode,
       File_Owner,
       File_Steward,
@@ -2750,6 +2817,7 @@ function ensureDefaultFiles(database) {
       @File_Status,
       @File_Guide_Path,
       @File_Class,
+      @File_Bucket,
       @Ownership_Mode,
       @File_Owner,
       @File_Steward,
@@ -2779,6 +2847,7 @@ function ensureDefaultFiles(database) {
         ELSE Files.File_Guide_Path
       END,
       File_Class = COALESCE(NULLIF(Files.File_Class, ''), excluded.File_Class),
+      File_Bucket = COALESCE(NULLIF(Files.File_Bucket, ''), excluded.File_Bucket),
       Ownership_Mode = COALESCE(NULLIF(Files.Ownership_Mode, ''), excluded.Ownership_Mode),
       File_Owner = COALESCE(NULLIF(Files.File_Owner, ''), excluded.File_Owner),
       File_Steward = COALESCE(NULLIF(Files.File_Steward, ''), excluded.File_Steward),
@@ -2906,6 +2975,7 @@ function listFiles() {
         File_Status,
         File_Guide_Path,
         File_Class,
+        File_Bucket,
         Ownership_Mode,
         File_Owner,
         File_Steward,
@@ -2974,6 +3044,10 @@ function createFile(payload = {}) {
   const actor = getAuditActor(database)
 
   const id = normalizeNullableString(payload?.id) || `file:${crypto.randomUUID()}`
+  const normalizedFileBucket =
+    normalizeFileBucketValue(payload?.File_Bucket) ||
+    normalizeFileBucketValue(payload?.Bucket) ||
+    registryDefaults.File_Bucket
 
   database.prepare(`
     INSERT INTO Files (
@@ -2984,6 +3058,7 @@ function createFile(payload = {}) {
       File_Status,
       File_Guide_Path,
       File_Class,
+      File_Bucket,
       Ownership_Mode,
       File_Owner,
       File_Steward,
@@ -3011,6 +3086,7 @@ function createFile(payload = {}) {
       @File_Status,
       @File_Guide_Path,
       @File_Class,
+      @File_Bucket,
       @Ownership_Mode,
       @File_Owner,
       @File_Steward,
@@ -3045,6 +3121,7 @@ function createFile(payload = {}) {
       registryDefaults.File_Status,
     File_Guide_Path: normalizeNullableString(payload?.File_Guide_Path) || registryDefaults.File_Guide_Path,
     File_Class: normalizeNullableString(payload?.File_Class) || registryDefaults.File_Class,
+    File_Bucket: normalizedFileBucket,
     Ownership_Mode: normalizeNullableString(payload?.Ownership_Mode) || registryDefaults.Ownership_Mode,
     File_Owner: normalizeNullableString(payload?.File_Owner) || registryDefaults.File_Owner,
     File_Steward: normalizeNullableString(payload?.File_Steward) || registryDefaults.File_Steward,
