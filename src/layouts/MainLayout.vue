@@ -340,8 +340,10 @@ import {
   getCreateBranchEntry,
   getCreateBranches,
   getFilePageRegistryEntry,
+  getRuntimeStructureVersion,
+  getRuntimeTestShellSectionOptions,
+  subscribeRuntimeFileStructures,
   setRuntimeFileStructures,
-  TEST_SHELL_SECTION_OPTIONS,
   WORKSPACE_FILE_NAV_ITEMS,
   } from 'src/utils/structureRegistry'
 import {
@@ -372,6 +374,7 @@ const quickWidgetSettingsSectionOpen = ref({
 const intakeQueueDialogOpen = ref(false)
 const intakeQueueFieldEdits = ref({})
 const ownerSetupRequired = ref(false)
+const runtimeStructureVersion = ref(getRuntimeStructureVersion())
 const drawerSectionOpen = ref({
   main: true,
   radars: true,
@@ -474,6 +477,7 @@ const developerHoverPosition = ref({ x: 0, y: 0 })
 let quickWidgetIconAnimation = null
 let quickWidgetDragState = null
 let quickWidgetSettingsDragState = null
+let runtimeStructureUnsub = null
 const intakeDraftCount = computed(() => intakeDraftState.draftOrder.length)
 const activeIntakeQueueItem = computed(() => {
   const activeId = String(intakeReviewQueueState.activeItemId || '').trim()
@@ -587,15 +591,22 @@ const developerHoverStyle = computed(() => ({
 const isSelectableShellRoute = computed(() => ['test-shell', 'record-shell'].includes(String(route.name || '')))
 const isDialogShellRoute = computed(() => String(route.name || '') === 'dialog-shell')
 const isForkShellRoute = computed(() => String(route.name || '') === 'fork-shell')
-const shellSectionOptions = TEST_SHELL_SECTION_OPTIONS
+const shellSectionOptions = computed(() => {
+  runtimeStructureVersion.value
+  return getRuntimeTestShellSectionOptions()
+})
 const selectedShellSection = computed({
   get() {
     const current = String(route.query.section || '').trim().toLowerCase()
-    return shellSectionOptions.some((option) => option.value === current) ? current : 'tasks'
+    return shellSectionOptions.value.some((option) => option.value === current)
+      ? current
+      : (shellSectionOptions.value[0]?.value || 'tasks')
   },
   set(value) {
     const nextValue = String(value || '').trim().toLowerCase()
-    const normalizedValue = shellSectionOptions.some((option) => option.value === nextValue) ? nextValue : 'tasks'
+    const normalizedValue = shellSectionOptions.value.some((option) => option.value === nextValue)
+      ? nextValue
+      : (shellSectionOptions.value[0]?.value || 'tasks')
     router.replace({
       query: {
         ...route.query,
@@ -1565,6 +1576,9 @@ onMounted(() => {
   window.addEventListener('ecvc:open-artifact-dialog', openArtifactDialog)
   window.addEventListener('ecvc:user-label-changed', loadAuditUserLabel)
   window.addEventListener('resize', onQuickWidgetResize)
+  runtimeStructureUnsub = subscribeRuntimeFileStructures((version) => {
+    runtimeStructureVersion.value = version
+  })
   void loadRuntimeFileStructures()
   syncUserNavState()
   loadDeveloperHoverMode()
@@ -1602,6 +1616,8 @@ onBeforeUnmount(() => {
   quickWidgetSettingsDragState = null
   clearIntakeQueueNextTimer()
   stopDeveloperHoverMode()
+  if (runtimeStructureUnsub) runtimeStructureUnsub()
+  runtimeStructureUnsub = null
 })
 
 watch(
