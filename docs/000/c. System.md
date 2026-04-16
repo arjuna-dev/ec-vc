@@ -142,6 +142,7 @@ Working rule:
 
 Important distinction:
 
+- `System.Status` = the file/runtime lifecycle itself
 - `Data.Status` = the status of the inputed/governed data itself
 - file-specific status fields such as company, fund, or process status belong in a file-owned extension view
 
@@ -273,8 +274,8 @@ Current governed reading:
 
 - `System`
   - view ownership: locked
-  - token ownership: `ID`, `History`, and `Data.Status` stay owned by `System`
-  - value editability: `ID` and `History` stay locked; `Data.Status` value may be edited
+  - token ownership: `ID`, `History`, `System.Status`, and `Data.Status` stay owned by `System`
+  - value editability: `ID` and `History` stay locked; `System.Status` and `Data.Status` values may be edited according to contract
 
 - `LDB`
   - view ownership: locked
@@ -381,7 +382,7 @@ The `File Steward` governs whether each file is born correctly, has the required
 
 Minimum base structure required for every file:
 
-- `System`: `ID`, `History`, `Data.Status`
+- `System`: `ID`, `History`, `System.Status`, `Data.Status`
 - `General`: `Name` required, `Summary` optional
 - `LDB`: empty relationship view derived from the declared system-file universe
 - file-owned extension views are optional and do not belong to the shared base

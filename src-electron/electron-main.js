@@ -1709,10 +1709,30 @@ function buildBaseFileStructure(entry) {
             defaultVerificationSource: 'system_defined',
           },
           {
+            key: 'System_Status',
+            tokenName: 'System_Status',
+            tokenRole: 'system_status',
+            tokenOrder: '3',
+            address: '',
+            label: 'System.Status',
+            tokenType: 'select_single',
+            optionSource: 'static',
+            optionEntity: '',
+            optionList: '',
+            optionEntities: [],
+            inputOptions: ['Active', 'Archived'],
+            dbFieldAliases: ['File_Status'],
+            ...makeWriteTarget('File_Status'),
+            relationshipGroup: '',
+            definition: '',
+            defaultVerificationState: 'verified',
+            defaultVerificationSource: 'system_defined',
+          },
+          {
             key: 'Data_Status',
             tokenName: 'Data_Status',
             tokenRole: 'data_status',
-            tokenOrder: '3',
+            tokenOrder: '4',
             address: '',
             label: 'Data.Status',
             tokenType: 'select_single',
@@ -2401,6 +2421,18 @@ function buildFilesAcceptanceValidation(rows = []) {
     )
   }
 
+  const tokenHasWriteField = (tokens = [], fieldName = '') => {
+    const normalized = String(fieldName || '').trim().toLowerCase()
+    if (!normalized) return false
+    return (Array.isArray(tokens) ? tokens : []).some((token) => {
+      const writeField = String(token?.dbWriteField || token?.db_write_field || '').trim().toLowerCase()
+      if (writeField === normalized) return true
+      return (Array.isArray(token?.dbFieldAliases) ? token.dbFieldAliases : [])
+        .map((value) => String(value || '').trim().toLowerCase())
+        .includes(normalized)
+    })
+  }
+
   FILE_PAGE_REGISTRY.forEach((entry, index) => {
     const sourceKey = String(entry?.key || '').trim()
     const row = rowsBySourceKey.get(sourceKey)
@@ -2450,7 +2482,7 @@ function buildFilesAcceptanceValidation(rows = []) {
             fileId: String(row?.id || '').trim(),
             field: 'Defined_Structure',
             issue: 'Defined_Structure is missing the System section.',
-            suggestedAction: 'Restore the System section with ID + History tokens.',
+            suggestedAction: 'Restore the System section with ID + History + System.Status tokens.',
           })
         } else {
           const systemTokens = Array.isArray(systemSection.tokens) ? systemSection.tokens : []
@@ -2472,6 +2504,16 @@ function buildFilesAcceptanceValidation(rows = []) {
               field: 'Defined_Structure',
               issue: 'System section is missing the History token (tokenType: event_log).',
               suggestedAction: 'Restore the History token in the System section.',
+            })
+          }
+          if (!tokenHasRole(systemTokens, 'system_status') && !tokenHasWriteField(systemTokens, 'File_Status')) {
+            addIssue({
+              severity: 'error',
+              sourceKey,
+              fileId: String(row?.id || '').trim(),
+              field: 'Defined_Structure',
+              issue: 'System section is missing the System.Status token (writes to File_Status).',
+              suggestedAction: 'Restore the System.Status token in the System section.',
             })
           }
         }
