@@ -273,12 +273,16 @@ import { buildStructureToolbarItems } from 'src/utils/structureToolbarContract'
 import { splitDialogViews } from 'src/utils/dialogShellPayload'
 import {
   buildFileShellPayload,
+  getCanonicalTokenFieldNames,
   getCanonicalTokenValue,
   getCanonicalTokenWriteTarget,
+  getFilePageRegistryEntry,
   getRegistryTitleTokenForSource,
   getRuntimeStructureVersion,
+  resolveApprovedFileSectionKey,
   subscribeRuntimeFileStructures,
 } from 'src/utils/structureRegistry'
+import { getLdbRelationshipContractsForEntity } from 'src/shared/ldbRelationshipContracts'
 import { buildFileStructureSessionSnapshot } from 'src/utils/fileStructureSession'
 import {
   appendDraftStructureToken,
@@ -289,7 +293,6 @@ import {
   renameStructureView,
   updateStructureTokenField,
 } from 'src/utils/fileStructureState'
-import { getCanonicalTokenFieldNames } from 'src/utils/structureRegistry'
 
 const props = defineProps({
   shellSelectorValue: { type: String, default: '' },
@@ -338,6 +341,7 @@ const viewMode = ref('page')
 const governanceViewMode = ref('page')
 const rawRowsBySource = ref({})
 const structureStateBySource = ref({})
+const sharedLdbLinksByRecordId = ref({})
 const selectedLeafKeysBySource = ref({})
 const selectedTokenKeysBySource = ref({})
 const selectedViewKeysBySource = ref({})
@@ -430,12 +434,61 @@ const governanceControlItems = computed(() =>
 const activeViewSection = computed(() => {
   return activeStructureSections.value.find((section) => section.key === dataToolbarView.value) || activeStructureSections.value[0] || null
 })
+const isLdbDataViewActive = computed(() => String(activeViewSection.value?.label || '').trim().toLowerCase() === 'ldb')
 
 const activeGovernanceToolbarKey = computed(() => (
   governanceToolbarView.value === 'tokens' || governanceToolbarView.value === 'views'
     ? governanceToolbarView.value
     : ''
 ))
+
+const titleToken = computed(() => getRegistryTitleTokenForSource(activeSettingsSourceKey.value) || null)
+const hiddenRecordIdFieldKey = computed(() => '__record_id__')
+
+const sharedLdbDataTokens = computed(() => {
+  if (!isLdbDataViewActive.value) return []
+
+  const systemFileTitleToken = getRegistryTitleTokenForSource('file-system')
+  const seenSourceKeys = new Set()
+  const rows = Array.isArray(rawRowsBySource.value['file-system']) ? rawRowsBySource.value['file-system'] : []
+  const sourceEntity = String(activeRegistryEntry.value?.entityName || '').trim()
+  const allowedTargetEntities = new Set(
+    getLdbRelationshipContractsForEntity(sourceEntity)
+      .map((contract) => String(contract?.targetEntity || '').trim())
+      .filter(Boolean),
+  )
+
+  return rows
+    .map((row, index) => {
+      const sourceKey = resolveApprovedFileSectionKey(
+        row?.File_Source_Key || row?.File_Route_Name || row?.File_Runtime_Entity || row?.File_Canonical_Entity,
+      )
+      if (!sourceKey || sourceKey === 'bb-file' || seenSourceKeys.has(sourceKey)) return null
+
+      const targetEntry = getFilePageRegistryEntry(sourceKey)
+      const targetEntity = String(targetEntry?.entityName || '').trim()
+      if (!targetEntity || (allowedTargetEntities.size && !allowedTargetEntities.has(targetEntity))) return null
+
+      seenSourceKeys.add(sourceKey)
+      return {
+        key: `__shared_ldb__:${sourceKey}`,
+        tokenName: `__shared_ldb__:${sourceKey}`,
+        label:
+          stringifyValue(systemFileTitleToken ? getCanonicalTokenValue(row, systemFileTitleToken) : null)
+          || targetEntry.label
+          || `File ${index + 1}`,
+        tokenType: 'select_multi',
+        parentKey: activeViewSection.value?.key || '',
+        parentLabel: activeViewSection.value?.label || 'LDB',
+        isSharedLdbToken: true,
+        targetSourceKey: sourceKey,
+        targetEntity,
+        optionSource: 'shared_file_universe',
+        optionEntity: targetEntity,
+      }
+    })
+    .filter(Boolean)
+})
 
 const orderedViewTokens = computed(() => {
   const titleTokenKey = String(getRegistryTitleTokenForSource(activeSettingsSourceKey.value)?.key || '').trim()
@@ -446,13 +499,30 @@ const orderedViewTokens = computed(() => {
   })
 })
 
+const effectiveDataTokens = computed(() => {
+  const orderedTokens = isLdbDataViewActive.value ? sharedLdbDataTokens.value : orderedViewTokens.value
+  const tokensByKey = new Map()
+
+  if (titleToken.value?.key) {
+    tokensByKey.set(String(titleToken.value.key).trim(), titleToken.value)
+  }
+
+  orderedTokens.forEach((token) => {
+    const key = String(token?.key || '').trim()
+    if (!key || tokensByKey.has(key)) return
+    tokensByKey.set(key, token)
+  })
+
+  return Array.from(tokensByKey.values())
+})
+
 const recordDataColumns = computed(() =>
-  orderedViewTokens.value.map((token) => ({
+  effectiveDataTokens.value.map((token) => ({
     key: token.key,
     label: token.label || token.key || 'Field',
-    width: token.key === getRegistryTitleTokenForSource(activeSettingsSourceKey.value)?.key ? 220 : 170,
+    width: token.key === titleToken.value?.key ? 220 : 170,
     headerClass: 'structure-governance-panel__cell--data',
-    cellClass: token.key === getRegistryTitleTokenForSource(activeSettingsSourceKey.value)?.key
+    cellClass: token.key === titleToken.value?.key
       ? 'structure-governance-panel__cell--label'
       : 'structure-governance-panel__cell--data',
   })),
@@ -555,17 +625,21 @@ const governanceSomeVisibleSelected = computed(() => {
 
 const displayRows = computed(() => {
   const searchValue = String(searchQuery.value || '').trim().toLowerCase()
-  const recordIdField = String(activeLoader.value?.recordIdField || 'id').trim() || 'id'
   const rows = rawRowsBySource.value[activeSettingsSourceKey.value] || []
 
   return rows
     .map((row, index) => {
-      const recordId = String(row?.[recordIdField] || '').trim() || `draft-row-${index + 1}`
-      const mappedRow = { key: recordId }
-      const searchValues = []
+      const recordId = getRecordIdValue(row, activeSettingsSourceKey.value) || `draft-row-${index + 1}`
+      const mappedRow = {
+        key: recordId,
+        [hiddenRecordIdFieldKey.value]: recordId,
+      }
+      const searchValues = [recordId.toLowerCase()]
 
-      orderedViewTokens.value.forEach((token) => {
-        const value = stringifyValue(getCanonicalTokenValue(row, token))
+      effectiveDataTokens.value.forEach((token) => {
+        const value = token?.isSharedLdbToken
+          ? getSharedLdbTokenValue(row, token)
+          : stringifyValue(getCanonicalTokenValue(row, token))
         mappedRow[token.key] = value
         if (value) searchValues.push(value.toLowerCase())
       })
@@ -716,6 +790,39 @@ function getDefaultRequiredFieldKeysForSource(sourceKey) {
   return normalizedKey ? [normalizedKey] : []
 }
 
+function buildSharedLdbLookupKey(recordId, targetEntity) {
+  return `${String(recordId || '').trim()}::${String(targetEntity || '').trim()}`
+}
+
+function getRecordIdValue(row = {}, sourceKey = '') {
+  const recordIdField = String(SECTION_LOADERS[sourceKey]?.recordIdField || 'id').trim() || 'id'
+  return String(row?.[recordIdField] || '').trim()
+}
+
+function getSharedLdbTokenValue(row = {}, token = {}) {
+  const recordId = getRecordIdValue(row, activeSettingsSourceKey.value)
+  const targetEntity = String(token?.targetEntity || '').trim()
+  const targetSourceKey = String(token?.targetSourceKey || '').trim()
+  if (!recordId || !targetEntity || !targetSourceKey) return ''
+
+  const lookupKey = buildSharedLdbLookupKey(recordId, targetEntity)
+  const targetIds = Array.isArray(sharedLdbLinksByRecordId.value[lookupKey])
+    ? sharedLdbLinksByRecordId.value[lookupKey]
+    : []
+  if (!targetIds.length) return ''
+
+  const targetRows = Array.isArray(rawRowsBySource.value[targetSourceKey]) ? rawRowsBySource.value[targetSourceKey] : []
+  const targetTitleToken = getRegistryTitleTokenForSource(targetSourceKey)
+
+  return targetIds
+    .map((targetId) => {
+      const matchedRow = targetRows.find((candidate) => getRecordIdValue(candidate, targetSourceKey) === targetId) || null
+      return stringifyValue(targetTitleToken && matchedRow ? getCanonicalTokenValue(matchedRow, targetTitleToken) : targetId)
+    })
+    .filter(Boolean)
+    .join(', ')
+}
+
 function updateTokenCell(tokenKey, field, value) {
   if (field === 'required') {
     toggleRequiredField(tokenKey, Boolean(value))
@@ -840,7 +947,8 @@ function handleDataAdd() {
     [recordIdField]: `draft-row-${Date.now()}`,
   }
 
-  orderedViewTokens.value.forEach((token) => {
+  effectiveDataTokens.value.forEach((token) => {
+    if (token?.isSharedLdbToken) return
     getCanonicalTokenFieldNames(token).forEach((fieldName) => {
       if (!fieldName) return
       if (nextRow[fieldName] != null) return
@@ -897,6 +1005,38 @@ async function loadRows() {
     error.value = loadError?.message || `Could not load ${String(activeRegistryEntry.value?.label || 'records').toLowerCase()}.`
   } finally {
     loading.value = false
+  }
+}
+
+async function loadRowsForSource(sourceKey = '') {
+  const normalizedSourceKey = String(sourceKey || '').trim()
+  const loader = SECTION_LOADERS[normalizedSourceKey] || null
+  const bridgeValue = bridge.value
+
+  if (!normalizedSourceKey) return []
+
+  if (!loader || !bridgeValue) {
+    rawRowsBySource.value = {
+      ...rawRowsBySource.value,
+      [normalizedSourceKey]: [],
+    }
+    return []
+  }
+
+  try {
+    const result = await loader.listFn(bridgeValue)
+    const rows = Array.isArray(result?.[loader.resultKey]) ? result[loader.resultKey] : []
+    rawRowsBySource.value = {
+      ...rawRowsBySource.value,
+      [normalizedSourceKey]: rows,
+    }
+    return rows
+  } catch {
+    rawRowsBySource.value = {
+      ...rawRowsBySource.value,
+      [normalizedSourceKey]: [],
+    }
+    return []
   }
 }
 
@@ -988,6 +1128,96 @@ watch(
       ...structureStateBySource.value,
       [sourceKey]: cloneFileStructureSections(sections),
     }
+  },
+  { immediate: true },
+)
+
+watch(
+  isLdbDataViewActive,
+  async (isActive) => {
+    if (!isActive) {
+      sharedLdbLinksByRecordId.value = {}
+      return
+    }
+    if (!rawRowsBySource.value['file-system']) {
+      await loadRowsForSource('file-system')
+    }
+  },
+  { immediate: true },
+)
+
+watch(
+  sharedLdbDataTokens,
+  async (tokens) => {
+    const sourceKeys = (Array.isArray(tokens) ? tokens : [])
+      .map((token) => String(token?.targetSourceKey || '').trim())
+      .filter(Boolean)
+
+    await Promise.all(
+      sourceKeys.map((sourceKey) => (
+        rawRowsBySource.value[sourceKey] ? Promise.resolve(rawRowsBySource.value[sourceKey]) : loadRowsForSource(sourceKey)
+      )),
+    )
+  },
+  { immediate: true },
+)
+
+watch(
+  [() => rawRowsBySource.value[activeSettingsSourceKey.value], sharedLdbDataTokens, activeRegistryEntry, bridge],
+  async ([rows, tokens]) => {
+    if (!isLdbDataViewActive.value) {
+      sharedLdbLinksByRecordId.value = {}
+      return
+    }
+
+    const entityName = String(activeRegistryEntry.value?.entityName || '').trim()
+    if (!entityName || !bridge.value?.db?.query) {
+      sharedLdbLinksByRecordId.value = {}
+      return
+    }
+
+    const recordIds = (Array.isArray(rows) ? rows : [])
+      .map((row) => getRecordIdValue(row, activeSettingsSourceKey.value))
+      .filter(Boolean)
+    const targetEntities = (Array.isArray(tokens) ? tokens : [])
+      .map((token) => String(token?.targetEntity || '').trim())
+      .filter(Boolean)
+
+    if (!recordIds.length || !targetEntities.length) {
+      sharedLdbLinksByRecordId.value = {}
+      return
+    }
+
+    const recordPlaceholders = recordIds.map(() => '?').join(', ')
+    const targetPlaceholders = targetEntities.map(() => '?').join(', ')
+    const rowsResult = await bridge.value.db.query(
+      `
+        SELECT source_record_id AS source_id, target_entity, target_record_id AS target_id
+        FROM LDB_Relationships
+        WHERE source_entity = ?
+          AND source_record_id IN (${recordPlaceholders})
+          AND target_entity IN (${targetPlaceholders})
+      `,
+      [entityName, ...recordIds, ...targetEntities],
+    )
+
+    const nextMap = {}
+    ;(Array.isArray(rowsResult) ? rowsResult : []).forEach((row) => {
+      const sourceId = String(row?.source_id || '').trim()
+      const targetEntity = String(row?.target_entity || '').trim()
+      const targetId = String(row?.target_id || '').trim()
+      if (!sourceId || !targetEntity || !targetId) return
+
+      const key = buildSharedLdbLookupKey(sourceId, targetEntity)
+      if (!nextMap[key]) nextMap[key] = []
+      nextMap[key].push(targetId)
+    })
+
+    Object.keys(nextMap).forEach((key) => {
+      nextMap[key] = Array.from(new Set(nextMap[key]))
+    })
+
+    sharedLdbLinksByRecordId.value = nextMap
   },
   { immediate: true },
 )
