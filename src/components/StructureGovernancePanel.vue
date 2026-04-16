@@ -26,6 +26,7 @@
       />
       <input
         v-else-if="isViewCellEditing(row.key, column.key)"
+        ref="editingInput"
         :value="editingCellValue"
         class="structure-governance-panel__cell-input"
         type="text"
@@ -71,6 +72,7 @@
       />
       <select
         v-else-if="isTokenCellEditing(row.key, column.key) && column.kind === 'select'"
+        ref="editingInput"
         :value="editingCellValue"
         class="structure-governance-panel__cell-input"
         @blur="commitTokenCellEdit(row.key, column.key, $event.target.value)"
@@ -87,6 +89,7 @@
       </select>
       <textarea
         v-else-if="isTokenCellEditing(row.key, column.key) && column.kind === 'textarea'"
+        ref="editingInput"
         :value="editingCellValue"
         class="structure-governance-panel__cell-input structure-governance-panel__cell-input--textarea"
         @input="editingCellValue = $event.target.value"
@@ -95,6 +98,7 @@
       />
       <input
         v-else-if="isTokenCellEditing(row.key, column.key)"
+        ref="editingInput"
         :value="editingCellValue"
         class="structure-governance-panel__cell-input"
         type="text"
@@ -139,6 +143,7 @@
       />
       <select
         v-else-if="isDataCellEditing(row.key, column.key) && column.kind === 'select'"
+        ref="editingInput"
         :value="editingCellValue"
         class="structure-governance-panel__cell-input"
         @blur="commitDataCellEdit(row.key, column.key, $event.target.value)"
@@ -155,6 +160,7 @@
       </select>
       <textarea
         v-else-if="isDataCellEditing(row.key, column.key) && column.kind === 'textarea'"
+        ref="editingInput"
         :value="editingCellValue"
         class="structure-governance-panel__cell-input structure-governance-panel__cell-input--textarea"
         @input="editingCellValue = $event.target.value"
@@ -163,6 +169,7 @@
       />
       <input
         v-else-if="isDataCellEditing(row.key, column.key)"
+        ref="editingInput"
         :value="editingCellValue"
         class="structure-governance-panel__cell-input"
         type="text"
@@ -216,6 +223,7 @@ const props = defineProps({
 
 const editingCell = ref({ rowKey: '', columnKey: '' })
 const editingCellValue = ref('')
+const editingInput = ref(null)
 const selectedRowKeySet = computed(() => new Set((Array.isArray(props.selectedRowKeys) ? props.selectedRowKeys : []).map((key) => String(key || '').trim())))
 const selectedTokenKeySet = computed(() => new Set((Array.isArray(props.selectedTokenKeys) ? props.selectedTokenKeys : []).map((key) => String(key || '').trim())))
 const resolvedViewSurfaceColumns = computed(() => [
@@ -302,6 +310,7 @@ async function startViewCellEdit(row = {}, column = {}) {
   }
   editingCellValue.value = row?.[column.key] ?? ''
   await nextTick()
+  focusEditingInput()
 }
 
 function commitViewCellEdit(rowKey = '', columnKey = '', value = '') {
@@ -323,6 +332,7 @@ async function startDataCellEdit(row = {}, column = {}) {
   }
   editingCellValue.value = row?.[column.key] ?? ''
   await nextTick()
+  focusEditingInput()
 }
 
 function commitDataCellEdit(rowKey = '', columnKey = '', value = '') {
@@ -348,6 +358,7 @@ async function startTokenCellEdit(token = {}, column = {}) {
   }
   editingCellValue.value = token?.[column.key] ?? ''
   await nextTick()
+  focusEditingInput()
 }
 
 function commitTokenCellEdit(rowKey = '', columnKey = '', value = '') {
@@ -389,6 +400,15 @@ function handleDataSurfaceCellDblclick(row, column) {
 function cancelDataCellEdit() {
   editingCell.value = { rowKey: '', columnKey: '' }
   editingCellValue.value = ''
+}
+
+function focusEditingInput() {
+  const element = editingInput.value
+  if (!element || typeof element.focus !== 'function') return
+  element.focus()
+  if (typeof element.select === 'function') {
+    element.select()
+  }
 }
 </script>
 
