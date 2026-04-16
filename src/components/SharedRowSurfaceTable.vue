@@ -33,18 +33,6 @@
         <tbody>
           <tr v-for="row in rows" :key="row.key">
             <td
-              v-if="row.__groupHeader"
-              :colspan="resolvedColumns.length"
-              class="shared-row-surface__group-header"
-              :class="[
-                row.__groupLevel === 1 ? 'shared-row-surface__group-header--primary' : '',
-                row.__groupLevel === 2 ? 'shared-row-surface__group-header--secondary' : '',
-              ]"
-            >
-              {{ row.label }}
-            </td>
-            <td
-              v-else
               v-for="column in resolvedColumns"
               :key="`${row.key}:${column.key}`"
               :class="[
@@ -370,24 +358,4 @@ onBeforeUnmount(() => {
   text-align: center;
 }
 
-.shared-row-surface__group-header {
-  padding: 8px 12px;
-  background: rgba(15, 23, 42, 0.04);
-  color: rgba(15, 23, 42, 0.72);
-  border-bottom: 1px solid rgba(15, 23, 42, 0.06);
-  font-family: var(--ds-font-body);
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-}
-
-.shared-row-surface__group-header--primary {
-  background: rgba(15, 23, 42, 0.08);
-  color: rgba(15, 23, 42, 0.82);
-}
-
-.shared-row-surface__group-header--secondary {
-  padding-left: 18px;
-}
 </style>
