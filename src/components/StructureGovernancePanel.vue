@@ -266,9 +266,16 @@ const resolvedDataSurfaceRows = computed(() =>
 const resolvedTokenSurfaceColumns = computed(() => [
   { key: '__select__', label: '', width: 22, isControl: true },
   ...(props.hideViewColumn ? [] : [{ key: '__view__', label: '', width: 22, isControl: true }]),
-  { key: 'label', label: 'Name', width: 180, isPrimary: true },
-  { key: 'parentView', label: 'View', width: 140 },
-  ...resolvedTokenColumns.value.filter((column) => column.key !== 'label'),
+  ...resolvedTokenColumns.value.map((column) => ({
+    ...column,
+    ...(column.key === 'label'
+      ? {
+          label: 'Name',
+          width: Number(column.width || 180),
+          isPrimary: true,
+        }
+      : {}),
+  })),
 ])
 const resolvedTokenSurfaceRows = computed(() =>
   resolvedTokenRows.value.map((row) => ({
