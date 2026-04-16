@@ -91,7 +91,7 @@
             :show-collapse-toggle="false"
             :collapsed="dataControlContract.collapsed"
             @toggle-select-all="toggleSelectAllVisible"
-            @add="handleToolbarAdd"
+            @add="handleDataToolbarAdd"
             @update:model-value="dataToolbarView = $event"
             @update:search-query="searchQuery = $event"
             @update:view-mode="viewMode = $event"
@@ -218,7 +218,7 @@
             :collapsed="governanceControlContract.collapsed"
             :select-disabled="true"
             :filter-disabled="true"
-            @add="handleToolbarAdd"
+            @add="handleGovernanceToolbarAdd"
             @update:model-value="governanceToolbarView = $event"
             @update:search-query="governanceSearchQuery = $event"
             @update:view-mode="governanceViewMode = $event"
@@ -784,7 +784,7 @@ const dataControlContract = computed(() => ({
   allVisibleSelected: allVisibleSelected.value,
   someVisibleSelected: someVisibleSelected.value,
   loading: loading.value,
-  addDisabled: true,
+  addDisabled: false,
   searchQuery: searchQuery.value,
   searchPlaceholder: `Search ${activeRegistryEntry.value?.label || 'Records'}`,
   viewMode: viewMode.value,
@@ -1257,12 +1257,12 @@ async function deleteSelectedTokens() {
   }
 }
 
-function handleToolbarAdd() {
-  if (governanceToolbarView.value === 'views' || governanceToolbarView.value === 'tokens') {
-    handleGovernanceAdd()
-    return
-  }
+function handleDataToolbarAdd() {
   handleDataAdd()
+}
+
+function handleGovernanceToolbarAdd() {
+  handleGovernanceAdd()
 }
 
 async function handleGovernanceAdd() {
