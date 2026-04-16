@@ -1718,7 +1718,7 @@ function buildBaseFileStructure(entry) {
             tokenType: 'select_single',
             optionSource: 'static',
             optionEntity: '',
-            optionList: '',
+            optionList: 'Active, Archived',
             optionEntities: [],
             inputOptions: ['Active', 'Archived'],
             dbFieldAliases: ['File_Status'],

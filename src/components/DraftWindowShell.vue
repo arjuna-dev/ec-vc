@@ -616,7 +616,7 @@ const tokenGroupsByView = computed(() =>
           tokenType: token.tokenType || '-',
           optionSource: token.optionSource || '-',
           optionEntity: token.optionEntity || '-',
-          optionList: token.optionList || '-',
+          optionList: token.optionList || (Array.isArray(token.inputOptions) ? token.inputOptions.join(', ') : '') || '-',
           definition: token.definition || '-',
           defaultVerificationState: token.defaultVerificationState || 'Input',
           dbWriteField: token.dbWriteField || token.dbFieldAliases?.[0] || '-',

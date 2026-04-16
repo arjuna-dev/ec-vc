@@ -47,6 +47,13 @@ function mapTokenFieldName(field = '') {
   return aliases[normalizedField] || normalizedField
 }
 
+function parseOptionListValue(value = '') {
+  return String(value ?? '')
+    .split(',')
+    .map((entry) => String(entry || '').trim())
+    .filter(Boolean)
+}
+
 export function updateStructureTokenField(sections = [], tokenKey = '', field = '', value = '') {
   const normalizedKey = String(tokenKey || '').trim()
   const targetField = mapTokenFieldName(field)
@@ -56,6 +63,14 @@ export function updateStructureTokenField(sections = [], tokenKey = '', field = 
     ...section,
     tokens: (Array.isArray(section?.tokens) ? section.tokens : []).map((token) => {
       if (String(token?.key || '').trim() !== normalizedKey) return token
+      if (targetField === 'optionList') {
+        const normalizedValue = String(value ?? '').trim()
+        return {
+          ...token,
+          optionList: normalizedValue,
+          inputOptions: parseOptionListValue(normalizedValue),
+        }
+      }
       return {
         ...token,
         [targetField]: String(value ?? '').trim(),
