@@ -226,7 +226,7 @@ const resolvedViewSurfaceColumns = computed(() => [
 const resolvedViewSurfaceRows = computed(() =>
   (Array.isArray(props.viewRows) ? props.viewRows : []).map((row) => ({
     ...row,
-    editableColumns: ['label'],
+    editableColumns: Array.isArray(row?.editableColumns) ? row.editableColumns : ['label'],
   })),
 )
 const resolvedTokenRows = computed(() =>
@@ -246,9 +246,11 @@ const resolvedDataSurfaceColumns = computed(() => [
 const resolvedDataSurfaceRows = computed(() =>
   (Array.isArray(props.dataRows) ? props.dataRows : []).map((row) => ({
     ...row,
-    editableColumns: (Array.isArray(props.dataColumns) ? props.dataColumns : [])
-      .filter((column) => isEditableColumn(row, column))
-      .map((column) => column.key),
+    editableColumns: Array.isArray(row?.editableColumns)
+      ? row.editableColumns
+      : (Array.isArray(props.dataColumns) ? props.dataColumns : [])
+          .filter((column) => isEditableColumn(row, column))
+          .map((column) => column.key),
   })),
 )
 const resolvedTokenSurfaceColumns = computed(() => [
@@ -261,9 +263,11 @@ const resolvedTokenSurfaceColumns = computed(() => [
 const resolvedTokenSurfaceRows = computed(() =>
   resolvedTokenRows.value.map((row) => ({
     ...row,
-    editableColumns: resolvedTokenColumns.value
-      .filter((column) => isTokenEditable(row, column))
-      .map((column) => column.key),
+    editableColumns: Array.isArray(row?.editableColumns)
+      ? row.editableColumns
+      : resolvedTokenColumns.value
+          .filter((column) => isTokenEditable(row, column))
+          .map((column) => column.key),
   })),
 )
 const resolvedTokenColumns = computed(() => {

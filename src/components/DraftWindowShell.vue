@@ -536,6 +536,17 @@ const governanceViewRows = computed(() =>
     label: section.label,
     side: toolbarViewSplit.value.rightSections.some((entry) => entry.key === section.key) ? 'Right' : 'Left',
     tokenCount: Array.isArray(section.tokens) ? section.tokens.length : 0,
+    editableColumns: ['label'],
+    toneClassByColumn: {
+      label: 'shared-row-surface__tone--editable',
+    },
+    cellContractByColumn: {
+      label: {
+        editable: true,
+        reason: 'View labels are descriptive structure fields.',
+        writePath: `Defined_Structure.sections[${String(section?.key || '').trim()}].label`,
+      },
+    },
   })),
 )
 const filteredGovernanceViewRows = computed(() => {
@@ -575,6 +586,69 @@ const tokenGroupsByView = computed(() =>
           visible: 'Yes',
           writeTarget: writeTarget?.fieldName ? `${writeTarget.tableName}.${writeTarget.fieldName}` : token.dbFieldAliases?.join(', ') || '-',
           editable: token.editable === false ? 'No' : token.editable === true ? 'Yes' : '-',
+          editableColumns: [
+            'label',
+            'type',
+            'optionSource',
+            'optionEntity',
+            'optionList',
+            'definition',
+            'dbWriteField',
+            'fieldClass',
+          ],
+          toneClassByColumn: {
+            label: 'shared-row-surface__tone--editable',
+            type: 'shared-row-surface__tone--editable',
+            optionSource: 'shared-row-surface__tone--editable',
+            optionEntity: 'shared-row-surface__tone--editable',
+            optionList: 'shared-row-surface__tone--editable',
+            definition: 'shared-row-surface__tone--editable',
+            dbWriteField: 'shared-row-surface__tone--editable',
+            fieldClass: 'shared-row-surface__tone--editable',
+            writeTarget: writeTarget?.fieldName ? 'shared-row-surface__tone--linked' : '',
+          },
+          cellContractByColumn: {
+            label: {
+              editable: true,
+              reason: 'Token labels are descriptive file governance fields.',
+              writePath: `Defined_Structure.sections[${String(section?.key || '').trim()}].tokens[${String(token?.key || '').trim()}].label`,
+            },
+            type: {
+              editable: true,
+              reason: 'Token type is governed through file structure.',
+              writePath: `Defined_Structure.sections[${String(section?.key || '').trim()}].tokens[${String(token?.key || '').trim()}].tokenType`,
+            },
+            optionSource: {
+              editable: true,
+              reason: 'Option source is governed through file structure.',
+              writePath: `Defined_Structure.sections[${String(section?.key || '').trim()}].tokens[${String(token?.key || '').trim()}].optionSource`,
+            },
+            optionEntity: {
+              editable: true,
+              reason: 'Option entity is governed through file structure.',
+              writePath: `Defined_Structure.sections[${String(section?.key || '').trim()}].tokens[${String(token?.key || '').trim()}].optionEntity`,
+            },
+            optionList: {
+              editable: true,
+              reason: 'Option list is governed through file structure.',
+              writePath: `Defined_Structure.sections[${String(section?.key || '').trim()}].tokens[${String(token?.key || '').trim()}].optionList`,
+            },
+            definition: {
+              editable: true,
+              reason: 'Definitions live with the file token governance.',
+              writePath: `Defined_Structure.sections[${String(section?.key || '').trim()}].tokens[${String(token?.key || '').trim()}].definition`,
+            },
+            dbWriteField: {
+              editable: true,
+              reason: 'Write field is part of the governed token write contract.',
+              writePath: `Defined_Structure.sections[${String(section?.key || '').trim()}].tokens[${String(token?.key || '').trim()}].dbWriteField`,
+            },
+            fieldClass: {
+              editable: true,
+              reason: 'Field class is part of the governed token write contract.',
+              writePath: `Defined_Structure.sections[${String(section?.key || '').trim()}].tokens[${String(token?.key || '').trim()}].fieldClass`,
+            },
+          },
         }
       }),
     }
