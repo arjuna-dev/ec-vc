@@ -41,6 +41,7 @@ Stay aligned with:
 
 - `docs/000/g. Intake.md`
 - `docs/000/f. Translator.md`
+- `docs/999/b. PMP.md`
 
 ## Current Accepted Entries
 

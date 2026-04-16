@@ -39,7 +39,7 @@ export function buildTokenGovernanceColumns({
     { key: 'label', label: 'Label', width: 180, cellClass: labelCellClass, editable: true, kind: 'text' },
     buildSelectSurfaceColumn(
       {
-        key: 'type',
+        key: 'tokenType',
         label: 'Type',
         width: 112,
         headerClass: dataHeaderClass,

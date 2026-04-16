@@ -120,7 +120,7 @@ They should be treated as extension files, not hidden launch requirements.
 - which steward governs them
 - which ownership mode applies
 - which structure they require
-- whether they are honestly born, partial, hidden, draft, or archived
+- whether they are active in runtime or archived out of runtime
 
 This is not just a menu list.
 
@@ -187,6 +187,21 @@ Current runtime note:
 
 - the current `Views` governance surface is still read-only
 - it does not yet support adding a new view row from that panel
+
+## File Lifecycle Rule
+
+For current system behavior, file lifecycle should be treated as a two-state runtime rule:
+
+- `Active`
+- `Archived`
+
+Working rule:
+
+- `Active` files participate in runtime hydration
+- `Archived` files remain governable in `System Files`
+- `Archived` files should not load into active runtime and should not add runtime weight
+
+Older intermediate file states such as `Partial`, `Draft`, or `Hidden` should not remain active runtime vocabulary for file lifecycle.
 
 ## Structure Governance Surface Rule
 

@@ -610,9 +610,10 @@ const tokenGroupsByView = computed(() =>
       label: view.label,
       tokens: baseTokens.map((token, index) => {
         return {
+          ...token,
           key: token.key || `token-${index}`,
           label: token.label || '-',
-          type: token.tokenType || '-',
+          tokenType: token.tokenType || '-',
           optionSource: token.optionSource || '-',
           optionEntity: token.optionEntity || '-',
           optionList: token.optionList || '-',
@@ -624,7 +625,7 @@ const tokenGroupsByView = computed(() =>
           editable: token.editable === false ? 'No' : token.editable === true ? 'Yes' : '-',
           editableColumns: [
             'label',
-            'type',
+            'tokenType',
             'optionSource',
             'optionEntity',
             'optionList',
@@ -634,7 +635,7 @@ const tokenGroupsByView = computed(() =>
           ],
           toneClassByColumn: {
             label: 'shared-row-surface__tone--editable',
-            type: 'shared-row-surface__tone--editable',
+            tokenType: 'shared-row-surface__tone--editable',
             optionSource: 'shared-row-surface__tone--editable',
             optionEntity: 'shared-row-surface__tone--editable',
             optionList: 'shared-row-surface__tone--editable',
@@ -648,7 +649,7 @@ const tokenGroupsByView = computed(() =>
               reason: 'Token labels are descriptive file governance fields.',
               writePath: `Defined_Structure.sections[${String(section?.key || '').trim()}].tokens[${String(token?.key || '').trim()}].label`,
             },
-            type: {
+            tokenType: {
               editable: true,
               reason: 'Token type is governed through file structure.',
               writePath: `Defined_Structure.sections[${String(section?.key || '').trim()}].tokens[${String(token?.key || '').trim()}].tokenType`,
@@ -698,7 +699,7 @@ const filteredTokenGroupsByView = computed(() => {
       tokens: (Array.isArray(group.tokens) ? group.tokens : []).filter((token) =>
         [
           token.label,
-          token.type,
+          token.tokenType,
           token.definition,
           token.optionSource,
           token.optionEntity,
@@ -863,7 +864,7 @@ const governanceCardRows = computed(() => {
       title: token.label,
       lines: [
         { label: 'View', value: group.label },
-        { label: 'Type', value: token.type },
+        { label: 'Type', value: token.tokenType },
         { label: 'Definition', value: token.definition },
       ],
     })),

@@ -1,280 +1,361 @@
 # Planned Migration Pass
 
+## TLDR
+
+`PMP` is the how-to for getting from the current uneven system to the intended `LAMP` system.
+
+It exists because the app is teaching us that if files are not born, hydrated, translated, and rendered through the same lower shared chain, then they will drift and become impossible to trust.
+
+The current goal is not to rebuild from scratch immediately.
+
+The current goal is to:
+
+- understand the lower chain clearly
+- simplify it
+- remove false translation layers
+- define the migration order
+- collect the rules needed for a cleaner future birth
+
 ## Purpose
 
-This document is the sandbox note-taker for the `Planned Migration Pass` (`PMP`).
+This document should explain:
 
-It should help us keep a more detailed account of:
+- where the app is now
+- what the target `LAMP` system is
+- why the current system drifts
+- what layers must be standardized
+- what order the migration should happen in
 
-- why we may want a future migration pass
-- what the current repo is teaching us
-- what rules and assets are worth carrying forward
-- what a cleaner future build should enforce
+This is not a loose note.
 
-This is a starting-point guide, not a strict rulebook.
+It should become the working migration guide for moving the system from inherited uneven behavior toward one coherent lower architecture.
 
-It should be updated, corrected, and tightened as the work becomes clearer.
+## Current State
 
-## Core Framing
+The current repo already contains important truths, but they are not yet applying equally everywhere.
 
-`Planned Migration Pass` does not mean the current work is wasted.
+What is already clearer:
 
-It means that once the governing rules are clear enough, it may be cleaner to rebuild the setup path from the intended end-state instead of endlessly patching toward it.
+- `Governance defines structure.`
+- `Data reflects structure.`
+- runtime truth begins at `setRuntimeFileStructures(...)`
+- shared surfaces should stay dumb
+- token meaning should flow through explicit contract, not local restatement
+- archived files should remain governable but not load into runtime
 
-That means the right framing is:
+What is still uneven:
 
-- not `start over now`
-- but `prepare for a future end-state migration pass`
+1. file birth / bootstrap
+- different files do not appear to be born with equally complete structure
 
-## Why PMP Exists
+2. runtime structure formation
+- runtime has not always preserved the same token truth for every file
 
-The current repo is doing two jobs at once:
+3. payload formation
+- `buildFileShellPayload(...)` is thin, but that does not help if its inputs already differ by file
 
-1. improving the current app
-2. collecting the rules, contracts, and approved assets needed for a cleaner future build
+4. token-to-surface translation
+- `Data` and `Governance` have not yet fully derived from one shared lower contract
+- page-owned logic has still survived in places like `FilePageShell`
 
-That is the important shift:
+5. record loader / write ownership
+- some files still appear to have stronger or clearer load/write ownership than others
 
-`we are no longer just patching; we are collecting the recipe for a cleaner birth.`
+The current bugs are therefore not random UI bugs.
 
-## What A Future PMP Could Mean
+They are evidence that files are not yet entering and passing through the same shared lower chain.
 
-If we eventually run a real migration pass, the goal would be:
+## Target State
 
-- setup and app bootstrap rebuilt from intended architecture
-- scaffolding created intentionally
-- core flows beginning from governed contracts
-- less legacy adaptation carried forward
-- fewer remembered exceptions hidden inside runtime behavior
+The `LAMP` target is:
 
-This could be the cleanest way to get to a more coherent system once the architecture is mature enough.
+1. files are born consistently
+2. every file class passes through the same minimum shared chain
+3. runtime preserves full structure truth
+4. one shared token-to-surface contract drives both `Data` and `Governance`
+5. shared surfaces stay dumb
+6. special cases are explicit exceptions, not default architecture
+7. file classes are clear and useful
 
-## Current Posture
+The system should become predictable enough that:
 
-For now, the right posture is:
+- if one file behaves differently from another
+- the break can be located in a known layer
+- not guessed at from the UI
 
-- keep this as an explicit future governance direction
-- continue current short-loop convergence work
-- use current cleanup work to define what a future migration must enforce
-- avoid treating the migration idea as permission to stop finishing current convergence
+## Core Migration Rule
 
-## Convergence-And-Recipe Phase
+For any file to participate truthfully in the shared system, it must pass through the same minimum chain:
 
-The current repo should be treated as a convergence-and-recipe phase.
+1. file is born in `System Files`
+2. file has canonical `Defined_Structure`
+3. runtime hydrates that structure without dropping meaning
+4. payload is built from that runtime structure
+5. shared token-to-surface contract derives:
+- input kind
+- options
+- write path
+- visibility/editability
+6. `Governance` edits that same structure truth
+7. `Data` renders from that same structure truth
 
-That means the most valuable commits now are not only fixes.
+If a file does not behave like another file, the break is in one of those layers.
 
-They are also instructions for a cleaner future setup path.
+## Why Files Drift
 
-## Recipe Commits
+Files drift when:
 
-The things most worth preserving now are:
+1. they are not born the same way
+2. runtime keeps different token truth for different files
+3. payloads start from unequal lower structure
+4. page-owned logic reinterprets token behavior locally
+5. surfaces are forced to restate missing meaning
+6. write ownership is explained through intermediate layers instead of true source context
 
-- governance rules
-- strict contracts
-- shared feeders and translators
-- approved BB and system assets
-- steward boundaries
-- canonical naming
-- inspection and debug surfaces
-- fail-closed patterns
-- setup assumptions we would want to preserve in a future rebuild
+The most important lesson is:
 
-These are `recipe commits`, not just cleanup commits.
+- if the lower chain is uneven, no surface can be fully trusted
 
-## Keep Or Rebuild
+## File Classes
 
-There are two valid paths:
+The file system itself may need to become more explicit in order to support consistent file birth.
 
-### 1. Converge In Place
+The current likely classes are:
 
-Benefits:
+### 1. System Runtime Files
 
-- lower coordination overhead
-- current app stays the active lab
-- useful while rules are still being discovered
+These are the files that let the system boot and regulate itself.
 
-Risks:
+They define:
 
-- legacy structure can keep pulling work backward
-- drift can continue if rules are not enforced tightly
+- initial folder and file organization
+- construct rules
+- file birth rules
+- runtime participation rules
+- shared structure expectations
 
-### 2. Parallel Clean Start
+These files make the rest of the system predictable.
 
-Benefits:
+### 2. Owner Files
 
-- cleaner architecture birth
-- less legacy drag
-- easier to scaffold from end-state assumptions
+These are the owner's real working files.
 
-Risks:
+They are:
 
-- higher coordination overhead
-- risk of splitting focus too early
-- danger of building a clean repo before the rules are actually stable
+- local
+- owner-scoped
+- truth-bearing for that person's work and memory
 
-## Current Recommendation
+Examples may include:
 
-Right now the better path is:
+- Contacts
+- Companies
+- Tasks
+- Notes
+- Artifacts
+- other owner-level work files
 
-- keep converging in this repo a bit longer
-- explicitly treat the work as building the future recipe
-- only start a parallel clean repo once:
-  - the guard rails are stable
-  - feeder and translator rules are clearer
-  - shell contracts are clearer
-  - the bootstrap and end-state recipe is concrete enough to follow
+### 3. Auxiliary Files
 
-## What PMP Should Eventually Enforce
+These are supporting libraries or domain engines.
 
-When the migration becomes real, it should enforce at least:
+They are not the core owner operating layer.
+They extend it.
 
-- one governed architecture spine
-- strict contract-based shell inputs
-- no page-local shaping where shared translator paths should exist
-- approved BB and system assets with clear identities
-- active docs matching runtime truth
-- active file guides matching actual live file structure
-- fail-closed shared surfaces
-- inspectable translator and feeder paths
-- explicit ownership of source, actor, action, and verification state
-- cleaner bootstrap and creation order
+Examples may include:
 
-## DAMP To LAMP Cleanup Targets
+- Markets
+- Funds
+- Rounds
+- project-specific or domain-specific repositories
 
-Current PMP cleanup should also compare `DAMP` against `LAMP`.
+These should not distort the core lower chain.
 
-The goal is:
+They should extend it.
 
-- keep `DAMP` as the dense authority
-- keep `LAMP` as the cleaner birth-rule version
-- use the mismatch between them as a drift signal
+## Runtime Contract Lessons Already Learned
 
-Current target list:
+The repo has already exposed several important lessons:
 
-1. remove older wording that still conflicts with the newer shared base:
-   - `Data.Status`
-   - `Other`
-   - protected shared views
+1. runtime token truth must be explicit
+- partial or accidental token survival creates drift
 
-2. reduce older workbook-heavy wording where the newer rule is already:
-   - workbook/canonical JSON are reference inputs only
-   - runtime truth should come from stored file structure and governed contracts
+2. token meaning should not be restated locally
+- if a token says `select_single`, the surface should learn that from contract
 
-3. keep one clean structure-governance rule:
-   - `Views` edits section metadata
-   - `Tokens` edits token metadata
-   - both regulate `Defined_Structure`
-   - `Row Surface` is the shared editable mirror of governed JSON structure
+3. `Data` and `Governance` should not invent separate lower meanings
+- they may differ in purpose
+- but they should still consume the same lower contract
 
-4. continue removing wording that suggests old page-local or heuristic rendering paths are acceptable long-term
+4. shared surfaces should stay dumb
+- the surface should render what the contract says
+- not infer what the file probably means
 
-5. keep compact strict rules in `LAMP` and use them to review new implementation work
+5. intermediate helper layers should be treated with suspicion
+- especially when they are trying to explain or translate write ownership instead of deriving it directly from source context
 
-6. promote tested patterns into `Recipe` only after they are truly stable
+## Current Migration Direction
 
-## Shared Governance Failure Pattern
+The current convergence work has already moved in the right direction in a few places:
 
-One useful failure pattern is now explicit:
+- runtime now preserves more token truth
+- archived files are skipped from runtime hydration
+- `File_Status` is now reduced to `Active / Archived`
+- `DraftWindow` and `FilePageShell` have begun sharing token-to-surface translation logic
 
-- we had documented `Views` and `Tokens` as governance surfaces
-- we had not made it strict enough that `Row Surface` is the shared editable mirror of governed JSON structure
-- because that rule was too soft, multiple local metadata contracts survived across different shells
+But the system is still not yet fully migrated.
 
-What PMP should enforce from this:
+The most important remaining lower issue is:
 
-- if a token or view metadata field exists in governed structure, it should appear through the same governed surface everywhere that edits it
-- shared governance surfaces should not carry separate local column contracts per shell
+- `Data` and `Governance` still do not fully consume the same lower shared contract
 
-## Current Tested Patterns Worth Preserving
+## Migration Stages
 
-These already read like migration-worthy patterns:
+### Stage 1. Define Construct and File Classes
 
-- `Strict Feeder Chain`
-- `Two-Layer Asset Rule`
-- `Inspectable Translator Rule`
-- `Short-Loop Convergence`
+Goal:
 
-These are especially useful during current convergence work, even if they do not all survive as permanent `LAMP` launch rules.
+- define the file-system model before more implementation spreads
 
-Anything that proves itself should be moved into:
+Needs:
 
-- `docs/000/i. Recipe.md`
+- explicit `System Runtime Files`
+- explicit `Owner Files`
+- explicit `Auxiliary Files`
+- clear statement of which files are birth-critical
+- clear statement of which files are optional extensions
 
-Only if it is:
+### Stage 2. Standardize File Birth
 
-- tested
-- understood
-- liked
-- worth reusing in a cleaner future birth
+Goal:
 
-## PMP And Intake
+- every file should be born through the same minimum structure chain
 
-`PMP` matters especially for intake because intake is one of the clearest places where drift becomes visible.
+Every file should have:
 
-The migration lens should help us ask:
+- `System Files` row
+- canonical `Defined_Structure`
+- canonical file class
+- canonical active/archive status
+- canonical source/entity identity
 
-- where input truly enters
-- where files are truly stored
-- where outputs are truly generated
-- where links are truly persisted
-- where the UI only appears to succeed
+Needs:
 
-That means intake work is not separate from PMP.
+- identify which files are still born with incomplete or weaker structure
+- identify which files still rely on special-case birth logic
 
-It is one of the strongest proof cases for it.
+### Stage 3. Standardize Runtime Formation
 
-## PMP And Translators
+Goal:
 
-`PMP` also matters for translators.
+- runtime should hydrate all files through the same explicit contract
 
-If a shared behavior is important enough to govern, inspect, and name, then it is a strong candidate for cleaner future architecture.
+Needs:
 
-That means translator work done now should help answer:
+- preserve section truth
+- preserve token truth
+- preserve input truth
+- preserve write truth
+- preserve relationship truth
 
-- what counts as canonical input
-- what context must be preserved
-- what translator layer owns classification
-- what builder layer owns normalization
-- what renderer layer stays simple
+Avoid:
 
-## Current-Build Rules That May Stay In PMP
+- accidental truth surviving only because of object spread
+- file-specific hidden assumptions
 
-These are especially useful while the app is still converging and we are still exposing drift:
+### Stage 4. Standardize Token-To-Surface Translation
 
-- `Inspectable Translator Rule`
-- `Meaning Drift Rule`
-- `Two-Layer Asset Rule`
-- `Strict Feeder Chain`
-- `Shared BB Rendering Rule`
+Goal:
 
-These may remain valuable long-term, but they currently read more like convergence and migration rules than clean end-state birth rules.
+- `Data` and `Governance` derive from the same shared translation layer
 
-## Suggested Future Phases
+Needs:
 
-If we later formalize the migration, the phases may look like:
+- `tokenType` decides input kind
+- `inputOptions` / `optionSource` / `optionEntity` decide options
+- write metadata decides write path
+- editability and visibility are declared, not guessed
 
-1. guard rails stabilized
-2. recipe strong enough
-3. bootstrap rules clarified
-4. shell contracts clarified
-5. translator paths clarified
-6. file-guide and architecture docs aligned with runtime truth
-7. future clean build begins
+Avoid:
 
-This is only a starting outline, not a locked sequence.
+- page-owned helpers
+- governance-specific reshaping that invents second schemas
+- local restatement of token meaning
 
-## Open Notes
+### Stage 5. Replace Legacy Surfaces With The Shared Chain
 
-Questions worth revisiting as PMP becomes more concrete:
+Goal:
 
-- when is the current repo converged enough to justify a true migration branch or repo?
-- which runtime language should be preserved versus renamed during migration?
-- which current docs are architecture authority versus transition memory only?
-- which selected `100` file guides are real enough to carry into the future build immediately?
-- which translator candidates deserve first-class system identity?
-- how much bootstrap should be rebuilt first versus later?
+- the `Draft Window` stops being a special proof surface and becomes proof of the real shared path
 
-## Working Principle
+Order:
 
-`PMP exists so the future build can be born from tested guidance, governed contracts, and approved shared structure instead of remembered patchwork.`
+1. prove in `Draft Window`
+2. move the real logic into shared lower layers
+3. make `FilePageShell` consume that path
+4. make other shell surfaces consume that same path
+5. remove redundant page-owned logic
+
+## Inspection Checklist
+
+If one file behaves differently from another, inspect in this order:
+
+1. was the file born correctly in `System Files`?
+2. does it have canonical `Defined_Structure`?
+3. did runtime hydrate the structure without dropping meaning?
+4. did payload formation preserve the same truth?
+5. did token-to-surface translation preserve:
+- input kind
+- options
+- write path
+- visibility/editability
+6. is `Governance` editing that same structure truth?
+7. is `Data` rendering from that same structure truth?
+
+## What Not To Do
+
+Do not:
+
+- patch each file separately
+- fix one page locally and call the system solved
+- keep inventing per-surface translation layers
+- preserve intermediate layers just because they already exist
+- add special-case exceptions before the lower shared contract is understood
+
+## Current Working Recommendation
+
+Continue using `Draft Window` as the steering wheel and proof surface.
+
+But do not let it become a special architecture branch.
+
+The right pattern is:
+
+1. expose the lower issue in `Draft Window`
+2. fix it in the lower shared layer
+3. let other surfaces inherit the fix through the same path
+
+That is how current convergence becomes future migration recipe.
+
+## Next PMP Targets
+
+The next migration targets are:
+
+1. continue reducing Governance row reshaping
+2. continue moving `Data` and `Governance` to one shared token-to-surface contract
+3. define the minimum born file contract
+4. decide the final file-system class model
+5. decide what belongs in `GAP` temporarily versus what belongs in long-term `LAMP`
+
+## Summary
+
+The app does not become reliable by fixing each file one at a time.
+
+It becomes reliable when:
+
+- files are born consistently
+- runtime truth is complete
+- translation is shared
+- surfaces stay dumb
+- write ownership is explicit
+
+`PMP` exists to make that migration visible, ordered, and repeatable.
