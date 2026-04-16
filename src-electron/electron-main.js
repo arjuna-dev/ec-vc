@@ -2409,7 +2409,7 @@ function listFiles() {
 }
 
 function createFile(payload = {}) {
-  initDb()
+  const database = initDb()
   const name =
     normalizeNullableString(payload?.File_Name) ||
     normalizeNullableString(payload?.Name) ||
