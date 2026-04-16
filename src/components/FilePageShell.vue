@@ -716,6 +716,7 @@ import { buildStructureToolbarItems } from 'src/utils/structureToolbarContract'
   } from 'src/utils/structureRegistry'
 import { getLdbRelationshipContractForToken } from 'src/shared/ldbRelationshipContracts'
 import { getTokenInputOptions } from 'src/utils/tokenSurfaceContract'
+import { buildTokenUpdateChanges } from 'src/utils/tokenWriteChanges'
 import { buildDialogViews, groupDialogViews, splitDialogViews } from 'src/utils/dialogShellPayload'
 import { buildRecordViewLocation } from 'src/utils/recordViewNavigation'
 import { shareRecordSelection } from 'src/utils/recordListSelectionActions'
@@ -783,6 +784,7 @@ const heroDocumentDialogError = ref('')
 const inlineTableEditState = ref({
   rowId: '',
   tokenKey: '',
+  initialValue: '',
   value: '',
   kind: '',
 })
@@ -3179,6 +3181,7 @@ function beginInlineTableEdit(row, token, kind = 'token') {
     rowId: String(row.recordId || '').trim(),
     tokenKey: String(token.key || '').trim(),
     kind,
+    initialValue,
     value: initialValue,
   }
 }
@@ -3187,6 +3190,7 @@ function cancelInlineTableEdit() {
   inlineTableEditState.value = {
     rowId: '',
     tokenKey: '',
+    initialValue: '',
     value: '',
     kind: '',
   }
@@ -3262,48 +3266,6 @@ function openLdbSourceCell(item) {
   router.push(location)
 }
 
-function buildSingleTokenUpdateChanges(token, value, { recordId = '', entityName = '', tableName = '', idColumn = 'id' } = {}) {
-  if (!recordId || !entityName || !token) return []
-  const resolvedTableName = String(tableName || getRuntimeTableNameForEntityName(entityName) || entityName || '').trim()
-  const normalizedValue = normalizeCreateFieldValue(token, value)
-  const relationshipContract = getLdbRelationshipContractForToken(entityName, token)
-  if (relationshipContract) {
-    const relationshipIds = Array.isArray(normalizedValue)
-      ? normalizedValue.map((entry) => String(entry || '').trim()).filter(Boolean)
-      : normalizedValue == null
-        ? []
-        : [String(normalizedValue || '').trim()].filter(Boolean)
-    return [{
-      change_kind: 'relationship',
-      table_name: resolvedTableName,
-      record_id: recordId,
-      field_name: token.tokenName,
-      relationship_token: token.tokenName,
-      target_entity: String(relationshipContract?.targetEntity || token?.targetEntity || token?.optionEntity || token?.option_entity || '').trim(),
-      new_value: JSON.stringify(relationshipIds),
-    }]
-  }
-
-  if (isUnsupportedRelationshipWriteToken(token, entityName)) {
-    throw new Error(`Relationship save contract is not wired yet for: ${String(token?.label || token?.tokenName || '').trim()}`)
-  }
-
-  const writeTarget = getCanonicalTokenWriteTarget(token, resolvedTableName, idColumn)
-  if (!writeTarget?.tableName || !writeTarget?.fieldName) return []
-  return [{
-    table_name: writeTarget.tableName,
-    record_id: recordId,
-    field_name: writeTarget.fieldName,
-    id_column: writeTarget.idColumn,
-    new_value:
-      normalizedValue == null
-        ? null
-        : Array.isArray(normalizedValue)
-          ? JSON.stringify(normalizedValue)
-          : String(normalizedValue ?? ''),
-  }]
-}
-
 async function commitInlineTableEdit(row, token, immediateValue) {
   if (!token || !row?.recordId) return
   const nextValue = arguments.length >= 3 ? immediateValue : inlineTableEditState.value.value
@@ -3315,7 +3277,9 @@ async function commitInlineTableEdit(row, token, immediateValue) {
 
   const entityName = activeRegistryEntry.value?.entityName || ''
   const tableName = getRuntimeTableNameForEntityName(entityName)
-  const changes = buildSingleTokenUpdateChanges(token, nextValue, {
+  const changes = buildTokenUpdateChanges(token, {
+    nextValue,
+    initialValue: inlineTableEditState.value.initialValue,
     recordId: row.recordId,
     entityName,
     tableName,
