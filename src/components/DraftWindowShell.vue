@@ -1019,9 +1019,16 @@ async function persistStructureSections(nextSections = [], actionLabel = 'draft_
 
     const refreshedRows = await loadRowsForSource('file-system')
     setRuntimeFileStructures(refreshedRows)
+    const refreshedPayload = buildFileShellPayload(sourceKey)
+    const refreshedSections = (Array.isArray(refreshedPayload?.sections) ? refreshedPayload.sections : []).map((section) => ({
+      ...section,
+      tokens: (Array.isArray(refreshedPayload?.tokens) ? refreshedPayload.tokens : [])
+        .filter((token) => token.parentKey === section.key)
+        .map((token) => ({ ...token })),
+    }))
     structureStateBySource.value = {
       ...structureStateBySource.value,
-      [sourceKey]: cloneFileStructureSections(nextSections),
+      [sourceKey]: cloneFileStructureSections(refreshedSections),
     }
     return true
   } catch (persistError) {
