@@ -281,6 +281,7 @@ import {
   getRegistryTitleTokenForSource,
   getRuntimeStructureVersion,
   resolveApprovedFileSectionKey,
+  setRuntimeFileStructures,
   subscribeRuntimeFileStructures,
 } from 'src/utils/structureRegistry'
 import { getLdbRelationshipContractsForEntity } from 'src/shared/ldbRelationshipContracts'
@@ -941,16 +942,101 @@ function getDataCellToneClass(token = {}) {
   return ''
 }
 
-function updateTokenCell(tokenKey, field, value) {
+function getFileDefinitionRowForSource(sourceKey = '', rows = []) {
+  const normalizedSourceKey = String(sourceKey || '').trim().toLowerCase()
+  return (Array.isArray(rows) ? rows : []).find((row) =>
+    String(row?.File_Source_Key || '').trim().toLowerCase() === normalizedSourceKey,
+  ) || null
+}
+
+function serializeStructureToken(token = {}) {
+  const nextToken = { ...token }
+  ;[
+    'parentKey',
+    'parentLabel',
+    'editable',
+    'isDraft',
+    'isSharedLdbToken',
+    'targetSourceKey',
+    'targetEntity',
+  ].forEach((key) => delete nextToken[key])
+  return nextToken
+}
+
+function serializeStructureSection(section = {}) {
+  const nextSection = { ...section }
+  delete nextSection.editable
+  delete nextSection.isDraft
+  nextSection.tokens = (Array.isArray(section?.tokens) ? section.tokens : []).map((token) => serializeStructureToken(token))
+  return nextSection
+}
+
+function stringifyDefinedStructure(sections = [], currentRow = null) {
+  let version = 1
+  try {
+    const parsed = JSON.parse(String(currentRow?.Defined_Structure || '').trim() || '{}')
+    version = Number(parsed?.version) || 1
+  } catch {
+    version = 1
+  }
+
+  return JSON.stringify({
+    version,
+    sections: (Array.isArray(sections) ? sections : []).map((section) => serializeStructureSection(section)),
+  })
+}
+
+async function persistStructureSections(nextSections = [], actionLabel = 'draft_window_update_defined_structure') {
+  const sourceKey = String(activeSettingsSourceKey.value || '').trim().toLowerCase()
+  const bridgeValue = bridge.value
+  if (!sourceKey || !bridgeValue?.records?.update) return false
+
+  const fileSystemRows = rawRowsBySource.value['file-system'] || await loadRowsForSource('file-system')
+  const fileDefinitionRow = getFileDefinitionRowForSource(sourceKey, fileSystemRows)
+  const recordId = String(fileDefinitionRow?.id || '').trim()
+  if (!recordId) {
+    error.value = `Could not find the System Files row for ${activeShellSelectorOption.value.label || sourceKey}.`
+    return false
+  }
+
+  const definedStructure = stringifyDefinedStructure(nextSections, fileDefinitionRow)
+
+  try {
+    await bridgeValue.records.update({
+      tableName: 'Files',
+      recordId,
+      changes: [
+        {
+          table_name: 'Files',
+          record_id: recordId,
+          field_name: 'Defined_Structure',
+          id_column: 'id',
+          new_value: definedStructure,
+        },
+      ],
+      actionLabel,
+    })
+
+    const refreshedRows = await loadRowsForSource('file-system')
+    setRuntimeFileStructures(refreshedRows)
+    structureStateBySource.value = {
+      ...structureStateBySource.value,
+      [sourceKey]: cloneFileStructureSections(nextSections),
+    }
+    return true
+  } catch (persistError) {
+    error.value = persistError?.message || 'Could not save file structure changes.'
+    return false
+  }
+}
+
+async function updateTokenCell(tokenKey, field, value) {
   if (field === 'required') {
     toggleRequiredField(tokenKey, Boolean(value))
     return
   }
-  const sourceKey = activeSettingsSourceKey.value
-  structureStateBySource.value = {
-    ...structureStateBySource.value,
-    [sourceKey]: updateStructureTokenField(activeStructureSections.value, tokenKey, field, value),
-  }
+  const nextSections = updateStructureTokenField(activeStructureSections.value, tokenKey, field, value)
+  await persistStructureSections(nextSections, 'draft_window_update_structure_token')
 }
 
 function updateDataCell(rowKey, columnKey, value) {
@@ -977,13 +1063,10 @@ function updateDataCell(rowKey, columnKey, value) {
   }
 }
 
-function updateViewCell(viewKey, field, value) {
+async function updateViewCell(viewKey, field, value) {
   if (String(field || '').trim() !== 'label') return
-  const sourceKey = activeSettingsSourceKey.value
-  structureStateBySource.value = {
-    ...structureStateBySource.value,
-    [sourceKey]: renameStructureView(activeStructureSections.value, viewKey, value),
-  }
+  const nextSections = renameStructureView(activeStructureSections.value, viewKey, value)
+  await persistStructureSections(nextSections, 'draft_window_update_structure_view')
 }
 
 function toggleRequiredField(tokenKey, value) {
@@ -1035,15 +1118,14 @@ function toggleGovernanceSelectAll(nextValue) {
   }
 }
 
-function deleteSelectedTokens() {
+async function deleteSelectedTokens() {
   const sourceKey = activeSettingsSourceKey.value
   const selected = selectedTokenKeysBySource.value[sourceKey] || []
   if (!selected.length) return
 
-  structureStateBySource.value = {
-    ...structureStateBySource.value,
-    [sourceKey]: deleteStructureTokens(activeStructureSections.value, selected),
-  }
+  const nextSections = deleteStructureTokens(activeStructureSections.value, selected)
+  const didPersist = await persistStructureSections(nextSections, 'draft_window_delete_structure_tokens')
+  if (!didPersist) return
 
   const required = new Set(requiredFieldKeysBySource.value[sourceKey] || [])
   selected.forEach((key) => required.delete(key))
@@ -1066,19 +1148,18 @@ function handleToolbarAdd() {
   handleDataAdd()
 }
 
-function handleGovernanceAdd() {
-  const sourceKey = activeSettingsSourceKey.value
+async function handleGovernanceAdd() {
   if (governanceToolbarView.value === 'views') {
-    structureStateBySource.value = {
-      ...structureStateBySource.value,
-      [sourceKey]: appendDraftStructureView(activeStructureSections.value),
-    }
+    await persistStructureSections(
+      appendDraftStructureView(activeStructureSections.value),
+      'draft_window_append_structure_view',
+    )
     return
   }
-  structureStateBySource.value = {
-    ...structureStateBySource.value,
-    [sourceKey]: appendDraftStructureToken(activeStructureSections.value, activeViewSection.value?.key),
-  }
+  await persistStructureSections(
+    appendDraftStructureToken(activeStructureSections.value, activeViewSection.value?.key),
+    'draft_window_append_structure_token',
+  )
 }
 
 function handleDataAdd() {
