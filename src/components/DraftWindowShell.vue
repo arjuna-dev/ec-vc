@@ -266,6 +266,15 @@
               {{ governanceSurfaceContract.mode === 'views' ? governanceSurfaceContract.emptyViewsLabel : governanceSurfaceContract.emptyTokensLabel }}
             </div>
           </div>
+
+          <SelectionActionBar
+            :count="selectedGovernanceRowCount"
+            :loading="loading"
+            :can-share="false"
+            :can-edit="false"
+            :can-delete="selectedGovernanceRowCount > 0"
+            @remove="handleSelectedGovernanceDelete"
+          />
         </div>
       </div>
     </section>
@@ -824,6 +833,13 @@ const governanceSurfaceContract = computed(() => ({
   emptyViewsLabel: 'No views declared for this file.',
   emptyTokensLabel: 'No tokens declared in this view.',
 }))
+
+const selectedGovernanceRowCount = computed(() => (
+  activeGovernanceToolbarKey.value === 'views'
+    ? selectedViewKeys.value.length
+    : selectedTokenKeys.value.length
+))
+
 const governanceCardRows = computed(() => {
   if (governanceSurfaceContract.value.mode === 'views') {
     return governanceSurfaceContract.value.viewRows.map((row) => ({
@@ -959,6 +975,12 @@ async function handleSelectedRowsDelete() {
       loading.value = false
     }
   })
+}
+
+async function handleSelectedGovernanceDelete() {
+  if (activeGovernanceToolbarKey.value !== 'tokens') return
+  if (!selectedTokenKeys.value.length) return
+  await deleteSelectedTokens()
 }
 
 function getDefaultRequiredFieldKeysForSource(sourceKey) {
