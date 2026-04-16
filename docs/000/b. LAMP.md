@@ -462,7 +462,6 @@ Shared base expectation:
 - `System`
   - `ID`
   - `History`
-  - `System.Status`
   - `Data.Status`
 - `General`
   - `Name`
@@ -476,7 +475,6 @@ Shared base expectation:
 
 Important distinction:
 
-- `System.Status` is the governed file/runtime lifecycle
 - `Data.Status` is the governed status of the data itself
 - file-specific business or entity status belongs in `Other` or another file-owned view
 

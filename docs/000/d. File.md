@@ -36,7 +36,6 @@ And only two parts of that base carry a fixed shared parameter set:
 - `System`
   - `ID`
   - `History`
-  - `System.Status`
   - `Data.Status`
 - `General`
   - `Name`
@@ -125,8 +124,8 @@ Current governed reading:
 
 - `System`
   - view ownership: locked
-  - token ownership: `ID`, `History`, `System.Status`, and `Data.Status` stay owned by `System`
-  - value editability: `ID` and `History` stay locked; `System.Status` and `Data.Status` values remain editable according to contract
+  - token ownership: `ID`, `History`, and `Data.Status` stay owned by `System`
+  - value editability: `ID` and `History` stay locked; `Data.Status` value remains editable
 
 - `LDB`
   - view ownership: locked
@@ -527,7 +526,6 @@ Current working `File` JSON shape:
         "tokens": [
           { "key": "ID", "label": "ID", "tokenRole": "id", "tokenType": "id" },
           { "key": "History", "label": "History", "tokenType": "event_log" },
-          { "key": "System_Status", "label": "System.Status", "tokenRole": "system_status", "tokenType": "select_single" },
           { "key": "Data_Status", "label": "Data.Status", "tokenRole": "data_status", "tokenType": "select_single" }
         ]
       },
@@ -561,7 +559,6 @@ Reading note:
 - sections/views own tokens
 - base sections should already carry their governed shared tokens
 - an empty token list should usually mean the section is not yet declared or is waiting for file-specific extension
-- `System.Status` belongs in `System` and reflects file/runtime lifecycle
 - `Data.Status` belongs in `System`
 - file-specific status belongs in `Other` or another file-owned view
 

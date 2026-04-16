@@ -72,7 +72,6 @@ Tested rule:
 - `System`
   - `ID`
   - `History`
-  - `System.Status`
   - `Data.Status`
 - `General`
   - `Name`
@@ -81,7 +80,6 @@ Tested rule:
 Preserve because:
 
 - the shared base stays readable across files
-- file/runtime lifecycle remains separate from governed data-state
 - `Data.Status` is separated from file-specific business status
 - shells can rely on a cleaner common structure
 
