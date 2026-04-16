@@ -156,3 +156,95 @@ Preserve because:
 
 - it localizes shared interpretation cleanly
 - it reduces page-local drift
+
+### 8. Runtime Structure Birth Rule
+
+Tested rule:
+
+1. construct birth defines which files must exist
+2. `System Files` declares the runtime file registry
+3. each file row carries owned `Defined_Structure`
+4. `setRuntimeFileStructures(...)` forms runtime structure from that owned file structure
+5. runtime structure must preserve explicit:
+   - sections
+   - tokens
+   - token roles
+   - parent linkage
+   - structure tokens
+   - display grouping
+6. shared controls and shared surfaces render only from that runtime structure truth
+7. governance mutates that structure truth
+8. data reflects that mutated structure truth
+
+Working preservation rule:
+
+- if runtime formation changes structure meaning, the change must be treated as architecture work
+- `setRuntimeFileStructures(...)` is not neutral plumbing; it is one of the places where runtime truth is born
+- do not let runtime formation quietly invent fallback structure or drift from owned file structure
+
+Preserve because:
+
+- it identifies where render truth begins
+- it prevents hidden structure drift from parser-stage assumptions
+- it keeps shared surfaces downstream of one declared runtime path instead of many local interpretations
+
+### 9. Runtime Structure Required Elements
+
+Tested rule:
+
+When owned file structure is formed into runtime structure, the minimum preserved elements should be:
+
+- file source identity
+- section key
+- section label
+- section address
+- section structure token
+- section display group
+- token key
+- token name
+- token role
+- token order
+- token label
+- token type
+- parent section key
+- parent section label
+- option source
+- option entity
+- option list
+- definition
+- write field / alias contract
+
+Preserve because:
+
+- shared rendering cannot stay truthful if these are dropped, guessed, or renamed implicitly
+- governance and data both depend on these same structure elements
+- future clean birth work needs a stable minimum structure checklist
+
+### 10. Render Path Order
+
+Tested rule:
+
+The shared render path should be understood in this order:
+
+1. construct declares minimum birth set
+2. `System Files` declares each file
+3. file row owns `Defined_Structure`
+4. runtime parser forms runtime structure
+5. shared control reads runtime structure
+6. shared surface reads runtime structure and row data
+7. governance edits structure
+8. data re-renders from that structure
+
+Short rule:
+
+- birth first
+- structure second
+- runtime formation third
+- rendering fourth
+- mutation through governance after that
+
+Preserve because:
+
+- it gives future rebuild work a strict order to follow
+- it reduces confusion about where a bug starts
+- it keeps rendering downstream of structure instead of letting renderers invent structure locally
