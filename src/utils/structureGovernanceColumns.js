@@ -28,6 +28,13 @@ export const TOKEN_GOVERNANCE_FIELD_CLASS_OPTIONS = [
   { value: 'system', label: 'System' },
 ]
 
+export const TOKEN_GOVERNANCE_DATA_STATUS_OPTIONS = [
+  { value: 'Pre-Selected', label: 'Pre-Selected' },
+  { value: 'Suggested', label: 'Suggested' },
+  { value: 'Verified', label: 'Verified' },
+  { value: 'Input', label: 'Input' },
+]
+
 export function buildTokenGovernanceColumns({
   labelCellClass,
   dataHeaderClass,
@@ -72,6 +79,17 @@ export function buildTokenGovernanceColumns({
     ),
     { key: 'optionList', label: 'Option List', width: 140, headerClass: dataHeaderClass, cellClass: dataCellClass, editable: true, kind: 'text' },
     { key: 'definition', label: 'Definition', width: 280, headerClass: dataHeaderClass, cellClass: dataCellClass, editable: true, kind: 'textarea' },
+    buildSelectSurfaceColumn(
+      {
+        key: 'defaultVerificationState',
+        label: 'Data Status',
+        width: 140,
+        headerClass: dataHeaderClass,
+        cellClass: dataCellClass,
+        editable: true,
+      },
+      TOKEN_GOVERNANCE_DATA_STATUS_OPTIONS,
+    ),
     { key: 'dbWriteField', label: 'DB Write Field', width: 180, headerClass: dataHeaderClass, cellClass: dataCellClass, editable: true, kind: 'text' },
     buildSelectSurfaceColumn(
       {

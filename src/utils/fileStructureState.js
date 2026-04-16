@@ -39,6 +39,9 @@ function mapTokenFieldName(field = '') {
     optionEntity: 'optionEntity',
     optionList: 'optionList',
     definition: 'definition',
+    status: 'defaultVerificationState',
+    dataStatus: 'defaultVerificationState',
+    defaultVerificationState: 'defaultVerificationState',
     label: 'label',
   }
   return aliases[normalizedField] || normalizedField
@@ -113,6 +116,7 @@ export function appendDraftStructureToken(sections = [], parentViewKey = '') {
           optionEntity: '',
           optionList: '',
           definition: '',
+          defaultVerificationState: 'Input',
           dbFieldAliases: [],
           dbWriteField: '',
           fieldClass: '',
