@@ -256,7 +256,7 @@ Minimum shared base expectation:
   - `Name`
   - `Summary`
 - `LDB`
-- optional `Other`
+- file-owned extension views are optional and do not belong to the shared base
 
 Reference inputs:
 

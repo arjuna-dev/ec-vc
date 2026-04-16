@@ -217,10 +217,10 @@ Working rule:
 
 These translator rules work across shared structure work too:
 
-- bootstrap shared views such as `System`, `General`, `LDB`, and `Other` should stay explicit
+- bootstrap shared views such as `System`, `General`, and `LDB` should stay explicit
 - translator logic should not silently rename or relocate protected shared tokens
 - `Data.Status` should be read as the governed data-status token in `System`
-- file-specific business or entity status should remain in `Other` or another file-owned view
+- file-specific business or entity status should remain in a file-owned extension view
 - if the runtime surface and the stored file structure disagree, repair the stored file structure contract first instead of teaching the translator to compensate locally
 - `Views` and `Tokens` structure surfaces should be treated as direct JSON-governance paths, not local interpretation layers
 

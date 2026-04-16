@@ -118,7 +118,7 @@ Working interpretation:
 - `Pre-Selected` and `Suggested` are system-origin states
 - `Verified` is a human-confirmed state
 - `Input` is the governed open-entry state
-- `Data.Status` in `System` is different from a file-specific status token in `Other`
+- `Data.Status` in `System` is different from a file-specific status token in a file-owned extension view
 
 Locking rule:
 
