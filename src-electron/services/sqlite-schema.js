@@ -1514,7 +1514,7 @@ CREATE TABLE IF NOT EXISTS Files (
   View_Fork_Instructions TEXT,
   Defined_Structure TEXT,
   Glossary_Terms TEXT,
-  File_Source_Key TEXT NOT NULL UNIQUE,
+  sourceKey TEXT NOT NULL UNIQUE,
   File_Canonical_Entity TEXT,
   File_Runtime_Entity TEXT,
   File_Route_Name TEXT,

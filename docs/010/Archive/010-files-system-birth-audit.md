@@ -44,7 +44,7 @@ Reviewed surfaces:
 | Layer | Expected Truth | Current Truth | Status | Steward Concern |
 | --- | --- | --- | --- | --- |
 | Canonical JSON | `Files` exists as the canonical entity with `System`, `LDB`, `General`, and `File Specific` structure. | `Files` exists as entity `23` with those sections and file-definition tokens. | `yes` | Architect/File Steward: canonical structure exists and is explicit. |
-| Canonical field aliases | Canon aliases should match runtime fields for the file registry. | `File_Name`, `File_Summary`, `File_Status`, `File_Guide_Path`, `File_Source_Key`, `File_Canonical_Entity`, `File_Runtime_Entity`, `File_Route_Name`, `File_Path`, `File_Order`, `File_Class`, `Ownership_Mode`, `File_Steward`, `Rulebook_Dependencies`, `Defined_Structure`, and `Glossary_Terms` map to runtime columns. | `yes` | Runtime Steward: aliases are mostly aligned. |
+| Canonical field aliases | Canon aliases should match runtime fields for the file registry. | `File_Name`, `File_Summary`, `File_Status`, `File_Guide_Path`, `sourceKey`, `File_Canonical_Entity`, `File_Runtime_Entity`, `File_Route_Name`, `File_Path`, `File_Order`, `File_Class`, `Ownership_Mode`, `File_Steward`, `Rulebook_Dependencies`, `Defined_Structure`, and `Glossary_Terms` map to runtime columns. | `yes` | Runtime Steward: aliases are mostly aligned. |
 | Canonical provenance tokens | `System` should expose ID, creator, datetime, and event linkage. | Canon exposes `id`, `created_by`, `created_at`, and `File_EventLog`. | `partial` | Provenance Steward: fields exist, but no proven genesis reconstruction path yet. |
 | System Files guide | The app-facing System Files surface should have its own guide. | `docs/100/100-System_Files.md` exists and describes the app-facing surface backed by `Files`. | `yes` | File Steward: guide exists and matches current naming split. |
 | Files guide | The canonical registry entity should have its own guide. | `docs/100/100-Files.md` exists and distinguishes `Files` from `System Files`. | `yes` | File Steward: guide exists and is useful. |
@@ -338,7 +338,7 @@ That means:
 
 These fields should be treated as birth-locked unless an explicit migration/governance pass changes them:
 
-- `File_Source_Key`
+- `sourceKey`
 - `File_Canonical_Entity`
 - `File_Runtime_Entity`
 - `File_Route_Name`

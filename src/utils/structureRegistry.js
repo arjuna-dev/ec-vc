@@ -361,6 +361,7 @@ function buildEntityRegistry(entityName) {
 
   return {
     ...meta,
+    sourceKey: String(meta.key || '').trim(),
     entityName: runtimeEntityName,
     canonicalEntityName,
     fileGuidePath: String(meta.fileGuidePath || '').trim(),
@@ -438,7 +439,7 @@ export function setRuntimeFileStructures(fileRows = []) {
   const nextMap = {}
   for (const row of Array.isArray(fileRows) ? fileRows : []) {
     if (!shouldHydrateRuntimeFileStructure(row)) continue
-    const sourceKey = String(row?.File_Source_Key || '').trim().toLowerCase()
+    const sourceKey = String(row?.sourceKey || '').trim().toLowerCase()
     if (!sourceKey) continue
     const rawStructure = String(row?.Defined_Structure || '').trim()
     if (!rawStructure) continue
@@ -497,6 +498,7 @@ export function subscribeRuntimeFileStructures(listener) {
 
 export const FILE_SOURCE_REGISTRY = Object.freeze(
   FILE_PAGE_REGISTRY.map((entry) => ({
+    sourceKey: entry.sourceKey || entry.key,
     key: entry.key,
     entityName: entry.entityName,
     label: entry.label,
@@ -513,9 +515,9 @@ export const FILE_SOURCE_REGISTRY = Object.freeze(
 const TEST_SHELL_RENDERABLE_KEYS = ['bb-file', 'file-system', 'events', 'users', 'artifacts', 'contacts', 'companies', 'opportunities', 'projects', 'notes', 'tasks', 'user-roles', 'companion-roles', 'markets', 'securities', 'intake']
 
 export const TEST_SHELL_SECTION_OPTIONS = Object.freeze(
-  FILE_SOURCE_REGISTRY.filter((entry) => TEST_SHELL_RENDERABLE_KEYS.includes(entry.key)).map((entry) => ({
+  FILE_SOURCE_REGISTRY.filter((entry) => TEST_SHELL_RENDERABLE_KEYS.includes(entry.sourceKey || entry.key)).map((entry) => ({
     label: entry.label,
-    value: entry.key,
+    value: entry.sourceKey || entry.key,
   })),
 )
 
@@ -529,8 +531,8 @@ export const WORKSPACE_FILE_NAV_ITEMS = Object.freeze(
   })),
 )
 
-export function getFilePageRegistryEntry(key) {
-  const normalizedKey = String(key || '').trim().toLowerCase()
+export function getFilePageRegistryEntry(sourceKey) {
+  const normalizedKey = String(sourceKey || '').trim().toLowerCase()
   const aliases = {
     intake: 'intake',
   }

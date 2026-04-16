@@ -2221,7 +2221,7 @@ function buildDefaultFileRegistryRow(entry, index) {
     View_Fork_Instructions: buildViewForkInstructions(entry),
     Defined_Structure: buildDefinedStructureJson(entry),
     Glossary_Terms: '',
-    File_Source_Key: sourceKey,
+    sourceKey,
     File_Canonical_Entity: String(entry?.canonicalEntityName || '').trim(),
     File_Runtime_Entity: String(entry?.entityName || '').trim(),
     File_Route_Name: String(entry?.routeName || '').trim(),
@@ -2270,7 +2270,7 @@ function buildDraftFileDefinitionRow(sourceKey, payload = {}) {
     View_Fork_Instructions: normalizeNullableString(payload?.View_Fork_Instructions) || '',
     Defined_Structure: normalizeNullableString(payload?.Defined_Structure) || '',
     Glossary_Terms: normalizeNullableString(payload?.Glossary_Terms) || '',
-    File_Source_Key: normalizedSourceKey,
+    sourceKey: normalizedSourceKey,
     File_Canonical_Entity: normalizeNullableString(payload?.File_Canonical_Entity) || '',
     File_Runtime_Entity: normalizeNullableString(payload?.File_Runtime_Entity) || '',
     File_Route_Name: normalizeNullableString(payload?.File_Route_Name) || normalizedSourceKey,
@@ -2369,7 +2369,7 @@ function buildFilesAcceptanceValidation(rows = []) {
   const rowsBySourceKey = new Map()
 
   rows.forEach((row) => {
-    const sourceKey = String(row?.File_Source_Key || '').trim()
+    const sourceKey = String(row?.sourceKey || '').trim()
     if (sourceKey && !rowsBySourceKey.has(sourceKey)) rowsBySourceKey.set(sourceKey, row)
   })
 
@@ -2430,7 +2430,7 @@ function buildFilesAcceptanceValidation(rows = []) {
       addIssue({
         severity: 'error',
         sourceKey,
-        field: 'File_Source_Key',
+        field: 'sourceKey',
         issue: 'Registry entry exists in structureRegistry but no System Files row was found.',
         suggestedAction: 'Create or reseed the System Files row before trusting runtime acceptance.',
       })
@@ -2670,13 +2670,13 @@ function buildFilesAcceptanceValidation(rows = []) {
   })
 
   rows.forEach((row) => {
-    const sourceKey = String(row?.File_Source_Key || '').trim()
+    const sourceKey = String(row?.sourceKey || '').trim()
     if (!sourceKey) {
       addIssue({
         severity: 'warn',
         fileId: String(row?.id || '').trim(),
-        field: 'File_Source_Key',
-        issue: 'System Files row is missing File_Source_Key.',
+        field: 'sourceKey',
+        issue: 'System Files row is missing sourceKey.',
         suggestedAction: 'Add the missing source key or remove the orphan row.',
       })
       return
@@ -2686,7 +2686,7 @@ function buildFilesAcceptanceValidation(rows = []) {
         severity: 'warn',
         sourceKey,
         fileId: String(row?.id || '').trim(),
-        field: 'File_Source_Key',
+        field: 'sourceKey',
         issue: 'System Files row has no matching structureRegistry entry.',
         suggestedAction: 'Add the registry entry or retire the row if the file is no longer accepted.',
       })
@@ -2770,7 +2770,7 @@ function ensureDefaultFiles(database) {
 
   database.exec(`
     UPDATE Files
-    SET File_Bucket = CASE lower(trim(COALESCE(File_Source_Key, '')))
+    SET File_Bucket = CASE lower(trim(COALESCE(sourceKey, '')))
       WHEN 'file-system' THEN 'Shared'
       WHEN 'events' THEN 'Shared'
       WHEN 'users' THEN 'Owner'
@@ -2796,7 +2796,7 @@ function ensureDefaultFiles(database) {
 
   const rows = FILE_PAGE_REGISTRY
     .map((entry, index) => buildDefaultFileRegistryRow(entry, index))
-    .filter((row) => row.File_Source_Key && row.File_Name)
+    .filter((row) => row.sourceKey && row.File_Name)
 
   const upsertRow = database.prepare(`
     INSERT INTO Files (
@@ -2818,7 +2818,7 @@ function ensureDefaultFiles(database) {
       View_Fork_Instructions,
       Defined_Structure,
       Glossary_Terms,
-      File_Source_Key,
+      sourceKey,
       File_Canonical_Entity,
       File_Runtime_Entity,
       File_Route_Name,
@@ -2844,7 +2844,7 @@ function ensureDefaultFiles(database) {
       @View_Fork_Instructions,
       @Defined_Structure,
       @Glossary_Terms,
-      @File_Source_Key,
+      @sourceKey,
       @File_Canonical_Entity,
       @File_Runtime_Entity,
       @File_Route_Name,
@@ -2852,7 +2852,7 @@ function ensureDefaultFiles(database) {
       datetime('now'),
       datetime('now')
     )
-    ON CONFLICT(File_Source_Key) DO UPDATE SET
+    ON CONFLICT(sourceKey) DO UPDATE SET
       File_Order = excluded.File_Order,
       File_Name = excluded.File_Name,
       File_Summary = excluded.File_Summary,
@@ -2899,7 +2899,7 @@ function ensureDefaultFiles(database) {
   const existingRows = database
     .prepare(
       `
-      SELECT id, File_Source_Key, File_Runtime_Entity, Defined_Structure
+      SELECT id, sourceKey, File_Runtime_Entity, Defined_Structure
       FROM Files
     `,
     )
@@ -2908,7 +2908,7 @@ function ensureDefaultFiles(database) {
   const normalizeTx = database.transaction((inputRows) => {
     inputRows.forEach((row) => {
       const rawStructure = String(row?.Defined_Structure || '').trim()
-      const sourceKey = String(row?.File_Source_Key || '').trim()
+      const sourceKey = String(row?.sourceKey || '').trim()
       const registryEntry = getFileRegistryEntryBySourceKey(sourceKey)
       const baseStructure = buildBaseFileStructure(registryEntry || { key: sourceKey, entityName: row?.File_Runtime_Entity })
       if (!rawStructure) {
@@ -3002,7 +3002,7 @@ function listFiles() {
         View_Fork_Instructions,
         Defined_Structure,
         Glossary_Terms,
-        File_Source_Key,
+        sourceKey,
         File_Canonical_Entity,
         File_Runtime_Entity,
         File_Route_Name,
@@ -3032,7 +3032,7 @@ function createFile(payload = {}) {
   if (!name) throw new Error('File name is required')
 
   const sourceKey =
-    normalizeNullableString(payload?.File_Source_Key) ||
+    normalizeNullableString(payload?.sourceKey) ||
     normalizeNullableString(payload?.sourceKey) ||
     toFileSourceKey(name)
   if (!sourceKey) throw new Error('File source key is required')
@@ -3041,7 +3041,7 @@ function createFile(payload = {}) {
   const registryDefaults = registryEntry
     ? buildDefaultFileRegistryRow(registryEntry, FILE_PAGE_REGISTRY.indexOf(registryEntry))
     : buildDraftFileDefinitionRow(sourceKey, payload)
-  const existingFile = database.prepare('SELECT id FROM Files WHERE File_Source_Key = ? LIMIT 1').get(sourceKey)
+  const existingFile = database.prepare('SELECT id FROM Files WHERE sourceKey = ? LIMIT 1').get(sourceKey)
   if (existingFile?.id) throw new Error('File source key is already in use')
 
   const duplicateActiveName = database
@@ -3089,7 +3089,7 @@ function createFile(payload = {}) {
       View_Fork_Instructions,
       Defined_Structure,
       Glossary_Terms,
-      File_Source_Key,
+      sourceKey,
       File_Canonical_Entity,
       File_Runtime_Entity,
       File_Route_Name,
@@ -3117,7 +3117,7 @@ function createFile(payload = {}) {
       @View_Fork_Instructions,
       @Defined_Structure,
       @Glossary_Terms,
-      @File_Source_Key,
+      @sourceKey,
       @File_Canonical_Entity,
       @File_Runtime_Entity,
       @File_Route_Name,
@@ -3151,7 +3151,7 @@ function createFile(payload = {}) {
       normalizeNullableString(payload?.View_Fork_Instructions) || registryDefaults.View_Fork_Instructions,
     Defined_Structure: normalizeNullableString(payload?.Defined_Structure) || registryDefaults.Defined_Structure,
     Glossary_Terms: normalizeNullableString(payload?.Glossary_Terms) || registryDefaults.Glossary_Terms,
-    File_Source_Key: sourceKey,
+    sourceKey,
     File_Canonical_Entity: normalizeNullableString(payload?.File_Canonical_Entity) || registryDefaults.File_Canonical_Entity,
     File_Runtime_Entity: normalizeNullableString(payload?.File_Runtime_Entity) || registryDefaults.File_Runtime_Entity,
     File_Route_Name: normalizeNullableString(payload?.File_Route_Name) || registryDefaults.File_Route_Name,

@@ -252,7 +252,7 @@ const sharedLdbSectionTokens = computed(() => {
   return rows
     .map((row, index) => {
       const sourceKey = resolveApprovedFileSectionKey(
-        row?.File_Source_Key || row?.File_Route_Name || row?.File_Runtime_Entity || row?.File_Canonical_Entity,
+        row?.sourceKey || row?.File_Route_Name || row?.File_Runtime_Entity || row?.File_Canonical_Entity,
       )
       if (!sourceKey || sourceKey === 'bb-file' || seenSourceKeys.has(sourceKey)) return null
 
@@ -982,7 +982,7 @@ async function ensureLiveOptionsLoaded() {
   const systemRows = Array.isArray(liveOptionRowsBySource.value['file-system']) ? liveOptionRowsBySource.value['file-system'] : []
   for (const row of systemRows) {
     const sourceKey = resolveApprovedFileSectionKey(
-      row?.File_Source_Key || row?.File_Route_Name || row?.File_Runtime_Entity || row?.File_Canonical_Entity,
+      row?.sourceKey || row?.File_Route_Name || row?.File_Runtime_Entity || row?.File_Canonical_Entity,
     )
     if (!sourceKey || sourceKey === 'bb-file' || liveOptionRowsBySource.value[sourceKey]) continue
     await loadLiveOptionRowsForSource(sourceKey)

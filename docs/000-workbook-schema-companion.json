@@ -14,7 +14,7 @@
     "source_of_truth": "System Files / Defined_Structure",
     "naming": {
       "file_label": "File_Name",
-      "file_source_key": "File_Source_Key",
+      "sourceKey": "sourceKey",
       "record_id": "id",
       "token_label": "label",
       "token_name": "tokenName",
@@ -26,7 +26,7 @@
     "mode": "manual",
     "status": "planned",
     "validation": [
-      "File_Source_Key must map to an existing System Files row.",
+      "sourceKey must map to an existing System Files row.",
       "Tokens must exist in the file-owned structure; unknown tokens are rejected.",
       "Name token is required for new record creation."
     ]

@@ -1016,7 +1016,7 @@ const sharedLdbViewTokens = computed(() => {
   return rows
     .map((row, index) => {
       const sourceKey = resolveApprovedFileSectionKey(
-        row?.File_Source_Key || row?.File_Route_Name || row?.File_Runtime_Entity || row?.File_Canonical_Entity,
+        row?.sourceKey || row?.File_Route_Name || row?.File_Runtime_Entity || row?.File_Canonical_Entity,
       )
       if (!sourceKey || sourceKey === 'bb-file' || seenSourceKeys.has(sourceKey)) return null
 
@@ -3533,7 +3533,7 @@ function requestEditRecordShell(row, options = {}) {
 
   const editSurface = getFilePageEditSurface(activeSourceKey.value)
   if (editSurface === 'file-dialog') {
-    const fileSection = String(row?.raw?.File_Source_Key || '').trim().toLowerCase()
+    const fileSection = String(row?.raw?.sourceKey || '').trim().toLowerCase()
     router.push({
       name: 'file-dialog-shell',
       query: {
@@ -4230,11 +4230,11 @@ function buildCreatePayload(values = {}) {
     }
   }
   if (activeSourceKey.value === 'file-system') {
-    const explicitSourceKey = String(payload.File_Source_Key || '').trim()
+    const explicitSourceKey = String(payload.sourceKey || '').trim()
     if (!explicitSourceKey) {
       const fileName = String(payload.File_Name || '').trim()
       const derivedSourceKey = deriveFileSourceKeyFromName(fileName)
-      if (derivedSourceKey) payload.File_Source_Key = derivedSourceKey
+      if (derivedSourceKey) payload.sourceKey = derivedSourceKey
     }
   }
 

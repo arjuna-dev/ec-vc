@@ -514,7 +514,7 @@ Current working `File` JSON shape:
 ```json
 {
   "id": "file-row-id",
-  "File_Source_Key": "companies",
+  "sourceKey": "companies",
   "File_Name": "Companies",
   "File_Guide_Path": "docs/100/c1. Companies.md",
   "Defined_Structure": {

@@ -492,7 +492,7 @@ const sharedLdbDataTokens = computed(() => {
   return rows
     .map((row, index) => {
       const sourceKey = resolveApprovedFileSectionKey(
-        row?.File_Source_Key || row?.File_Route_Name || row?.File_Runtime_Entity || row?.File_Canonical_Entity,
+        row?.sourceKey || row?.File_Route_Name || row?.File_Runtime_Entity || row?.File_Canonical_Entity,
       )
       if (!sourceKey || sourceKey === 'bb-file' || seenSourceKeys.has(sourceKey)) return null
 
@@ -1073,7 +1073,7 @@ function getDataCellToneClass(token = {}) {
 function getFileDefinitionRowForSource(sourceKey = '', rows = []) {
   const normalizedSourceKey = String(sourceKey || '').trim().toLowerCase()
   return (Array.isArray(rows) ? rows : []).find((row) =>
-    String(row?.File_Source_Key || '').trim().toLowerCase() === normalizedSourceKey,
+    String(row?.sourceKey || '').trim().toLowerCase() === normalizedSourceKey,
   ) || null
 }
 
