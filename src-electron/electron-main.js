@@ -2236,6 +2236,10 @@ function getFileRegistryEntryBySourceKey(sourceKey) {
 
 function buildDraftFileDefinitionRow(sourceKey, payload = {}) {
   const normalizedSourceKey = String(sourceKey || '').trim()
+  const normalizedFileStatus =
+    normalizeFileStatusValue(payload?.File_Status) ||
+    normalizeFileStatusValue(payload?.Status) ||
+    'Archived'
   const normalizedFileBucket =
     normalizeFileBucketValue(payload?.File_Bucket) ||
     normalizeFileBucketValue(payload?.Bucket) ||
@@ -2252,10 +2256,7 @@ function buildDraftFileDefinitionRow(sourceKey, payload = {}) {
       normalizeNullableString(payload?.File_Summary) ||
       normalizeNullableString(payload?.Summary) ||
       '',
-    File_Status:
-      normalizeNullableString(payload?.File_Status) ||
-      normalizeNullableString(payload?.Status) ||
-      'Draft',
+    File_Status: normalizedFileStatus,
     File_Guide_Path: normalizeNullableString(payload?.File_Guide_Path) || '',
     File_Class: normalizeNullableString(payload?.File_Class) || 'L1',
     File_Bucket: normalizedFileBucket,
@@ -2277,7 +2278,7 @@ function buildDraftFileDefinitionRow(sourceKey, payload = {}) {
   }
 }
 
-const ACCEPTED_FILE_STATUS_VALUES = Object.freeze(['Active', 'Partial', 'Draft', 'Hidden', 'Archived'])
+const ACCEPTED_FILE_STATUS_VALUES = Object.freeze(['Active', 'Archived'])
 const ACCEPTED_FILE_BUCKET_VALUES = Object.freeze(['Owner', 'Companion', 'Work', 'Shared'])
 const ACCEPTED_FORK_MODE_VALUES = Object.freeze(['none', 'view', 'create', 'view_and_create'])
 const PROTECTED_BOOTSTRAP_FILE_SOURCE_KEYS = new Set(['file-system', 'events', 'bb-file'])
@@ -2326,14 +2327,15 @@ function getDefaultFileStatusForGuidePath(guidePath = '') {
   const normalizedPath = String(guidePath || '').trim().toLowerCase()
   if (normalizedPath.startsWith('docs/') && !normalizedPath.includes('/archive/')) return 'Active'
   if (normalizedPath.includes('/active/')) return 'Active'
-  if (normalizedPath.includes('/draft/')) return 'Archived'
   if (normalizedPath.includes('/archive/')) return 'Archived'
-  return 'Partial'
+  return 'Archived'
 }
 
 function normalizeFileStatusValue(value) {
   const normalized = String(value || '').trim().toLowerCase()
   if (!normalized) return ''
+  if (normalized === 'active') return 'Active'
+  if (['archived', 'archive', 'draft', 'partial', 'hidden'].includes(normalized)) return 'Archived'
   const match = ACCEPTED_FILE_STATUS_VALUES.find((status) => status.toLowerCase() === normalized)
   return match || ''
 }
@@ -2541,7 +2543,7 @@ function buildFilesAcceptanceValidation(rows = []) {
         fileId,
         field: 'File_Status',
         issue: `File_Status "${String(row?.File_Status || '').trim()}" is outside the approved acceptance vocabulary.`,
-        suggestedAction: 'Normalize File_Status to Active, Partial, Draft, Hidden, or Archived.',
+        suggestedAction: 'Normalize File_Status to Active or Archived.',
       })
     }
 
@@ -2651,7 +2653,7 @@ function buildFilesAcceptanceValidation(rows = []) {
         fileId,
         field: 'File_Guide_Path',
         issue: 'Active file is missing File_Guide_Path and does not qualify as a protected bootstrap exception.',
-        suggestedAction: 'Add a real guide path or move the file to Partial or Draft until the guide exists.',
+        suggestedAction: 'Add a real guide path or move the file to Archived until the guide exists.',
       })
     }
 
@@ -2751,6 +2753,20 @@ function ensureDefaultFiles(database) {
         AND COALESCE(TRIM(File_Contract_Path), '') != ''
     `)
   }
+
+  database.exec(`
+    UPDATE Files
+    SET File_Status = CASE
+      WHEN lower(trim(COALESCE(File_Status, ''))) = 'active' THEN 'Active'
+      ELSE 'Archived'
+    END
+    WHERE COALESCE(TRIM(File_Status), '') = ''
+       OR lower(trim(COALESCE(File_Status, ''))) != 'active'
+       OR TRIM(COALESCE(File_Status, '')) != CASE
+         WHEN lower(trim(COALESCE(File_Status, ''))) = 'active' THEN 'Active'
+         ELSE 'Archived'
+       END
+  `)
 
   database.exec(`
     UPDATE Files
@@ -3044,6 +3060,10 @@ function createFile(payload = {}) {
   const actor = getAuditActor(database)
 
   const id = normalizeNullableString(payload?.id) || `file:${crypto.randomUUID()}`
+  const normalizedFileStatus =
+    normalizeFileStatusValue(payload?.File_Status) ||
+    normalizeFileStatusValue(payload?.Status) ||
+    registryDefaults.File_Status
   const normalizedFileBucket =
     normalizeFileBucketValue(payload?.File_Bucket) ||
     normalizeFileBucketValue(payload?.Bucket) ||
@@ -3115,10 +3135,7 @@ function createFile(payload = {}) {
       normalizeNullableString(payload?.File_Summary) ||
       normalizeNullableString(payload?.Summary) ||
       registryDefaults.File_Summary,
-    File_Status:
-      normalizeNullableString(payload?.File_Status) ||
-      normalizeNullableString(payload?.Status) ||
-      registryDefaults.File_Status,
+    File_Status: normalizedFileStatus,
     File_Guide_Path: normalizeNullableString(payload?.File_Guide_Path) || registryDefaults.File_Guide_Path,
     File_Class: normalizeNullableString(payload?.File_Class) || registryDefaults.File_Class,
     File_Bucket: normalizedFileBucket,
