@@ -44,6 +44,6 @@ const resolvedSourceKey = computed(() => {
   }
 
   const routeEntry = getFilePageRegistryEntryByRouteName(route.name)
-  return String(routeEntry?.key || '').trim().toLowerCase()
+  return String(routeEntry?.sourceKey || '').trim().toLowerCase()
 })
 </script>
