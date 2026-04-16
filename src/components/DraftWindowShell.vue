@@ -443,7 +443,12 @@ const activeGovernanceToolbarKey = computed(() => (
     : ''
 ))
 
-const titleToken = computed(() => getRegistryTitleTokenForSource(activeSettingsSourceKey.value) || null)
+const effectiveStructureTokens = computed(() =>
+  activeStructureSections.value.flatMap((section) => (Array.isArray(section?.tokens) ? section.tokens : [])),
+)
+const titleToken = computed(() =>
+  effectiveStructureTokens.value.find((token) => String(token?.tokenRole || '').trim().toLowerCase() === 'title') || null,
+)
 const hiddenRecordIdFieldKey = computed(() => '__record_id__')
 
 const sharedLdbDataTokens = computed(() => {
@@ -492,7 +497,7 @@ const sharedLdbDataTokens = computed(() => {
 })
 
 const orderedViewTokens = computed(() => {
-  const titleTokenKey = String(getRegistryTitleTokenForSource(activeSettingsSourceKey.value)?.key || '').trim()
+  const titleTokenKey = String(titleToken.value?.key || '').trim()
   return [...(Array.isArray(activeViewSection.value?.tokens) ? activeViewSection.value.tokens : [])].sort((left, right) => {
     if (left.key === titleTokenKey) return -1
     if (right.key === titleTokenKey) return 1
