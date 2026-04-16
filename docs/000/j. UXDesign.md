@@ -187,9 +187,11 @@ This protects the user mental model:
 - a section is part of a file
 - a subsection is part of a section
 
-## Extension View Rule
+## Other Rule
 
-File-owned extension views are not replacements for real named views.
+`Other` is not a replacement for real named views.
+
+`Other` is the first governed extension lane where the file may begin recording unique structure.
 
 Actual user-facing file structure should still be expressed through explicit views when the file needs them.
 

@@ -144,7 +144,7 @@ Important distinction:
 
 - `System.Status` = the file/runtime lifecycle itself
 - `Data.Status` = the status of the inputed/governed data itself
-- file-specific status fields such as company, fund, or process status belong in a file-owned extension view
+- file-specific status fields such as company, fund, or process status belong in `Other` or another file-owned view
 
 Approved default status vocabulary:
 
@@ -175,12 +175,14 @@ Shared bootstrap views should begin from one governed base:
 - `System`
 - `General`
 - `LDB`
+- `Other`
 
 Working rule:
 
 - these views should be born as canonical structure
 - `System`, `General`, and `LDB` are protected shared views
-- user-added extension views may be created beyond the shared base
+- `Other` is the first governed extension lane so users know where extension may begin
+- user-added views may be created beyond `Other`
 
 Current runtime note:
 
@@ -288,6 +290,11 @@ Current governed reading:
   - value editability: editable
   - nesting rule: `Name` and `Summary` are not true id and may be nested into user-facing views other than `System` and `LDB`
 
+- `Other`
+  - view ownership: locked as the first extension example lane
+  - token ownership: open for user-added structure
+  - value editability: editable according to token contract
+
 ## File Structure Ownership Chain
 
 `System` should be read as the first layer in the active file-structure chain:
@@ -385,7 +392,7 @@ Minimum base structure required for every file:
 - `System`: `ID`, `History`, `System.Status`, `Data.Status`
 - `General`: `Name` required, `Summary` optional
 - `LDB`: empty relationship view derived from the declared system-file universe
-- file-owned extension views are optional and do not belong to the shared base
+- `Other`: optional extension area for file-owned structure that does not belong in the shared base
 
 The only recovery path for a missing shell structure is to seed the base structure in system registry truth.
 

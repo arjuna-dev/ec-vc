@@ -291,6 +291,7 @@ Drift signal:
   - `System`
   - `General`
   - `LDB`
+  - `Other`
 - bootstrap shared views must stay explicit and protected
 
 Drift signal:
@@ -447,11 +448,13 @@ The clean birth structure should begin from one governed shared base:
 - `System`
 - `General`
 - `LDB`
+- `Other`
 
 Working rule:
 
 - `System`, `General`, and `LDB` are protected shared views
-- user-added extension views may exist beyond the shared base
+- `Other` is the first governed extension lane
+- user-added views may exist beyond `Other`
 - bootstrap should not begin from vague or drifting section names
 
 Shared base expectation:
@@ -468,12 +471,14 @@ Shared base expectation:
   - always present
   - hydrates from active linkable files in the governed `System Files` universe
   - should follow approved LDB relationship rules rather than local manual guessing
+- `Other`
+  - empty by default
 
 Important distinction:
 
 - `System.Status` is the governed file/runtime lifecycle
 - `Data.Status` is the governed status of the data itself
-- file-specific business or entity status belongs in a file-owned extension view
+- file-specific business or entity status belongs in `Other` or another file-owned view
 
 ## Launch Structure Surface Rule
 

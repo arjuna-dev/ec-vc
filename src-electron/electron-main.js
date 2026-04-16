@@ -1805,6 +1805,14 @@ function buildBaseFileStructure(entry) {
         displayGroup: '',
         tokens: [],
       },
+      {
+        key: `${sourceKey}-other`,
+        label: 'Other',
+        address: '',
+        structureToken: '',
+        displayGroup: '',
+        tokens: [],
+      },
     ],
   }
 }
@@ -1856,6 +1864,17 @@ function ensureBaseStructureCompleteness(existing = null, base = null) {
     const nextSection = {
       ...section,
       tokens: Array.isArray(section?.tokens) ? section.tokens : [],
+    }
+    const normalizedLabel = String(nextSection?.label || '').trim().toLowerCase()
+    if (normalizedLabel === 'file specific') {
+      nextSection.label = 'Other'
+      const normalizedKey = String(nextSection?.key || '').trim().toLowerCase()
+      if (!normalizedKey || normalizedKey.endsWith('-file-specific')) {
+        const sourcePrefix = normalizedKey.endsWith('-file-specific')
+          ? normalizedKey.slice(0, normalizedKey.length - '-file-specific'.length)
+          : ''
+        nextSection.key = sourcePrefix ? `${sourcePrefix}-other` : String(nextSection.key || '').trim()
+      }
     }
     return nextSection
   })
@@ -1940,7 +1959,8 @@ function ensureBaseStructureCompleteness(existing = null, base = null) {
 
       if (systemExtras.length) {
         const generalIndex = findSectionIndex(normalizedExisting, 'General')
-        const targetIndex = generalIndex
+        const otherIndex = findSectionIndex(normalizedExisting, 'Other')
+        const targetIndex = otherIndex !== -1 ? otherIndex : generalIndex
         if (targetIndex !== -1) {
           const targetSection = normalizedExisting[targetIndex]
           const targetTokens = Array.isArray(targetSection.tokens) ? targetSection.tokens : []

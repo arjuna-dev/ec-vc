@@ -16,7 +16,7 @@ The `File Steward` should be able to help answer:
 
 - Is this file born correctly?
 - Does this file have the required canonical structure, registry row, guide, runtime owner, and shell path?
-- Are its `System`, `General`, and `LDB` responsibilities clearly separated?
+- Are its `System`, `General`, `LDB`, and `Other` responsibilities clearly separated?
 
 If the `File Steward` cannot answer these three questions clearly, stop and surface the gap before implementation continues.
 
@@ -29,6 +29,7 @@ That shared base should include:
 - shared `System`
 - shared `LDB`
 - shared `General`
+- shared `Other`
 
 And only two parts of that base carry a fixed shared parameter set:
 
@@ -76,12 +77,15 @@ Base views should start as:
 - `System`
 - `General`
 - `LDB`
+- `Other`
 
 Working rule:
 
 - `System`, `General`, and `LDB` are protected shared views
+- `Other` is the first extension lane and example sandbox view
 - users may add tokens to `General`
-- users may also add new views beyond the shared base
+- users may add tokens to `Other`
+- users may also add new views beyond `Other`
 
 Current runtime note:
 
@@ -134,6 +138,11 @@ Current governed reading:
   - token ownership: `Name` and `Summary` must always exist and must not be deleted
   - value editability: editable
   - nesting rule: `Name` and `Summary` may be nested into user-facing views other than `System` and `LDB`
+
+- `Other`
+  - view ownership: locked as the first extension example lane
+  - token ownership: open for user-added structure
+  - value editability: governed by token contract
 
 ## File Ownership Chain
 
@@ -534,6 +543,11 @@ Current working `File` JSON shape:
         "key": "companies-ldb",
         "label": "LDB",
         "tokens": []
+      },
+      {
+        "key": "companies-other",
+        "label": "Other",
+        "tokens": []
       }
     ]
   }
@@ -549,5 +563,5 @@ Reading note:
 - an empty token list should usually mean the section is not yet declared or is waiting for file-specific extension
 - `System.Status` belongs in `System` and reflects file/runtime lifecycle
 - `Data.Status` belongs in `System`
-- file-specific status belongs in a file-owned extension view
+- file-specific status belongs in `Other` or another file-owned view
 

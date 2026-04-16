@@ -57,11 +57,12 @@ Tested rule:
   - `System`
   - `General`
   - `LDB`
+  - `Other`
 
 Preserve because:
 
 - it keeps shared structure explicit
-- it keeps the shared base smaller and clearer
+- it makes extension areas clear
 - it reduces drift from improvised section naming
 
 ### 2. Shared Base Tokens

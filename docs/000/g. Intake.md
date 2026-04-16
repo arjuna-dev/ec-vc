@@ -126,12 +126,13 @@ Intake should respect the same governed file structure base used elsewhere:
 - `System`
 - `General`
 - `LDB`
+- `Other`
 
 Working rule:
 
 - intake should not create local field meaning that bypasses these protected shared views
 - intake should treat `Data.Status` as the governed data-status token in `System`
-- intake should not confuse `Data.Status` with a file-specific business status that belongs in a file-owned extension view
+- intake should not confuse `Data.Status` with a file-specific business status that belongs in `Other` or another file-owned view
 - if extracted structure seems to require a new user-owned view, that should become explicit structure work rather than silent local extension
 
 Stop conditions:
