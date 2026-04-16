@@ -209,6 +209,73 @@ The most important remaining lower issue is:
 
 - `Data` and `Governance` still do not fully consume the same lower shared contract
 
+## Active Base vs Target Base
+
+One important migration rule is now explicit:
+
+- the current active base contract is not yet the same as the intended target base contract
+
+### Current Active Base
+
+The repo is still actively teaching these as the born shared base:
+
+- views:
+  - `System`
+  - `General`
+  - `LDB`
+  - `Other`
+
+- shared tokens:
+  - `ID`
+  - `History`
+  - `Data.Status`
+  - `Name`
+  - `Summary`
+
+This is still the active truth in the current birth template and in several active docs and surfaces.
+
+### Target Base
+
+The intended migration target is:
+
+- views:
+  - `System`
+  - `General`
+  - `LDB`
+
+- base tokens:
+  - `ID` in `System`
+  - `System.Status` in `System`
+  - `History` in `System`
+  - `Name` in `General`
+  - `Definition` in `General`
+
+And importantly:
+
+- `System.Status` is not the same thing as `Data.Status`
+- `System.Status` is file/runtime lifecycle
+- `Data.Status` is governed data-state and UI meaning
+- `Other` was only a proof placeholder and should not remain part of the true shared base contract
+
+### Migration Safety Rule
+
+Do not flip the birth template directly from current active base to target base without inventorying the active consumers first.
+
+The dangerous part is not `Other`.
+
+The dangerous part is that:
+
+- `Summary` is still actively consumed across multiple live surfaces
+- `Data.Status` is still a real governed concept and should not be collapsed into `System.Status`
+
+That means the migration must distinguish:
+
+- removable placeholder base
+- real system lifecycle token
+- real governed data-state token
+
+before the birth template is changed.
+
 ## Migration Stages
 
 ### Stage 1. Define Construct and File Classes
@@ -243,6 +310,65 @@ Needs:
 
 - identify which files are still born with incomplete or weaker structure
 - identify which files still rely on special-case birth logic
+
+Specific current checklist:
+
+1. remove `Other` from the shared base contract
+2. introduce true `System.Status` as the file/runtime lifecycle token
+3. keep `Data.Status` separate as governed data-state
+4. inventory active `Summary` consumers before replacing shared `Summary` with shared `Definition`
+5. update birth template only after active consumers are migrated
+
+### Stage 2A. Shared Base Migration Inventory
+
+This checklist exists because the base contract itself is still mid-migration.
+
+#### A. `Other`
+
+Treat `Other` as removable from the shared base.
+
+Check:
+
+- birth template
+- structure completeness assumptions
+- docs that still describe `Other` as a real shared base lane
+
+#### B. `System.Status`
+
+Treat `System.Status` as the file/runtime lifecycle token.
+
+Check:
+
+- where `File_Status` is currently regulated
+- where lifecycle is still explained through older or mixed language
+- where system lifecycle should become visible through the shared base
+
+#### C. `Data.Status`
+
+Treat `Data.Status` as a separate governed data-state token.
+
+Check:
+
+- where it is still being used correctly as data-state meaning
+- where it is being confused with lifecycle or file visibility
+
+#### D. `Summary -> Definition`
+
+Treat this as a real migration, not a label cleanup.
+
+Check:
+
+- all active `summary` token consumers
+- all runtime helpers that still assume `summary` is the shared secondary field
+- all surfaces that still use `getRegistrySummaryTokenForSource(...)`
+
+Only after that inventory is complete should the birth template be changed from:
+
+- shared `Summary`
+
+to:
+
+- shared `Definition`
 
 ### Stage 3. Standardize Runtime Formation
 
