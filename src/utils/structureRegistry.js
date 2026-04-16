@@ -394,6 +394,46 @@ function shouldHydrateRuntimeFileStructure(row = {}) {
   return status !== 'archived'
 }
 
+function normalizeRuntimeToken(token = {}, section = {}, index = 0, sourceKey = '') {
+  return {
+    ...token,
+    key: String(token?.key || token?.tokenName || token?.address || `${sourceKey}-token-${index + 1}`).trim(),
+    tokenName: String(token?.tokenName || '').trim(),
+    tokenRole: String(token?.tokenRole || token?.token_role || '').trim(),
+    tokenOrder: String(token?.tokenOrder || token?.token_order || '').trim(),
+    address: String(token?.address || '').trim(),
+    label: String(token?.label || '').trim(),
+    tokenType: String(token?.tokenType || token?.token_type || '').trim(),
+    optionSource: String(token?.optionSource || token?.option_source || '').trim(),
+    optionEntity: String(token?.optionEntity || token?.option_entity || '').trim(),
+    optionList: String(token?.optionList || token?.option_list || '').trim(),
+    optionEntities: Array.isArray(token?.optionEntities)
+      ? token.optionEntities.map((value) => String(value || '').trim()).filter(Boolean)
+      : [],
+    inputOptions: Array.isArray(token?.inputOptions)
+      ? token.inputOptions.map((value) => String(value || '').trim()).filter(Boolean)
+      : [],
+    definition: String(token?.definition || token?.Definition || '').trim(),
+    defaultVerificationState: String(
+      token?.defaultVerificationState || token?.default_verification_state || '',
+    ).trim(),
+    defaultVerificationSource: String(
+      token?.defaultVerificationSource || token?.default_verification_source || '',
+    ).trim(),
+    dbFieldAliases: Array.isArray(token?.dbFieldAliases)
+      ? token.dbFieldAliases.map((value) => String(value || '').trim()).filter(Boolean)
+      : [],
+    dbWriteField: String(token?.dbWriteField || token?.db_write_field || '').trim(),
+    dbWriteTable: String(token?.dbWriteTable || token?.db_write_table || '').trim(),
+    dbWriteIdColumn: String(token?.dbWriteIdColumn || token?.db_write_id_column || '').trim(),
+    fieldClass: String(token?.fieldClass || token?.field_class || '').trim(),
+    relationshipGroup: String(token?.relationshipGroup || token?.relationship_group || '').trim(),
+    editable: typeof token?.editable === 'boolean' ? token.editable : token?.editable,
+    parentKey: String(section?.key || '').trim(),
+    parentLabel: String(section?.label || '').trim(),
+  }
+}
+
 export function setRuntimeFileStructures(fileRows = []) {
   const nextMap = {}
   for (const row of Array.isArray(fileRows) ? fileRows : []) {
@@ -415,30 +455,9 @@ export function setRuntimeFileStructures(fileRows = []) {
         tokens: Array.isArray(section?.tokens) ? section.tokens : [],
       }))
       const tokens = normalizedSections.flatMap((section) =>
-        (Array.isArray(section.tokens) ? section.tokens : []).map((token) => ({
-          ...token,
-          key: String(token?.key || token?.tokenName || token?.address || '').trim(),
-          tokenName: String(token?.tokenName || '').trim(),
-          tokenRole: String(token?.tokenRole || token?.token_role || '').trim(),
-          tokenOrder: String(token?.tokenOrder || token?.token_order || '').trim(),
-          label: String(token?.label || '').trim(),
-          tokenType: String(token?.tokenType || token?.token_type || '').trim(),
-          optionSource: String(token?.optionSource || token?.option_source || '').trim(),
-          optionEntity: String(token?.optionEntity || token?.option_entity || '').trim(),
-          optionList: String(token?.optionList || token?.option_list || '').trim(),
-          definition: String(token?.definition || token?.Definition || '').trim(),
-          defaultVerificationState: String(
-            token?.defaultVerificationState || token?.default_verification_state || '',
-          ).trim(),
-          defaultVerificationSource: String(
-            token?.defaultVerificationSource || token?.default_verification_source || '',
-          ).trim(),
-          dbFieldAliases: Array.isArray(token?.dbFieldAliases) ? token.dbFieldAliases : [],
-          dbWriteField: String(token?.dbWriteField || token?.db_write_field || '').trim(),
-          relationshipGroup: String(token?.relationshipGroup || token?.relationship_group || '').trim(),
-          parentKey: section.key,
-          parentLabel: section.label,
-        })),
+        (Array.isArray(section.tokens) ? section.tokens : []).map((token, index) =>
+          normalizeRuntimeToken(token, section, index, sourceKey),
+        ),
       )
       nextMap[sourceKey] = {
         sections: normalizedSections.map((section) => ({

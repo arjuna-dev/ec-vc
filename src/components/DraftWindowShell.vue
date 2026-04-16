@@ -551,6 +551,13 @@ const recordDataColumns = computed(() =>
     key: token.key,
     label: token.label || token.key || 'Field',
     width: token.key === titleToken.value?.key ? 220 : 170,
+    kind: isFileArchiveStatusToken(token) ? 'select' : '',
+    options: isFileArchiveStatusToken(token)
+      ? [
+          { value: 'Active', label: 'Active' },
+          { value: 'Archived', label: 'Archived' },
+        ]
+      : [],
     headerClass: 'structure-governance-panel__cell--data',
     cellClass: token.key === titleToken.value?.key
       ? 'structure-governance-panel__cell--label'
@@ -1041,6 +1048,18 @@ function canInlineEditDataToken(token = {}) {
   )
 }
 
+function isFileArchiveStatusToken(token = {}) {
+  if (activeSettingsSourceKey.value !== 'file-system') return false
+  const tokenRole = String(token?.tokenRole || '').trim().toLowerCase()
+  if (tokenRole === 'status') return true
+  const writeTarget = getCanonicalTokenWriteTarget(
+    token,
+    String(activeRegistryEntry.value?.entityName || '').trim(),
+    activeLoader.value?.recordIdField || 'id',
+  )
+  return String(writeTarget?.fieldName || '').trim() === 'File_Status'
+}
+
 function getDataCellToneClass(token = {}) {
   if (token?.isSharedLdbToken) return 'shared-row-surface__tone--linked'
   if (canInlineEditDataToken(token)) return 'shared-row-surface__tone--editable'
@@ -1151,7 +1170,7 @@ async function updateTokenCell(tokenKey, field, value) {
   await persistStructureSections(nextSections, 'draft_window_update_structure_token')
 }
 
-function updateDataCell(rowKey, columnKey, value) {
+async function updateDataCell(rowKey, columnKey, value) {
   const sourceKey = activeSettingsSourceKey.value
   const normalizedRowKey = String(rowKey || '').trim()
   const normalizedColumnKey = String(columnKey || '').trim()
@@ -1159,19 +1178,39 @@ function updateDataCell(rowKey, columnKey, value) {
 
   const token = effectiveDataTokens.value.find((entry) => String(entry?.key || '').trim() === normalizedColumnKey) || null
   if (!token || !canInlineEditDataToken(token)) return
+  const writeTarget = getCanonicalTokenWriteTarget(
+    token,
+    String(activeRegistryEntry.value?.entityName || '').trim(),
+    activeLoader.value?.recordIdField || 'id',
+  )
+  if (!writeTarget?.tableName || !writeTarget?.fieldName) return
 
-  const nextValue = String(value ?? '').trim()
-  rawRowsBySource.value = {
-    ...rawRowsBySource.value,
-    [sourceKey]: (rawRowsBySource.value[sourceKey] || []).map((row) => {
-      if (getRecordIdValue(row, sourceKey) !== normalizedRowKey) return row
-      const nextRow = { ...row }
-      getCanonicalTokenFieldNames(token).forEach((fieldName, index) => {
-        if (!fieldName) return
-        nextRow[fieldName] = index === 0 ? nextValue : nextRow[fieldName]
-      })
-      return nextRow
-    }),
+  const nextValue = isFileArchiveStatusToken(token)
+    ? (String(value || '').trim() === 'Active' ? 'Active' : 'Archived')
+    : String(value ?? '').trim()
+
+  try {
+    await bridge.value?.records?.update?.({
+      tableName: writeTarget.tableName,
+      recordId: normalizedRowKey,
+      changes: [
+        {
+          table_name: writeTarget.tableName,
+          record_id: normalizedRowKey,
+          field_name: writeTarget.fieldName,
+          id_column: writeTarget.idColumn || activeLoader.value?.recordIdField || 'id',
+          new_value: nextValue,
+        },
+      ],
+      actionLabel: 'draft_window_update_data_cell',
+    })
+
+    const refreshedRows = await loadRowsForSource(sourceKey)
+    if (sourceKey === 'file-system') {
+      setRuntimeFileStructures(refreshedRows)
+    }
+  } catch (updateError) {
+    error.value = updateError?.message || 'Could not save the selected field.'
   }
 }
 
