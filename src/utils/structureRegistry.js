@@ -384,9 +384,20 @@ export const FILE_PAGE_REGISTRY_BY_KEY = Object.freeze(
   Object.fromEntries(FILE_PAGE_REGISTRY.map((entry) => [entry.key, entry])),
 )
 
+function normalizeRuntimeFileStatus(value = '') {
+  return String(value || '').trim().toLowerCase()
+}
+
+function shouldHydrateRuntimeFileStructure(row = {}) {
+  const status = normalizeRuntimeFileStatus(row?.File_Status)
+  if (!status) return true
+  return status !== 'archived'
+}
+
 export function setRuntimeFileStructures(fileRows = []) {
   const nextMap = {}
   for (const row of Array.isArray(fileRows) ? fileRows : []) {
+    if (!shouldHydrateRuntimeFileStructure(row)) continue
     const sourceKey = String(row?.File_Source_Key || '').trim().toLowerCase()
     if (!sourceKey) continue
     const rawStructure = String(row?.Defined_Structure || '').trim()
