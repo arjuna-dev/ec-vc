@@ -78,3 +78,26 @@ export function buildSurfaceColumnFromToken(
     editable: Boolean(editable),
   }
 }
+
+export function buildSelectSurfaceColumn(
+  {
+    key = '',
+    label = '',
+    width = 170,
+    editable = false,
+    headerClass = '',
+    cellClass = '',
+  } = {},
+  options = [],
+) {
+  return {
+    key: String(key || '').trim(),
+    label: String(label || key || 'Field').trim(),
+    width,
+    kind: 'select',
+    options: (Array.isArray(options) ? options : []).map((option) => normalizeSurfaceOption(option)).filter(Boolean),
+    headerClass,
+    cellClass,
+    editable: Boolean(editable),
+  }
+}
