@@ -5,6 +5,7 @@
     :columns="resolvedViewSurfaceColumns"
     :rows="resolvedViewSurfaceRows"
     :empty-label="emptyViewsLabel"
+    @cell-click="handleViewSurfaceCellClick"
     @cell-dblclick="handleViewSurfaceCellDblclick"
   >
     <template #head="{ column }">
@@ -43,6 +44,7 @@
     :columns="resolvedTokenSurfaceColumns"
     :rows="resolvedTokenSurfaceRows"
     :empty-label="emptyTokensLabel"
+    @cell-click="handleTokenSurfaceCellClick"
     @cell-dblclick="handleTokenSurfaceCellDblclick"
   >
     <template #head="{ column }">
@@ -249,7 +251,7 @@ const resolvedDataSurfaceRows = computed(() =>
     editableColumns: Array.isArray(row?.editableColumns)
       ? row.editableColumns
       : (Array.isArray(props.dataColumns) ? props.dataColumns : [])
-          .filter((column) => isEditableColumn(row, column))
+          .filter((column) => isEditableColumn(column))
           .map((column) => column.key),
   })),
 )
@@ -266,7 +268,7 @@ const resolvedTokenSurfaceRows = computed(() =>
     editableColumns: Array.isArray(row?.editableColumns)
       ? row.editableColumns
       : resolvedTokenColumns.value
-          .filter((column) => isTokenEditable(row, column))
+          .filter((column) => isTokenEditable(column))
           .map((column) => column.key),
   })),
 )
@@ -283,9 +285,8 @@ const resolvedTokenColumns = computed(() => {
   return columns
 })
 
-function isEditableColumn(row = {}, column = {}) {
-  const isRowEditable = String(row?.editable || '').trim().toLowerCase() !== 'no'
-  return Boolean(column?.editable) && column.kind !== 'checkbox' && isRowEditable
+function isEditableColumn(column = {}) {
+  return Boolean(column?.editable) && column.kind !== 'checkbox'
 }
 
 function isViewCellEditing(rowKey = '', columnKey = '') {
@@ -294,7 +295,7 @@ function isViewCellEditing(rowKey = '', columnKey = '') {
 }
 
 async function startViewCellEdit(row = {}, column = {}) {
-  if (String(column?.key || '').trim() !== 'label') return
+  if (!isEditableColumn(column)) return
   editingCell.value = {
     rowKey: String(row?.key || '').trim(),
     columnKey: String(column?.key || '').trim(),
@@ -315,7 +316,7 @@ function isDataCellEditing(rowKey = '', columnKey = '') {
 }
 
 async function startDataCellEdit(row = {}, column = {}) {
-  if (!isEditableColumn(row, column)) return
+  if (!isEditableColumn(column)) return
   editingCell.value = {
     rowKey: String(row?.key || '').trim(),
     columnKey: String(column?.key || '').trim(),
@@ -330,10 +331,8 @@ function commitDataCellEdit(rowKey = '', columnKey = '', value = '') {
   editingCellValue.value = ''
 }
 
-function isTokenEditable(token = {}, column = {}) {
-  const isRowEditable = String(token?.editable || '').trim().toLowerCase() !== 'no'
-  if (token?.isDraft) return true
-  return Boolean(column?.editable) && column.kind !== 'checkbox' && isRowEditable
+function isTokenEditable(column = {}) {
+  return Boolean(column?.editable) && column.kind !== 'checkbox'
 }
 
 function isTokenCellEditing(rowKey = '', columnKey = '') {
@@ -342,7 +341,7 @@ function isTokenCellEditing(rowKey = '', columnKey = '') {
 }
 
 async function startTokenCellEdit(token = {}, column = {}) {
-  if (!isTokenEditable(token, column)) return
+  if (!isTokenEditable(column)) return
   editingCell.value = {
     rowKey: String(token?.key || '').trim(),
     columnKey: String(column?.key || '').trim(),
@@ -359,13 +358,25 @@ function commitTokenCellEdit(rowKey = '', columnKey = '', value = '') {
 
 function handleTokenSurfaceCellDblclick(row, column) {
   if (!row || !column) return
-  if (column.key === '__select__' || column.key === '__view__' || column.key === 'parentView') return
+  if (column.key === '__select__' || column.key === '__view__') return
+  startTokenCellEdit(row, column)
+}
+
+function handleTokenSurfaceCellClick(row, column) {
+  if (!row || !column) return
+  if (column.key === '__select__' || column.key === '__view__') return
   startTokenCellEdit(row, column)
 }
 
 function handleViewSurfaceCellDblclick(row, column) {
   if (!row || !column) return
-  if (column.key === '__select__' || column.key === '__view__' || column.key !== 'label') return
+  if (column.key === '__select__' || column.key === '__view__') return
+  startViewCellEdit(row, column)
+}
+
+function handleViewSurfaceCellClick(row, column) {
+  if (!row || !column) return
+  if (column.key === '__select__' || column.key === '__view__') return
   startViewCellEdit(row, column)
 }
 

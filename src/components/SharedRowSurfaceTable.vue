@@ -43,6 +43,7 @@
                 row.toneClassByColumn?.[column.key] || '',
               ]"
               :style="columnStyle(column)"
+              @click="$emit('cell-click', row, column)"
               @dblclick="$emit('cell-dblclick', row, column)"
             >
               <slot name="cell" :row="row" :column="column">
@@ -73,7 +74,7 @@ const props = defineProps({
   columnWidthKey: { type: String, default: '' },
 })
 
-defineEmits(['cell-dblclick'])
+defineEmits(['cell-click', 'cell-dblclick'])
 
 const resolvedColumns = computed(() =>
   (Array.isArray(props.columns) ? props.columns : []).map((column) => ({
