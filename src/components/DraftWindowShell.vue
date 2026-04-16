@@ -170,6 +170,16 @@
               {{ dataSurfaceContract.emptyDataLabel }}
             </div>
           </div>
+
+          <SelectionActionBar
+            :count="selectedDataRows.length"
+            :loading="loading"
+            :can-share="selectedDataRows.length > 0"
+            :can-edit="false"
+            :can-delete="canDeleteSelectedRows"
+            @share="handleSelectedRowsShare"
+            @remove="handleSelectedRowsDelete"
+          />
         </div>
       </div>
     </section>
@@ -264,14 +274,17 @@
 
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { useQuasar } from 'quasar'
 import DialogShellTitleRow from 'src/components/DialogShellTitleRow.vue'
 import RecordTitle from 'src/components/RecordTitle.vue'
 import FileShellControlBar from 'src/components/FileShellControlBar.vue'
 import StructureGovernancePanel from 'src/components/StructureGovernancePanel.vue'
+import SelectionActionBar from 'src/components/SelectionActionBar.vue'
 import { buildTokenGovernanceColumns } from 'src/utils/structureGovernanceColumns'
 import { buildShellToolbarFeed } from 'src/utils/shellToolbarFeeder'
 import { buildStructureToolbarItems } from 'src/utils/structureToolbarContract'
 import { splitDialogViews } from 'src/utils/dialogShellPayload'
+import { shareRecordSelection } from 'src/utils/recordListSelectionActions'
 import {
   buildFileShellPayload,
   getCanonicalTokenFieldNames,
@@ -302,6 +315,7 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['update:shellSelectorValue', 'change'])
+const $q = useQuasar()
 
 const SECTION_LOADERS = {
   'file-system': { listFn: (bridgeValue) => bridgeValue?.['file-system']?.list?.(), resultKey: 'files', recordIdField: 'id' },
@@ -743,8 +757,16 @@ const allVisibleSelected = computed(() =>
   displayRows.value.length > 0 && displayRows.value.every((row) => selectedLeafKeys.value.includes(row.key)),
 )
 
+const selectedDataRows = computed(() =>
+  displayRows.value.filter((row) => selectedLeafKeys.value.includes(row.key)),
+)
+
 const someVisibleSelected = computed(() =>
   displayRows.value.some((row) => selectedLeafKeys.value.includes(row.key)) && !allVisibleSelected.value,
+)
+
+const canDeleteSelectedRows = computed(() =>
+  selectedDataRows.value.length > 0 && typeof bridge.value?.[activeSettingsSourceKey.value]?.delete === 'function',
 )
 
 const dataControlContract = computed(() => ({
@@ -871,6 +893,72 @@ function toggleSelectAllVisible(nextValue) {
     ...selectedLeafKeysBySource.value,
     [sourceKey]: nextValue ? rowKeys : [],
   }
+}
+
+async function handleSelectedRowsShare() {
+  await shareRecordSelection({
+    rows: selectedDataRows.value,
+    entityLabel: activeRegistryEntry.value?.label || 'Records',
+    singularLabel: activeRegistryEntry.value?.singularLabel || 'record',
+    pluralLabel: activeRegistryEntry.value?.label || 'records',
+    getLabel: (row) => row?.[titleToken.value?.key] || row?.key || '',
+    notify: (payload) => $q.notify(payload),
+  })
+}
+
+async function handleSelectedRowsDelete() {
+  if (!canDeleteSelectedRows.value) return
+
+  const deleteFn = bridge.value?.[activeSettingsSourceKey.value]?.delete
+  if (typeof deleteFn !== 'function') return
+
+  const selectedCount = selectedDataRows.value.length
+  const entityLabel = String(activeRegistryEntry.value?.label || 'records').trim()
+
+  $q.dialog({
+    title: 'Delete Selected',
+    message: `This will permanently delete ${selectedCount} selected ${entityLabel.toLowerCase()}.`,
+    cancel: true,
+    persistent: true,
+    ok: {
+      label: 'Delete',
+      color: 'negative',
+      unelevated: true,
+      noCaps: true,
+    },
+  }).onOk(async () => {
+    loading.value = true
+    error.value = ''
+
+    try {
+      for (const row of selectedDataRows.value) {
+        await deleteFn(row.key)
+      }
+
+      selectedLeafKeysBySource.value = {
+        ...selectedLeafKeysBySource.value,
+        [activeSettingsSourceKey.value]: [],
+      }
+
+      const refreshedRows = await loadRowsForSource(activeSettingsSourceKey.value)
+      if (activeSettingsSourceKey.value === 'file-system') {
+        setRuntimeFileStructures(refreshedRows)
+      }
+
+      $q.notify({
+        type: 'positive',
+        message: `Deleted ${selectedCount} selected ${entityLabel.toLowerCase()}.`,
+      })
+    } catch (deleteError) {
+      error.value = deleteError?.message || `Could not delete ${entityLabel.toLowerCase()}.`
+      $q.notify({
+        type: 'negative',
+        message: error.value,
+      })
+    } finally {
+      loading.value = false
+    }
+  })
 }
 
 function getDefaultRequiredFieldKeysForSource(sourceKey) {
