@@ -385,6 +385,10 @@ export const FILE_PAGE_REGISTRY_BY_KEY = Object.freeze(
   Object.fromEntries(FILE_PAGE_REGISTRY.map((entry) => [entry.key, entry])),
 )
 
+export const FILE_PAGE_REGISTRY_BY_SOURCEKEY = Object.freeze(
+  Object.fromEntries(FILE_PAGE_REGISTRY.map((entry) => [entry.sourceKey || entry.key, entry])),
+)
+
 function normalizeRuntimeFileStatus(value = '') {
   return String(value || '').trim().toLowerCase()
 }
@@ -499,7 +503,6 @@ export function subscribeRuntimeFileStructures(listener) {
 export const FILE_SOURCE_REGISTRY = Object.freeze(
   FILE_PAGE_REGISTRY.map((entry) => ({
     sourceKey: entry.sourceKey || entry.key,
-    key: entry.key,
     entityName: entry.entityName,
     label: entry.label,
     singularLabel: entry.singularLabel,
@@ -515,9 +518,9 @@ export const FILE_SOURCE_REGISTRY = Object.freeze(
 const TEST_SHELL_RENDERABLE_KEYS = ['bb-file', 'file-system', 'events', 'users', 'artifacts', 'contacts', 'companies', 'opportunities', 'projects', 'notes', 'tasks', 'user-roles', 'companion-roles', 'markets', 'securities', 'intake']
 
 export const TEST_SHELL_SECTION_OPTIONS = Object.freeze(
-  FILE_SOURCE_REGISTRY.filter((entry) => TEST_SHELL_RENDERABLE_KEYS.includes(entry.sourceKey || entry.key)).map((entry) => ({
+  FILE_SOURCE_REGISTRY.filter((entry) => TEST_SHELL_RENDERABLE_KEYS.includes(entry.sourceKey)).map((entry) => ({
     label: entry.label,
-    value: entry.sourceKey || entry.key,
+    value: entry.sourceKey,
   })),
 )
 
@@ -536,7 +539,11 @@ export function getFilePageRegistryEntry(sourceKey) {
   const aliases = {
     intake: 'intake',
   }
-  return FILE_PAGE_REGISTRY_BY_KEY[aliases[normalizedKey] || normalizedKey] || null
+  return (
+    FILE_PAGE_REGISTRY_BY_SOURCEKEY[aliases[normalizedKey] || normalizedKey]
+    || FILE_PAGE_REGISTRY_BY_KEY[aliases[normalizedKey] || normalizedKey]
+    || null
+  )
 }
 
 export function getFilePageRegistryEntryByRouteName(routeName) {
@@ -561,7 +568,7 @@ export function getFilePageRegistryEntryByEntityReference(entityName) {
 
 export function resolveApprovedFileSectionKey(value, entityName = '') {
   const normalizedValue = String(value || '').trim()
-  if (!normalizedValue) return getFilePageRegistryEntryByEntityReference(entityName)?.key || ''
+  if (!normalizedValue) return getFilePageRegistryEntryByEntityReference(entityName)?.sourceKey || ''
 
   const normalizedLower = normalizedValue.toLowerCase()
   const entry = (
@@ -569,12 +576,12 @@ export function resolveApprovedFileSectionKey(value, entityName = '') {
     || getFilePageRegistryEntryByRouteName(normalizedLower)
     || getFilePageRegistryEntryByEntityReference(normalizedValue)
     || FILE_SOURCE_REGISTRY.find((candidate) =>
-      [candidate.key, candidate.routeName, candidate.entityName, candidate.label, candidate.singularLabel]
+      [candidate.sourceKey, candidate.routeName, candidate.entityName, candidate.label, candidate.singularLabel]
         .some((field) => String(field || '').trim().toLowerCase() === normalizedLower),
     )
   )
 
-  return String(entry?.key || '').trim().toLowerCase()
+  return String(entry?.sourceKey || '').trim().toLowerCase()
 }
 
 export function buildFileShellPayload(sourceKey = '') {

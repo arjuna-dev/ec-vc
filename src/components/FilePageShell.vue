@@ -926,7 +926,7 @@ const isRecordShellMode = computed(
 const isFileShellLabMode = computed(() => String(props.shellMode || '').trim().toLowerCase() === 'file-lab')
 
 const routeDrivenSourceKey = computed(() => {
-  return resolveApprovedFileSectionKey(getFilePageRegistryEntryByRouteName(route.name)?.key || route.name) || ''
+  return resolveApprovedFileSectionKey(getFilePageRegistryEntryByRouteName(route.name)?.sourceKey || route.name) || ''
 })
 const propDrivenSourceKey = computed(() => {
   return resolveApprovedFileSectionKey(props.sourceKey) || ''

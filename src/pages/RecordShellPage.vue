@@ -1454,7 +1454,7 @@ function getLiveEntitySetOptionsForToken(token) {
 }
 
 function resolveSourceKeyFromEntityName(entityName) {
-  return getFilePageRegistryEntryByEntityReference(entityName)?.key || ''
+  return getFilePageRegistryEntryByEntityReference(entityName)?.sourceKey || ''
 }
 
 function buildLiveEntityOptions(sourceKey) {
@@ -1537,11 +1537,11 @@ function resolveSourceKeyFromTableName(tableName) {
   const normalized = String(tableName || '').trim().toLowerCase()
   if (!normalized) return ''
   const direct = FILE_SOURCE_REGISTRY.find((entry) =>
-    [entry.key, entry.routeName, entry.entityName, entry.label].some((value) => String(value || '').trim().toLowerCase() === normalized),
+    [entry.sourceKey, entry.routeName, entry.entityName, entry.label].some((value) => String(value || '').trim().toLowerCase() === normalized),
   )
-  if (direct?.key) return direct.key
+  if (direct?.sourceKey) return direct.sourceKey
 
-  return getFilePageRegistryEntryByEntityReference(String(tableName || '').trim())?.key || ''
+  return getFilePageRegistryEntryByEntityReference(String(tableName || '').trim())?.sourceKey || ''
 }
 
 function resolveExistingFieldForToken(token) {
