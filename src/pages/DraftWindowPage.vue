@@ -21,7 +21,7 @@
 
         <DraftWindowShell
           :shell-selector-value="activeSourceKey"
-          :shell-selector-options="shellSectionOptions"
+          :shell-selector-options="TEST_SHELL_SECTION_OPTIONS"
           @update:shell-selector-value="updateShellSelector"
           @change="updateFileStructureSession"
         />
@@ -31,33 +31,17 @@
 </template>
 
 <script setup>
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import DraftWindowShell from 'src/components/DraftWindowShell.vue'
-import {
-  getRuntimeStructureVersion,
-  getRuntimeTestShellSectionOptions,
-  resolveApprovedFileSectionKey,
-  subscribeRuntimeFileStructures,
-} from 'src/utils/structureRegistry'
+import { TEST_SHELL_SECTION_OPTIONS, resolveApprovedFileSectionKey } from 'src/utils/structureRegistry'
 
 const route = useRoute()
 const router = useRouter()
 const isElectronRuntime = computed(() => typeof window !== 'undefined')
 const draftWindowSessionsBySource = ref({})
-const runtimeStructureVersion = ref(getRuntimeStructureVersion())
-let runtimeStructureUnsub = null
 
-const shellSectionOptions = computed(() => {
-  runtimeStructureVersion.value
-  return getRuntimeTestShellSectionOptions()
-})
-
-const activeSourceKey = computed(() => {
-  const resolved = resolveValidShellSection(route.query.section, route.query.entity)
-  if (shellSectionOptions.value.some((option) => option.value === resolved)) return resolved
-  return shellSectionOptions.value[0]?.value || ''
-})
+const activeSourceKey = computed(() => resolveValidShellSection(route.query.section, route.query.entity))
 const hasResolvedSourceKey = computed(() => Boolean(activeSourceKey.value))
 
 function resolveValidShellSection(value, entityName = '') {
@@ -85,17 +69,6 @@ async function updateFileStructureSession(snapshot = null) {
     },
   }
 }
-
-onMounted(() => {
-  runtimeStructureUnsub = subscribeRuntimeFileStructures((version) => {
-    runtimeStructureVersion.value = version
-  })
-})
-
-onBeforeUnmount(() => {
-  if (runtimeStructureUnsub) runtimeStructureUnsub()
-  runtimeStructureUnsub = null
-})
 </script>
 
 <style scoped>

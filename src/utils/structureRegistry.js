@@ -519,18 +519,6 @@ export const TEST_SHELL_SECTION_OPTIONS = Object.freeze(
   })),
 )
 
-export function getRuntimeTestShellSectionOptions() {
-  const runtimeKeys = new Set(Object.keys(runtimeFileStructuresBySource))
-  if (!runtimeKeys.size) return TEST_SHELL_SECTION_OPTIONS
-
-  return TEST_SHELL_SECTION_OPTIONS.filter((option) => {
-    const key = String(option?.value || '').trim().toLowerCase()
-    if (!key) return false
-    if (key === 'file-system') return true
-    return runtimeKeys.has(key)
-  })
-}
-
 export const WORKSPACE_FILE_NAV_ITEMS = Object.freeze(
   FILE_PAGE_REGISTRY.filter((entry) => entry.showInWorkspaceNav).map((entry) => ({
     label: entry.label,

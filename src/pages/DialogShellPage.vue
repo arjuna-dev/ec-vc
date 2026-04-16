@@ -27,7 +27,7 @@
       :branch-selector-token-key="branchSelectorTokenKey"
       :show-shell-selector="dialogMode !== 'edit'"
       :shell-selector-value="activeSourceKey"
-      :shell-selector-options="shellSectionOptions"
+      :shell-selector-options="TEST_SHELL_SECTION_OPTIONS"
       :prefer-add-layout="isAddAction"
       :initial-resources-collapsed="dialogMode === 'edit' ? true : false"
       :initial-record-data-collapsed="dialogMode === 'edit' ? false : true"
@@ -74,11 +74,11 @@ import {
   getRegistrySummaryTokenForSource,
   getRegistryTitleTokenForSource,
   getRuntimeTableNameForEntityName,
-  getRuntimeTestShellSectionOptions,
   getRuntimeStructureVersion,
   subscribeRuntimeFileStructures,
   buildFileShellPayload,
   resolveApprovedFileSectionKey,
+  TEST_SHELL_SECTION_OPTIONS,
 } from 'src/utils/structureRegistry'
 import { buildDialogViews, groupDialogViews, splitDialogViews } from 'src/utils/dialogShellPayload'
 import { buildTokenUpdateChanges, normalizeTokenWriteValue } from 'src/utils/tokenWriteChanges'
@@ -117,10 +117,6 @@ const expandedGeneralSettingsGroupKeys = ref([])
 const isAddAction = computed(() => dialogMode.value === 'create' && Boolean(String(route.query.create || '').trim()))
 const runtimeStructureVersion = ref(getRuntimeStructureVersion())
 let runtimeStructureUnsub = null
-const shellSectionOptions = computed(() => {
-  runtimeStructureVersion.value
-  return getRuntimeTestShellSectionOptions()
-})
 const draftCreateInFlight = ref(false)
 const autoDraftRecordId = ref('')
 const autoDraftSourceKey = ref('')
@@ -128,11 +124,7 @@ const dialogDraftId = ref('')
 const dialogDraftSourceKey = ref('')
 
 const dialogShellSourceKey = ref(resolveValidShellSection(route.query.section, route.query.entity))
-const activeSourceKey = computed(() => {
-  const sourceKey = String(dialogShellSourceKey.value || '').trim().toLowerCase()
-  if (shellSectionOptions.value.some((option) => option.value === sourceKey)) return sourceKey
-  return shellSectionOptions.value[0]?.value || ''
-})
+const activeSourceKey = computed(() => dialogShellSourceKey.value)
 const hasResolvedSourceKey = computed(() => Boolean(activeSourceKey.value))
 const activeRegistryEntry = computed(() => getFilePageRegistryEntry(activeSourceKey.value) || null)
 const fileShellPayload = computed(() => {
