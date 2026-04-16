@@ -87,6 +87,7 @@ export function buildSelectSurfaceColumn(
     editable = false,
     headerClass = '',
     cellClass = '',
+    clearable = false,
   } = {},
   options = [],
 ) {
@@ -99,5 +100,6 @@ export function buildSelectSurfaceColumn(
     headerClass,
     cellClass,
     editable: Boolean(editable),
+    clearable: Boolean(clearable),
   }
 }

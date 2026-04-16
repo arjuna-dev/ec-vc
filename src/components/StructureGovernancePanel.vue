@@ -80,7 +80,7 @@
         @keydown.esc.prevent="cancelDataCellEdit"
       >
         <option
-          v-for="option in column.options || []"
+          v-for="option in resolveEditorOptions(column)"
           :key="option.value"
           :value="option.value"
         >
@@ -151,7 +151,7 @@
         @keydown.esc.prevent="cancelDataCellEdit"
       >
         <option
-          v-for="option in column.options || []"
+          v-for="option in resolveEditorOptions(column)"
           :key="option.value"
           :value="option.value"
         >
@@ -299,6 +299,14 @@ const resolvedTokenColumns = computed(() => {
   }
   return columns
 })
+const CLEAR_SELECT_OPTION = Object.freeze({ value: '', label: '—' })
+
+function resolveEditorOptions(column = {}) {
+  const options = Array.isArray(column?.options) ? column.options : []
+  if (!column?.clearable) return options
+  const hasEmptyOption = options.some((option) => String(option?.value ?? '').trim() === '')
+  return hasEmptyOption ? options : [CLEAR_SELECT_OPTION, ...options]
+}
 
 function isEditableColumn(column = {}) {
   return Boolean(column?.editable) && column.kind !== 'checkbox'
