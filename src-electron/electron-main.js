@@ -2758,12 +2758,14 @@ function ensureDefaultFiles(database) {
     UPDATE Files
     SET File_Status = CASE
       WHEN lower(trim(COALESCE(File_Status, ''))) = 'active' THEN 'Active'
+      WHEN lower(trim(COALESCE(File_Status, ''))) IN ('archived', 'archive', 'draft', 'partial', 'hidden') THEN 'Archived'
       ELSE 'Archived'
     END
     WHERE COALESCE(TRIM(File_Status), '') = ''
-       OR lower(trim(COALESCE(File_Status, ''))) != 'active'
+       OR lower(trim(COALESCE(File_Status, ''))) NOT IN ('active', 'archived', 'archive', 'draft', 'partial', 'hidden')
        OR TRIM(COALESCE(File_Status, '')) != CASE
          WHEN lower(trim(COALESCE(File_Status, ''))) = 'active' THEN 'Active'
+         WHEN lower(trim(COALESCE(File_Status, ''))) IN ('archived', 'archive', 'draft', 'partial', 'hidden') THEN 'Archived'
          ELSE 'Archived'
        END
   `)
@@ -2856,7 +2858,10 @@ function ensureDefaultFiles(database) {
       File_Order = excluded.File_Order,
       File_Name = excluded.File_Name,
       File_Summary = excluded.File_Summary,
-      File_Status = excluded.File_Status,
+      File_Status = CASE
+        WHEN COALESCE(NULLIF(TRIM(Files.File_Status), ''), '') = '' THEN excluded.File_Status
+        ELSE Files.File_Status
+      END,
       File_Guide_Path = CASE
         WHEN excluded.File_Guide_Path IS NOT NULL THEN excluded.File_Guide_Path
         WHEN Files.File_Guide_Path = 'docs/010/System.md' THEN NULL
