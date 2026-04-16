@@ -715,6 +715,7 @@ import { buildStructureToolbarItems } from 'src/utils/structureToolbarContract'
     buildFileShellPayload,
   } from 'src/utils/structureRegistry'
 import { getLdbRelationshipContractForToken } from 'src/shared/ldbRelationshipContracts'
+import { getTokenInputOptions } from 'src/utils/tokenSurfaceContract'
 import { buildDialogViews, groupDialogViews, splitDialogViews } from 'src/utils/dialogShellPayload'
 import { buildRecordViewLocation } from 'src/utils/recordViewNavigation'
 import { shareRecordSelection } from 'src/utils/recordListSelectionActions'
@@ -1434,7 +1435,7 @@ function normalizeCreateDialogToken(token) {
 
   return {
     ...token,
-    inputOptions: getInputOptionsForToken(token),
+    inputOptions: getResolvedInputOptionsForToken(token),
   }
 }
 
@@ -1451,7 +1452,7 @@ function isBranchSelectorToken(token, sourceKey = activeSourceKey.value) {
   return String(token?.tokenName || '').trim() === branchTokenName
 }
 
-function getInputOptionsForToken(token) {
+function getDynamicInputOptionsForToken(token) {
   const optionSource = String(token?.optionSource || '').trim()
 
   if (optionSource === 'live_entity') {
@@ -1485,11 +1486,17 @@ function getInputOptionsForToken(token) {
   }))
 }
 
+function getResolvedInputOptionsForToken(token) {
+  return getTokenInputOptions(token, {
+    resolveDynamicOptions: getDynamicInputOptionsForToken,
+  })
+}
+
 function resolveCreateDialogOptionValue(token, rawValue) {
   if (rawValue == null) return ''
   const normalized = String(rawValue || '').trim()
   if (!normalized) return ''
-  const options = Array.isArray(token?.inputOptions) ? token.inputOptions : getInputOptionsForToken(token)
+  const options = Array.isArray(token?.inputOptions) ? token.inputOptions : getResolvedInputOptionsForToken(token)
   const matchedOption = options.find((option) => {
     const optionValue = String(option?.value ?? '').trim()
     const optionLabel = String(option?.label ?? '').trim()

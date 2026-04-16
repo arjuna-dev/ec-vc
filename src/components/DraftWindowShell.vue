@@ -306,6 +306,7 @@ import {
   setRuntimeFileStructures,
   subscribeRuntimeFileStructures,
 } from 'src/utils/structureRegistry'
+import { buildSurfaceColumnFromToken } from 'src/utils/tokenSurfaceContract'
 import { getLdbRelationshipContractsForEntity } from 'src/shared/ldbRelationshipContracts'
 import { buildFileStructureSessionSnapshot } from 'src/utils/fileStructureSession'
 import {
@@ -547,23 +548,25 @@ const effectiveDataTokens = computed(() => {
 })
 
 const recordDataColumns = computed(() =>
-  effectiveDataTokens.value.map((token) => ({
-    key: token.key,
-    label: token.label || token.key || 'Field',
-    width: token.key === titleToken.value?.key ? 220 : 170,
-    kind: isFileArchiveStatusToken(token) ? 'select' : '',
-    options: isFileArchiveStatusToken(token)
-      ? [
-          { value: 'Active', label: 'Active' },
-          { value: 'Archived', label: 'Archived' },
-        ]
-      : [],
-    headerClass: 'structure-governance-panel__cell--data',
-    cellClass: token.key === titleToken.value?.key
-      ? 'structure-governance-panel__cell--label'
-      : 'structure-governance-panel__cell--data',
-    editable: canInlineEditDataToken(token),
-  })),
+  effectiveDataTokens.value.map((token) =>
+    buildSurfaceColumnFromToken(token, {
+      width: token.key === titleToken.value?.key ? 220 : 170,
+      editable: canInlineEditDataToken(token),
+      headerClass: 'structure-governance-panel__cell--data',
+      cellClass: token.key === titleToken.value?.key
+        ? 'structure-governance-panel__cell--label'
+        : 'structure-governance-panel__cell--data',
+      resolveDynamicOptions: (currentToken) => {
+        if (isFileArchiveStatusToken(currentToken)) {
+          return [
+            { value: 'Active', label: 'Active' },
+            { value: 'Archived', label: 'Archived' },
+          ]
+        }
+        return []
+      },
+    }),
+  ),
 )
 
 const governanceViewRows = computed(() =>
