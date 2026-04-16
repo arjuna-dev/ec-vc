@@ -43,6 +43,5 @@ export function buildTokenGovernanceColumns({
     { key: 'dbWriteField', label: 'DB Write Field', width: 180, headerClass: dataHeaderClass, cellClass: dataCellClass, editable: true, kind: 'text' },
     { key: 'fieldClass', label: 'Field Class', width: 140, headerClass: dataHeaderClass, cellClass: dataCellClass, editable: true, kind: 'select', options: TOKEN_GOVERNANCE_FIELD_CLASS_OPTIONS },
     { key: 'required', label: 'Required', width: 84, headerClass: dataHeaderClass, cellClass: dataCellClass, kind: 'checkbox' },
-    { key: 'writeTarget', label: 'Write Target / Alias', width: 220, headerClass: dataHeaderClass, cellClass: dataCellClass, editable: true, kind: 'text' },
   ]
 }

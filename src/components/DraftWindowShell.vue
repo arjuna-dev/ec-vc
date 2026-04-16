@@ -599,8 +599,6 @@ const tokenGroupsByView = computed(() =>
       key: view.key,
       label: view.label,
       tokens: baseTokens.map((token, index) => {
-        const writeTarget = getCanonicalTokenWriteTarget(token, activeShellSelectorOption.value.label, 'id')
-
         return {
           key: token.key || `token-${index}`,
           label: token.label || '-',
@@ -613,7 +611,6 @@ const tokenGroupsByView = computed(() =>
           fieldClass: token.fieldClass || token.field_class || '-',
           required: requiredKeys.has(token.key),
           visible: 'Yes',
-          writeTarget: writeTarget?.fieldName ? `${writeTarget.tableName}.${writeTarget.fieldName}` : token.dbFieldAliases?.join(', ') || '-',
           editable: token.editable === false ? 'No' : token.editable === true ? 'Yes' : '-',
           editableColumns: [
             'label',
@@ -634,7 +631,6 @@ const tokenGroupsByView = computed(() =>
             definition: 'shared-row-surface__tone--editable',
             dbWriteField: 'shared-row-surface__tone--editable',
             fieldClass: 'shared-row-surface__tone--editable',
-            writeTarget: writeTarget?.fieldName ? 'shared-row-surface__tone--linked' : '',
           },
           cellContractByColumn: {
             label: {
