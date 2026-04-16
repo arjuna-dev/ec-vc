@@ -30,6 +30,47 @@ This is not a loose note.
 
 It should become the working migration guide for moving the system from inherited uneven behavior toward one coherent lower architecture.
 
+## Audit Vocabulary
+
+This migration pass should use three fixed audit labels:
+
+- `Direct Path`
+- `Fallback / Safety Path`
+- `Override Path`
+
+These labels help us describe how the app is actually working while migration is in progress.
+
+### Direct Path
+
+`Direct Path` means:
+
+- true canonical source
+- true runtime path
+- true renderer input
+
+This is the target state.
+
+### Fallback / Safety Path
+
+`Fallback / Safety Path` means:
+
+- static registries acting as second authority
+- default helpers silently repairing live state
+- normalization passes
+- guessed resolution when structure is missing
+
+These paths should be named explicitly and reduced over time.
+
+### Override Path
+
+`Override Path` means:
+
+- local storage overrides
+- page-local remapping
+- local shadow state that competes with canonical owned truth
+
+These paths should be treated as high-risk drift carriers.
+
 ## Current State
 
 The current repo already contains important truths, but they are not yet applying equally everywhere.

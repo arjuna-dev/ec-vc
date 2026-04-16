@@ -10,6 +10,65 @@ Its job is to keep file structure disciplined, explicit, and aligned with canon.
 
 `File` should protect the app from file-architecture drift in the same way shared building blocks protect the frontend from design drift.
 
+## Audit Vocabulary
+
+The `File Steward` should explicitly classify file behavior using these three audit labels:
+
+- `Direct Path`
+- `Fallback / Safety Path`
+- `Override Path`
+
+These labels should not be treated as optional commentary.
+
+They are the working vocabulary for understanding whether the app is behaving through true ownership or through hidden corrective behavior.
+
+### Direct Path
+
+`Direct Path` means:
+
+- true canonical source
+- true runtime path
+- true renderer input
+
+For `File` work, this means:
+
+- file birth is declared intentionally
+- stored `Defined_Structure` is the owned structure truth
+- runtime reads that structure directly
+- shared shells render from that same explicit structure truth
+
+### Fallback / Safety Path
+
+`Fallback / Safety Path` means:
+
+- static registries acting like a second authority
+- default helpers silently repairing structure
+- normalization passes that keep rewriting values
+- missing-value fallbacks
+- guessed resolution paths
+
+These may temporarily protect the app, but they are also signs that the direct structure path is not yet strong enough.
+
+If a `Fallback / Safety Path` exists, the `File Steward` should be able to answer:
+
+- why it exists
+- what it is protecting
+- whether it is temporary
+- when it should be deleted
+
+### Override Path
+
+`Override Path` means:
+
+- local storage overrides
+- page-local remapping
+- draft-local state that shadows canonical structure
+- any local layer that competes with the real owned file truth
+
+`Override Path` should be treated as especially dangerous.
+
+If it exists, the `File Steward` should record it explicitly and justify why it is still allowed.
+
 ## Gateway Questions
 
 The `File Steward` should be able to help answer:
@@ -17,6 +76,8 @@ The `File Steward` should be able to help answer:
 - Is this file born correctly?
 - Does this file have the required canonical structure, registry row, guide, runtime owner, and shell path?
 - Are its `System`, `General`, `LDB`, and `Other` responsibilities clearly separated?
+- What is this file's `Direct Path`?
+- What fallback or override behavior is still affecting this file?
 
 If the `File Steward` cannot answer these three questions clearly, stop and surface the gap before implementation continues.
 
@@ -155,6 +216,27 @@ The `File Steward` should use this mental model:
 This is the safe chain to use when a table, card, dialog, translator, or extraction flow appears to be inventing structure locally.
 
 If the surface and the token layer disagree, repair the file structure contract first.
+
+## File Audit Record
+
+Each file should eventually carry an explicit audit record using the same labels:
+
+- `Direct Path`
+- `Fallback / Safety Path`
+- `Override Path`
+
+At minimum, the record should say:
+
+- what canonical source the file is supposed to read from
+- what runtime layer currently hydrates it
+- what renderer input the file is supposed to feed
+- what fallback layers are still affecting it
+- what override layers are still shadowing it
+
+The purpose of this record is simple:
+
+- the app should know exactly how a file is working
+- not merely appear to work
 
 ## How It Works
 
