@@ -146,6 +146,7 @@
               :select-all-indeterminate="dataSurfaceContract.someVisibleSelected"
               @toggle-select-all="toggleSelectAllVisible"
               @toggle-data-select="toggleLeafSelection"
+              @update-data-cell="updateDataCell"
             />
           </div>
 
@@ -525,6 +526,7 @@ const recordDataColumns = computed(() =>
     cellClass: token.key === titleToken.value?.key
       ? 'structure-governance-panel__cell--label'
       : 'structure-governance-panel__cell--data',
+    editable: canInlineEditDataToken(token),
   })),
 )
 
@@ -635,6 +637,8 @@ const displayRows = computed(() => {
         [hiddenRecordIdFieldKey.value]: recordId,
       }
       const searchValues = [recordId.toLowerCase()]
+      const editableColumns = []
+      const toneClassByColumn = {}
 
       effectiveDataTokens.value.forEach((token) => {
         const value = token?.isSharedLdbToken
@@ -642,9 +646,14 @@ const displayRows = computed(() => {
           : stringifyValue(getCanonicalTokenValue(row, token))
         mappedRow[token.key] = value
         if (value) searchValues.push(value.toLowerCase())
+        if (canInlineEditDataToken(token)) editableColumns.push(token.key)
+        const toneClass = getDataCellToneClass(token)
+        if (toneClass) toneClassByColumn[token.key] = toneClass
       })
 
       mappedRow.__searchText = searchValues.join(' ')
+      mappedRow.editableColumns = editableColumns
+      mappedRow.toneClassByColumn = toneClassByColumn
       return mappedRow
     })
     .filter((row) => !searchValue || row.__searchText.includes(searchValue))
@@ -823,6 +832,36 @@ function getSharedLdbTokenValue(row = {}, token = {}) {
     .join(', ')
 }
 
+function isSystemManagedReadOnlyToken(token = {}) {
+  const tokenType = String(token?.tokenType || '').trim().toLowerCase()
+  const tokenName = String(token?.tokenName || '').trim().toLowerCase()
+
+  if (token?.isSharedLdbToken) return false
+  if (['id', 'datetime', 'date', 'creator'].includes(tokenType)) return true
+  if (tokenName.includes('creator')) return true
+  if (tokenName.includes('created_at') || tokenName.includes('updated_at')) return true
+  if (tokenName.includes('user_role') || tokenName.includes('role_link')) return true
+  return false
+}
+
+function canInlineEditDataToken(token = {}) {
+  if (!token?.key || token?.isSharedLdbToken) return false
+  if (isSystemManagedReadOnlyToken(token)) return false
+  return Boolean(
+    getCanonicalTokenWriteTarget(
+      token,
+      String(activeRegistryEntry.value?.entityName || '').trim(),
+      activeLoader.value?.recordIdField || 'id',
+    )?.fieldName,
+  )
+}
+
+function getDataCellToneClass(token = {}) {
+  if (token?.isSharedLdbToken) return 'shared-row-surface__tone--linked'
+  if (canInlineEditDataToken(token)) return 'shared-row-surface__tone--editable'
+  return ''
+}
+
 function updateTokenCell(tokenKey, field, value) {
   if (field === 'required') {
     toggleRequiredField(tokenKey, Boolean(value))
@@ -832,6 +871,30 @@ function updateTokenCell(tokenKey, field, value) {
   structureStateBySource.value = {
     ...structureStateBySource.value,
     [sourceKey]: updateStructureTokenField(activeStructureSections.value, tokenKey, field, value),
+  }
+}
+
+function updateDataCell(rowKey, columnKey, value) {
+  const sourceKey = activeSettingsSourceKey.value
+  const normalizedRowKey = String(rowKey || '').trim()
+  const normalizedColumnKey = String(columnKey || '').trim()
+  if (!sourceKey || !normalizedRowKey || !normalizedColumnKey) return
+
+  const token = effectiveDataTokens.value.find((entry) => String(entry?.key || '').trim() === normalizedColumnKey) || null
+  if (!token || !canInlineEditDataToken(token)) return
+
+  const nextValue = String(value ?? '').trim()
+  rawRowsBySource.value = {
+    ...rawRowsBySource.value,
+    [sourceKey]: (rawRowsBySource.value[sourceKey] || []).map((row) => {
+      if (getRecordIdValue(row, sourceKey) !== normalizedRowKey) return row
+      const nextRow = { ...row }
+      getCanonicalTokenFieldNames(token).forEach((fieldName, index) => {
+        if (!fieldName) return
+        nextRow[fieldName] = index === 0 ? nextValue : nextRow[fieldName]
+      })
+      return nextRow
+    }),
   }
 }
 

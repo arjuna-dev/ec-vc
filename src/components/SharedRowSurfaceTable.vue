@@ -7,10 +7,11 @@
             <th
               v-for="column in resolvedColumns"
               :key="column.key"
-              :class="[
-                'shared-row-surface__head',
-                column.isControl ? 'shared-row-surface__head--control' : '',
-              ]"
+            :class="[
+              'shared-row-surface__head',
+              column.isControl ? 'shared-row-surface__head--control' : '',
+              column.headerClass || '',
+            ]"
               :style="columnStyle(column)"
             >
               <slot name="head" :column="column">
@@ -38,6 +39,7 @@
                 'shared-row-surface__cell',
                 column.isControl ? 'shared-row-surface__cell--control' : '',
                 isEditableCell(row, column) ? 'shared-row-surface__cell--editable' : '',
+                column.cellClass || '',
                 row.toneClassByColumn?.[column.key] || '',
               ]"
               :style="columnStyle(column)"
