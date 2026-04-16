@@ -2,21 +2,21 @@
   <q-page class="q-pa-md draft-window-page">
     <div v-if="!isElectronRuntime" class="q-pa-md">
       <q-banner class="bg-orange-2 text-black" rounded>
-        Draft Window requires Electron. Run <code>quasar dev -m electron</code> or
+        PMP Window requires Electron. Run <code>quasar dev -m electron</code> or
         <code>quasar build -m electron</code>.
       </q-banner>
     </div>
 
     <div v-else-if="!hasResolvedSourceKey" class="q-pa-md">
       <q-banner class="bg-red-2 text-black" rounded>
-        Draft Window source is not mapped to an approved file section.
+        PMP Window source is not mapped to an approved file section.
       </q-banner>
     </div>
 
     <div v-else class="draft-window-page__frame-wrap">
       <div class="draft-window-page__frame">
         <q-banner class="draft-window-page__banner bg-grey-1 text-black" rounded>
-          Temporary workbench for shaping the dialog shell structure before it is promoted into the live add/edit flows.
+          Live PMP workbench for testing the shared file structure pass before it is promoted into the real flows.
         </q-banner>
 
         <DraftWindowShell

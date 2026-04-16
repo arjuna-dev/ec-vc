@@ -10,7 +10,7 @@
           @click.stop="toggleShellSelector"
         >
           <span class="draft-window-shell__title-content">
-            <RecordTitle :title="activeShellSelectorOption.label || 'Draft Window'" />
+            <RecordTitle :title="activeShellSelectorOption.label || 'PMP Window'" />
             <svg viewBox="0 0 24 24" class="draft-window-shell__title-chevron">
               <path :d="shellSelectorOpen ? 'M7 14L12 9L17 14' : 'M7 10L12 15L17 10'" />
             </svg>
