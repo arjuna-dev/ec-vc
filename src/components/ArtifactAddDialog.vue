@@ -180,7 +180,6 @@ const opportunities = ref([])
 const opportunityDialogOpen = ref(false)
 const opportunityDialogRenderKey = ref(0)
 const liveOptionRowsBySource = ref({})
-const DEFAULT_PIPELINE_ID = 'pipeline_default'
 const opportunityShellPayload = computed(() => {
   runtimeStructureVersion.value
   return buildFileShellPayload('opportunities')
@@ -438,7 +437,6 @@ function summarizeDroppedFiles(files = []) {
       const existingCheck = await findExistingDroppedFiles(summaries)
       const result = await ingestArtifactsWithDuplicateHandling({
         filePaths: summaries.map((f) => f.path).filter(Boolean),
-        pipelineId: DEFAULT_PIPELINE_ID,
       }, {
         hasExistingConflict: existingCheck.existingNames.length > 0,
       })
@@ -532,14 +530,12 @@ async function finish() {
       await bridge.value.artifacts.linkToOpportunity({
         artifactIds: resumeArtifactIds,
         opportunityId: opportunityId.value,
-        pipelineId: DEFAULT_PIPELINE_ID,
       })
     } else {
       if (!bridge.value?.artifacts?.ingest) return
       const existingCheck = await findExistingDroppedFiles(droppedFiles.value)
       await ingestArtifactsWithDuplicateHandling({
         filePaths: droppedFiles.value.map((f) => f.path),
-        pipelineId: DEFAULT_PIPELINE_ID,
         opportunityId: opportunityId.value,
       }, {
         hasExistingConflict: existingCheck.existingNames.length > 0,

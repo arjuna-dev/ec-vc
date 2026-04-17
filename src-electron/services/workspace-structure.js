@@ -8,14 +8,13 @@ export const NETWORK_DATABASE_SECTION_DIR_NAMES = {
   Contacts: '3. Contacts',
   Company: '4. Companies',
   Opportunities: '5. Opportunities',
-  Pipelines: '6. Pipelines',
+  Projects: '6. Projects',
   Notes: '7. Notes',
   Tasks: '8. Tasks',
   Agents: '9. Agents',
 }
 export const NETWORK_DATABASE_SECTION_DIRS = Object.values(NETWORK_DATABASE_SECTION_DIR_NAMES)
 export const ARTIFACTS_SECTION_DIR = NETWORK_DATABASE_SECTION_DIR_NAMES.Artifacts
-export const PIPELINES_SECTION_DIR = NETWORK_DATABASE_SECTION_DIR_NAMES.Pipelines
 export const ARTIFACT_STAGE_DIRS = ['0_raw', '1_llm-ready', '2_llm-generated']
 
 export function getUserWorkspacePath(workspaceRootPath) {
@@ -44,8 +43,4 @@ export function getArtifactRawPath(workspaceRootPath) {
 
 export function getArtifactLlmReadyPath(workspaceRootPath) {
   return path.join(getArtifactsSectionPath(workspaceRootPath), ARTIFACT_STAGE_DIRS[1])
-}
-
-export function getPipelinesSectionPath(workspaceRootPath) {
-  return getNetworkDatabaseSectionPath(workspaceRootPath, PIPELINES_SECTION_DIR)
 }

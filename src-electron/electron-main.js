@@ -9099,9 +9099,9 @@ function registerIpc() {
 
   ipcMain.handle(
     'artifacts:linkToOpportunity',
-    async (_event, { artifactIds, opportunityId, pipelineId } = {}) => {
+    async (_event, { artifactIds, opportunityId } = {}) => {
       initDb()
-      const result = linkArtifactsToOpportunity({ artifactIds, opportunityId, pipelineId })
+      const result = linkArtifactsToOpportunity({ artifactIds, opportunityId })
       await syncWorkspaceWorkbooksSafe()
       return result
     },
@@ -9124,7 +9124,6 @@ function registerIpc() {
       workspaceRoot: workspace.rootPath,
       filePaths: payload?.filePaths || payload?.files || [],
       opportunityId: payload?.opportunityId,
-      pipelineId: payload?.pipelineId,
       createdBy: payload?.createdBy,
       duplicateStrategy: payload?.duplicateStrategy,
       skipProcessing: payload?.skipProcessing,

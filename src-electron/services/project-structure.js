@@ -21,7 +21,7 @@ export const DEFAULT_PROJECT_STRUCTURE = {
       [getNetworkDatabaseSectionDirName('Contacts')]: {},
       [getNetworkDatabaseSectionDirName('Company')]: {},
       [getNetworkDatabaseSectionDirName('Opportunities')]: {},
-      [getNetworkDatabaseSectionDirName('Pipelines')]: {},
+      [getNetworkDatabaseSectionDirName('Projects')]: {},
       [getNetworkDatabaseSectionDirName('Notes')]: {},
       [getNetworkDatabaseSectionDirName('Tasks')]: {},
       [getNetworkDatabaseSectionDirName('Agents')]: {},

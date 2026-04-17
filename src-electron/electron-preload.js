@@ -202,14 +202,13 @@ const api = {
     preview: ({ artifactId } = {}) => ipcRenderer.invoke('artifacts:preview', { artifactId }),
     share: ({ artifactId } = {}) => ipcRenderer.invoke('artifacts:share', { artifactId }),
     openRawFolder: () => ipcRenderer.invoke('artifacts:openRawFolder'),
-    linkToOpportunity: ({ artifactIds, opportunityId, pipelineId } = {}) =>
-      ipcRenderer.invoke('artifacts:linkToOpportunity', { artifactIds, opportunityId, pipelineId }),
-    ingest: ({ filePaths, files, opportunityId, pipelineId, createdBy, duplicateStrategy } = {}) =>
+    linkToOpportunity: ({ artifactIds, opportunityId } = {}) =>
+      ipcRenderer.invoke('artifacts:linkToOpportunity', { artifactIds, opportunityId }),
+    ingest: ({ filePaths, files, opportunityId, createdBy, duplicateStrategy } = {}) =>
       ipcRenderer.invoke('artifacts:ingest', {
         filePaths,
         files,
         opportunityId,
-        pipelineId,
         createdBy,
         duplicateStrategy,
       }),
