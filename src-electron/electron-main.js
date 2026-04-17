@@ -1708,6 +1708,7 @@ function buildDefaultFileRegistryRow(entry, index) {
     File_Runtime_Entity: String(entry?.entityName || '').trim(),
     File_Route_Name: String(entry?.routeName || '').trim(),
     File_Path: String(entry?.path || '').trim(),
+    File_EventLog: '',
   }
 }
 
