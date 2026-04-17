@@ -754,6 +754,7 @@ const displayRows = computed(() => {
       return mappedRow
     })
     .filter((row) => !searchValue || row.__searchText.includes(searchValue))
+    .slice(0, 10)
 })
 
 const allVisibleSelected = computed(() =>
