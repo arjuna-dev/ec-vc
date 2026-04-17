@@ -133,7 +133,7 @@
             {{ dataSurfaceContract.error }}
           </q-banner>
 
-          <div v-if="viewMode === 'page'" class="draft-window-shell__surface-wrap ds-mini-scrollbar">
+          <div v-if="viewMode === 'page'" class="draft-window-shell__surface-wrap draft-window-shell__data-surface-wrap ds-mini-scrollbar">
             <StructureGovernancePanel
               :mode="dataSurfaceContract.mode"
               :data-columns="dataSurfaceContract.dataColumns"
@@ -150,7 +150,7 @@
             />
           </div>
 
-          <div v-else class="draft-window-shell__card-grid">
+          <div v-else class="draft-window-shell__card-grid draft-window-shell__data-card-grid ds-mini-scrollbar">
             <article
               v-for="row in dataSurfaceContract.dataRows"
               :key="row.key"
@@ -754,7 +754,6 @@ const displayRows = computed(() => {
       return mappedRow
     })
     .filter((row) => !searchValue || row.__searchText.includes(searchValue))
-    .slice(0, 10)
 })
 
 const allVisibleSelected = computed(() =>
@@ -1786,10 +1785,21 @@ watch(
   background: rgba(255, 255, 255, 0.94);
 }
 
+.draft-window-shell__data-surface-wrap {
+  max-height: 560px;
+  overflow-y: auto;
+}
+
 .draft-window-shell__card-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 12px;
+}
+
+.draft-window-shell__data-card-grid {
+  max-height: 560px;
+  overflow-y: auto;
+  padding-right: 4px;
 }
 
 .draft-window-shell__card {
