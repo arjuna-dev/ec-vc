@@ -7948,58 +7948,15 @@ function ensureExistingCompanyId(database, maybeCompanyId) {
   return exists ? companyId : null
 }
 
-function ensureDefaultPipelineSeed(database) {
-  database
-    .prepare(
-      `
-      INSERT OR IGNORE INTO Projects (id, Project_Name)
-      VALUES ('pipeline_default', 'Default Investment Pipeline')
-    `,
-    )
-    .run()
-
-  database
-    .prepare(
-      `
-      INSERT OR IGNORE INTO Project_Overview (project_id, Project_Status, Project_Priority_Rank)
-      VALUES ('pipeline_default', 'On-Going', 'Mid')
-    `,
-    )
-    .run()
-
-  database
-    .prepare(
-      `
-      INSERT OR IGNORE INTO Project_Stages (stage_id, project_id, name, position, is_terminal)
-      VALUES ('stage_thesis_alignment', 'pipeline_default', '1_thesis_alignment', 1, 0)
-    `,
-    )
-    .run()
-}
-
 function buildOpportunityForeignKeyDebug(database, { companyId = null, kind = null } = {}) {
   const cid = normalizeNullableString(companyId)
   const companyExists = cid
     ? Boolean(database.prepare('SELECT 1 FROM Companies WHERE id = ? LIMIT 1').get(cid))
     : null
-  const pipelineExists = Boolean(
-    database
-      .prepare("SELECT 1 FROM Projects WHERE id = 'pipeline_default' LIMIT 1")
-      .get(),
-  )
-  const stageExists = Boolean(
-    database
-      .prepare(
-        "SELECT 1 FROM Project_Stages WHERE stage_id = 'stage_thesis_alignment' AND project_id = 'pipeline_default' LIMIT 1",
-      )
-      .get(),
-  )
   return {
     kind: normalizeNullableString(kind),
     company_id: cid,
     company_exists: companyExists,
-    pipeline_default_exists: pipelineExists,
-    default_stage_exists: stageExists,
   }
 }
 
@@ -8088,8 +8045,6 @@ function createOpportunity(payload = {}) {
   }
 
   const insert = database.transaction(() => {
-    ensureDefaultPipelineSeed(database)
-
     const columns = Object.keys(fields)
     const placeholders = columns.map(() => '?').join(',')
     const values = columns.map((c) => fields[c])
@@ -8105,22 +8060,6 @@ function createOpportunity(payload = {}) {
         upsertFundSubtype(database, opportunityId, payload)
       })
     }
-
-    // Ensure the opportunity has a default pipeline stage (DB-level requirement via app logic)
-    runCreateStep('link opportunity to default pipeline', () => {
-      database
-        .prepare(
-          `
-          INSERT OR REPLACE INTO Opportunity_Pipeline (
-            opportunity_id,
-            pipeline_id,
-            stage_id,
-            status
-          ) VALUES (?, 'pipeline_default', 'stage_thesis_alignment', 'active')
-        `,
-        )
-        .run(opportunityId)
-    })
 
     runCreateStep('upsert primary contact link', () => {
       createOrUpdatePrimaryContactForOpportunity(
@@ -8242,8 +8181,6 @@ function updateOpportunity(payload = {}) {
   }
 
   const tx = database.transaction(() => {
-    ensureDefaultPipelineSeed(database)
-
     runCreateStep('update opportunity', () => {
       database
         .prepare(
@@ -8293,21 +8230,6 @@ function updateOpportunity(payload = {}) {
         upsertFundSubtype(database, opportunityId, payload)
       })
     }
-
-    runCreateStep('link opportunity to default pipeline', () => {
-      database
-        .prepare(
-          `
-          INSERT OR IGNORE INTO Opportunity_Pipeline (
-            opportunity_id,
-            pipeline_id,
-            stage_id,
-            status
-          ) VALUES (?, 'pipeline_default', 'stage_thesis_alignment', 'active')
-        `,
-        )
-        .run(opportunityId)
-    })
 
     runCreateStep('upsert primary contact link', () => {
       createOrUpdatePrimaryContactForOpportunity(
