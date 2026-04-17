@@ -690,6 +690,7 @@ import { getTokenInputOptions } from 'src/utils/tokenSurfaceContract'
 import { buildTokenUpdateChanges } from 'src/utils/tokenWriteChanges'
 import { buildSurfaceSections, groupSurfaceViews } from 'src/utils/shellViewLayout'
 import { getFileRecordLoader } from 'src/utils/fileRecordLoaders'
+import { loadLiveOptionRowsForSource } from 'src/utils/liveOptionRows'
 import { buildRecordViewLocation } from 'src/utils/recordViewNavigation'
 import { getBuildingBlockGraphCounts, getBuildingBlockGraphLinks } from 'src/utils/buildingBlocks'
 
@@ -1337,25 +1338,12 @@ function getLiveEntitySetOptionsForToken(token) {
 async function ensureLiveOptionRowsLoaded(sourceKey) {
   const normalized = normalizeEntitySourceKey(sourceKey)
   if (!normalized || normalized === activeContentSourceKey.value) return
-  if (Array.isArray(liveOptionRowsBySource.value[normalized])) return
-
-  const loader = getFileRecordLoader(normalized)
-  const bridgeValue = bridge.value
-  if (!loader || !bridgeValue) return
-
-  try {
-    const result = await loader.listFn(bridgeValue)
-    const rows = Array.isArray(result?.[loader.resultKey]) ? result[loader.resultKey] : []
-    liveOptionRowsBySource.value = {
-      ...liveOptionRowsBySource.value,
-      [normalized]: rows,
-    }
-  } catch {
-    liveOptionRowsBySource.value = {
-      ...liveOptionRowsBySource.value,
-      [normalized]: [],
-    }
-  }
+  liveOptionRowsBySource.value = await loadLiveOptionRowsForSource({
+    sourceKey: normalized,
+    bridgeValue: bridge.value,
+    currentRowsBySource: liveOptionRowsBySource.value,
+    skipSourceKey: activeContentSourceKey.value,
+  })
 }
 
 async function preloadCreateDialogOptionSources() {
