@@ -1088,7 +1088,7 @@ function listCompanionRoles() {
 
 const BASE_FILE_TOKEN_FIELDS = Object.freeze({
   'file-system': { nameField: 'File_Name', summaryField: 'File_Summary' },
-  companion: { nameField: '', summaryField: 'Companion_Summary' },
+  companion: { nameField: 'Companion_Name', summaryField: 'Companion_Summary' },
   companies: { nameField: 'Company_Name', summaryField: 'One_Liner' },
   contacts: { nameField: 'Name', summaryField: '' },
   users: { nameField: 'User_Name', summaryField: '' },
