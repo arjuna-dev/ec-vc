@@ -263,62 +263,17 @@ CREATE TABLE IF NOT EXISTS Tasks (
   id TEXT PRIMARY KEY,
   created_by TEXT,
   Task_Name TEXT,
+  Task_Summary TEXT,
+  Task_Status TEXT,
+  Task_Priority_Rank TEXT,
+  Task_Start_Date TEXT,
+  Task_Due_Date TEXT,
+  Task_End_Date TEXT,
   Status TEXT,
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
   updated_at TEXT NOT NULL DEFAULT (datetime('now')),
   FOREIGN KEY (created_by) REFERENCES Users(id) ON UPDATE CASCADE ON DELETE SET NULL
 );
-
-CREATE TABLE IF NOT EXISTS Task_Overview (
-  task_id TEXT PRIMARY KEY,
-  Task_Summary TEXT,
-  Task_Status TEXT CHECK (
-    Task_Status IS NULL OR Task_Status IN ('Backlog', 'In Progress', 'Completed', 'Closed')
-  ),
-  Task_Priority_Rank TEXT CHECK (
-    Task_Priority_Rank IS NULL OR Task_Priority_Rank IN ('Low', 'Mid-Low', 'Mid', 'Mid-High', 'High')
-  ),
-  Task_Start_Date TEXT,
-  Task_Due_Date TEXT,
-  Task_End_Date TEXT,
-  created_at TEXT NOT NULL DEFAULT (datetime('now')),
-  updated_at TEXT NOT NULL DEFAULT (datetime('now')),
-  FOREIGN KEY (task_id) REFERENCES Tasks(id) ON UPDATE CASCADE ON DELETE CASCADE
-);
-
-CREATE TABLE IF NOT EXISTS Task_Team (
-  task_id TEXT PRIMARY KEY,
-  Task_Team_Owner TEXT,
-  created_at TEXT NOT NULL DEFAULT (datetime('now')),
-  updated_at TEXT NOT NULL DEFAULT (datetime('now')),
-  FOREIGN KEY (task_id) REFERENCES Tasks(id) ON UPDATE CASCADE ON DELETE CASCADE,
-  FOREIGN KEY (Task_Team_Owner) REFERENCES Contacts(id) ON UPDATE CASCADE ON DELETE SET NULL
-);
-
-CREATE INDEX IF NOT EXISTS idx_Task_Team_owner
-  ON Task_Team(Task_Team_Owner);
-
-CREATE TABLE IF NOT EXISTS Task_Team_Assigned (
-  task_id TEXT NOT NULL,
-  contact_id TEXT NOT NULL,
-  PRIMARY KEY (task_id, contact_id),
-  FOREIGN KEY (task_id) REFERENCES Tasks(id) ON UPDATE CASCADE ON DELETE CASCADE,
-  FOREIGN KEY (contact_id) REFERENCES Contacts(id) ON UPDATE CASCADE ON DELETE CASCADE
-);
-
-CREATE INDEX IF NOT EXISTS idx_Task_Team_Assigned_contact
-  ON Task_Team_Assigned(contact_id);
-
-CREATE TABLE IF NOT EXISTS Task_Team_Support (
-  task_id TEXT NOT NULL,
-  contact_id TEXT NOT NULL,
-  PRIMARY KEY (task_id, contact_id),
-  FOREIGN KEY (task_id) REFERENCES Tasks(id) ON UPDATE CASCADE ON DELETE CASCADE,
-  FOREIGN KEY (contact_id) REFERENCES Contacts(id) ON UPDATE CASCADE ON DELETE CASCADE
-);
-
-CREATE INDEX IF NOT EXISTS idx_Task_Team_Support_contact
-  ON Task_Team_Support(contact_id);
 
 CREATE TABLE IF NOT EXISTS IC_Scorecard (
   id TEXT PRIMARY KEY,
@@ -832,22 +787,6 @@ FOR EACH ROW
 WHEN NEW.updated_at = OLD.updated_at
 BEGIN
   UPDATE Tasks SET updated_at = datetime('now') WHERE id = OLD.id;
-END;
-
-CREATE TRIGGER IF NOT EXISTS trg_Task_Overview_updated_at
-AFTER UPDATE ON Task_Overview
-FOR EACH ROW
-WHEN NEW.updated_at = OLD.updated_at
-BEGIN
-  UPDATE Task_Overview SET updated_at = datetime('now') WHERE task_id = OLD.task_id;
-END;
-
-CREATE TRIGGER IF NOT EXISTS trg_Task_Team_updated_at
-AFTER UPDATE ON Task_Team
-FOR EACH ROW
-WHEN NEW.updated_at = OLD.updated_at
-BEGIN
-  UPDATE Task_Team SET updated_at = datetime('now') WHERE task_id = OLD.task_id;
 END;
 
 CREATE TRIGGER IF NOT EXISTS trg_Projects_updated_at

@@ -278,87 +278,6 @@ function normalizeTaskPriorityRank(value) {
   return allowed.get(normalized) || null
 }
 
-function normalizeTaskContactIds(value) {
-  const values = Array.isArray(value) ? value : value == null ? [] : [value]
-  return [...new Set(values.map((entry) => normalizeNullableString(entry)).filter(Boolean))]
-}
-
-function upsertTaskOverview(database, taskId, source = {}) {
-  const payload = {
-    task_id: taskId,
-    Task_Summary:
-      normalizeNullableString(source.Task_Summary) ||
-      normalizeNullableString(source.Task_Description) ||
-      normalizeNullableString(source.Task_Summary_Text),
-    Task_Status: normalizeTaskStatus(source.Task_Status || source.Status) || 'Backlog',
-    Task_Priority_Rank:
-      normalizeTaskPriorityRank(source.Task_Priority_Rank || source.Priority) || 'Mid',
-    Task_Start_Date: normalizeNullableString(source.Task_Start_Date || source.Start_Date),
-    Task_Due_Date: normalizeNullableString(source.Task_Due_Date || source.Due_Date),
-    Task_End_Date: normalizeNullableString(source.Task_End_Date || source.End_Date),
-  }
-
-  database
-    .prepare(
-      `
-      INSERT INTO Task_Overview (
-        task_id, Task_Summary, Task_Status, Task_Priority_Rank, Task_Start_Date, Task_Due_Date,
-        Task_End_Date, created_at, updated_at
-      ) VALUES (
-        @task_id, @Task_Summary, @Task_Status, @Task_Priority_Rank, @Task_Start_Date, @Task_Due_Date,
-        @Task_End_Date, datetime('now'), datetime('now')
-      )
-      ON CONFLICT(task_id) DO UPDATE SET
-        Task_Summary = excluded.Task_Summary,
-        Task_Status = excluded.Task_Status,
-        Task_Priority_Rank = excluded.Task_Priority_Rank,
-        Task_Start_Date = excluded.Task_Start_Date,
-        Task_Due_Date = excluded.Task_Due_Date,
-        Task_End_Date = excluded.Task_End_Date,
-        updated_at = datetime('now')
-    `,
-    )
-    .run(payload)
-}
-
-function replaceTaskContactLinks(database, tableName, taskId, contactIds) {
-  database.prepare(`DELETE FROM ${tableName} WHERE task_id = ?`).run(taskId)
-  const insert = database.prepare(
-    `INSERT OR IGNORE INTO ${tableName} (task_id, contact_id) VALUES (?, ?)`,
-  )
-  for (const contactId of contactIds) insert.run(taskId, contactId)
-}
-
-function upsertTaskTeam(database, taskId, source = {}) {
-  const ownerId =
-    normalizeNullableString(source.Task_Team_Owner) || normalizeNullableString(source.contact_id)
-
-  database
-    .prepare(
-      `
-      INSERT INTO Task_Team (task_id, Task_Team_Owner, created_at, updated_at)
-      VALUES (?, ?, datetime('now'), datetime('now'))
-      ON CONFLICT(task_id) DO UPDATE SET
-        Task_Team_Owner = excluded.Task_Team_Owner,
-        updated_at = datetime('now')
-    `,
-    )
-    .run(taskId, ownerId)
-
-  replaceTaskContactLinks(
-    database,
-    'Task_Team_Assigned',
-    taskId,
-    normalizeTaskContactIds(source.Task_Team_Assigned),
-  )
-  replaceTaskContactLinks(
-    database,
-    'Task_Team_Support',
-    taskId,
-    normalizeTaskContactIds(source.Task_Team_Support),
-  )
-}
-
 function syncTaskRelations(database, taskId, source = {}) {
   const companyId = normalizeNullableString(source.company_id || source.Task_Company)
   const projectId = normalizeNullableString(source.project_id || source.Task_Project)
@@ -951,21 +870,18 @@ function listTasksForPage() {
     SELECT DISTINCT
       t.id,
       t.Task_Name,
-      tov.Task_Summary,
-      tov.Task_Status,
-      tov.Task_Priority_Rank,
-      tov.Task_Due_Date,
+      t.Task_Summary,
+      t.Task_Status,
+      t.Task_Priority_Rank,
+      t.Task_Due_Date,
       t.created_at,
       COALESCE(r.Round_Name, f.Fund_Name) AS opportunity_name,
       COALESCE(r.id, f.id) AS opportunity_id,
-      owner.Name AS contact_name,
-      owner.id AS contact_id,
+      NULL AS contact_name,
+      NULL AS contact_id,
       co.Company_Name AS company_name,
       co.id AS company_id
     FROM Tasks t
-    LEFT JOIN Task_Overview tov ON tov.task_id = t.id
-    LEFT JOIN Task_Team tt ON tt.task_id = t.id
-    LEFT JOIN Contacts owner ON owner.id = tt.Task_Team_Owner
     LEFT JOIN Tasks_Rounds_related_round trr ON trr.from_id = t.id
     LEFT JOIN Rounds r ON r.id = trr.to_id
     LEFT JOIN Tasks_Funds_related_fund trf ON trf.from_id = t.id
@@ -988,8 +904,21 @@ function createTask(payload = {}) {
   database
     .prepare(
       `
-      INSERT INTO Tasks (id, created_by, Task_Name, Status, created_at, updated_at)
-      VALUES (?, ?, ?, ?, datetime('now'), datetime('now'))
+      INSERT INTO Tasks (
+        id,
+        created_by,
+        Task_Name,
+        Task_Summary,
+        Task_Status,
+        Task_Priority_Rank,
+        Task_Start_Date,
+        Task_Due_Date,
+        Task_End_Date,
+        Status,
+        created_at,
+        updated_at
+      )
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
     `,
     )
     .run(
@@ -998,11 +927,17 @@ function createTask(payload = {}) {
         normalizeNullableString(payload?.created_by) ||
         actor.user_id,
       taskName,
+      normalizeNullableString(payload?.Task_Summary) ||
+        normalizeNullableString(payload?.Task_Description) ||
+        normalizeNullableString(payload?.Task_Summary_Text),
+      normalizeTaskStatus(payload?.Task_Status || payload?.Status) || 'Backlog',
+      normalizeTaskPriorityRank(payload?.Task_Priority_Rank || payload?.Priority) || 'Mid',
+      normalizeNullableString(payload?.Task_Start_Date || payload?.Start_Date),
+      normalizeNullableString(payload?.Task_Due_Date || payload?.Due_Date),
+      normalizeNullableString(payload?.Task_End_Date || payload?.End_Date),
       statusValue,
     )
 
-  upsertTaskOverview(database, taskId, payload)
-  upsertTaskTeam(database, taskId, payload)
   syncTaskRelations(database, taskId, payload)
 
   return { id: taskId }
@@ -1028,11 +963,43 @@ function upsertTasks(rows = []) {
       database
         .prepare(
           `
-          INSERT INTO Tasks (id, created_by, Task_Name, Status, created_at, updated_at)
-          VALUES (@id, @created_by, @Task_Name, @Status, datetime('now'), datetime('now'))
+          INSERT INTO Tasks (
+            id,
+            created_by,
+            Task_Name,
+            Task_Summary,
+            Task_Status,
+            Task_Priority_Rank,
+            Task_Start_Date,
+            Task_Due_Date,
+            Task_End_Date,
+            Status,
+            created_at,
+            updated_at
+          )
+          VALUES (
+            @id,
+            @created_by,
+            @Task_Name,
+            @Task_Summary,
+            @Task_Status,
+            @Task_Priority_Rank,
+            @Task_Start_Date,
+            @Task_Due_Date,
+            @Task_End_Date,
+            @Status,
+            datetime('now'),
+            datetime('now')
+          )
           ON CONFLICT(id) DO UPDATE SET
             created_by = excluded.created_by,
             Task_Name = excluded.Task_Name,
+            Task_Summary = excluded.Task_Summary,
+            Task_Status = excluded.Task_Status,
+            Task_Priority_Rank = excluded.Task_Priority_Rank,
+            Task_Start_Date = excluded.Task_Start_Date,
+            Task_Due_Date = excluded.Task_Due_Date,
+            Task_End_Date = excluded.Task_End_Date,
             Status = COALESCE(excluded.Status, Status),
             updated_at = datetime('now')
         `,
@@ -1044,11 +1011,19 @@ function upsertTasks(rows = []) {
             normalizeNullableString(r?.created_by) ||
             actor.user_id,
           Task_Name: taskName,
+          Task_Summary:
+            normalizeNullableString(r?.Task_Summary) ||
+            normalizeNullableString(r?.Task_Description) ||
+            normalizeNullableString(r?.Task_Summary_Text),
+          Task_Status: normalizeTaskStatus(r?.Task_Status || r?.Status) || 'Backlog',
+          Task_Priority_Rank:
+            normalizeTaskPriorityRank(r?.Task_Priority_Rank || r?.Priority) || 'Mid',
+          Task_Start_Date: normalizeNullableString(r?.Task_Start_Date || r?.Start_Date),
+          Task_Due_Date: normalizeNullableString(r?.Task_Due_Date || r?.Due_Date),
+          Task_End_Date: normalizeNullableString(r?.Task_End_Date || r?.End_Date),
           Status: statusValue,
         })
 
-      upsertTaskOverview(database, taskId, r)
-      upsertTaskTeam(database, taskId, r)
       syncTaskRelations(database, taskId, r)
 
       if (exists) updated += 1
@@ -2742,13 +2717,12 @@ function getLegacyOpportunityDatabookView(opportunityId) {
       SELECT
         t.id AS task_id,
         t.Task_Name,
-        tov.Task_Status AS task_status,
-        tov.Task_Priority_Rank AS task_priority,
-        tov.Task_Due_Date AS task_due_date
+        t.Task_Status AS task_status,
+        t.Task_Priority_Rank AS task_priority,
+        t.Task_Due_Date AS task_due_date
       FROM Tasks t
-      LEFT JOIN Task_Overview tov ON tov.task_id = t.id
       WHERE id IN (${placeholders})
-      ORDER BY COALESCE(tov.Task_Due_Date, ''), COALESCE(t.Task_Name, ''), t.id
+      ORDER BY COALESCE(t.Task_Due_Date, ''), COALESCE(t.Task_Name, ''), t.id
     `,
   )
 
@@ -3142,28 +3116,28 @@ function getLegacyOpportunityDatabookView(opportunityId) {
       section: prefix,
       label: 'Status',
       value: task.task_status,
-      tableName: 'Task_Overview',
+      tableName: 'Tasks',
       recordId: task.task_id,
       fieldName: 'Task_Status',
-      idColumn: 'task_id',
+      idColumn: 'id',
     })
     addField({
       section: prefix,
       label: 'Priority',
       value: task.task_priority,
-      tableName: 'Task_Overview',
+      tableName: 'Tasks',
       recordId: task.task_id,
       fieldName: 'Task_Priority_Rank',
-      idColumn: 'task_id',
+      idColumn: 'id',
     })
     addField({
       section: prefix,
       label: 'Due Date',
       value: task.task_due_date,
-      tableName: 'Task_Overview',
+      tableName: 'Tasks',
       recordId: task.task_id,
       fieldName: 'Task_Due_Date',
-      idColumn: 'task_id',
+      idColumn: 'id',
     })
   })
 
@@ -6901,17 +6875,35 @@ function createTasksForOpportunity(database, opportunityId, kind, tasks = []) {
     database
       .prepare(
         `
-        INSERT INTO Tasks (id, created_by, Task_Name, created_at, updated_at)
-        VALUES (?, ?, ?, datetime('now'), datetime('now'))
+        INSERT INTO Tasks (
+          id,
+          created_by,
+          Task_Name,
+          Task_Summary,
+          Task_Status,
+          Task_Priority_Rank,
+          Task_Start_Date,
+          Task_Due_Date,
+          Task_End_Date,
+          created_at,
+          updated_at
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
       `,
       )
       .run(
         taskId,
         normalizeNullableString(task?.Task_Creator) || normalizeNullableString(task?.created_by),
         taskName,
+        normalizeNullableString(task?.Task_Summary) ||
+          normalizeNullableString(task?.Task_Description) ||
+          normalizeNullableString(task?.Task_Summary_Text),
+        normalizeTaskStatus(task?.Task_Status || task?.Status) || 'Backlog',
+        normalizeTaskPriorityRank(task?.Task_Priority_Rank || task?.Priority) || 'Mid',
+        normalizeNullableString(task?.Task_Start_Date || task?.Start_Date),
+        normalizeNullableString(task?.Task_Due_Date || task?.Due_Date),
+        normalizeNullableString(task?.Task_End_Date || task?.End_Date),
       )
-    upsertTaskOverview(database, taskId, task)
-    upsertTaskTeam(database, taskId, task)
     database
       .prepare(`INSERT OR IGNORE INTO ${edgeTable} (from_id, to_id) VALUES (?, ?)`)
       .run(taskId, opportunityId)
