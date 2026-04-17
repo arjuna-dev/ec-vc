@@ -675,7 +675,7 @@
 
 <script setup>
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
-import { useQuasar } from 'quasar'
+import { copyToClipboard, useQuasar } from 'quasar'
 import { useRoute, useRouter } from 'vue-router'
 import AddEditRecordShellDialog from 'components/AddEditRecordShellDialog.vue'
 import FileFilterMenu from 'components/FileFilterMenu.vue'
@@ -719,13 +719,11 @@ import { getTokenInputOptions } from 'src/utils/tokenSurfaceContract'
 import { buildTokenUpdateChanges } from 'src/utils/tokenWriteChanges'
 import { buildDialogViews, groupDialogViews, splitDialogViews } from 'src/utils/dialogShellPayload'
 import { buildRecordViewLocation } from 'src/utils/recordViewNavigation'
-import { shareRecordSelection } from 'src/utils/recordListSelectionActions'
 import { loadShellFieldSelectionMap, persistShellFieldSelectionMap } from 'src/utils/shellFieldSelection'
 import { getBuildingBlockGraphCounts, getBuildingBlockGraphLinks } from 'src/utils/buildingBlocks'
 import { setPendingAddEditShellRequest } from 'src/utils/addEditShellState'
 import { setPendingIntakeShellRequest } from 'src/utils/intakeShellState'
 import { removeDraftRegistryEntry, upsertDraftRegistryEntry } from 'src/utils/draftRegistry'
-  import { getTokenMetadataOverride, loadTokenMetadataOverrides, mergeTokenMetadata, persistTokenMetadataOverrides } from 'src/utils/tokenMetadataOverrides'
 
 const props = defineProps({
   shellMode: {
@@ -801,7 +799,6 @@ const bbTileGroupOpenState = ref({})
 const cardItemKeysBySource = ref(loadShellFieldSelectionMap())
 const liveOptionRowsBySource = ref({})
 const localDraftRowsBySource = ref({})
-  const tokenMetaOverridesBySource = ref(loadTokenMetadataOverrides())
   const optionEntityOptions = Object.freeze(
     FILE_SOURCE_REGISTRY
       .map((entry) => {
@@ -979,10 +976,7 @@ const hasActiveSourceLdb = computed(() =>
 
 const fileViews = computed(() => activeFileShellPayload.value.sections)
 const rawFileTokens = computed(() => activeFileShellPayload.value.tokens)
-const fileTokens = computed(() => rawFileTokens.value.map((token) => {
-  const override = getTokenMetadataOverride(tokenMetaOverridesBySource.value, activeContentSourceKey.value, token?.key)
-  return mergeTokenMetadata(token, override)
-}))
+const fileTokens = computed(() => rawFileTokens.value)
 const activeViewKey = ref('')
 const activeFilterViewKey = ref('')
 const activeFilterTokenKey = ref('')
@@ -2022,14 +2016,6 @@ watch(
   { immediate: true },
 )
 
-watch(
-  activeSourceKey,
-  () => {
-    tokenMetaOverridesBySource.value = loadTokenMetadataOverrides()
-  },
-  { immediate: true },
-)
-
   watch(
     [rawRows, isSystemViewActive, viewMode, activeSourceKey],
     async ([rows, isSystem, currentViewMode]) => {
@@ -2635,30 +2621,6 @@ function toggleSelectAllVisible(nextValue) {
     return
   }
   selectedRowIds.value = selectedRowIds.value.filter((id) => !visibleIds.includes(id))
-}
-
-function updateTokenCell(tokenKey, field, value) {
-  const sourceKey = String(activeSourceKey.value || '').trim()
-  const normalizedKey = String(tokenKey || '').trim()
-  if (!sourceKey || !normalizedKey) return
-  const mappedField = field === 'type' ? 'tokenType' : field === 'writeTarget' ? 'dbWriteField' : field
-  if (!mappedField) return
-  const currentBySource = tokenMetaOverridesBySource.value[sourceKey] || {}
-  const currentToken = currentBySource[normalizedKey] || {}
-  const nextValue = String(value ?? '').trim()
-  const nextToken = { ...currentToken }
-  if (nextValue) nextToken[mappedField] = nextValue
-  else delete nextToken[mappedField]
-
-  const nextBySource = { ...currentBySource }
-  if (Object.keys(nextToken).length) nextBySource[normalizedKey] = nextToken
-  else delete nextBySource[normalizedKey]
-
-  tokenMetaOverridesBySource.value = {
-    ...tokenMetaOverridesBySource.value,
-    [sourceKey]: nextBySource,
-  }
-  persistTokenMetadataOverrides(tokenMetaOverridesBySource.value)
 }
 
 function stringifyValue(value) {
@@ -4682,14 +4644,28 @@ function notifyShellAction(label) {
 }
 
 async function handleSelectedRowsShare() {
-  await shareRecordSelection({
-    rows: selectedRows.value,
-    entityLabel: activeRegistryEntry.value?.label || 'Records',
-    singularLabel: activeRegistryEntry.value?.singularLabel || 'record',
-    pluralLabel: activeRegistryEntry.value?.label || 'records',
-    getLabel: (row) => row?.titleValue || row?.recordId || '',
-    notify: (payload) => $q.notify(payload),
-  })
+  const rows = Array.isArray(selectedRows.value) ? selectedRows.value : []
+  if (!rows.length) return
+  const entityLabel = activeRegistryEntry.value?.label || 'Records'
+  const singularLabel = activeRegistryEntry.value?.singularLabel || 'record'
+  const labels = rows
+    .map((row) => row?.titleValue || row?.recordId || '')
+    .map((label) => String(label || '').trim())
+    .filter(Boolean)
+  const text = [ `${rows.length} selected ${entityLabel}`, '', ...labels.map((label) => `- ${label}`) ].join('\n')
+
+  try {
+    await copyToClipboard(text)
+    $q.notify({
+      type: 'positive',
+      message: `Copied ${rows.length} selected ${rows.length === 1 ? singularLabel : entityLabel}.`,
+    })
+  } catch (error) {
+    $q.notify({
+      type: 'negative',
+      message: error?.message || String(error),
+    })
+  }
 }
 
 function handleSelectedRowsEdit() {

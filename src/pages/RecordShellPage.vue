@@ -562,7 +562,6 @@ import { loadShellFieldSelectionMap, persistShellFieldSelectionMap } from 'src/u
 import { buildShellToolbarFeed } from 'src/utils/shellToolbarFeeder'
 import { buildStructureToolbarItems } from 'src/utils/structureToolbarContract'
 import { buildTokenUpdateChanges, tokenSupportsRecordUpdate } from 'src/utils/tokenWriteChanges'
-import { getTokenMetadataOverride, loadTokenMetadataOverrides, mergeTokenMetadata, persistTokenMetadataOverrides } from 'src/utils/tokenMetadataOverrides'
 
 const route = useRoute()
 const router = useRouter()
@@ -593,7 +592,6 @@ const auditEvents = ref([])
 const fieldVerificationStates = ref({})
 const inlineFieldValues = ref({})
 const heroFieldKeysBySource = ref(loadShellFieldSelectionMap())
-const tokenMetaOverridesBySource = ref(loadTokenMetadataOverrides())
 const activeTokenMetaKey = ref('')
 const tokenMetaDrafts = ref({})
 const tableNameParam = computed(() => String(route.params.tableName || '').trim())
@@ -613,10 +611,7 @@ const fileShellPayload = computed(() => {
 })
 const fileViews = computed(() => fileShellPayload.value.sections)
 const rawFileTokens = computed(() => fileShellPayload.value.tokens)
-const fileTokens = computed(() => rawFileTokens.value.map((token) => {
-  const override = getTokenMetadataOverride(tokenMetaOverridesBySource.value, activeSourceKey.value, token?.key)
-  return mergeTokenMetadata(token, override)
-}))
+const fileTokens = computed(() => rawFileTokens.value)
 const governanceViewRows = computed(() =>
   fileViews.value.map((view) => {
     const normalized = String(view.label || '').trim().toLowerCase()
@@ -723,14 +718,6 @@ const tokenGovernanceColumns = computed(() =>
   }),
 )
 
-watch(
-  tokenMetaOverridesBySource,
-  (value) => {
-    persistTokenMetadataOverrides(value)
-  },
-  { deep: true },
-)
-
 function buildTokenMetaDraft(token) {
   return {
     tokenType: String(token?.tokenType || '').trim(),
@@ -779,65 +766,15 @@ function updateTokenMetaDraftValue(token, field, value) {
   }
 }
 
-function commitTokenMeta(token) {
-  const key = String(token?.key || '').trim()
-  const sourceKey = String(activeSourceKey.value || '').trim()
-  if (!key || !sourceKey) return
-  const draft = tokenMetaDrafts.value[key] || {}
-  const nextOverride = {}
-  ;['tokenType', 'optionSource', 'optionEntity', 'optionList', 'dbWriteField', 'fieldClass'].forEach((field) => {
-    const value = String(draft?.[field] ?? '').trim()
-    if (value) nextOverride[field] = value
-  })
-  const currentBySource = tokenMetaOverridesBySource.value[sourceKey] || {}
-  const nextBySource = { ...currentBySource }
-  if (Object.keys(nextOverride).length) {
-    nextBySource[key] = nextOverride
-  } else {
-    delete nextBySource[key]
-  }
-  tokenMetaOverridesBySource.value = {
-    ...tokenMetaOverridesBySource.value,
-    [sourceKey]: nextBySource,
-  }
+function commitTokenMeta() {
   closeTokenMetaEditor()
 }
 
-function updateTokenCell(tokenKey, field, value) {
-  const sourceKey = String(activeSourceKey.value || '').trim()
-  const normalizedKey = String(tokenKey || '').trim()
-  if (!sourceKey || !normalizedKey) return
-  const mappedField = field === 'type' ? 'tokenType' : field === 'writeTarget' ? 'dbWriteField' : field
-  if (!mappedField) return
-  const currentBySource = tokenMetaOverridesBySource.value[sourceKey] || {}
-  const currentToken = currentBySource[normalizedKey] || {}
-  const nextValue = String(value ?? '').trim()
-  const nextToken = { ...currentToken }
-  if (nextValue) nextToken[mappedField] = nextValue
-  else delete nextToken[mappedField]
-
-  const nextBySource = { ...currentBySource }
-  if (Object.keys(nextToken).length) nextBySource[normalizedKey] = nextToken
-  else delete nextBySource[normalizedKey]
-
-  tokenMetaOverridesBySource.value = {
-    ...tokenMetaOverridesBySource.value,
-    [sourceKey]: nextBySource,
-  }
+function updateTokenCell() {
+  return
 }
 
-function resetTokenMeta(token) {
-  const key = String(token?.key || '').trim()
-  const sourceKey = String(activeSourceKey.value || '').trim()
-  if (!key || !sourceKey) return
-  const currentBySource = tokenMetaOverridesBySource.value[sourceKey] || {}
-  if (!currentBySource[key]) return
-  const nextBySource = { ...currentBySource }
-  delete nextBySource[key]
-  tokenMetaOverridesBySource.value = {
-    ...tokenMetaOverridesBySource.value,
-    [sourceKey]: nextBySource,
-  }
+function resetTokenMeta() {
   closeTokenMetaEditor()
 }
 

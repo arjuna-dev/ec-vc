@@ -283,7 +283,7 @@
 
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
-import { useQuasar } from 'quasar'
+import { copyToClipboard, useQuasar } from 'quasar'
 import DialogShellTitleRow from 'src/components/DialogShellTitleRow.vue'
 import RecordTitle from 'src/components/RecordTitle.vue'
 import FileShellControlBar from 'src/components/FileShellControlBar.vue'
@@ -293,7 +293,6 @@ import { buildTokenGovernanceColumns } from 'src/utils/structureGovernanceColumn
 import { buildShellToolbarFeed } from 'src/utils/shellToolbarFeeder'
 import { buildStructureToolbarItems } from 'src/utils/structureToolbarContract'
 import { splitDialogViews } from 'src/utils/dialogShellPayload'
-import { shareRecordSelection } from 'src/utils/recordListSelectionActions'
 import {
   buildFileShellPayload,
   getCanonicalTokenFieldNames,
@@ -927,14 +926,28 @@ function toggleSelectAllVisible(nextValue) {
 }
 
 async function handleSelectedRowsShare() {
-  await shareRecordSelection({
-    rows: selectedDataRows.value,
-    entityLabel: activeRegistryEntry.value?.label || 'Records',
-    singularLabel: activeRegistryEntry.value?.singularLabel || 'record',
-    pluralLabel: activeRegistryEntry.value?.label || 'records',
-    getLabel: (row) => row?.[titleToken.value?.key] || row?.key || '',
-    notify: (payload) => $q.notify(payload),
-  })
+  const rows = Array.isArray(selectedDataRows.value) ? selectedDataRows.value : []
+  if (!rows.length) return
+  const entityLabel = activeRegistryEntry.value?.label || 'Records'
+  const singularLabel = activeRegistryEntry.value?.singularLabel || 'record'
+  const labels = rows
+    .map((row) => row?.[titleToken.value?.key] || row?.key || '')
+    .map((label) => String(label || '').trim())
+    .filter(Boolean)
+  const text = [ `${rows.length} selected ${entityLabel}`, '', ...labels.map((label) => `- ${label}`) ].join('\n')
+
+  try {
+    await copyToClipboard(text)
+    $q.notify({
+      type: 'positive',
+      message: `Copied ${rows.length} selected ${rows.length === 1 ? singularLabel : entityLabel}.`,
+    })
+  } catch (error) {
+    $q.notify({
+      type: 'negative',
+      message: error?.message || String(error),
+    })
+  }
 }
 
 async function handleSelectedRowsDelete() {
