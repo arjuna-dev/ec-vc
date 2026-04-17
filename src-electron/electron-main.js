@@ -9,7 +9,6 @@ import isEmail from 'validator/lib/isEmail.js'
 import { app, BrowserWindow, clipboard, dialog, ipcMain, shell } from 'electron'
 import { createProjectStructure, DEFAULT_PROJECT_ROOT_NAME } from './services/project-structure.js'
 import { closeDb, dbAll, dbRun, getDbInfo, initDb } from './services/sqlite-db.js'
-import { mirrorPipelineToFs, removePipelineFromFs } from './services/pipeline-mirror.js'
 import { ingestArtifactsFromPaths } from './services/artifact-ingestion.js'
 import { getArtifactRawPath } from './services/workspace-structure.js'
 import { previewAutofillFromFiles } from './services/autofill-extraction.js'
@@ -81,17 +80,6 @@ function compareWorkspaceEntries(a, b, orderMap = null) {
   return a.name.localeCompare(b.name)
 }
 
-function toDirName(value, fallback = 'project') {
-  return (
-    String(value || '')
-      .trim()
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '_')
-      .replace(/^_+|_+$/g, '')
-      .slice(0, 80) || fallback
-  )
-}
-
 async function ensureWorkspace() {
   const database = initDb()
   const overrideRoot = normalizeNullableString(getAppSetting(database, APP_SETTING_KEYS.workspaceRoot))
@@ -111,28 +99,15 @@ function listPipelines() {
       p.created_by,
       p.created_at,
       p.updated_at,
-      CASE WHEN p.id = 'pipeline_default' THEN 1 ELSE 0 END AS is_default, 
       po.install_status, 
-      po.install_error,
-      json_group_array(
-        json_object(
-          'stage_id', s.stage_id,
-          'name', s.name,
-          'position', s.position,
-          'is_terminal', s.is_terminal
-        )
-      ) AS stages
+      po.install_error
     FROM Projects p
     LEFT JOIN Project_Overview po ON po.project_id = p.id
-    LEFT JOIN Project_Stages s ON p.id = s.project_id
-    GROUP BY p.id
-    ORDER BY CASE WHEN p.id = 'pipeline_default' THEN 1 ELSE 0 END DESC, p.Project_Name ASC
+    ORDER BY p.Project_Name ASC
     `,
   ).map((row) => ({
     ...row,
-    pipeline_id: row.id,
     name: row.Project_Name,
-    dir_name: toDirName(row.Project_Name, 'pipeline'),
   }))
 }
 
@@ -226,144 +201,11 @@ function createPipeline(payload = {}) {
       `,
       )
       .run(pipelineId)
-
-    const providedStages = Array.isArray(payload.stages) ? payload.stages : []
-    const stageLabels =
-      providedStages.length > 0
-        ? providedStages
-            .map((s) => String(s || '').trim())
-            .filter(Boolean)
-            .slice(0, 50)
-        : [
-            'Thesis alignment',
-            'Team analysis',
-            'Investment committee',
-            'Due diligence',
-            'Closing documents',
-          ]
-
-    const insertStage = database.prepare(
-      `
-      INSERT INTO Project_Stages (stage_id, project_id, name, position, is_terminal)
-      VALUES (?, ?, ?, ?, ?)
-    `,
-    )
-
-    function stageDirName(index, label) {
-      const t = String(label || '').trim()
-      if (/^\d+_/.test(t)) return t
-      const slug = t
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, '_')
-        .replace(/^_+|_+$/g, '')
-        .slice(0, 80)
-      return `${index + 1}_${slug || 'stage'}`
-    }
-
-    for (let i = 0; i < stageLabels.length; i += 1) {
-      const stageId = `${pipelineId}:stage_${i + 1}`
-      insertStage.run(
-        stageId,
-        pipelineId,
-        stageDirName(i, stageLabels[i]),
-        i + 1,
-        i === stageLabels.length - 1 ? 1 : 0,
-      )
-    }
   })
 
   tx()
 
-  return { id: pipelineId, pipeline_id: pipelineId }
-}
-
-async function installPipeline(pipelineId) {
-  const workspace = await ensureWorkspace()
-
-  const pipeline = dbAll(
-    `
-    SELECT
-      p.id AS pipeline_id,
-      p.Project_Name AS name,
-      po.install_status
-    FROM Projects p
-    LEFT JOIN Project_Overview po ON po.project_id = p.id
-    WHERE p.id = ?
-    LIMIT 1
-  `,
-    [pipelineId],
-  )?.[0]
-  if (!pipeline) throw new Error(`Unknown pipeline: ${pipelineId}`)
-  if (pipeline.install_status === 'installed') return { ok: true }
-
-  const dirName = toDirName(pipeline.name, 'pipeline')
-
-  dbRun(
-    "UPDATE Project_Overview SET install_status = 'installing', install_error = NULL, updated_at = datetime('now') WHERE project_id = ?",
-    [pipelineId],
-  )
-
-  const stages = dbAll(
-    'SELECT name FROM Project_Stages WHERE project_id = ? ORDER BY position ASC',
-    [pipelineId],
-  ).map((r) => r.name)
-
-  try {
-    await mirrorPipelineToFs(workspace.rootPath, dirName, stages)
-    dbRun(
-      "UPDATE Project_Overview SET install_status = 'installed', installed_at = datetime('now'), updated_at = datetime('now') WHERE project_id = ?",
-      [pipelineId],
-    )
-    return { ok: true }
-  } catch (e) {
-    dbRun(
-      "UPDATE Project_Overview SET install_status = 'error', install_error = ?, updated_at = datetime('now') WHERE project_id = ?",
-      [e?.message || String(e), pipelineId],
-    )
-    throw e
-  }
-}
-
-async function uninstallPipeline(pipelineId) {
-  const workspace = await ensureWorkspace()
-
-  const pipeline = dbAll(
-    `
-    SELECT
-      p.id AS pipeline_id,
-      p.Project_Name AS name,
-      po.install_status
-    FROM Projects p
-    LEFT JOIN Project_Overview po ON po.project_id = p.id
-    WHERE p.id = ?
-    LIMIT 1
-  `,
-    [pipelineId],
-  )?.[0]
-  if (!pipeline) throw new Error(`Unknown pipeline: ${pipelineId}`)
-  if (pipeline.install_status === 'not_installed') return { ok: true }
-
-  const dirName = toDirName(pipeline.name, 'pipeline')
-
-  dbRun(
-    "UPDATE Project_Overview SET install_status = 'uninstalling', install_error = NULL, updated_at = datetime('now') WHERE project_id = ?",
-    [pipelineId],
-  )
-
-  try {
-    await removePipelineFromFs(workspace.rootPath, dirName)
-    dbRun(
-      "UPDATE Project_Overview SET install_status = 'not_installed', updated_at = datetime('now') WHERE project_id = ?",
-      [pipelineId],
-    )
-    return { ok: true }
-  } catch (e) {
-    dbRun(
-      "UPDATE Project_Overview SET install_status = 'error', install_error = ?, updated_at = datetime('now') WHERE project_id = ?",
-      [e?.message || String(e), pipelineId],
-    )
-    throw e
-  }
+  return { id: pipelineId }
 }
 
 function listCompanies() {
@@ -8417,19 +8259,6 @@ function upsertOpportunities(rows = []) {
         upsertFundSubtype(database, opportunityId, r)
       }
 
-      database
-        .prepare(
-          `
-          INSERT OR IGNORE INTO Opportunity_Pipeline (
-            opportunity_id,
-            pipeline_id,
-            stage_id,
-            status
-          ) VALUES (?, 'pipeline_default', 'stage_thesis_alignment', 'active')
-        `,
-        )
-        .run(opportunityId)
-
       if (exists) updated++
       else inserted++
     }
@@ -8576,16 +8405,6 @@ function registerIpc() {
     return { projects: listPipelines() }
   })
 
-  ipcMain.handle('projects:install', async (_event, { projectId, pipelineId } = {}) => {
-    initDb()
-    return installPipeline(String(projectId || pipelineId || ''))
-  })
-
-  ipcMain.handle('projects:uninstall', async (_event, { projectId, pipelineId } = {}) => {
-    initDb()
-    return uninstallPipeline(String(projectId || pipelineId || ''))
-  })
-
   ipcMain.handle('projects:upsertMany', async (_event, { rows } = {}) => {
     initDb()
     const result = upsertPipelines(rows)
@@ -8605,7 +8424,6 @@ function registerIpc() {
     initDb()
     const pid = String(projectId || pipelineId || '')
     if (!pid) throw new Error('pipelineId is required')
-    if (pid === 'pipeline_default') throw new Error('Cannot delete the default pipeline')
     auditDeletedRecord('Projects', pid)
     const result = deleteRow('Projects', 'id', pid)
     await syncWorkspaceWorkbooksSafe()

@@ -59,8 +59,6 @@ const api = {
   },
   projects: {
     list: () => ipcRenderer.invoke('projects:list'),
-    install: (projectId) => ipcRenderer.invoke('projects:install', { projectId }),
-    uninstall: (projectId) => ipcRenderer.invoke('projects:uninstall', { projectId }),
     upsertMany: (rows) => ipcRenderer.invoke('projects:upsertMany', { rows }),
     create: (payload) => ipcRenderer.invoke('projects:create', payload),
     delete: (projectId) => ipcRenderer.invoke('projects:delete', { projectId }),
