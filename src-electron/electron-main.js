@@ -1070,34 +1070,34 @@ function listCompanionRoles() {
 }
 
 const BASE_FILE_TOKEN_FIELDS = Object.freeze({
-  'file-system': { nameField: 'File_Name', summaryField: 'File_Summary' },
-  companion: { nameField: '', summaryField: '' },
-  companies: { nameField: 'Company_Name', summaryField: 'One_Liner' },
-  contacts: { nameField: 'Name', summaryField: '' },
-  users: { nameField: 'User_Name', summaryField: '' },
-  notes: { nameField: 'Note_Name', summaryField: 'Note_Content' },
-  tasks: { nameField: 'Task_Name', summaryField: 'Task_Summary' },
-  projects: { nameField: 'Project_Name', summaryField: '' },
-  artifacts: { nameField: 'title', summaryField: '' },
-  opportunities: { nameField: 'Venture_Oppty_Name', summaryField: '' },
-  funds: { nameField: 'Fund_Name', summaryField: '' },
-  rounds: { nameField: 'Round_Name', summaryField: '' },
-  markets: { nameField: 'Market_Name', summaryField: 'Market_Summary' },
-  securities: { nameField: 'Security_Name', summaryField: 'Security_Summary' },
-  events: { nameField: 'Event_Name', summaryField: 'Event_Summary' },
-  'bb-file': { nameField: 'Name', summaryField: 'Summary' },
-  intake: { nameField: 'Intake_Name', summaryField: '' },
-  'user-roles': { nameField: 'Role_Name', summaryField: 'Role_Summary' },
-  'companion-roles': { nameField: 'Companion_Role_Name', summaryField: 'Companion_Role_Summary' },
+  'file-system': { nameField: 'File_Name', definitionField: 'File_Summary' },
+  companion: { nameField: '', definitionField: '' },
+  companies: { nameField: 'Company_Name', definitionField: 'One_Liner' },
+  contacts: { nameField: 'Name', definitionField: '' },
+  users: { nameField: 'User_Name', definitionField: '' },
+  notes: { nameField: 'Note_Name', definitionField: 'Note_Content' },
+  tasks: { nameField: 'Task_Name', definitionField: 'Task_Summary' },
+  projects: { nameField: 'Project_Name', definitionField: '' },
+  artifacts: { nameField: 'title', definitionField: '' },
+  opportunities: { nameField: 'Venture_Oppty_Name', definitionField: '' },
+  funds: { nameField: 'Fund_Name', definitionField: '' },
+  rounds: { nameField: 'Round_Name', definitionField: '' },
+  markets: { nameField: 'Market_Name', definitionField: 'Market_Summary' },
+  securities: { nameField: 'Security_Name', definitionField: 'Security_Summary' },
+  events: { nameField: 'Event_Name', definitionField: 'Event_Summary' },
+  'bb-file': { nameField: 'Name', definitionField: 'Summary' },
+  intake: { nameField: 'Intake_Name', definitionField: '' },
+  'user-roles': { nameField: 'Role_Name', definitionField: 'Role_Summary' },
+  'companion-roles': { nameField: 'Companion_Role_Name', definitionField: 'Companion_Role_Summary' },
 })
 
 function buildBaseFileStructure(entry) {
   const sourceKey = String(entry?.key || '').trim().toLowerCase()
-  const mapping = BASE_FILE_TOKEN_FIELDS[sourceKey] || { nameField: '', summaryField: '' }
+  const mapping = BASE_FILE_TOKEN_FIELDS[sourceKey] || { nameField: '', definitionField: '' }
   const nameField = String(mapping.nameField || '').trim()
-  const summaryField = String(mapping.summaryField || '').trim()
+  const definitionField = String(mapping.definitionField || '').trim()
   const nameTokenName = nameField || 'Name'
-  const summaryTokenName = summaryField || 'Summary'
+  const definitionTokenName = definitionField || 'Definition'
   const makeWriteTarget = (fieldName) => ({ dbWriteField: fieldName })
 
   return {
@@ -1147,8 +1147,8 @@ function buildBaseFileStructure(entry) {
             defaultVerificationSource: 'system_defined',
           },
           {
-            key: 'System_Status',
-            tokenName: 'System_Status',
+            key: 'System.Status',
+            tokenName: 'System.Status',
             tokenRole: 'status',
             tokenOrder: '3',
             address: '',
@@ -1192,19 +1192,19 @@ function buildBaseFileStructure(entry) {
             defaultVerificationState: 'Input',
             defaultVerificationSource: 'system_defined',
           },
-            {
-              key: summaryTokenName,
-              tokenName: summaryTokenName,
-              tokenRole: 'summary',
+          {
+            key: definitionTokenName,
+            tokenName: definitionTokenName,
+            tokenRole: 'definition',
               tokenOrder: '2',
             address: '',
-            label: 'Summary',
+            label: 'Definition',
             tokenType: 'text',
             optionSource: '',
             optionEntity: '',
             optionList: '',
             optionEntities: [],
-              ...makeWriteTarget(summaryField),
+              ...makeWriteTarget(definitionField),
               relationshipGroup: '',
               definition: '',
               defaultVerificationState: 'Input',
@@ -1215,14 +1215,6 @@ function buildBaseFileStructure(entry) {
       {
         key: `${sourceKey}-ldb`,
         label: 'LDB',
-        address: '',
-        structureToken: '',
-        displayGroup: '',
-        tokens: [],
-      },
-      {
-        key: `${sourceKey}-other`,
-        label: 'Other',
         address: '',
         structureToken: '',
         displayGroup: '',
@@ -1598,7 +1590,7 @@ function buildFilesAcceptanceValidation(rows = []) {
             fileId: String(row?.id || '').trim(),
             field: 'Structure',
             issue: 'Structure is missing the General section.',
-            suggestedAction: 'Restore the General section with Name + Summary tokens.',
+            suggestedAction: 'Restore the General section with Name + Definition tokens.',
           })
         } else {
           const generalTokens = Array.isArray(generalSection.tokens) ? generalSection.tokens : []
@@ -1612,14 +1604,14 @@ function buildFilesAcceptanceValidation(rows = []) {
               suggestedAction: 'Restore the Name token in the General section.',
             })
           }
-          if (!tokenHasRole(generalTokens, 'summary')) {
+          if (!tokenHasRole(generalTokens, 'definition')) {
             addIssue({
               severity: 'error',
               sourceKey,
               fileId: String(row?.id || '').trim(),
               field: 'Structure',
-              issue: 'General section is missing the Summary token (tokenRole: summary).',
-              suggestedAction: 'Restore the Summary token in the General section.',
+              issue: 'General section is missing the Definition token (tokenRole: definition).',
+              suggestedAction: 'Restore the Definition token in the General section.',
             })
           }
         }
