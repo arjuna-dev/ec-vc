@@ -676,6 +676,7 @@ import { buildStructureToolbarItems } from 'src/utils/structureToolbarContract'
     getRegistryDefinitionTokenForSource,
     getRegistryTitleTokenForSource,
     getRuntimeStructureVersion,
+    setRuntimeFileStructures,
     subscribeRuntimeFileStructures,
     getRuntimeTableNameForEntityName,
   getCanonicalTokenFieldNames,
@@ -2180,6 +2181,9 @@ async function loadRows() {
     const rows = Array.isArray(result?.[loader.resultKey]) ? result[loader.resultKey] : []
     rawRows.value = rows.filter((row) => row && typeof row === 'object')
     loaderDiagnostics.value = result && typeof result === 'object' ? result : {}
+    if (activeSourceKey.value === 'file-system') {
+      setRuntimeFileStructures(rawRows.value)
+    }
   } catch (loadError) {
     error.value = loadError?.message || `Could not load ${activeRegistryEntry.value?.label || 'records'}.`
   } finally {
