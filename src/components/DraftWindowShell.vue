@@ -293,7 +293,7 @@ import { buildTokenGovernanceColumns } from 'src/utils/structureGovernanceColumn
 import { buildShellToolbarFeed } from 'src/utils/shellToolbarFeeder'
 import { buildStructureToolbarItems } from 'src/utils/structureToolbarContract'
 import { splitSurfaceSections } from 'src/utils/shellViewLayout'
-import { getFileRecordLoader } from 'src/utils/fileRecordLoaders'
+import { getFileRecordLoader, loadFileRecordRows } from 'src/utils/fileRecordLoaders'
 import {
   buildFileShellPayload,
   getCanonicalTokenFieldNames,
@@ -1392,12 +1392,11 @@ async function loadRows() {
 
   loading.value = true
   try {
-    const result = await loader.listFn(bridgeValue)
-    const rows = Array.isArray(result?.[loader.resultKey]) ? result[loader.resultKey] : []
-    rawRowsBySource.value = {
-      ...rawRowsBySource.value,
-      [sourceKey]: rows,
-    }
+    rawRowsBySource.value = await loadFileRecordRows({
+      sourceKey,
+      bridgeValue,
+      currentRowsBySource: rawRowsBySource.value,
+    })
   } catch (loadError) {
     rawRowsBySource.value = {
       ...rawRowsBySource.value,
@@ -1411,12 +1410,11 @@ async function loadRows() {
 
 async function loadRowsForSource(sourceKey = '') {
   const normalizedSourceKey = String(sourceKey || '').trim()
-  const loader = getFileRecordLoader(normalizedSourceKey)
   const bridgeValue = bridge.value
 
   if (!normalizedSourceKey) return []
 
-  if (!loader || !bridgeValue) {
+  if (!getFileRecordLoader(normalizedSourceKey) || !bridgeValue) {
     rawRowsBySource.value = {
       ...rawRowsBySource.value,
       [normalizedSourceKey]: [],
@@ -1424,21 +1422,12 @@ async function loadRowsForSource(sourceKey = '') {
     return []
   }
 
-  try {
-    const result = await loader.listFn(bridgeValue)
-    const rows = Array.isArray(result?.[loader.resultKey]) ? result[loader.resultKey] : []
-    rawRowsBySource.value = {
-      ...rawRowsBySource.value,
-      [normalizedSourceKey]: rows,
-    }
-    return rows
-  } catch {
-    rawRowsBySource.value = {
-      ...rawRowsBySource.value,
-      [normalizedSourceKey]: [],
-    }
-    return []
-  }
+  rawRowsBySource.value = await loadFileRecordRows({
+    sourceKey: normalizedSourceKey,
+    bridgeValue,
+    currentRowsBySource: rawRowsBySource.value,
+  })
+  return Array.isArray(rawRowsBySource.value[normalizedSourceKey]) ? rawRowsBySource.value[normalizedSourceKey] : []
 }
 
 function handleGlobalPointerDown(event) {
