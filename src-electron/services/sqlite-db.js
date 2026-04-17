@@ -79,8 +79,23 @@ function maybeRecreateDb(dbPath) {
     hasTable(probe, 'databook_snapshots') &&
     hasColumn(probe, 'Projects', 'Project_Name') &&
     hasColumn(probe, 'Companies', 'created_by') &&
+    hasColumn(probe, 'Companies', 'Summary') &&
     hasColumn(probe, 'Rounds', 'Round_Name') &&
+    hasColumn(probe, 'Rounds', 'Summary') &&
+    hasColumn(probe, 'Rounds', 'Raising_Status') &&
+    hasColumn(probe, 'Rounds', 'Target_Size') &&
+    hasColumn(probe, 'Rounds', 'Committed_Amounts') &&
+    hasColumn(probe, 'Rounds', 'Close_Date') &&
+    hasColumn(probe, 'Rounds', 'Type_of_Security') &&
+    hasColumn(probe, 'Rounds', 'Pre_Valuation') &&
+    hasColumn(probe, 'Rounds', 'Post_Valuation') &&
+    hasColumn(probe, 'Rounds', 'Previous_Post_Valuation') &&
     hasColumn(probe, 'Funds', 'Fund_Name') &&
+    hasColumn(probe, 'Funds', 'Summary') &&
+    hasColumn(probe, 'Funds', 'Raising_Status') &&
+    hasColumn(probe, 'Funds', 'Target_Size') &&
+    hasColumn(probe, 'Funds', 'Committed_Amounts') &&
+    hasColumn(probe, 'Funds', 'Close_Date') &&
     hasColumn(probe, 'Users', 'User_PEmail') &&
     hasColumn(probe, 'Contacts', 'Personal_Email') &&
     hasColumn(probe, 'Contacts', 'Professional_Email') &&
