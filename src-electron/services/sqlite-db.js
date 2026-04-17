@@ -81,9 +81,6 @@ function maybeRecreateDb(dbPath) {
   const hasCurrentSchema =
     hasTable(probe, 'Projects') &&
     hasTable(probe, 'Project_Overview') &&
-    hasTable(probe, 'Project_Stages') &&
-    hasTable(probe, 'Round_Pipeline') &&
-    hasTable(probe, 'Fund_Pipeline') &&
     hasTable(probe, 'Rounds') &&
     hasTable(probe, 'Funds') &&
     hasTable(probe, 'Round_Overview') &&
@@ -92,7 +89,6 @@ function maybeRecreateDb(dbPath) {
     hasTable(probe, 'databook_snapshots') &&
     hasColumn(probe, 'Projects', 'Project_Name') &&
     hasColumn(probe, 'Project_Overview', 'install_status') &&
-    hasColumn(probe, 'Project_Stages', 'project_id') &&
     hasColumn(probe, 'Companies', 'created_by') &&
     hasColumn(probe, 'Rounds', 'Round_Name') &&
     hasColumn(probe, 'Funds', 'Fund_Name') &&
