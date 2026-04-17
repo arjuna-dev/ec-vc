@@ -1047,7 +1047,7 @@ async function ensureLiveOptionsLoaded() {
     }
   }
   for (const sourceKey of sourceKeys) {
-    liveOptionRowsBySource.value = await loadFileRecordRows({
+    await loadFileRecordRows({
       sourceKey,
       bridgeValue: bridge.value,
       currentRowsBySource: liveOptionRowsBySource.value,
@@ -1055,7 +1055,7 @@ async function ensureLiveOptionsLoaded() {
     })
   }
 
-  liveOptionRowsBySource.value = await hydrateFileRecordUniverseFromSystemFiles({
+  await hydrateFileRecordUniverseFromSystemFiles({
     bridgeValue: bridge.value,
     currentRowsBySource: liveOptionRowsBySource.value,
     skipSourceKey: activeSourceKey.value,
@@ -1356,7 +1356,7 @@ async function loadRecordView() {
     currentView.value = result || null
     fields.value = Array.isArray(result?.fields) ? result.fields : []
     if (!Array.isArray(liveOptionRowsBySource.value.users)) {
-      liveOptionRowsBySource.value = await loadFileRecordRows({
+      await loadFileRecordRows({
         sourceKey: 'users',
         bridgeValue: bridge.value,
         currentRowsBySource: liveOptionRowsBySource.value,

@@ -30,7 +30,6 @@ const routes = [
       { path: 'tasks', name: 'tasks', component: () => import('pages/FilesPage.vue') },
       { path: 'test-shell', name: 'test-shell', component: () => import('pages/TestShellPage.vue') },
       { path: 'record-shell', name: 'record-shell', component: () => import('pages/RecordShellPage.vue') },
-      { path: 'fork-shell', name: 'fork-shell', component: () => import('pages/ForkShellPage.vue') },
       { path: 'building-blocks', redirect: { name: 'bb-file' } },
       { path: 'draft-window', name: 'draft-window', component: () => import('pages/DraftWindowPage.vue') },
       { path: 'intake-shell', name: 'intake-shell', component: () => import('pages/IntakeShellPage.vue') },

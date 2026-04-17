@@ -14,13 +14,6 @@
           />
         </div>
 
-        <div v-if="isForkShellRoute" class="ec-shell-toolbar-center">
-          <ShellOpenDialogButton
-            :kind="isForkShellRoute ? 'fork' : 'record'"
-            @click="reopenActiveRouteShellFromHeader"
-          />
-        </div>
-
         <q-toolbar-title class="ec-shell-toolbar-title">
           <div v-if="toolbarActions.length" class="ec-shell-toolbar-actions">
             <template v-for="action in toolbarActions" :key="action.id">
@@ -327,7 +320,6 @@ import widgetToAnimationData from 'src/assets/lottie/widget-to.json'
 import MainMenuRow from 'src/components/MainMenuRow.vue'
 import MainMenuGroupRow from 'src/components/MainMenuGroupRow.vue'
 import MainMenuIconButton from 'src/components/buttons/MainMenuIconButton.vue'
-import ShellOpenDialogButton from 'src/components/ShellOpenDialogButton.vue'
 import FileShellTitleRow from 'src/components/FileShellTitleRow.vue'
 import WidgetSettingsMenu from 'src/components/WidgetSettingsMenu.vue'
 import B10Logo from 'src/components/B10Logo.vue'
@@ -338,7 +330,6 @@ import { useBreadcrumbActionsState } from 'src/utils/breadcrumbActionsState'
 import { RECORD_VIEW_ROUTE_NAME } from 'src/utils/recordViewNavigation'
 import {
   getCreateBranchEntry,
-  getCreateBranches,
   getFilePageRegistryEntry,
   setRuntimeFileStructures,
   TEST_SHELL_SECTION_OPTIONS,
@@ -422,7 +413,6 @@ const testShellNavigationItems = [
   { label: 'Record Shell', to: '/record-shell?section=tasks', exact: true, icon: 'album' },
   { label: 'PMP Window', to: '/draft-window?section=file-system', exact: true, icon: 'design_services' },
   { label: 'Intake Shell', to: '/intake-shell', exact: true, icon: 'hourglass_top' },
-  { label: 'Fork Shell', to: '/fork-shell', exact: true, icon: 'call_split' },
 ].map((item) => ({
   ...item,
   itemClass: 'ec-nav-item--secondary ec-nav-item--shell-child',
@@ -446,7 +436,6 @@ const routeLabelByName = {
   tasks: 'Tasks',
   'test-shell': 'File Shell',
   'record-shell': 'Record Shell',
-  'fork-shell': 'Fork Shell',
   'draft-window': 'PMP Window',
   'intake-shell': 'Intake Shell',
   'user-roles': 'User Roles',
@@ -579,7 +568,6 @@ const developerHoverStyle = computed(() => ({
   top: `${developerHoverPosition.value.y}px`,
 }))
 const isSelectableShellRoute = computed(() => ['test-shell', 'record-shell'].includes(String(route.name || '')))
-const isForkShellRoute = computed(() => String(route.name || '') === 'fork-shell')
 const shellSectionOptions = TEST_SHELL_SECTION_OPTIONS
 const selectedShellSection = computed({
   get() {
@@ -597,13 +585,6 @@ const selectedShellSection = computed({
     })
   },
 })
-
-function reopenActiveRouteShellFromHeader() {
-  if (typeof window === 'undefined') return
-  if (isForkShellRoute.value) {
-    window.dispatchEvent(new CustomEvent('ecvc:reopen-fork-shell'))
-  }
-}
 
 const quickWidgetStyle = computed(() => ({
   left: `${quickWidgetPosition.value.x}px`,
@@ -1426,16 +1407,6 @@ async function openRoundFromQuickAction() {
     const requestedBranch = String(extraQuery?.kind || '').trim().toLowerCase()
     const targetEntry = getFilePageRegistryEntry(sourceKey)
     if (!targetEntry) return
-    if (!requestedBranch && getCreateBranches(sourceKey).length) {
-      await router.push({
-        name: 'fork-shell',
-        query: {
-          section: sourceKey,
-        returnTo: route.fullPath,
-      },
-    })
-    return
-  }
     if (requestedBranch && getCreateBranchEntry(sourceKey, requestedBranch)) {
       await router.push({
         name: 'draft-window',
@@ -1641,13 +1612,7 @@ function resolveBreadcrumbActionDisabled(action) {
 }
 
 function handleDrawerItemClick(item) {
-  const itemTarget = String(item?.to || '').trim()
-  const routeName = String(route.name || '').trim()
-  if (typeof window === 'undefined' || typeof window.dispatchEvent !== 'function') return
-  if (itemTarget === '/fork-shell' && routeName === 'fork-shell') {
-    window.dispatchEvent(new CustomEvent('ecvc:reopen-fork-shell'))
-    return
-  }
+  void item
 }
 
 function goBack() {
