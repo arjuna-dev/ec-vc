@@ -215,15 +215,15 @@
             <q-card-section class="home-dashboard__stack">
               <div class="home-dashboard__progress-block">
                 <div class="home-dashboard__progress-label">
-                  <span>Pipeline activation</span>
-                  <strong>{{ installedPipelinesCount }}/{{ pipelinesCount }}</strong>
+                  <span>Project coverage</span>
+                  <strong>{{ activeProjectsCount }}/{{ projectsCount }}</strong>
                 </div>
                 <q-linear-progress
                   rounded
                   size="10px"
                   color="orange-8"
                   track-color="grey-3"
-                  :value="pipelineActivationRatio"
+                  :value="projectCoverageRatio"
                 />
               </div>
 
@@ -379,7 +379,7 @@ const collectionConfigs = [
       ),
   },
   {
-    key: 'pipelines',
+    key: 'projects',
     label: 'Projects',
     icon: 'schema',
     to: '/projects',
@@ -444,7 +444,7 @@ const contacts = computed(() => collections.value.contacts || [])
 const funds = computed(() => collections.value.funds || [])
 const rounds = computed(() => collections.value.rounds || [])
 const opportunities = computed(() => [...funds.value, ...rounds.value])
-const pipelines = computed(() => collections.value.pipelines || [])
+const projects = computed(() => collections.value.projects || [])
 const artifacts = computed(() => collections.value.artifacts || [])
 const notes = computed(() => collections.value.notes || [])
 const tasks = computed(() => collections.value.tasks || [])
@@ -455,7 +455,9 @@ const contactsCount = computed(() => contacts.value.length)
 const opportunitiesCount = computed(() => opportunities.value.length)
 const fundsCount = computed(() => funds.value.length)
 const roundsCount = computed(() => rounds.value.length)
-const projectsCount = computed(() => pipelines.value.length)
+const projectsCount = computed(() => projects.value.length)
+const activeProjectsCount = computed(() => projects.value.filter((row) => String(row?.Status || '').trim()).length)
+const projectCoverageRatio = computed(() => ratio(activeProjectsCount.value, projectsCount.value))
 const artifactsCount = computed(() => artifacts.value.length)
 const notesCount = computed(() => notes.value.length)
 const tasksCount = computed(() => tasks.value.length)
@@ -531,7 +533,7 @@ const activityItems = computed(() => [
       icon: 'work',
       to: '/opportunities',
     })),
-    ...pipelines.value.map((row) => ({
+    ...projects.value.map((row) => ({
       key: `projects-${row.id}`,
       title: row.Project_Name || 'Untitled project',
       subtitle: 'Project',
@@ -629,7 +631,7 @@ const workspaceCoverage = computed(() => [
   },
   {
     label: 'Notes linked to records',
-    caption: 'Notes connected to companies, contacts, pipelines, or opportunities',
+    caption: 'Notes connected to companies, contacts, projects, or opportunities',
     value: linkedNotesCount.value,
   },
 ])
@@ -656,7 +658,7 @@ const summaryCards = computed(() => [
     helper: `${countWithAnyValue(rounds.value, ['Round_Stage', 'Investment_Ask'])} with round data`,
   },
   {
-    ...collectionConfigByKey.pipelines,
+    ...collectionConfigByKey.projects,
     count: projectsCount.value,
     helper: `${projectsCount.value} total`,
   },

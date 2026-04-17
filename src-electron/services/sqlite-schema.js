@@ -664,40 +664,6 @@ LEFT JOIN Artifact_Raw ar ON ar.artifact_id = a.artifact_id
 LEFT JOIN Artifact_Llm_Ready alr ON alr.artifact_id = a.artifact_id
 LEFT JOIN Artifact_Llm_Generated alg ON alg.artifact_id = a.artifact_id;
 
-CREATE TABLE IF NOT EXISTS Companies_Artifacts_documents (
-  company_id INTEGER NOT NULL,
-  artifact_id TEXT NOT NULL,
-  PRIMARY KEY (company_id, artifact_id),
-  FOREIGN KEY (company_id) REFERENCES Companies(id) ON UPDATE CASCADE ON DELETE CASCADE,
-  FOREIGN KEY (artifact_id) REFERENCES Artifacts(artifact_id) ON UPDATE CASCADE ON DELETE CASCADE
-);
-
--- Join Tables referencing Artifacts (Moved to end)
-CREATE TABLE IF NOT EXISTS Artifacts_Markets (
-  artifact_id TEXT NOT NULL,
-  industry_id TEXT NOT NULL,
-  PRIMARY KEY (artifact_id, industry_id),
-  FOREIGN KEY (artifact_id) REFERENCES Artifacts(artifact_id) ON UPDATE CASCADE ON DELETE CASCADE,
-  FOREIGN KEY (industry_id) REFERENCES Markets(id) ON UPDATE CASCADE ON DELETE CASCADE
-);
-
-CREATE TABLE IF NOT EXISTS Artifacts_Regions (
-  artifact_id TEXT NOT NULL,
-  region_id TEXT NOT NULL,
-  PRIMARY KEY (artifact_id, region_id),
-  FOREIGN KEY (artifact_id) REFERENCES Artifacts(artifact_id) ON UPDATE CASCADE ON DELETE CASCADE,
-  FOREIGN KEY (region_id) REFERENCES Regions(id) ON UPDATE CASCADE ON DELETE CASCADE
-);
-
-CREATE TABLE IF NOT EXISTS Artifact_Links (
-  from_artifact_id TEXT NOT NULL,
-  to_artifact_id TEXT NOT NULL,
-  link_type TEXT NOT NULL,
-  PRIMARY KEY (from_artifact_id, to_artifact_id, link_type),
-  FOREIGN KEY (from_artifact_id) REFERENCES Artifacts(artifact_id) ON UPDATE CASCADE ON DELETE CASCADE,
-  FOREIGN KEY (to_artifact_id) REFERENCES Artifacts(artifact_id) ON UPDATE CASCADE ON DELETE CASCADE
-);
-
 CREATE TABLE IF NOT EXISTS Intake (
   id TEXT PRIMARY KEY,
   Intake_Name TEXT NOT NULL,
