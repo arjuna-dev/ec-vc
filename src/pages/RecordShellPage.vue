@@ -377,7 +377,6 @@ import {
 import { buildDialogViews, groupDialogViews } from 'src/utils/dialogShellPayload'
 import { filterRecordFeedTabs, RECORD_FEED_GROUP_OPTIONS } from 'src/utils/recordFeedContract'
 import { setPendingIntakeShellRequest } from 'src/utils/intakeShellState'
-import { loadShellFieldSelectionMap, persistShellFieldSelectionMap } from 'src/utils/shellFieldSelection'
 import { buildShellToolbarFeed } from 'src/utils/shellToolbarFeeder'
 import { buildStructureToolbarItems } from 'src/utils/structureToolbarContract'
 import { buildTokenUpdateChanges, tokenSupportsRecordUpdate } from 'src/utils/tokenWriteChanges'
@@ -385,6 +384,38 @@ import { buildTokenUpdateChanges, tokenSupportsRecordUpdate } from 'src/utils/to
 const route = useRoute()
 const router = useRouter()
 const $q = useQuasar()
+
+const SHELL_FIELD_SELECTION_STORAGE_KEY = 'ecvc:shell-field-selection-by-source'
+
+function normalizeShellFieldSelectionMap(value) {
+  if (!value || typeof value !== 'object') return {}
+  return Object.fromEntries(
+    Object.entries(value)
+      .map(([sourceKey, keys]) => [
+        String(sourceKey || '').trim().toLowerCase(),
+        Array.from(new Set((Array.isArray(keys) ? keys : []).map((key) => String(key || '').trim()).filter(Boolean))),
+      ])
+      .filter(([sourceKey]) => Boolean(sourceKey)),
+  )
+}
+
+function loadShellFieldSelectionMap() {
+  if (typeof window === 'undefined' || !window.localStorage) return {}
+  try {
+    return normalizeShellFieldSelectionMap(JSON.parse(window.localStorage.getItem(SHELL_FIELD_SELECTION_STORAGE_KEY) || '{}'))
+  } catch {
+    return {}
+  }
+}
+
+function persistShellFieldSelectionMap(value) {
+  const normalized = normalizeShellFieldSelectionMap(value)
+  if (typeof window !== 'undefined' && window.localStorage) {
+    window.localStorage.setItem(SHELL_FIELD_SELECTION_STORAGE_KEY, JSON.stringify(normalized))
+  }
+  return normalized
+}
+
 const liveOptionRowsBySource = ref({})
 const expandedViewKeys = ref([])
 const expandedHeroGroupKeys = ref([])

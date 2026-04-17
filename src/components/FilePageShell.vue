@@ -689,7 +689,6 @@ import { getTokenInputOptions } from 'src/utils/tokenSurfaceContract'
 import { buildTokenUpdateChanges } from 'src/utils/tokenWriteChanges'
 import { buildDialogViews, groupDialogViews } from 'src/utils/dialogShellPayload'
 import { buildRecordViewLocation } from 'src/utils/recordViewNavigation'
-import { loadShellFieldSelectionMap, persistShellFieldSelectionMap } from 'src/utils/shellFieldSelection'
 import { getBuildingBlockGraphCounts, getBuildingBlockGraphLinks } from 'src/utils/buildingBlocks'
 import { setPendingAddEditShellRequest } from 'src/utils/addEditShellState'
 import { setPendingIntakeShellRequest } from 'src/utils/intakeShellState'
@@ -735,6 +734,37 @@ const inlineTableEditState = ref({
   value: '',
   kind: '',
 })
+
+const SHELL_FIELD_SELECTION_STORAGE_KEY = 'ecvc:shell-field-selection-by-source'
+
+function normalizeShellFieldSelectionMap(value) {
+  if (!value || typeof value !== 'object') return {}
+  return Object.fromEntries(
+    Object.entries(value)
+      .map(([sourceKey, keys]) => [
+        String(sourceKey || '').trim().toLowerCase(),
+        Array.from(new Set((Array.isArray(keys) ? keys : []).map((key) => String(key || '').trim()).filter(Boolean))),
+      ])
+      .filter(([sourceKey]) => Boolean(sourceKey)),
+  )
+}
+
+function loadShellFieldSelectionMap() {
+  if (typeof window === 'undefined' || !window.localStorage) return {}
+  try {
+    return normalizeShellFieldSelectionMap(JSON.parse(window.localStorage.getItem(SHELL_FIELD_SELECTION_STORAGE_KEY) || '{}'))
+  } catch {
+    return {}
+  }
+}
+
+function persistShellFieldSelectionMap(value) {
+  const normalized = normalizeShellFieldSelectionMap(value)
+  if (typeof window !== 'undefined' && window.localStorage) {
+    window.localStorage.setItem(SHELL_FIELD_SELECTION_STORAGE_KEY, JSON.stringify(normalized))
+  }
+  return normalized
+}
 const cardRelationshipPanelById = ref({})
 const selectedRowIds = ref([])
 const tableColumnWidths = ref({})
