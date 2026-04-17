@@ -1182,50 +1182,6 @@ function getFileRegistryEntryBySourceKey(sourceKey) {
   return FILE_PAGE_REGISTRY.find((entry) => String(entry?.key || '').trim() === normalizedSourceKey) || null
 }
 
-function buildDraftFileDefinitionRow(sourceKey, payload = {}) {
-  const normalizedSourceKey = String(sourceKey || '').trim()
-  const normalizedFileStatus =
-    normalizeFileStatusValue(payload?.File_Status) ||
-    normalizeFileStatusValue(payload?.Status) ||
-    'Archived'
-  const normalizedFileBucket =
-    normalizeFileBucketValue(payload?.File_Bucket) ||
-    normalizeFileBucketValue(payload?.Bucket) ||
-    getDefaultFileBucketForSourceKey(normalizedSourceKey)
-  return {
-    id: normalizeNullableString(payload?.id) || `file:${normalizedSourceKey || crypto.randomUUID()}`,
-    File_Order: payload?.File_Order ?? null,
-    File_Name:
-      normalizeNullableString(payload?.File_Name) ||
-      normalizeNullableString(payload?.Name) ||
-      normalizeNullableString(payload?.title) ||
-      'Untitled File',
-    File_Summary:
-      normalizeNullableString(payload?.File_Summary) ||
-      normalizeNullableString(payload?.Summary) ||
-      '',
-    File_Status: normalizedFileStatus,
-    File_Guide_Path: normalizeNullableString(payload?.File_Guide_Path) || '',
-    File_Class: normalizeNullableString(payload?.File_Class) || 'L1',
-    File_Bucket: normalizedFileBucket,
-    Ownership_Mode: normalizeNullableString(payload?.Ownership_Mode) || 'root_owned',
-    File_Owner: normalizeNullableString(payload?.File_Owner) || 'Owner',
-    File_Steward: normalizeNullableString(payload?.File_Steward) || 'File Steward',
-    Rulebook_Dependencies: normalizeNullableString(payload?.Rulebook_Dependencies) || '',
-    Fork_Mode: normalizeNullableString(payload?.Fork_Mode) || 'none',
-    Fork_Enabled: normalizeNullableString(payload?.Fork_Enabled) || 'No',
-    Create_Fork_Instructions: normalizeNullableString(payload?.Create_Fork_Instructions) || '',
-    View_Fork_Instructions: normalizeNullableString(payload?.View_Fork_Instructions) || '',
-    Structure: normalizeNullableString(payload?.Structure) || '',
-    Glossary_Terms: normalizeNullableString(payload?.Glossary_Terms) || '',
-    sourceKey: normalizedSourceKey,
-    File_Canonical_Entity: normalizeNullableString(payload?.File_Canonical_Entity) || '',
-    File_Runtime_Entity: normalizeNullableString(payload?.File_Runtime_Entity) || '',
-    File_Route_Name: normalizeNullableString(payload?.File_Route_Name) || normalizedSourceKey,
-    File_Path: normalizeNullableString(payload?.File_Path) || (normalizedSourceKey ? `/${normalizedSourceKey}` : ''),
-  }
-}
-
 const ACCEPTED_FILE_STATUS_VALUES = Object.freeze(['Active', 'Archived'])
 const ACCEPTED_FILE_BUCKET_VALUES = Object.freeze(['Owner', 'Companion', 'Work', 'Shared'])
 const ACCEPTED_FORK_MODE_VALUES = Object.freeze(['none', 'view', 'create', 'view_and_create'])
@@ -1827,14 +1783,17 @@ function createFile(payload = {}) {
 
   const sourceKey =
     normalizeNullableString(payload?.sourceKey) ||
-    normalizeNullableString(payload?.sourceKey) ||
     toFileSourceKey(name)
   if (!sourceKey) throw new Error('File source key is required')
 
   const registryEntry = getFileRegistryEntryBySourceKey(sourceKey)
-  const registryDefaults = registryEntry
-    ? buildDefaultFileRegistryRow(registryEntry, FILE_PAGE_REGISTRY.indexOf(registryEntry))
-    : buildDraftFileDefinitionRow(sourceKey, payload)
+  if (!registryEntry) {
+    throw new Error('File source key is not mapped to an approved file source')
+  }
+  const registryDefaults = buildDefaultFileRegistryRow(
+    registryEntry,
+    FILE_PAGE_REGISTRY.indexOf(registryEntry),
+  )
   const existingFile = database.prepare('SELECT id FROM Files WHERE sourceKey = ? LIMIT 1').get(sourceKey)
   if (existingFile?.id) throw new Error('File source key is already in use')
 
