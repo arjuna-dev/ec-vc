@@ -652,6 +652,7 @@ function listMarkets() {
       id,
       Market_Name,
       Market_Summary,
+      Status,
       created_at,
       updated_at
     FROM Markets
@@ -694,6 +695,7 @@ function listSecurities() {
       id,
       Security_Name,
       Security_Summary,
+      Status,
       created_at,
       updated_at
     FROM Securities
@@ -1064,6 +1066,7 @@ function listRoles() {
       id,
       Role_Name,
       Role_Summary,
+      Status,
       created_at
     FROM Roles
     ORDER BY created_at DESC, id DESC
@@ -1081,8 +1084,8 @@ function listCompanionRoles() {
       Companion_Role_Name,
       Companion_Role_Summary,
       Companion_Role_Type,
-      Companion_Role_Status,
       Companion_Role_Contract_Path,
+      Status,
       created_at
     FROM Companion_Roles
     ORDER BY created_at DESC, id DESC
@@ -1138,7 +1141,15 @@ const FILE_SPECIFIC_BIRTH_TOKENS = Object.freeze({
   intake: [
     { tokenName: 'Original_Artifact', label: 'Original Artifact', dbWriteField: 'Original_Artifact_Id' },
     { tokenName: 'Created_Files', label: 'Created Files', dbWriteField: 'Created_Files_JSON' },
-    { tokenName: 'Working', label: 'Working', dbWriteField: 'Working' },
+    { tokenName: 'Working', label: 'In Progress', dbWriteField: 'Working' },
+    { tokenName: 'Status', label: 'Status' },
+  ],
+  'user-roles': [
+    { tokenName: 'Status', label: 'Status' },
+  ],
+  'companion-roles': [
+    { tokenName: 'Type', label: 'Type', dbWriteField: 'Companion_Role_Type' },
+    { tokenName: 'Contract_Path', label: 'Contract Path', dbWriteField: 'Companion_Role_Contract_Path' },
     { tokenName: 'Status', label: 'Status' },
   ],
   funds: [
@@ -1158,6 +1169,12 @@ const FILE_SPECIFIC_BIRTH_TOKENS = Object.freeze({
     { tokenName: 'Pre_Valuation', label: 'Pre Valuation', dbWriteField: 'Pre_Valuation' },
     { tokenName: 'Post_Valuation', label: 'Post Valuation', dbWriteField: 'Post_Valuation' },
     { tokenName: 'Previous_Post_Valuation', label: 'Previous Post Valuation', dbWriteField: 'Previous_Post_Valuation' },
+  ],
+  markets: [
+    { tokenName: 'Status', label: 'Status' },
+  ],
+  securities: [
+    { tokenName: 'Status', label: 'Status' },
   ],
 })
 
@@ -2499,10 +2516,7 @@ function createCompanionRole(payload = {}) {
     normalizeNullableString(payload?.Companion_Role_Type) ||
     normalizeNullableString(payload?.Type) ||
     'Companion'
-  const roleStatus =
-    normalizeNullableString(payload?.Companion_Role_Status) ||
-    normalizeNullableString(payload?.Status) ||
-    'Draft'
+  const roleStatus = resolveRecordStatus(payload, 'Draft')
   const contractPath =
     normalizeNullableString(payload?.Companion_Role_Contract_Path) ||
     normalizeNullableString(payload?.Contract_Path)
@@ -2515,8 +2529,8 @@ function createCompanionRole(payload = {}) {
         Companion_Role_Name,
         Companion_Role_Summary,
         Companion_Role_Type,
-        Companion_Role_Status,
         Companion_Role_Contract_Path,
+        Status,
         created_by,
         created_at,
         updated_at
@@ -2530,8 +2544,8 @@ function createCompanionRole(payload = {}) {
       name,
       summary,
       roleType,
-      roleStatus,
       contractPath,
+      roleStatus,
       normalizeNullableString(payload?.created_by) || actor.user_id,
     )
 
@@ -3356,7 +3370,7 @@ const DATABOOK_TABLE_CONFIGS = Object.freeze({
   Companion_Roles: {
     tableName: 'Companion_Roles',
     entityLabel: 'Companion Role',
-    displayColumns: ['Companion_Role_Name', 'Companion_Role_Type', 'Companion_Role_Status', 'id'],
+    displayColumns: ['Companion_Role_Name', 'Companion_Role_Type', 'Status', 'id'],
     readonlyColumns: new Set(['id', 'created_at', 'updated_at']),
   },
   Files: {
@@ -5353,8 +5367,8 @@ function ensureDefaultCompanionRoles(database, actorUserId = null) {
           SET
             Companion_Role_Summary = ?,
             Companion_Role_Type = ?,
-            Companion_Role_Status = ?,
             Companion_Role_Contract_Path = ?,
+            Status = ?,
             updated_at = datetime('now')
           WHERE id = ?
         `,
@@ -5362,8 +5376,8 @@ function ensureDefaultCompanionRoles(database, actorUserId = null) {
         .run(
           role.summary,
           role.type,
-          role.status,
           role.contractPath,
+          role.status,
           existing.id,
         )
       continue
@@ -5377,8 +5391,8 @@ function ensureDefaultCompanionRoles(database, actorUserId = null) {
           Companion_Role_Name,
           Companion_Role_Summary,
           Companion_Role_Type,
-          Companion_Role_Status,
           Companion_Role_Contract_Path,
+          Status,
           created_by,
           created_at,
           updated_at
@@ -5392,8 +5406,8 @@ function ensureDefaultCompanionRoles(database, actorUserId = null) {
         role.name,
         role.summary,
         role.type,
-        role.status,
         role.contractPath,
+        role.status,
         normalizeNullableString(actorUserId),
       )
   }
