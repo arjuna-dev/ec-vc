@@ -211,6 +211,11 @@ const FILE_PAGE_ROUTE_META = Object.freeze({
       primaryNameField: 'Name',
       primarySummaryField: 'Summary',
     },
+    birthTokens: [
+      { tokenName: 'Format', label: 'Format', dbWriteField: 'artifact_format' },
+      { tokenName: 'Type', label: 'Type', dbWriteField: 'type' },
+      { tokenName: 'Status', label: 'Status' },
+    ],
   },
   Contacts: {
     key: 'contacts',
@@ -226,6 +231,14 @@ const FILE_PAGE_ROUTE_META = Object.freeze({
     birthDefaults: {
       primaryNameField: 'Name',
     },
+    birthTokens: [
+      { tokenName: 'Primary_Email', label: 'Primary Email', dbWriteField: 'Professional_Email' },
+      { tokenName: 'Other_Emails', label: 'Other Emails', dbWriteField: 'Personal_Email' },
+      { tokenName: 'Phone', label: 'Phone' },
+      { tokenName: 'Country_based', label: 'Country Based' },
+      { tokenName: 'LinkedIn', label: 'LinkedIn' },
+      { tokenName: 'Status', label: 'Status' },
+    ],
   },
   Companies: {
     key: 'companies',
@@ -242,6 +255,15 @@ const FILE_PAGE_ROUTE_META = Object.freeze({
       primaryNameField: 'Company_Name',
       primarySummaryField: 'Summary',
     },
+    birthTokens: [
+      { tokenName: 'One_Liner', label: 'One-Liner', dbWriteField: 'One_Liner' },
+      { tokenName: 'Short_Name', label: 'Short Name' },
+      { tokenName: 'Website', label: 'Website' },
+      { tokenName: 'Description', label: 'Description' },
+      { tokenName: 'Notable_News', label: 'Notable News' },
+      { tokenName: 'Updates', label: 'Updates' },
+      { tokenName: 'Status', label: 'Status' },
+    ],
     viewForks: [
       {
         value: 'overview',
@@ -297,6 +319,7 @@ const FILE_PAGE_ROUTE_META = Object.freeze({
       primaryNameField: 'Venture_Oppty_Name',
       primarySummaryField: 'Summary',
     },
+    birthTokens: [],
     createBranches: [
       { value: 'fund', label: 'Fund', icon: 'account_balance_wallet', targetSourceKey: 'funds' },
       { value: 'round', label: 'Round', icon: 'donut_large', targetSourceKey: 'rounds' },
@@ -316,6 +339,13 @@ const FILE_PAGE_ROUTE_META = Object.freeze({
       primaryNameField: 'Fund_Name',
       primarySummaryField: 'Summary',
     },
+    birthTokens: [
+      { tokenName: 'Status', label: 'Status', dbWriteField: 'Status' },
+      { tokenName: 'Raising_Status', label: 'Raising Status', dbWriteField: 'Raising_Status' },
+      { tokenName: 'Target_Size', label: 'Target Size', dbWriteField: 'Target_Size' },
+      { tokenName: 'Committed_Amounts', label: 'Committed Amounts', dbWriteField: 'Committed_Amounts' },
+      { tokenName: 'Close_Date', label: 'Close Date', dbWriteField: 'Close_Date' },
+    ],
   },
   Rounds: {
     key: 'rounds',
@@ -331,6 +361,17 @@ const FILE_PAGE_ROUTE_META = Object.freeze({
       primaryNameField: 'Round_Name',
       primarySummaryField: 'Summary',
     },
+    birthTokens: [
+      { tokenName: 'Status', label: 'Status', dbWriteField: 'Status' },
+      { tokenName: 'Raising_Status', label: 'Raising Status', dbWriteField: 'Raising_Status' },
+      { tokenName: 'Type_of_Security', label: 'Security Type', dbWriteField: 'Type_of_Security' },
+      { tokenName: 'Target_Size', label: 'Target Size', dbWriteField: 'Target_Size' },
+      { tokenName: 'Committed_Amounts', label: 'Committed Amounts', dbWriteField: 'Committed_Amounts' },
+      { tokenName: 'Close_Date', label: 'Close Date', dbWriteField: 'Close_Date' },
+      { tokenName: 'Pre_Valuation', label: 'Pre Valuation', dbWriteField: 'Pre_Valuation' },
+      { tokenName: 'Post_Valuation', label: 'Post Valuation', dbWriteField: 'Post_Valuation' },
+      { tokenName: 'Previous_Post_Valuation', label: 'Previous Post Valuation', dbWriteField: 'Previous_Post_Valuation' },
+    ],
   },
   Projects: {
     key: 'projects',
@@ -347,6 +388,14 @@ const FILE_PAGE_ROUTE_META = Object.freeze({
       primaryNameField: 'Project_Name',
       primarySummaryField: 'Project_Summary',
     },
+    birthTokens: [
+      { tokenName: 'Status', label: 'Status', dbWriteField: 'Project_Status' },
+      { tokenName: 'Priority_Rank', label: 'Priority Rank', dbWriteField: 'Project_Priority_Rank' },
+      { tokenName: 'Start_Date', label: 'Start Date', dbWriteField: 'Project_Start_Date' },
+      { tokenName: 'Due_Date', label: 'Due Date', dbWriteField: 'Project_Due_Date' },
+      { tokenName: 'End_Date', label: 'End Date', dbWriteField: 'Project_End_Date' },
+      { tokenName: 'Target_Amount', label: 'Target Amount', dbWriteField: 'Project_Target_Amount' },
+    ],
   },
   Tasks: {
     key: 'tasks',
@@ -363,6 +412,13 @@ const FILE_PAGE_ROUTE_META = Object.freeze({
       primaryNameField: 'Task_Name',
       primarySummaryField: 'Task_Summary',
     },
+    birthTokens: [
+      { tokenName: 'Status', label: 'Status', dbWriteField: 'Task_Status' },
+      { tokenName: 'Priority_Rank', label: 'Priority Rank', dbWriteField: 'Task_Priority_Rank' },
+      { tokenName: 'Start_Date', label: 'Start Date', dbWriteField: 'Task_Start_Date' },
+      { tokenName: 'Due_Date', label: 'Due Date', dbWriteField: 'Task_Due_Date' },
+      { tokenName: 'End_Date', label: 'End Date', dbWriteField: 'Task_End_Date' },
+    ],
     tokenOverrides: {
       Task_Team_Owner: { option_entity: 'Contacts' },
       Task_Team_Assigned: { option_entity: 'Contacts' },
@@ -384,6 +440,9 @@ const FILE_PAGE_ROUTE_META = Object.freeze({
       primaryNameField: 'Note_Name',
       primarySummaryField: 'Note_Content',
     },
+    birthTokens: [
+      { tokenName: 'Status', label: 'Status' },
+    ],
   },
   Roles: {
     key: 'user-roles',
@@ -401,6 +460,9 @@ const FILE_PAGE_ROUTE_META = Object.freeze({
       primaryNameField: 'Role_Name',
       primarySummaryField: 'Role_Summary',
     },
+    birthTokens: [
+      { tokenName: 'Status', label: 'Status' },
+    ],
   },
   Companion_Roles: {
     key: 'companion-roles',
@@ -418,6 +480,11 @@ const FILE_PAGE_ROUTE_META = Object.freeze({
       primaryNameField: 'Companion_Role_Name',
       primarySummaryField: 'Companion_Role_Summary',
     },
+    birthTokens: [
+      { tokenName: 'Type', label: 'Type', dbWriteField: 'Companion_Role_Type' },
+      { tokenName: 'Contract_Path', label: 'Contract Path', dbWriteField: 'Companion_Role_Contract_Path' },
+      { tokenName: 'Status', label: 'Status' },
+    ],
   },
   Markets: {
     key: 'markets',
@@ -441,6 +508,9 @@ const FILE_PAGE_ROUTE_META = Object.freeze({
       primaryNameField: 'Market_Name',
       primarySummaryField: 'Market_Summary',
     },
+    birthTokens: [
+      { tokenName: 'Status', label: 'Status' },
+    ],
   },
   Securities: {
     key: 'securities',
@@ -464,6 +534,9 @@ const FILE_PAGE_ROUTE_META = Object.freeze({
       primaryNameField: 'Security_Name',
       primarySummaryField: 'Security_Summary',
     },
+    birthTokens: [
+      { tokenName: 'Status', label: 'Status' },
+    ],
   },
   Intake: {
     key: 'intake',
@@ -481,6 +554,12 @@ const FILE_PAGE_ROUTE_META = Object.freeze({
       primaryNameField: 'Intake_Name',
       primarySummaryField: 'Intake_Summary',
     },
+    birthTokens: [
+      { tokenName: 'Original_Artifact', label: 'Original Artifact', dbWriteField: 'Original_Artifact_Id' },
+      { tokenName: 'Created_Files', label: 'Created Files', dbWriteField: 'Created_Files_JSON' },
+      { tokenName: 'Working', label: 'In Progress', dbWriteField: 'Working' },
+      { tokenName: 'Status', label: 'Status' },
+    ],
   },
 })
 
@@ -826,6 +905,13 @@ export function getFilePageBirthDefaults(sourceKey = '') {
   return entry?.birthDefaults && typeof entry.birthDefaults === 'object'
     ? { ...entry.birthDefaults }
     : {}
+}
+
+export function getFilePageBirthTokens(sourceKey = '') {
+  const entry = getFilePageRegistryEntry(sourceKey)
+  return Array.isArray(entry?.birthTokens)
+    ? entry.birthTokens.map((token) => ({ ...token }))
+    : []
 }
 
 export function getRegistryTitleTokenForSource(sourceKey = '') {

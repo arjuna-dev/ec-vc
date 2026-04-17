@@ -36,6 +36,7 @@ import {
   OWNER_PACK_FILE_KEYS,
   getCreateBranches,
   getFilePageBirthDefaults,
+  getFilePageBirthTokens,
   getViewForks,
 } from '../src/utils/structureRegistry.js'
 
@@ -1093,91 +1094,6 @@ function listCompanionRoles() {
   )
 }
 
-const FILE_SPECIFIC_BIRTH_TOKENS = Object.freeze({
-  companies: [
-    { tokenName: 'One_Liner', label: 'One-Liner', dbWriteField: 'One_Liner' },
-    { tokenName: 'Short_Name', label: 'Short Name' },
-    { tokenName: 'Website', label: 'Website' },
-    { tokenName: 'Description', label: 'Description' },
-    { tokenName: 'Notable_News', label: 'Notable News' },
-    { tokenName: 'Updates', label: 'Updates' },
-    { tokenName: 'Status', label: 'Status' },
-  ],
-  contacts: [
-    { tokenName: 'Primary_Email', label: 'Primary Email', dbWriteField: 'Professional_Email' },
-    { tokenName: 'Other_Emails', label: 'Other Emails', dbWriteField: 'Personal_Email' },
-    { tokenName: 'Phone', label: 'Phone' },
-    { tokenName: 'Country_based', label: 'Country Based' },
-    { tokenName: 'LinkedIn', label: 'LinkedIn' },
-    { tokenName: 'Status', label: 'Status' },
-  ],
-  projects: [
-    { tokenName: 'Status', label: 'Status', dbWriteField: 'Project_Status' },
-    { tokenName: 'Priority_Rank', label: 'Priority Rank', dbWriteField: 'Project_Priority_Rank' },
-    { tokenName: 'Start_Date', label: 'Start Date', dbWriteField: 'Project_Start_Date' },
-    { tokenName: 'Due_Date', label: 'Due Date', dbWriteField: 'Project_Due_Date' },
-    { tokenName: 'End_Date', label: 'End Date', dbWriteField: 'Project_End_Date' },
-    { tokenName: 'Target_Amount', label: 'Target Amount', dbWriteField: 'Project_Target_Amount' },
-  ],
-  tasks: [
-    { tokenName: 'Status', label: 'Status', dbWriteField: 'Task_Status' },
-    { tokenName: 'Priority_Rank', label: 'Priority Rank', dbWriteField: 'Task_Priority_Rank' },
-    { tokenName: 'Start_Date', label: 'Start Date', dbWriteField: 'Task_Start_Date' },
-    { tokenName: 'Due_Date', label: 'Due Date', dbWriteField: 'Task_Due_Date' },
-    { tokenName: 'End_Date', label: 'End Date', dbWriteField: 'Task_End_Date' },
-  ],
-  users: [
-    { tokenName: 'Primary_Email', label: 'Primary Email', dbWriteField: 'User_PEmail' },
-    { tokenName: 'Status', label: 'Status' },
-  ],
-  notes: [
-    { tokenName: 'Status', label: 'Status' },
-  ],
-  artifacts: [
-    { tokenName: 'Format', label: 'Format', dbWriteField: 'artifact_format' },
-    { tokenName: 'Type', label: 'Type', dbWriteField: 'type' },
-    { tokenName: 'Status', label: 'Status' },
-  ],
-  intake: [
-    { tokenName: 'Original_Artifact', label: 'Original Artifact', dbWriteField: 'Original_Artifact_Id' },
-    { tokenName: 'Created_Files', label: 'Created Files', dbWriteField: 'Created_Files_JSON' },
-    { tokenName: 'Working', label: 'In Progress', dbWriteField: 'Working' },
-    { tokenName: 'Status', label: 'Status' },
-  ],
-  'user-roles': [
-    { tokenName: 'Status', label: 'Status' },
-  ],
-  'companion-roles': [
-    { tokenName: 'Type', label: 'Type', dbWriteField: 'Companion_Role_Type' },
-    { tokenName: 'Contract_Path', label: 'Contract Path', dbWriteField: 'Companion_Role_Contract_Path' },
-    { tokenName: 'Status', label: 'Status' },
-  ],
-  funds: [
-    { tokenName: 'Status', label: 'Status', dbWriteField: 'Status' },
-    { tokenName: 'Raising_Status', label: 'Raising Status', dbWriteField: 'Raising_Status' },
-    { tokenName: 'Target_Size', label: 'Target Size', dbWriteField: 'Target_Size' },
-    { tokenName: 'Committed_Amounts', label: 'Committed Amounts', dbWriteField: 'Committed_Amounts' },
-    { tokenName: 'Close_Date', label: 'Close Date', dbWriteField: 'Close_Date' },
-  ],
-  rounds: [
-    { tokenName: 'Status', label: 'Status', dbWriteField: 'Status' },
-    { tokenName: 'Raising_Status', label: 'Raising Status', dbWriteField: 'Raising_Status' },
-    { tokenName: 'Type_of_Security', label: 'Security Type', dbWriteField: 'Type_of_Security' },
-    { tokenName: 'Target_Size', label: 'Target Size', dbWriteField: 'Target_Size' },
-    { tokenName: 'Committed_Amounts', label: 'Committed Amounts', dbWriteField: 'Committed_Amounts' },
-    { tokenName: 'Close_Date', label: 'Close Date', dbWriteField: 'Close_Date' },
-    { tokenName: 'Pre_Valuation', label: 'Pre Valuation', dbWriteField: 'Pre_Valuation' },
-    { tokenName: 'Post_Valuation', label: 'Post Valuation', dbWriteField: 'Post_Valuation' },
-    { tokenName: 'Previous_Post_Valuation', label: 'Previous Post Valuation', dbWriteField: 'Previous_Post_Valuation' },
-  ],
-  markets: [
-    { tokenName: 'Status', label: 'Status' },
-  ],
-  securities: [
-    { tokenName: 'Status', label: 'Status' },
-  ],
-})
-
 function buildBaseFileStructure(entry) {
   const sourceKey = String(entry?.key || '').trim().toLowerCase()
   const birthDefaults = getFilePageBirthDefaults(sourceKey)
@@ -1187,7 +1103,7 @@ function buildBaseFileStructure(entry) {
   const summaryTokenName = summaryField || 'Summary'
   const makeWriteTarget = (fieldName) => ({ dbWriteField: fieldName })
   const baseTokenNames = new Set([nameTokenName, summaryTokenName, 'ID', 'History', 'System.Status'])
-  const fileSpecificTokens = (FILE_SPECIFIC_BIRTH_TOKENS[sourceKey] || [])
+  const fileSpecificTokens = getFilePageBirthTokens(sourceKey)
     .filter((token) => token && !baseTokenNames.has(String(token.tokenName || '').trim()))
     .map((token, index) => ({
       key: String(token.tokenName || '').trim(),
