@@ -117,84 +117,6 @@
               >
                 <div class="record-shell__field-label-row">
                   <div class="record-shell__field-label">{{ token.label }}</div>
-                  <q-btn
-                    flat
-                    dense
-                    round
-                    size="sm"
-                    icon="tune"
-                    class="record-shell__field-meta-button"
-                    aria-label="Edit token metadata"
-                    @click.stop="openTokenMetaEditor(token)"
-                  >
-                    <q-menu
-                      :model-value="activeTokenMetaKey === token.key"
-                      anchor="bottom right"
-                      self="top right"
-                      @update:model-value="(value) => { if (!value) closeTokenMetaEditor() }"
-                    >
-                      <div class="record-shell__token-meta-menu">
-                        <div class="record-shell__token-meta-title">Token Meta</div>
-                        <q-select
-                          dense
-                          outlined
-                          emit-value
-                          map-options
-                          label="Token Type"
-                          :options="TOKEN_TYPE_OPTIONS"
-                          :model-value="getTokenMetaDraftValue(token, 'tokenType')"
-                          @update:model-value="updateTokenMetaDraftValue(token, 'tokenType', $event)"
-                        />
-                        <q-select
-                          dense
-                          outlined
-                          emit-value
-                          map-options
-                          label="Option Source"
-                          :options="OPTION_SOURCE_OPTIONS"
-                          :model-value="getTokenMetaDraftValue(token, 'optionSource')"
-                          @update:model-value="updateTokenMetaDraftValue(token, 'optionSource', $event)"
-                        />
-                        <q-input
-                          v-if="tokenMetaUsesOptionList(token)"
-                          dense
-                          outlined
-                          label="Option List"
-                          :model-value="getTokenMetaDraftValue(token, 'optionList')"
-                          @update:model-value="updateTokenMetaDraftValue(token, 'optionList', $event)"
-                        />
-                        <q-input
-                          v-else
-                          dense
-                          outlined
-                          label="Option Entity"
-                          :model-value="getTokenMetaDraftValue(token, 'optionEntity')"
-                          @update:model-value="updateTokenMetaDraftValue(token, 'optionEntity', $event)"
-                        />
-                        <q-input
-                          dense
-                          outlined
-                          label="Write Field"
-                          :model-value="getTokenMetaDraftValue(token, 'dbWriteField')"
-                          @update:model-value="updateTokenMetaDraftValue(token, 'dbWriteField', $event)"
-                        />
-                        <q-select
-                          dense
-                          outlined
-                          emit-value
-                          map-options
-                          label="Field Class"
-                          :options="FIELD_CLASS_OPTIONS"
-                          :model-value="getTokenMetaDraftValue(token, 'fieldClass')"
-                          @update:model-value="updateTokenMetaDraftValue(token, 'fieldClass', $event)"
-                        />
-                        <div class="record-shell__token-meta-actions">
-                          <q-btn flat dense no-caps label="Reset" @click="resetTokenMeta(token)" />
-                          <q-btn flat dense no-caps label="Save" @click="commitTokenMeta(token)" />
-                        </div>
-                      </div>
-                    </q-menu>
-                  </q-btn>
                 </div>
                 <div v-if="isRecordRoute" class="record-shell__field-value-row">
                   <div
@@ -324,84 +246,6 @@
           >
             <div class="record-shell__field-label-row">
               <div class="record-shell__field-label">{{ token.label }}</div>
-              <q-btn
-                flat
-                dense
-                round
-                size="sm"
-                icon="tune"
-                class="record-shell__field-meta-button"
-                aria-label="Edit token metadata"
-                @click.stop="openTokenMetaEditor(token)"
-              >
-                <q-menu
-                  :model-value="activeTokenMetaKey === token.key"
-                  anchor="bottom right"
-                  self="top right"
-                  @update:model-value="(value) => { if (!value) closeTokenMetaEditor() }"
-                >
-                  <div class="record-shell__token-meta-menu">
-                    <div class="record-shell__token-meta-title">Token Meta</div>
-                    <q-select
-                      dense
-                      outlined
-                      emit-value
-                      map-options
-                      label="Token Type"
-                      :options="TOKEN_TYPE_OPTIONS"
-                      :model-value="getTokenMetaDraftValue(token, 'tokenType')"
-                      @update:model-value="updateTokenMetaDraftValue(token, 'tokenType', $event)"
-                    />
-                    <q-select
-                      dense
-                      outlined
-                      emit-value
-                      map-options
-                      label="Option Source"
-                      :options="OPTION_SOURCE_OPTIONS"
-                      :model-value="getTokenMetaDraftValue(token, 'optionSource')"
-                      @update:model-value="updateTokenMetaDraftValue(token, 'optionSource', $event)"
-                    />
-                    <q-input
-                      v-if="tokenMetaUsesOptionList(token)"
-                      dense
-                      outlined
-                      label="Option List"
-                      :model-value="getTokenMetaDraftValue(token, 'optionList')"
-                      @update:model-value="updateTokenMetaDraftValue(token, 'optionList', $event)"
-                    />
-                    <q-input
-                      v-else
-                      dense
-                      outlined
-                      label="Option Entity"
-                      :model-value="getTokenMetaDraftValue(token, 'optionEntity')"
-                      @update:model-value="updateTokenMetaDraftValue(token, 'optionEntity', $event)"
-                    />
-                    <q-input
-                      dense
-                      outlined
-                      label="Write Field"
-                      :model-value="getTokenMetaDraftValue(token, 'dbWriteField')"
-                      @update:model-value="updateTokenMetaDraftValue(token, 'dbWriteField', $event)"
-                    />
-                    <q-select
-                      dense
-                      outlined
-                      emit-value
-                      map-options
-                      label="Field Class"
-                      :options="FIELD_CLASS_OPTIONS"
-                      :model-value="getTokenMetaDraftValue(token, 'fieldClass')"
-                      @update:model-value="updateTokenMetaDraftValue(token, 'fieldClass', $event)"
-                    />
-                    <div class="record-shell__token-meta-actions">
-                      <q-btn flat dense no-caps label="Reset" @click="resetTokenMeta(token)" />
-                      <q-btn flat dense no-caps label="Save" @click="commitTokenMeta(token)" />
-                    </div>
-                  </div>
-                </q-menu>
-              </q-btn>
             </div>
             <div v-if="isRecordRoute" class="record-shell__field-value-row">
               <div
@@ -564,8 +408,6 @@ const auditEvents = ref([])
 const fieldVerificationStates = ref({})
 const inlineFieldValues = ref({})
 const heroFieldKeysBySource = ref(loadShellFieldSelectionMap())
-const activeTokenMetaKey = ref('')
-const tokenMetaDrafts = ref({})
 const tableNameParam = computed(() => String(route.params.tableName || '').trim())
 const recordIdParam = computed(() => String(route.params.recordId || '').trim())
 const isRecordRoute = computed(() => Boolean(tableNameParam.value && recordIdParam.value))
@@ -652,27 +494,6 @@ const selectedTokenKeys = computed({
 
 const selectedTokenKeySet = computed(() => new Set(selectedTokenKeys.value))
 
-const TOKEN_TYPE_OPTIONS = [
-  { label: 'Text', value: 'text' },
-  { label: 'Long Text', value: 'long_text' },
-  { label: 'Number', value: 'number' },
-  { label: 'Date', value: 'date' },
-  { label: 'Datetime', value: 'datetime' },
-  { label: 'Boolean', value: 'boolean' },
-  { label: 'Select Single', value: 'select_single' },
-  { label: 'Select Multi', value: 'select_multi' },
-]
-const OPTION_SOURCE_OPTIONS = [
-  { label: 'None', value: '' },
-  { label: 'Live Entity', value: 'live_entity' },
-  { label: 'Live Entity Set', value: 'live_entity_set' },
-  { label: 'Shared File Universe', value: 'shared_file_universe' },
-]
-const FIELD_CLASS_OPTIONS = [
-  { label: 'Owned Field', value: 'owned_field' },
-  { label: 'Directional Link', value: 'directional_link' },
-  { label: 'LDB Relationship', value: 'ldb_relationship' },
-]
 const OPTION_ENTITY_OPTIONS = Object.freeze(
   FILE_SOURCE_REGISTRY
     .map((entry) => {
@@ -690,71 +511,10 @@ const tokenGovernanceColumns = computed(() =>
   }),
 )
 
-function buildTokenMetaDraft(token) {
-  return {
-    tokenType: String(token?.tokenType || '').trim(),
-    optionSource: String(token?.optionSource || '').trim(),
-    optionEntity: String(token?.optionEntity || '').trim(),
-    optionList: String(token?.optionList || '').trim(),
-    dbWriteField: String(token?.dbWriteField || '').trim(),
-    fieldClass: String(token?.fieldClass || '').trim(),
-  }
-}
-
-function openTokenMetaEditor(token) {
-  const key = String(token?.key || '').trim()
-  if (!key) return
-  if (!tokenMetaDrafts.value[key]) {
-    tokenMetaDrafts.value = {
-      ...tokenMetaDrafts.value,
-      [key]: buildTokenMetaDraft(token),
-    }
-  }
-  activeTokenMetaKey.value = key
-}
-
-function closeTokenMetaEditor() {
-  activeTokenMetaKey.value = ''
-}
-
-function getTokenMetaDraftValue(token, field) {
-  const key = String(token?.key || '').trim()
-  if (!key) return ''
-  const draft = tokenMetaDrafts.value[key]
-  if (!draft) return ''
-  return draft?.[field] ?? ''
-}
-
-function updateTokenMetaDraftValue(token, field, value) {
-  const key = String(token?.key || '').trim()
-  if (!key) return
-  const current = tokenMetaDrafts.value[key] || buildTokenMetaDraft(token)
-  tokenMetaDrafts.value = {
-    ...tokenMetaDrafts.value,
-    [key]: {
-      ...current,
-      [field]: value,
-    },
-  }
-}
-
-function commitTokenMeta() {
-  closeTokenMetaEditor()
-}
-
 function updateTokenCell() {
   return
 }
 
-function resetTokenMeta() {
-  closeTokenMetaEditor()
-}
-
-function tokenMetaUsesOptionList(token) {
-  const overrideSource = String(getTokenMetaDraftValue(token, 'optionSource') || '').trim()
-  const source = overrideSource || String(token?.optionSource || '').trim()
-  return source === 'option_list'
-}
 function isRelationshipViewLabel(value = '') {
   const normalized = String(value || '').trim().toLowerCase()
   return normalized === 'ldb'
