@@ -231,8 +231,8 @@ async function tryPopulateArtifactMetadata({ markdown, artifactId, openaiApiKey 
       `
       UPDATE Artifacts
       SET
-        title = COALESCE(?, title),
-        description = COALESCE(?, description),
+        Name = COALESCE(?, Name),
+        Summary = COALESCE(?, Summary),
         updated_at = datetime('now')
       WHERE artifact_id = ?
     `,
@@ -455,7 +455,7 @@ export async function ingestArtifactsFromPaths({
           artifact_id,
           round_id,
           fund_id,
-          title,
+          Name,
           artifact_format,
           Status
         ) VALUES (?, ?, ?, ?, ?, ?)
@@ -557,7 +557,7 @@ export async function ingestArtifactsFromPaths({
             artifact_id,
             round_id,
             fund_id,
-            title,
+            Name,
             artifact_format,
             Status
           ) VALUES (?, ?, ?, ?, ?, ?)
@@ -718,7 +718,7 @@ export async function ingestArtifactsFromPaths({
           artifact_id,
           round_id,
           fund_id,
-          title,
+          Name,
           artifact_format,
           Status
         ) VALUES (?, ?, ?, ?, ?, ?)

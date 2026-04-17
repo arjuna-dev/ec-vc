@@ -543,7 +543,7 @@ const activityItems = computed(() => [
     })),
     ...artifacts.value.map((row) => ({
       key: `artifacts-${row.artifact_id}`,
-      title: row.title || 'Untitled artifact',
+      title: row.Name || 'Untitled artifact',
       subtitle:
         row.type
           ? `Artifact • ${row.type}`

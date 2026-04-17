@@ -1098,7 +1098,7 @@ const BASE_FILE_TOKEN_FIELDS = Object.freeze({
   notes: { nameField: 'Note_Name', summaryField: 'Note_Content' },
   tasks: { nameField: 'Task_Name', summaryField: 'Task_Summary' },
   projects: { nameField: 'Project_Name', summaryField: 'Project_Summary' },
-  artifacts: { nameField: 'title', summaryField: 'description' },
+  artifacts: { nameField: 'Name', summaryField: 'Summary' },
   opportunities: { nameField: 'Venture_Oppty_Name', summaryField: 'Summary' },
   funds: { nameField: 'Fund_Name', summaryField: 'Summary' },
   rounds: { nameField: 'Round_Name', summaryField: 'Summary' },
@@ -2839,7 +2839,7 @@ function getLegacyOpportunityDatabookView(opportunityId) {
         `
         SELECT
           a.artifact_id,
-          a.title AS artifact_title,
+          a.Name AS artifact_title,
           'raw' AS artifact_type,
           ar.fs_path,
           a.created_at AS artifact_created_at
@@ -3254,11 +3254,11 @@ function getLegacyOpportunityDatabookView(opportunityId) {
     const prefix = `Artifact ${index + 1}`
     addField({
       section: prefix,
-      label: 'Title',
+      label: 'Name',
       value: artifact.artifact_title,
       tableName: 'Artifacts',
       recordId: artifact.artifact_id,
-      fieldName: 'title',
+      fieldName: 'Name',
       idColumn: 'artifact_id',
     })
     addField({
@@ -3365,7 +3365,7 @@ const DATABOOK_TABLE_CONFIGS = Object.freeze({
   Artifacts: {
     tableName: 'Artifacts',
     entityLabel: 'Artifact',
-    displayColumns: ['title', 'artifact_id'],
+    displayColumns: ['Name', 'artifact_id'],
     readonlyColumns: new Set(['artifact_id', 'created_at', 'updated_at']),
   },
   Roles: {
@@ -4087,12 +4087,12 @@ function listArtifacts() {
     SELECT
       a.artifact_id,
       NULL AS original_artifact_id,
-      a.title,
+      a.Name,
       'raw' AS artifact_type,
       a.artifact_format,
       a.type,
       ar.fs_path,
-      a.description,
+      a.Summary,
       a.Status,
       a.round_id,
       a.fund_id,
@@ -4140,15 +4140,15 @@ function createArtifact(payload = {}) {
   if (!fsPath) throw new Error('Artifact file path is required')
 
   const title =
-    normalizeNullableString(payload?.title) ||
     normalizeNullableString(payload?.name) ||
+    normalizeNullableString(payload?.title) ||
     path.basename(fsPath)
   const artifactId = normalizeNullableString(payload?.artifact_id) || `artifact:${crypto.randomUUID()}`
   const artifactFormat =
     normalizeNullableString(payload?.artifact_format) || normalizeArtifactFormatFromPath(fsPath, title)
   const description =
-    normalizeNullableString(payload?.description) ||
-    normalizeNullableString(payload?.summary)
+    normalizeNullableString(payload?.summary) ||
+    normalizeNullableString(payload?.description)
   const fsHash = normalizeNullableString(payload?.fs_hash)
   const fsSizeBytes = normalizeNullableNumber(payload?.fs_size_bytes) ?? normalizeNullableNumber(payload?.size)
   const statusValue = resolveRecordStatus(payload, 'Draft')
@@ -4157,7 +4157,7 @@ function createArtifact(payload = {}) {
     .prepare(
       `
       INSERT INTO Artifacts (
-        artifact_id, round_id, fund_id, created_by, artifact_format, type, title, description, Status, created_at, updated_at
+        artifact_id, round_id, fund_id, created_by, artifact_format, type, Name, Summary, Status, created_at, updated_at
       ) VALUES (
         @artifact_id, NULL, NULL, @created_by, @artifact_format, NULL, @title, @description, @Status, datetime('now'), datetime('now')
       )
@@ -4189,7 +4189,7 @@ function createArtifact(payload = {}) {
       fs_size_bytes: fsSizeBytes,
     })
 
-  return { id: artifactId, artifact_id: artifactId, title }
+  return { id: artifactId, artifact_id: artifactId, Name: title, title }
 }
 
 function listIntake() {
@@ -4296,7 +4296,7 @@ async function resolveArtifactFileForAction(artifactId) {
   const artifact = database
     .prepare(
       `
-      SELECT a.artifact_id, ar.fs_path, a.title
+      SELECT a.artifact_id, ar.fs_path, a.Name
       FROM Artifacts a
       LEFT JOIN Artifact_Raw ar ON ar.artifact_id = a.artifact_id
       WHERE artifact_id = ?
@@ -4322,7 +4322,7 @@ async function resolveArtifactFileForAction(artifactId) {
     artifactId: artifact.artifact_id,
     absolutePath,
     fileName: path.basename(absolutePath),
-    title: normalizeNullableString(artifact.title),
+    title: normalizeNullableString(artifact.Name),
   }
 }
 
@@ -4548,9 +4548,9 @@ function upsertArtifacts(rows = []) {
         llm_model: normalizeNullableString(r?.llm_model),
         assistant_system_prompt_id: normalizeNullableString(r?.assistant_system_prompt_id),
         original_artifact_id: normalizeNullableString(r?.original_artifact_id),
-        title: normalizeNullableString(r?.title),
+        title: normalizeNullableString(r?.name) || normalizeNullableString(r?.title),
         description:
-          normalizeNullableString(r?.description) || normalizeNullableString(r?.summary),
+          normalizeNullableString(r?.summary) || normalizeNullableString(r?.description),
       }
 
       try {
@@ -4558,7 +4558,7 @@ function upsertArtifacts(rows = []) {
           .prepare(
             `
             INSERT INTO Artifacts (
-              artifact_id, round_id, fund_id, artifact_format, title, description
+              artifact_id, round_id, fund_id, artifact_format, Name, Summary
             )
             VALUES (
               @artifact_id, @round_id, @fund_id, @artifact_format, @title, @description
@@ -4567,8 +4567,8 @@ function upsertArtifacts(rows = []) {
               round_id = excluded.round_id,
               fund_id = excluded.fund_id,
               artifact_format = excluded.artifact_format,
-              title = excluded.title,
-              description = excluded.description,
+              Name = excluded.Name,
+              Summary = excluded.Summary,
               updated_at = datetime('now')
           `,
           )
