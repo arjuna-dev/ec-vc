@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS app_settings (
   updated_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
-CREATE TABLE IF NOT EXISTS Owner_DB (
+CREATE TABLE IF NOT EXISTS Owner (
   id TEXT PRIMARY KEY,
   owner_user_id TEXT NOT NULL UNIQUE,
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
@@ -485,11 +485,6 @@ CREATE TABLE IF NOT EXISTS Project_Overview (
   Project_End_Date TEXT,
   Project_Target_Amount REAL,
   Project_Summary TEXT,
-  install_status TEXT NOT NULL DEFAULT 'not_installed' CHECK (
-    install_status IN ('not_installed', 'installing', 'installed', 'uninstalling', 'error')
-  ),
-  install_error TEXT,
-  installed_at TEXT,
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
   updated_at TEXT NOT NULL DEFAULT (datetime('now')),
   FOREIGN KEY (project_id) REFERENCES Projects(id) ON UPDATE CASCADE ON DELETE CASCADE
@@ -1862,7 +1857,7 @@ CREATE INDEX IF NOT EXISTS idx_LDB_Relationships_target
 -- Triggers (Omitted for brevity, but logically follow the same FK enforcement)
 `
 const TRIGGERS_SQL = `
--- 0. PIPELINE INTEGRITY TRIGGERS
+-- 0. LEGACY TRIGGER SECTION
 
 -- 1. AUTO-UPDATE TIMESTAMP TRIGGERS (Core Tables)
 

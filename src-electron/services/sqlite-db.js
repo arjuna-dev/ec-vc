@@ -88,7 +88,6 @@ function maybeRecreateDb(dbPath) {
     hasTable(probe, 'Users') &&
     hasTable(probe, 'databook_snapshots') &&
     hasColumn(probe, 'Projects', 'Project_Name') &&
-    hasColumn(probe, 'Project_Overview', 'install_status') &&
     hasColumn(probe, 'Companies', 'created_by') &&
     hasColumn(probe, 'Rounds', 'Round_Name') &&
     hasColumn(probe, 'Funds', 'Fund_Name') &&
@@ -97,8 +96,8 @@ function maybeRecreateDb(dbPath) {
     hasColumn(probe, 'Contacts', 'Personal_Email') &&
     hasColumn(probe, 'Contacts', 'Professional_Email') &&
     hasColumn(probe, 'Contacts', 'linked_user_id') &&
-    hasTable(probe, 'Owner_DB') &&
-    hasColumn(probe, 'Owner_DB', 'owner_user_id') &&
+    hasTable(probe, 'Owner') &&
+    hasColumn(probe, 'Owner', 'owner_user_id') &&
     hasColumn(probe, 'events', 'action_id') &&
     hasColumn(probe, 'events', 'action_label') &&
     hasColumn(probe, 'events', 'payload_json') &&

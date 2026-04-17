@@ -458,7 +458,6 @@ const routeLabelByName = {
   'companion-roles': 'Companion Roles',
   avatar: 'Companion',
   'user-settings': 'Owner',
-  pipelines: 'Projects',
   'file-system': 'System Files',
   [RECORD_VIEW_ROUTE_NAME]: 'Record View',
 }

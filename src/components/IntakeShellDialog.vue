@@ -793,7 +793,7 @@ const dialogStyle = computed(() => ({
 function applyDefaultProjectSelection() {
   if (selectedProjectIds.value.length) return
   const defaults = projectOptions.value
-    .filter((option) => option.value === 'pipeline_default' || option.isDefault)
+    .filter((option) => option.isDefault)
     .map((option) => option.value)
   if (defaults.length) {
     selectedProjectIds.value = defaults

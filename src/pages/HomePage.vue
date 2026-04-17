@@ -455,15 +455,12 @@ const contactsCount = computed(() => contacts.value.length)
 const opportunitiesCount = computed(() => opportunities.value.length)
 const fundsCount = computed(() => funds.value.length)
 const roundsCount = computed(() => rounds.value.length)
-const pipelinesCount = computed(() => pipelines.value.length)
+const projectsCount = computed(() => pipelines.value.length)
 const artifactsCount = computed(() => artifacts.value.length)
 const notesCount = computed(() => notes.value.length)
 const tasksCount = computed(() => tasks.value.length)
 const rolesCount = computed(() => roles.value.length)
 
-const installedPipelinesCount = computed(
-  () => pipelines.value.filter((row) => String(row?.install_status || '') === 'installed').length,
-)
 const openTasksCount = computed(() => tasks.value.filter((row) => !isTaskCompleted(row)).length)
 const completedTasksCount = computed(() => tasks.value.filter((row) => isTaskCompleted(row)).length)
 const overdueTasksCount = computed(
@@ -494,16 +491,12 @@ const linkedNotesCount = computed(
 )
 const notesLinkRatio = computed(() => ratio(linkedNotesCount.value, notesCount.value))
 const taskCompletionRatio = computed(() => ratio(completedTasksCount.value, tasksCount.value))
-const pipelineActivationRatio = computed(() =>
-  ratio(installedPipelinesCount.value, pipelinesCount.value),
-)
-
 const totalRecords = computed(
   () =>
     companiesCount.value +
     contactsCount.value +
     opportunitiesCount.value +
-    pipelinesCount.value +
+    projectsCount.value +
     artifactsCount.value +
     notesCount.value +
     tasksCount.value +
@@ -541,7 +534,7 @@ const activityItems = computed(() => [
     ...pipelines.value.map((row) => ({
       key: `projects-${row.id}`,
       title: row.Project_Name || 'Untitled project',
-      subtitle: row.install_status ? `Project • ${statusLabel(row.install_status)}` : 'Project',
+      subtitle: 'Project',
       date: parseDateValue(row.created_at),
       icon: 'schema',
       to: '/projects',
@@ -664,8 +657,8 @@ const summaryCards = computed(() => [
   },
   {
     ...collectionConfigByKey.pipelines,
-    count: pipelinesCount.value,
-    helper: `${installedPipelinesCount.value} active • ${totalPipelineStages()} stages`,
+    count: projectsCount.value,
+    helper: `${projectsCount.value} total`,
   },
   {
     ...collectionConfigByKey.artifacts,
@@ -701,8 +694,8 @@ const homeHeroStats = computed(() => [
   {
     label: 'Projects active',
     value: hasLoadedOnce.value
-      ? `${formatCompact(installedPipelinesCount.value)}/${formatCompact(pipelinesCount.value)}`
-      : '.../...',
+      ? formatCompact(projectsCount.value)
+      : '...',
   },
 ])
 
@@ -787,18 +780,6 @@ function onWindowFocus() {
 
 function onVisibilityChange() {
   if (document.visibilityState === 'visible') refreshDashboard()
-}
-
-function totalPipelineStages() {
-  return pipelines.value.reduce((sum, row) => sum + parsePipelineStages(row).length, 0)
-}
-
-function parsePipelineStages(row) {
-  try {
-    return JSON.parse(row?.stages || '[]')
-  } catch {
-    return []
-  }
 }
 
 function countWithAnyValue(rows, fields) {
@@ -960,14 +941,6 @@ function shortenPath(value) {
   if (!pathValue) return ''
   if (pathValue.length <= 44) return pathValue
   return `...${pathValue.slice(-41)}`
-}
-
-function statusLabel(status) {
-  if (status === 'installed') return 'Created'
-  if (status === 'installing') return 'Creating'
-  if (status === 'uninstalling') return 'Deleting'
-  if (status === 'error') return 'Error'
-  return 'Not created'
 }
 
 function toTitleCase(value) {
@@ -1352,3 +1325,4 @@ onBeforeUnmount(() => {
   }
 }
 </style>
+

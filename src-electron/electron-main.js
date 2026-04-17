@@ -98,11 +98,8 @@ function listProjects() {
       p.Project_Name,
       p.created_by,
       p.created_at,
-      p.updated_at,
-      po.install_status, 
-      po.install_error
+      p.updated_at
     FROM Projects p
-    LEFT JOIN Project_Overview po ON po.project_id = p.id
     ORDER BY p.Project_Name ASC
     `,
   ).map((row) => ({
@@ -3633,9 +3630,6 @@ const DATABOOK_TABLE_CONFIGS = Object.freeze({
     displayColumns: ['Project_Name', 'id'],
     readonlyColumns: new Set([
       'id',
-      'install_status',
-      'install_error',
-      'installed_at',
       'created_at',
       'updated_at',
     ]),
@@ -3690,8 +3684,6 @@ const DATABOOK_TABLE_ALIASES = Object.freeze({
   fund: 'Funds',
   rounds: 'Rounds',
   round: 'Rounds',
-  pipelines: 'Projects',
-  pipeline: 'Projects',
   projects: 'Projects',
   project: 'Projects',
   tasks: 'Tasks',
@@ -5872,7 +5864,7 @@ function ensureOwnerDb(database, ownerUserId) {
   database
     .prepare(
       `
-      INSERT INTO Owner_DB (
+      INSERT INTO Owner (
         id, owner_user_id, created_at, updated_at
       ) VALUES (
         ?, ?, datetime('now'), datetime('now')
@@ -5893,7 +5885,7 @@ function getOwnerUserId(database) {
       .prepare(
         `
         SELECT owner_user_id
-        FROM Owner_DB
+        FROM Owner
         WHERE id = 'owner_db'
         LIMIT 1
       `,
@@ -5971,7 +5963,7 @@ function assertOwnerAuthorityChangeAllowed(database, change) {
 
   if (
     change.change_kind === 'field' &&
-    change.table_name === 'Owner_DB' &&
+    change.table_name === 'Owner' &&
     change.field_name === 'owner_user_id'
   ) {
     throw new Error('Owner designation can only change through an explicit ownership transfer flow.')
