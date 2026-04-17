@@ -4085,19 +4085,22 @@ function listArtifacts() {
     `
     SELECT
       a.artifact_id,
-      a.original_artifact_id,
+      NULL AS original_artifact_id,
       a.title,
-      a.artifact_type,
+      'raw' AS artifact_type,
       a.artifact_format,
       a.type,
-      a.fs_path,
+      ar.fs_path,
+      a.description,
+      a.Status,
       a.round_id,
       a.fund_id,
       COALESCE(a.round_id, a.fund_id) AS opportunity_id,
       a.created_by,
-      a.created_at
-    FROM Artifact_Details a
-    WHERE a.artifact_type = 'raw'
+      a.created_at,
+      a.updated_at
+    FROM Artifacts a
+    LEFT JOIN Artifact_Raw ar ON ar.artifact_id = a.artifact_id
     ORDER BY a.created_at DESC
   `,
   )
