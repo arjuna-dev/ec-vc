@@ -693,6 +693,7 @@ import {
   getFileRecordLoader,
   getLiveOptionRowsState,
   loadFileRecordRows,
+  runFileRecordLoader,
   subscribeLiveOptionRowsState,
 } from 'src/utils/fileRecordLoaders'
 import { buildRecordViewLocation } from 'src/utils/recordViewNavigation'
@@ -2144,8 +2145,11 @@ async function loadRows() {
 
   loading.value = true
   try {
-    const result = await withTimeout(loader.listFn(bridgeValue), 8000, 'Loader timeout')
-    const rows = Array.isArray(result?.[loader.resultKey]) ? result[loader.resultKey] : []
+    const { rows, result } = await withTimeout(
+      runFileRecordLoader(activeContentSourceKey.value, bridgeValue),
+      8000,
+      'Loader timeout',
+    )
     rawRows.value = rows.filter((row) => row && typeof row === 'object')
     loaderDiagnostics.value = result && typeof result === 'object' ? result : {}
     if (activeSourceKey.value === 'file-system') {

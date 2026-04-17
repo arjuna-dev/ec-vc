@@ -58,6 +58,22 @@ export function normalizeFileRecordListResult(result) {
   return Array.isArray(firstArray) ? firstArray : []
 }
 
+export async function runFileRecordLoader(sourceKey = '', bridgeValue = null) {
+  const normalizedSourceKey = String(sourceKey || '').trim().toLowerCase()
+  const loader = getFileRecordLoader(normalizedSourceKey)
+  if (!normalizedSourceKey || !loader || !bridgeValue) {
+    return {
+      rows: [],
+      result: null,
+      loader: loader || null,
+    }
+  }
+
+  const result = await loader.listFn(bridgeValue)
+  const rows = Array.isArray(result?.[loader.resultKey]) ? result[loader.resultKey] : normalizeFileRecordListResult(result)
+  return { rows, result, loader }
+}
+
 export async function loadFileRecordRows({
   sourceKey = '',
   bridgeValue = null,
@@ -83,8 +99,7 @@ export async function loadFileRecordRows({
   }
 
   try {
-    const result = await loader.listFn(bridgeValue)
-    const rows = Array.isArray(result?.[loader.resultKey]) ? result[loader.resultKey] : normalizeFileRecordListResult(result)
+    const { rows } = await runFileRecordLoader(normalizedSourceKey, bridgeValue)
     const nextRowsBySource = {
       ...baseRowsBySource,
       [normalizedSourceKey]: rows,

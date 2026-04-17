@@ -582,6 +582,7 @@ import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { useQuasar } from 'quasar'
 import { useRoute, useRouter } from 'vue-router'
 import CollapsibleSectionShell from 'src/components/CollapsibleSectionShell.vue'
+import { runFileRecordLoader } from 'src/utils/fileRecordLoaders'
 import { buildRecordViewLocation } from 'src/utils/recordViewNavigation'
 import { getRuntimeTableNameForEntityName } from 'src/utils/structureRegistry'
 import { getLdbRelationshipContractForEntityPair } from 'src/shared/ldbRelationshipContracts'
@@ -803,10 +804,8 @@ function applyDefaultProjectSelection() {
 
 async function ensureProjectsLoaded() {
   if (projectsLoaded.value) return
-  if (!bridge.value?.projects?.list) return
   try {
-    const result = await bridge.value.projects.list()
-    const rows = Array.isArray(result?.projects) ? result.projects : []
+    const { rows } = await runFileRecordLoader('projects', bridge.value)
     projectOptions.value = rows
       .map((row) => ({
         value: String(row?.id || '').trim(),

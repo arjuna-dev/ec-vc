@@ -113,6 +113,7 @@
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useQuasar } from 'quasar'
 import { useRouter } from 'vue-router'
+import { runFileRecordLoader } from 'src/utils/fileRecordLoaders'
 import { getRuntimeStructureVersion, subscribeRuntimeFileStructures } from 'src/utils/structureRegistry'
 import {
   createIntakeDraft,
@@ -191,11 +192,10 @@ const shouldResumeProcessingWindow = computed(() => {
   )
 })
 async function loadAll() {
-  if (!bridge.value?.opportunities?.list) return
   loading.value = true
   try {
-    const o = await bridge.value.opportunities.list()
-    opportunities.value = o?.opportunities || []
+    const { rows } = await runFileRecordLoader('opportunities', bridge.value)
+    opportunities.value = rows
   } finally {
     loading.value = false
   }
@@ -274,9 +274,7 @@ function isDuplicateFilenameConflict(error) {
 }
 
 async function findExistingDroppedFiles(files = []) {
-  if (!bridge.value?.artifacts?.list) return { existingNames: [] }
-  const result = await bridge.value.artifacts.list()
-  const artifacts = Array.isArray(result?.artifacts) ? result.artifacts : []
+  const { rows: artifacts } = await runFileRecordLoader('artifacts', bridge.value)
   const rawNames = new Set(
     artifacts
       .map((artifact) => String(artifact?.fs_path || '').split('/').pop()?.toLowerCase())
