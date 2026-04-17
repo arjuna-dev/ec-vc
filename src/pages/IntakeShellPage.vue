@@ -67,9 +67,8 @@ import {
   TEST_SHELL_SECTION_OPTIONS,
 } from 'src/utils/structureRegistry'
 import { buildDialogViews, groupDialogViews, splitDialogViews } from 'src/utils/dialogShellPayload'
-import { normalizeTokenWriteValue } from 'src/utils/tokenWriteChanges'
+import { buildTokenUpdateChanges, normalizeTokenWriteValue } from 'src/utils/tokenWriteChanges'
 import { consumePendingIntakeShellRequest, setPendingIntakeShellRequest } from 'src/utils/intakeShellState'
-import { submitSharedRecordEditSession } from 'src/utils/sharedRecordEditSession'
 
 const route = useRoute()
 const $q = useQuasar()
@@ -496,16 +495,29 @@ async function submitEditRecord(values = {}) {
 
   dialogLoading.value = true
   try {
-    const result = await submitSharedRecordEditSession({
-      bridge: bridge.value,
-      tokens: allTokens,
-      values,
-      initialValues: dialogInitialValues.value,
-      recordId: dialogRecordId.value,
-      entityName: dialogEntityName.value,
-      actionLabel: 'shared_dialog_shell_edit',
-    })
-    if (!result.changes.length) {
+    const changes = allTokens.flatMap((token) =>
+      buildTokenUpdateChanges(token, {
+        nextValue: values?.[token.key],
+        initialValue: dialogInitialValues.value?.[token.key],
+        recordId: dialogRecordId.value,
+        entityName: dialogEntityName.value,
+      }),
+    )
+    const tableName = String(dialogEntityName.value || '').trim()
+      ? getFilePageRegistryEntryByEntityReference(dialogEntityName.value)?.entityName || dialogEntityName.value
+      : ''
+    if (!tableName || !dialogRecordId.value || !dialogEntityName.value) {
+      throw new Error('This record cannot be edited from the shared shell yet.')
+    }
+    if (changes.length) {
+      await bridge.value?.records?.update?.({
+        tableName,
+        recordId: dialogRecordId.value,
+        changes,
+        actionLabel: 'shared_dialog_shell_edit',
+      })
+    }
+    if (!changes.length) {
       dialogOpen.value = false
       return
     }
