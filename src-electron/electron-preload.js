@@ -156,6 +156,9 @@ const api = {
     create: (payload) => ipcRenderer.invoke('users:create', payload),
     delete: (userId) => ipcRenderer.invoke('users:delete', { userId }),
   },
+  companion: {
+    list: () => ipcRenderer.invoke('companion:list'),
+  },
   markets: {
     list: () => ipcRenderer.invoke('markets:list'),
     create: (payload) => ipcRenderer.invoke('markets:create', payload),

@@ -215,6 +215,15 @@ CREATE TABLE IF NOT EXISTS Users (
 CREATE INDEX IF NOT EXISTS idx_Users_email
   ON Users(User_PEmail);
 
+CREATE TABLE IF NOT EXISTS Companion (
+  id TEXT PRIMARY KEY,
+  Companion_Name TEXT NOT NULL,
+  Companion_Summary TEXT,
+  Status TEXT,
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
 CREATE TABLE IF NOT EXISTS Contacts (
   id TEXT PRIMARY KEY,
   Name TEXT,

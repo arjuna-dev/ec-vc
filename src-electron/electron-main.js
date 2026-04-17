@@ -556,6 +556,22 @@ function listUsers() {
   )
 }
 
+function listCompanion() {
+  return dbAll(
+    `
+    SELECT
+      id,
+      Companion_Name,
+      Companion_Summary,
+      Status,
+      created_at,
+      updated_at
+    FROM Companion
+    ORDER BY COALESCE(Companion_Name, '') ASC, id ASC
+  `,
+  )
+}
+
 function createEvent(payload = {}) {
   const database = initDb()
   const actor = getAuditActor(database)
@@ -8166,6 +8182,11 @@ function registerIpc() {
   ipcMain.handle('users:list', async () => {
     initDb()
     return { users: listUsers() }
+  })
+
+  ipcMain.handle('companion:list', async () => {
+    initDb()
+    return { companion: listCompanion() }
   })
 
   ipcMain.handle('markets:list', async () => {
