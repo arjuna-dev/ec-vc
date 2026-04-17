@@ -529,12 +529,12 @@ function listOpportunities() {
         f.id,
         'fund' AS kind,
         NULL AS company_id,
-        fo.Fund_Target_Size AS Investment_Ask,
-        fo.Fund_Commited_Amounts AS Hard_Commits,
+        f.Target_Size AS Investment_Ask,
+        f.Committed_Amounts AS Hard_Commits,
         NULL AS Soft_Commits,
         NULL AS First_Close_Date,
         NULL AS Next_Close_Date,
-        fo.Fund_Close_Date AS Final_Close_Date,
+        f.Close_Date AS Final_Close_Date,
         NULL AS Round_Stage,
         NULL AS Type_of_Security,
         NULL AS Round_Amount,
@@ -544,12 +544,11 @@ function listOpportunities() {
         f.Fund_Name AS opportunity_name,
         f.Fund_Name AS Venture_Oppty_Name,
         NULL AS Fund_Type,
-        fo.Fund_Target_Size AS Fund_Size_Target,
-        fo.Fund_Raising_Status AS Raising_Status,
+        f.Target_Size AS Fund_Size_Target,
+        f.Raising_Status AS Raising_Status,
         f.created_at,
         NULL AS Company_Name
       FROM Funds f
-      LEFT JOIN Fund_Overview fo ON fo.fund_id = f.id
     ) opportunities
     ORDER BY created_at DESC, id DESC
   `,
@@ -610,12 +609,11 @@ function listFunds() {
     SELECT
       f.id,
       f.Fund_Name,
-      fo.Fund_Raising_Status,
-      fo.Fund_Target_Size,
-      fo.Fund_Commited_Amounts,
-      fo.Fund_Close_Date
+      f.Raising_Status,
+      f.Target_Size,
+      f.Committed_Amounts,
+      f.Close_Date
     FROM Funds f
-    LEFT JOIN Fund_Overview fo ON fo.fund_id = f.id
     ORDER BY COALESCE(f.Fund_Name, '') ASC, f.id DESC
   `,
   )
@@ -7111,7 +7109,7 @@ function createFund(payload = {}) {
     createCompany(payload.company)
   }
 
-  const primaryContactId = maybeCreatePrimaryContact(payload.primary_contact)
+  maybeCreatePrimaryContact(payload.primary_contact)
   const fundId = normalizeNullableString(payload?.id) || `fund:${crypto.randomUUID()}`
   const fundName =
     normalizeNullableString(payload?.Fund_Name) ||
@@ -7126,41 +7124,33 @@ function createFund(payload = {}) {
     database
       .prepare(
         `
-        INSERT INTO Funds (id, Fund_Name, Status, created_by, created_at, updated_at)
-        VALUES (?, ?, ?, ?, datetime('now'), datetime('now'))
-      `,
-      )
-      .run(fundId, uniqueFundName, statusValue, actor.user_id)
-
-    database
-      .prepare(
-        `
-        INSERT INTO Fund_Overview (
-          fund_id, Fund_Raising_Status, Fund_Target_Size, Fund_Commited_Amounts,
-          Fund_Close_Date, Fund_Summary, created_at, updated_at
+        INSERT INTO Funds (
+          id,
+          Fund_Name,
+          Raising_Status,
+          Target_Size,
+          Committed_Amounts,
+          Close_Date,
+          Summary,
+          Status,
+          created_by,
+          created_at,
+          updated_at
         )
-        VALUES (?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
       `,
       )
       .run(
         fundId,
+        uniqueFundName,
         normalizeEntityRaisingStatus(payload?.Raising_Status),
         normalizeNullableNumber(payload?.Investment_Ask) ?? normalizeNullableNumber(payload?.Round_Amount),
         normalizeNullableNumber(payload?.Hard_Commits),
         normalizeNullableString(payload?.Final_Close_Date),
         normalizeNullableString(payload?.company?.One_Liner),
+        statusValue,
+        actor.user_id,
       )
-
-    if (primaryContactId) {
-      database
-        .prepare(
-          `
-          INSERT OR IGNORE INTO Fund_Overview_Managers (fund_id, contact_id)
-          VALUES (?, ?)
-        `,
-        )
-        .run(fundId, primaryContactId)
-    }
   })
 
   tx()

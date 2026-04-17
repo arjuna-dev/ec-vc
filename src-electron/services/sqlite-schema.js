@@ -102,6 +102,11 @@ CREATE INDEX IF NOT EXISTS idx_Companies_created_by
 CREATE TABLE IF NOT EXISTS Funds (
   id TEXT PRIMARY KEY,
   Fund_Name TEXT,
+  Raising_Status TEXT,
+  Target_Size REAL,
+  Committed_Amounts REAL,
+  Close_Date TEXT,
+  Summary TEXT,
   Status TEXT,
   created_by TEXT,
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
@@ -154,122 +159,6 @@ CREATE INDEX IF NOT EXISTS idx_Opportunities_company
 
 CREATE INDEX IF NOT EXISTS idx_Opportunities_name
   ON Opportunities(Venture_Oppty_Name);
-
-CREATE TABLE IF NOT EXISTS Fund_Overview (
-  fund_id TEXT PRIMARY KEY,
-  Fund_Raising_Status TEXT CHECK (
-    Fund_Raising_Status IS NULL OR Fund_Raising_Status IN ('Raising', 'Raised', 'Abandoned')
-  ),
-  Fund_Period TEXT CHECK (
-    Fund_Period IS NULL OR Fund_Period IN ('Raising', 'Deployment', 'Holding', 'Exit', 'Wind-down', 'Closed')
-  ),
-  Fund_Target_Size REAL,
-  Fund_Commited_Amounts REAL,
-  Fund_Min_Ticket_Size REAL,
-  Fund_Close_Date TEXT,
-  Fund_Summary TEXT,
-  created_at TEXT NOT NULL DEFAULT (datetime('now')),
-  updated_at TEXT NOT NULL DEFAULT (datetime('now')),
-  FOREIGN KEY (fund_id) REFERENCES Funds(id) ON UPDATE CASCADE ON DELETE CASCADE
-);
-
-CREATE TABLE IF NOT EXISTS Fund_Overview_Managers (
-  fund_id TEXT NOT NULL,
-  contact_id TEXT NOT NULL,
-  PRIMARY KEY (fund_id, contact_id),
-  FOREIGN KEY (fund_id) REFERENCES Fund_Overview(fund_id) ON UPDATE CASCADE ON DELETE CASCADE,
-  FOREIGN KEY (contact_id) REFERENCES Contacts(id) ON UPDATE CASCADE ON DELETE CASCADE
-);
-
-CREATE TABLE IF NOT EXISTS Fund_Strategy (
-  fund_id TEXT PRIMARY KEY,
-  Fund_Reserve REAL,
-  Fund_Initial_Ticket_Size REAL,
-  Fund_Target_Positions INTEGER,
-  created_at TEXT NOT NULL DEFAULT (datetime('now')),
-  updated_at TEXT NOT NULL DEFAULT (datetime('now')),
-  FOREIGN KEY (fund_id) REFERENCES Funds(id) ON UPDATE CASCADE ON DELETE CASCADE
-);
-
-CREATE TABLE IF NOT EXISTS Fund_Strategy_Target_Regions (
-  fund_id TEXT NOT NULL,
-  region_id TEXT NOT NULL,
-  PRIMARY KEY (fund_id, region_id),
-  FOREIGN KEY (fund_id) REFERENCES Fund_Strategy(fund_id) ON UPDATE CASCADE ON DELETE CASCADE,
-  FOREIGN KEY (region_id) REFERENCES Regions(id) ON UPDATE CASCADE ON DELETE CASCADE
-);
-
-CREATE TABLE IF NOT EXISTS Fund_Strategy_Target_Asset_Types (
-  fund_id TEXT NOT NULL,
-  asset_type TEXT NOT NULL CHECK (
-    asset_type IN (
-      'Debt_Secured',
-      'Debt_Unsecured',
-      'Debt_Structured',
-      'Equity_Common',
-      'Equity_Preferred',
-      'Equity_SAFE'
-    )
-  ),
-  PRIMARY KEY (fund_id, asset_type),
-  FOREIGN KEY (fund_id) REFERENCES Fund_Strategy(fund_id) ON UPDATE CASCADE ON DELETE CASCADE
-);
-
-CREATE TABLE IF NOT EXISTS Fund_Strategy_Target_Industries (
-  fund_id TEXT NOT NULL,
-  industry_id TEXT NOT NULL,
-  PRIMARY KEY (fund_id, industry_id),
-  FOREIGN KEY (fund_id) REFERENCES Fund_Strategy(fund_id) ON UPDATE CASCADE ON DELETE CASCADE,
-  FOREIGN KEY (industry_id) REFERENCES Markets(id) ON UPDATE CASCADE ON DELETE CASCADE
-);
-
-CREATE TABLE IF NOT EXISTS Fund_Strategy_Target_Stages (
-  fund_id TEXT NOT NULL,
-  stage TEXT NOT NULL CHECK (stage IN ('Formation', 'Early', 'Mid', 'Late')),
-  PRIMARY KEY (fund_id, stage),
-  FOREIGN KEY (fund_id) REFERENCES Fund_Strategy(fund_id) ON UPDATE CASCADE ON DELETE CASCADE
-);
-
-CREATE INDEX IF NOT EXISTS idx_Fund_Strategy_Target_Regions_region
-  ON Fund_Strategy_Target_Regions(region_id);
-
-CREATE INDEX IF NOT EXISTS idx_Fund_Strategy_Target_Industries_industry
-  ON Fund_Strategy_Target_Industries(industry_id);
-
-CREATE INDEX IF NOT EXISTS idx_Fund_Strategy_Target_Stages_stage
-  ON Fund_Strategy_Target_Stages(stage);
-
-CREATE TABLE IF NOT EXISTS Fund_Economics (
-  fund_id TEXT PRIMARY KEY,
-  Fund_Economic_Provisions_Artifact_Id TEXT,
-  Fund_Fees_Artifact_Id TEXT,
-  Fund_Promote_Artifact_Id TEXT,
-  Fund_Target_Hurdles_Artifact_Id TEXT,
-  Fund_Target_MOIC_Artifact_Id TEXT,
-  created_at TEXT NOT NULL DEFAULT (datetime('now')),
-  updated_at TEXT NOT NULL DEFAULT (datetime('now')),
-  FOREIGN KEY (fund_id) REFERENCES Funds(id) ON UPDATE CASCADE ON DELETE CASCADE,
-  FOREIGN KEY (Fund_Economic_Provisions_Artifact_Id) REFERENCES Artifacts(artifact_id) ON UPDATE CASCADE ON DELETE SET NULL,
-  FOREIGN KEY (Fund_Fees_Artifact_Id) REFERENCES Artifacts(artifact_id) ON UPDATE CASCADE ON DELETE SET NULL,
-  FOREIGN KEY (Fund_Promote_Artifact_Id) REFERENCES Artifacts(artifact_id) ON UPDATE CASCADE ON DELETE SET NULL,
-  FOREIGN KEY (Fund_Target_Hurdles_Artifact_Id) REFERENCES Artifacts(artifact_id) ON UPDATE CASCADE ON DELETE SET NULL,
-  FOREIGN KEY (Fund_Target_MOIC_Artifact_Id) REFERENCES Artifacts(artifact_id) ON UPDATE CASCADE ON DELETE SET NULL
-);
-
-CREATE TABLE IF NOT EXISTS Fund_Controls (
-  fund_id TEXT PRIMARY KEY,
-  Fund_Control_Provisions_Artifact_Id TEXT,
-  Fund_Information_Rights_Artifact_Id TEXT,
-  Fund_Board_Representation_Artifact_Id TEXT,
-  Fund_Item_Voting_Artifact_Id TEXT,
-  created_at TEXT NOT NULL DEFAULT (datetime('now')),
-  updated_at TEXT NOT NULL DEFAULT (datetime('now')),
-  FOREIGN KEY (fund_id) REFERENCES Funds(id) ON UPDATE CASCADE ON DELETE CASCADE,
-  FOREIGN KEY (Fund_Control_Provisions_Artifact_Id) REFERENCES Artifacts(artifact_id) ON UPDATE CASCADE ON DELETE SET NULL,
-  FOREIGN KEY (Fund_Information_Rights_Artifact_Id) REFERENCES Artifacts(artifact_id) ON UPDATE CASCADE ON DELETE SET NULL,
-  FOREIGN KEY (Fund_Board_Representation_Artifact_Id) REFERENCES Artifacts(artifact_id) ON UPDATE CASCADE ON DELETE SET NULL,
-  FOREIGN KEY (Fund_Item_Voting_Artifact_Id) REFERENCES Artifacts(artifact_id) ON UPDATE CASCADE ON DELETE SET NULL
-);
 
 CREATE TABLE IF NOT EXISTS Rounds (
   id TEXT PRIMARY KEY,
@@ -1036,38 +925,6 @@ FOR EACH ROW
 WHEN NEW.updated_at = OLD.updated_at
 BEGIN
   UPDATE Funds SET updated_at = datetime('now') WHERE id = OLD.id;
-END;
-
-CREATE TRIGGER IF NOT EXISTS trg_Fund_Overview_updated_at
-AFTER UPDATE ON Fund_Overview
-FOR EACH ROW
-WHEN NEW.updated_at = OLD.updated_at
-BEGIN
-  UPDATE Fund_Overview SET updated_at = datetime('now') WHERE fund_id = OLD.fund_id;
-END;
-
-CREATE TRIGGER IF NOT EXISTS trg_Fund_Strategy_updated_at
-AFTER UPDATE ON Fund_Strategy
-FOR EACH ROW
-WHEN NEW.updated_at = OLD.updated_at
-BEGIN
-  UPDATE Fund_Strategy SET updated_at = datetime('now') WHERE fund_id = OLD.fund_id;
-END;
-
-CREATE TRIGGER IF NOT EXISTS trg_Fund_Economics_updated_at
-AFTER UPDATE ON Fund_Economics
-FOR EACH ROW
-WHEN NEW.updated_at = OLD.updated_at
-BEGIN
-  UPDATE Fund_Economics SET updated_at = datetime('now') WHERE fund_id = OLD.fund_id;
-END;
-
-CREATE TRIGGER IF NOT EXISTS trg_Fund_Controls_updated_at
-AFTER UPDATE ON Fund_Controls
-FOR EACH ROW
-WHEN NEW.updated_at = OLD.updated_at
-BEGIN
-  UPDATE Fund_Controls SET updated_at = datetime('now') WHERE fund_id = OLD.fund_id;
 END;
 
 CREATE TRIGGER IF NOT EXISTS trg_Rounds_updated_at
