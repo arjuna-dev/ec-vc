@@ -377,7 +377,6 @@ import {
   hydrateFileRecordUniverseFromSystemFiles,
   getLiveOptionRowsState,
   loadFileRecordRows,
-  normalizeFileRecordListResult,
   subscribeLiveOptionRowsState,
 } from 'src/utils/fileRecordLoaders'
 import { buildSurfaceSections, groupSurfaceViews } from 'src/utils/shellViewLayout'
@@ -1357,18 +1356,11 @@ async function loadRecordView() {
     currentView.value = result || null
     fields.value = Array.isArray(result?.fields) ? result.fields : []
     if (!Array.isArray(liveOptionRowsBySource.value.users)) {
-      try {
-        const usersResult = await bridge.value?.users?.list?.()
-        liveOptionRowsBySource.value = {
-          ...liveOptionRowsBySource.value,
-          users: normalizeFileRecordListResult(usersResult),
-        }
-      } catch {
-        liveOptionRowsBySource.value = {
-          ...liveOptionRowsBySource.value,
-          users: [],
-        }
-      }
+      liveOptionRowsBySource.value = await loadFileRecordRows({
+        sourceKey: 'users',
+        bridgeValue: bridge.value,
+        currentRowsBySource: liveOptionRowsBySource.value,
+      })
     }
     try {
       const verificationResult = await bridge.value?.verification?.list?.({

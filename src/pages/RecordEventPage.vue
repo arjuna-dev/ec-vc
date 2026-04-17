@@ -58,7 +58,7 @@
 import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import PageBackSymbol from 'src/components/PageBackSymbol.vue'
-import { normalizeFileRecordListResult } from 'src/utils/fileRecordLoaders'
+import { getLiveOptionRowsState, loadFileRecordRows } from 'src/utils/fileRecordLoaders'
 import { RECORD_VIEW_ROUTE_NAME } from 'src/utils/recordViewNavigation'
 import { getCanonicalTokenValue, getRegistryTitleTokenForSource } from 'src/utils/structureRegistry'
 
@@ -83,16 +83,20 @@ async function loadEvent() {
   if (!bridge.value?.audit?.events) return
   error.value = ''
   try {
-    const [eventResult, userResult] = await Promise.all([
+    const [eventResult, optionRowsBySource] = await Promise.all([
       bridge.value.audit.events({
         table_name: tableNameParam.value,
         record_id: recordIdParam.value,
         limit: 200,
       }),
-      bridge.value?.users?.list?.(),
+      loadFileRecordRows({
+        sourceKey: 'users',
+        bridgeValue: bridge.value,
+        currentRowsBySource: getLiveOptionRowsState(),
+      }),
     ])
 
-    users.value = normalizeFileRecordListResult(userResult)
+    users.value = Array.isArray(optionRowsBySource?.users) ? optionRowsBySource.users : []
     eventRecord.value = (Array.isArray(eventResult?.events) ? eventResult.events : []).find(
       (event) => String(event?.id || '').trim() === eventIdParam.value,
     ) || null
