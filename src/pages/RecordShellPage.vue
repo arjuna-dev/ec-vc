@@ -375,7 +375,6 @@ import {
 } from 'src/utils/structureRegistry'
 import { buildSurfaceSections, groupSurfaceViews } from 'src/utils/shellViewLayout'
 import { filterRecordFeedTabs, RECORD_FEED_GROUP_OPTIONS } from 'src/utils/recordFeedContract'
-import { setPendingIntakeShellRequest } from 'src/utils/intakeShellState'
 import { buildShellToolbarFeed } from 'src/utils/shellToolbarFeeder'
 import { buildStructureToolbarItems } from 'src/utils/structureToolbarContract'
 import { buildTokenUpdateChanges, tokenSupportsRecordUpdate } from 'src/utils/tokenWriteChanges'
@@ -942,15 +941,15 @@ function handleRecordFeedAdd(feedTab) {
   if (!['notes', 'artifacts', 'intake'].includes(normalizedFeedTab)) return
 
   if (normalizedFeedTab === 'intake') {
-    setPendingIntakeShellRequest({
-      initialArtifacts: [],
-      artifactContext: recordFeedArtifactContext.value,
-    })
     router.push({
       name: 'intake-shell',
       query: {
         section: 'intake',
         create: '1',
+        contextEntity: String(recordFeedArtifactContext.value?.entityName || '').trim(),
+        contextEntityLabel: String(recordFeedArtifactContext.value?.entityLabel || '').trim(),
+        contextRecordId: String(recordFeedArtifactContext.value?.recordId || '').trim(),
+        contextRecordLabel: String(recordFeedArtifactContext.value?.recordLabel || '').trim(),
         open: String(Date.now()),
       },
     })

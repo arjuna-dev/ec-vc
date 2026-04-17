@@ -691,7 +691,6 @@ import { buildSurfaceSections, groupSurfaceViews } from 'src/utils/shellViewLayo
 import { getFileRecordLoader } from 'src/utils/fileRecordLoaders'
 import { buildRecordViewLocation } from 'src/utils/recordViewNavigation'
 import { getBuildingBlockGraphCounts, getBuildingBlockGraphLinks } from 'src/utils/buildingBlocks'
-import { setPendingIntakeShellRequest } from 'src/utils/intakeShellState'
 
 const props = defineProps({
   shellMode: {
@@ -2516,15 +2515,15 @@ function handleCardAddRelation(row) {
   const artifactContext = buildRowArtifactContext(row)
 
   if (activePanel === 'intake') {
-    setPendingIntakeShellRequest({
-      initialArtifacts: [],
-      artifactContext,
-    })
     router.push({
       name: 'intake-shell',
       query: {
         section: 'intake',
         create: '1',
+        contextEntity: String(artifactContext?.entityName || '').trim(),
+        contextEntityLabel: String(artifactContext?.entityLabel || '').trim(),
+        contextRecordId: String(artifactContext?.recordId || '').trim(),
+        contextRecordLabel: String(artifactContext?.recordLabel || '').trim(),
         open: String(Date.now()),
       },
     })

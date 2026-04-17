@@ -68,7 +68,6 @@ import {
 } from 'src/utils/structureRegistry'
 import { buildSurfaceSections, groupSurfaceViews, splitSurfaceSections } from 'src/utils/shellViewLayout'
 import { buildTokenUpdateChanges, normalizeTokenWriteValue } from 'src/utils/tokenWriteChanges'
-import { consumePendingIntakeShellRequest, setPendingIntakeShellRequest } from 'src/utils/intakeShellState'
 
 const route = useRoute()
 const $q = useQuasar()
@@ -88,6 +87,7 @@ const dialogInitialArtifacts = ref([])
 const dialogInitialProjectIds = ref([])
 const dialogInitialSnapshot = ref(null)
 const dialogArtifactContext = ref(null)
+const pendingIntakeRequest = ref(null)
 const runtimeStructureVersion = ref(getRuntimeStructureVersion())
 let runtimeStructureUnsub = null
 
@@ -168,11 +168,30 @@ watch(activeSourceKey, async () => {
   if (!dialogOpen.value) dialogOpen.value = true
 }, { immediate: true })
 
+function buildRouteArtifactContext() {
+  const entityName = String(route.query.contextEntity || '').trim()
+  const entityLabel = String(route.query.contextEntityLabel || '').trim()
+  const recordId = String(route.query.contextRecordId || '').trim()
+  const recordLabel = String(route.query.contextRecordLabel || '').trim()
+  if (!entityName || !recordId) return null
+  return {
+    entityName,
+    entityLabel,
+    recordId,
+    recordLabel,
+    state: 'default_preselected_unverified',
+  }
+}
+
 watch(
   () => route.query.open,
   () => {
-    const pending = consumePendingIntakeShellRequest()
-    if (!pending) return
+    const pending = pendingIntakeRequest.value
+    pendingIntakeRequest.value = null
+    if (!pending) {
+      dialogArtifactContext.value = buildRouteArtifactContext()
+      return
+    }
     const pendingSnapshot = pending.snapshot && typeof pending.snapshot === 'object' ? pending.snapshot : null
     dialogInitialSnapshot.value = pendingSnapshot
     dialogInitialArtifacts.value = Array.isArray(pendingSnapshot?.stagedArtifacts)
@@ -243,13 +262,13 @@ function buildPendingIntakeRequest(snapshot = null) {
 
 function handleDialogChange(snapshot) {
   const pending = buildPendingIntakeRequest(snapshot)
-  setPendingIntakeShellRequest(pending)
+  pendingIntakeRequest.value = pending
 }
 
 function handleDialogClose(snapshot) {
   dialogOpen.value = false
   const pending = buildPendingIntakeRequest(snapshot)
-  setPendingIntakeShellRequest(pending)
+  pendingIntakeRequest.value = pending
 }
 
 function buildCreateDialogInitialValues() {
