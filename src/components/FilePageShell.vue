@@ -627,32 +627,6 @@
       />
       </template>
 
-      <AddEditRecordShellDialog
-        :key="createDialogRenderKey"
-        v-model="createDialogOpen"
-        :mode="createDialogMode"
-        :source-label="activeRegistryEntry?.label || 'Records'"
-        :singular-label="activeRegistryEntry?.singularLabel || 'record'"
-        :primary-tokens="createPrimaryTokens"
-        :left-sections="createDialogLeftViews"
-        :right-sections="createDialogRightViews"
-      :branch-selector-token-key="createDialogBranchSelectorTokenKey"
-      :loading="createDialogLoading"
-      :submit-disabled="createDialogSubmitDisabled"
-      :initial-values="createDialogInitialValues"
-      :initial-field-meta="createDialogInitialFieldMeta"
-      :initial-section-key="createDialogInitialSectionKey"
-      :initial-artifacts="createDialogInitialArtifacts"
-      :artifact-context="createDialogArtifactContext"
-      :prefer-add-layout="createDialogPreferAddLayout"
-      :initial-resources-collapsed="createDialogResourcesCollapsed"
-      :initial-record-data-collapsed="createDialogRecordDataCollapsed"
-      :initial-snapshot="createDialogInitialSnapshot"
-        @change="handleCreateDialogChange"
-        @request-close="handleCreateDialogClose"
-        @submit="submitCreateRecordShell"
-      />
-
       <q-dialog v-model="heroDocumentDialogOpen" maximized>
         <q-card class="hero-document-dialog">
           <q-card-section class="hero-document-dialog__header">
@@ -677,7 +651,6 @@
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { copyToClipboard, useQuasar } from 'quasar'
 import { useRoute, useRouter } from 'vue-router'
-import AddEditRecordShellDialog from 'components/AddEditRecordShellDialog.vue'
 import FileFilterMenu from 'components/FileFilterMenu.vue'
 import FileHero from 'components/FileHero.vue'
 import FileShellControlBar from 'components/FileShellControlBar.vue'
@@ -693,7 +666,6 @@ import { buildStructureToolbarItems } from 'src/utils/structureToolbarContract'
     getCreateBranchEntry,
     getCreateBranches,
     getCreateBranchTokenName,
-    getFilePageBirthDefaults,
     getFilePageCreateSurface,
     getFilePageEditSurface,
     FILE_SOURCE_REGISTRY,
@@ -709,7 +681,6 @@ import { buildStructureToolbarItems } from 'src/utils/structureToolbarContract'
   getCanonicalTokenFieldNames,
   getCanonicalTokenWriteFieldName,
   getCanonicalTokenWriteTarget,
-  getDefaultTokenCreateValue,
     getCanonicalTokenValue,
     resolveApprovedFileSectionKey,
     buildFileShellPayload,
@@ -717,13 +688,13 @@ import { buildStructureToolbarItems } from 'src/utils/structureToolbarContract'
 import { getLdbRelationshipContractForToken } from 'src/shared/ldbRelationshipContracts'
 import { getTokenInputOptions } from 'src/utils/tokenSurfaceContract'
 import { buildTokenUpdateChanges } from 'src/utils/tokenWriteChanges'
-import { buildDialogViews, groupDialogViews, splitDialogViews } from 'src/utils/dialogShellPayload'
+import { buildDialogViews, groupDialogViews } from 'src/utils/dialogShellPayload'
 import { buildRecordViewLocation } from 'src/utils/recordViewNavigation'
 import { loadShellFieldSelectionMap, persistShellFieldSelectionMap } from 'src/utils/shellFieldSelection'
 import { getBuildingBlockGraphCounts, getBuildingBlockGraphLinks } from 'src/utils/buildingBlocks'
 import { setPendingAddEditShellRequest } from 'src/utils/addEditShellState'
 import { setPendingIntakeShellRequest } from 'src/utils/intakeShellState'
-import { removeDraftRegistryEntry, upsertDraftRegistryEntry } from 'src/utils/draftRegistry'
+import { removeDraftRegistryEntry } from 'src/utils/draftRegistry'
 
 const props = defineProps({
   shellMode: {
@@ -755,25 +726,9 @@ const heroCollapsed = ref(false)
 const viewMode = ref('page')
 const dataSurfaceCollapsed = ref(false)
 const createDialogOpen = ref(false)
-const createDialogRenderKey = ref(0)
-const createDialogLoading = ref(false)
 const createDialogMode = ref('create')
-const createDialogPreferAddLayout = ref(false)
-const createDialogInitialSnapshot = ref(null)
-const createDialogResourcesCollapsed = ref(false)
-const createDialogRecordDataCollapsed = ref(true)
-const editDialogRow = ref(null)
-const editDialogRecordPayload = ref(null)
 const createDialogDraftRecordId = ref('')
-const createDialogDraftEntityName = ref('')
 const createDialogDraftSourceKey = ref('')
-const createDialogInitialSectionKey = ref('general')
-const createDialogPrefillValues = ref({})
-const createDialogFieldMeta = ref({})
-const createDialogInitialArtifacts = ref([])
-const createDialogLastChangeSnapshot = ref(null)
-const createDialogLastSavedSignature = ref('')
-const createDialogAutosavePending = ref(false)
 const heroDocumentDialogOpen = ref(false)
 const heroDocumentDialogTitle = ref('')
 const heroDocumentDialogContent = ref('')
@@ -786,9 +741,6 @@ const inlineTableEditState = ref({
   value: '',
   kind: '',
 })
-let createDialogAutosaveTimer = null
-let createDialogAutosaveInFlight = false
-let queuedCreateDialogSnapshot = null
 const cardRelationshipPanelById = ref({})
 const selectedRowIds = ref([])
 const tableColumnWidths = ref({})
@@ -1124,10 +1076,6 @@ const createPrimaryTokens = computed(() => {
     })
     .map((token) => normalizeCreateDialogToken(token))
 })
-const createDialogSubmitDisabled = computed(() => {
-  if (createDialogMode.value === 'edit') return false
-  return !canCreateWithShell.value
-})
 const cardItemTokenGroups = computed(() =>
   cardSettingsSourceViews.value
     .map((section) => ({
@@ -1153,17 +1101,6 @@ const createViewGroups = computed(() => {
     keepEmptySections: true,
   })
 })
-const createDialogViewSplit = computed(() => splitDialogViews(createViewGroups.value))
-const createDialogLeftViews = computed(() => createDialogViewSplit.value.leftSections)
-const createDialogRightViews = computed(() => createDialogViewSplit.value.rightSections)
-const createDialogBranchSelectorTokenKey = computed(() => {
-  const branchTokenName = getCreateBranchTokenName(activeSourceKey.value)
-  if (!branchTokenName) return ''
-  return createPrimaryTokens.value.find((token) => String(token?.tokenName || '').trim() === branchTokenName)?.key || ''
-})
-const createDialogLdbViewKey = computed(
-  () => createViewGroups.value.find((section) => isRelationshipSectionLabel(section?.label))?.key || '',
-)
 const isTableInlineEditingAvailable = computed(() => viewMode.value !== 'card')
 const activeCardSettingsScopeKey = computed(() => `${activeContentSourceKey.value}:${activeCardSettingsViewKey.value}`)
 const expandedCardSettingsGroups = computed(() => {
@@ -1212,145 +1149,6 @@ const canCreateWithShell = computed(() => {
   return Boolean(bridge.value?.[activeContentSourceKey.value]?.create)
 })
 
-function getEditDialogTokenValueFromPayload(payload, token) {
-  if (!payload) return ''
-
-  const fieldNames = getCanonicalTokenFieldNames(token)
-  const payloadFields = Array.isArray(payload.fields) ? payload.fields : []
-
-  for (const fieldName of fieldNames) {
-    const matchingField = payloadFields.find((field) => String(field?.field_name || '').trim() === fieldName)
-    if (!matchingField) continue
-    const relationshipIds = Array.isArray(matchingField?.relationship_ids)
-      ? matchingField.relationship_ids.map((value) => String(value || '').trim()).filter(Boolean)
-      : []
-    if (relationshipIds.length) return relationshipIds
-
-    const fieldValue = matchingField?.value
-    if (fieldValue != null && !(typeof fieldValue === 'string' && !fieldValue.trim())) {
-      return fieldValue
-    }
-  }
-
-  for (const fieldName of fieldNames) {
-    const recordValue = payload.record?.[fieldName]
-    if (recordValue != null && !(typeof recordValue === 'string' && !recordValue.trim())) {
-      return recordValue
-    }
-  }
-
-  const optionEntity = String(token?.optionEntity || '').trim()
-  if (optionEntity === 'Artifacts') {
-    return createDialogInitialArtifacts.value.map((artifact) => String(artifact?.name || '').trim()).filter(Boolean)
-  }
-
-  return ''
-}
-
-function getEditDialogTokenMetaFromPayload(payload, token, entityName, recordId) {
-  if (!payload) return null
-  const normalizedEntityName = String(entityName || '').trim()
-  const normalizedRecordId = String(recordId || '').trim()
-  const fieldNames = getCanonicalTokenFieldNames(token)
-  const matchingField = (Array.isArray(payload.fields) ? payload.fields : []).find((field) =>
-    fieldNames.includes(String(field?.field_name || '').trim()),
-  )
-  if (!matchingField) return null
-
-  const fieldTableName = String(matchingField?.table_name || '').trim()
-  const fieldRecordId = String(matchingField?.record_id || '').trim()
-  const verificationFields = Array.isArray(payload?.verificationFields) ? payload.verificationFields : []
-  const verificationMatch = verificationFields.find(
-    (field) =>
-      String(field?.field_name || '').trim() === String(matchingField?.field_name || '').trim() &&
-      String(field?.table_name || '').trim() === normalizedEntityName &&
-      String(field?.record_id || '').trim() === normalizedRecordId,
-  )
-
-  return {
-    tableName: fieldTableName,
-    recordId: fieldRecordId,
-    fieldName: String(matchingField?.field_name || '').trim(),
-    idColumn: String(matchingField?.id_column || '').trim(),
-    verificationState: String(verificationMatch?.state || '').trim(),
-    verificationSource: String(verificationMatch?.source || '').trim(),
-    locked:
-      matchingField?.editable === false ||
-      (Boolean(fieldTableName && fieldRecordId) &&
-        (fieldTableName !== normalizedEntityName || fieldRecordId !== normalizedRecordId)),
-  }
-}
-
-const createDialogInitialValues = computed(() => {
-  return createDialogPrefillValues.value
-})
-
-const createDialogInitialFieldMeta = computed(() => {
-  return createDialogFieldMeta.value
-})
-
-const createDialogArtifactContext = computed(() => {
-  if (activeSourceKey.value === 'artifacts') return null
-  const entityName = String(activeRegistryEntry.value?.entityName || '').trim()
-  const entityLabel = String(activeRegistryEntry.value?.singularLabel || activeRegistryEntry.value?.label || '').trim()
-  if (!entityName || !entityLabel) return null
-
-  const recordId = String(editDialogRow.value?.recordId || createDialogDraftRecordId.value || '').trim()
-  const recordLabel = String(editDialogRow.value?.titleValue || '').trim()
-
-  return {
-    entityName,
-    entityLabel,
-    recordId,
-    recordLabel,
-    state: 'default_preselected_unverified',
-  }
-})
-
-async function loadEditDialogRecordPayload(entityName, recordId) {
-  const normalizedEntityName = String(entityName || '').trim()
-  const normalizedRecordId = String(recordId || '').trim()
-  if (!bridge.value?.records?.view || !normalizedEntityName || !normalizedRecordId) return null
-
-  const result = await bridge.value.records.view(normalizedEntityName, normalizedRecordId)
-  if (!result?.record) return null
-
-  let verificationFields = []
-  try {
-    const verificationResult = await bridge.value?.verification?.list?.({
-      tableName: normalizedEntityName,
-      recordId: normalizedRecordId,
-    })
-    verificationFields = Array.isArray(verificationResult?.fields) ? verificationResult.fields : []
-  } catch {
-    verificationFields = []
-  }
-
-  return {
-    ...result,
-    verificationFields,
-  }
-}
-
-function buildEditDialogInitialValuesFromPayload(payload) {
-  const allTokens = [...createPrimaryTokens.value, ...createViewGroups.value.flatMap((section) => section.tokens)]
-  return Object.fromEntries(
-    allTokens.map((token) => {
-      const value = getEditDialogTokenValueFromPayload(payload, token)
-      return [token.key, normalizeCreateDialogInitialValue(token, value)]
-    }),
-  )
-}
-
-function buildEditDialogFieldMetaFromPayload(payload, entityName, recordId) {
-  const allTokens = [...createPrimaryTokens.value, ...createViewGroups.value.flatMap((section) => section.tokens)]
-  return Object.fromEntries(
-    allTokens.map((token) => [
-      token.key,
-      getEditDialogTokenMetaFromPayload(payload, token, entityName, recordId),
-    ]),
-  )
-}
 const canDeleteSelectedRows = computed(() => {
   if (selectedRows.value.length === 0) return false
   if (activeSourceKey.value === 'events') return false
@@ -1440,12 +1238,6 @@ function isAutomaticCreatorToken(token) {
   const fieldNames = getCanonicalTokenFieldNames(token).map((name) => String(name || '').trim())
   if (fieldNames.includes('created_by') || fieldNames.includes('created_by_label')) return true
   return tokenName.endsWith('_Creator')
-}
-
-function isBranchSelectorToken(token, sourceKey = activeSourceKey.value) {
-  const branchTokenName = getCreateBranchTokenName(sourceKey)
-  if (!branchTokenName) return false
-  return String(token?.tokenName || '').trim() === branchTokenName
 }
 
 function getDynamicInputOptionsForToken(token) {
@@ -1964,19 +1756,6 @@ const draftSourceEntries = computed(() =>
         })),
     })),
   )
-function isStatusToken(token) {
-  const role = String(token?.tokenRole || '').trim().toLowerCase()
-  if (role === 'status') return true
-  const tokenName = String(token?.tokenName || '').trim().toLowerCase()
-  if (tokenName === 'status') return true
-  const writeField = String(token?.dbWriteField || '').trim().toLowerCase()
-  if (writeField === 'status') return true
-  const aliases = Array.isArray(token?.dbFieldAliases)
-    ? token.dbFieldAliases.map((value) => String(value || '').trim().toLowerCase()).filter(Boolean)
-    : []
-  return aliases.includes('status')
-}
-
 function getDefaultActiveViewKey(views = []) {
   const normalizedViews = Array.isArray(views) ? views : []
   const generalView = normalizedViews.find((view) => String(view?.label || '').trim().toLowerCase() === 'general')
@@ -2192,7 +1971,10 @@ watch(
       nextInitialValues[branchToken.key] = resolveCreateDialogOptionValue(branchToken, branchEntry.value)
     }
 
-    openCreateRecordShell({ initialValues: nextInitialValues })
+    requestCreateRecordShellForSource(activeSourceKey.value, {
+      kind: requestedBranch,
+      initialValues: nextInitialValues,
+    })
 
     const nextQuery = {
       ...route.query,
@@ -2213,11 +1995,7 @@ watch(
     const row = displayRows.value.find((entry) => String(entry?.recordId || '').trim() === normalizedRecordId) || null
     if (!row) return
 
-    if (isRelationshipSectionLabel(editSection)) {
-      await openAddRelationShell(row)
-    } else {
-      await openEditRecordShell(row)
-    }
+    await requestEditRecordShell(row, { sectionKey: editSection })
 
     const nextQuery = {
       ...route.query,
@@ -3045,16 +2823,6 @@ async function handleHeroActionItemClick(item = {}) {
   }
 }
 
-function buildDraftDialogInitialValuesFromRow(row) {
-  const allTokens = [...createPrimaryTokens.value, ...createViewGroups.value.flatMap((section) => section.tokens)]
-  return Object.fromEntries(
-    allTokens.map((token) => {
-      const value = getCanonicalTokenValue(row?.raw || {}, token)
-      return [token.key, normalizeCreateDialogInitialValue(token, value)]
-    }),
-  )
-}
-
 function isSystemManagedReadOnlyToken(token) {
   const tokenType = String(token?.tokenType || '').trim().toLowerCase()
   const tokenName = String(token?.tokenName || '').trim().toLowerCase()
@@ -3510,371 +3278,6 @@ function requestEditRecordShell(row, options = {}) {
   })
 }
 
-  function openCreateRecordShell(options = {}) {
-  if (!canCreateWithShell.value) {
-    $q.notify({ type: 'negative', message: 'This shell source is view-only.' })
-    return
-  }
-  resetCreateDialogAutosaveState()
-  createDialogMode.value = 'create'
-  createDialogPreferAddLayout.value = true
-  const expandBothPanels = String(activeContentSourceKey.value || '').trim().toLowerCase() === 'opportunities'
-  createDialogResourcesCollapsed.value = !expandBothPanels
-  createDialogRecordDataCollapsed.value = !expandBothPanels
-  createDialogDraftRecordId.value = `draft:${crypto.randomUUID()}`
-  createDialogDraftSourceKey.value = activeContentSourceKey.value
-  editDialogRow.value = null
-  editDialogRecordPayload.value = null
-  createDialogInitialSectionKey.value = 'general'
-    const baseValues = {
-      ...getFilePageBirthDefaults(activeSourceKey.value),
-      ...(options?.initialValues && typeof options.initialValues === 'object' ? { ...options.initialValues } : {}),
-    }
-    const allTokens = [...createPrimaryTokens.value, ...createViewGroups.value.flatMap((section) => section.tokens)]
-    allTokens.forEach((token) => {
-      const key = String(token?.key || '').trim()
-      if (!key || String(baseValues[key] || '').trim()) return
-      const roleDefault = getDefaultTokenCreateValue(token)
-      const defaultValue = roleDefault != null ? roleDefault : isStatusToken(token) ? 'Draft' : null
-      if (defaultValue != null) {
-        baseValues[key] = defaultValue
-      }
-    })
-    createDialogPrefillValues.value = baseValues
-  createDialogFieldMeta.value = options?.initialFieldMeta && typeof options.initialFieldMeta === 'object'
-    ? { ...options.initialFieldMeta }
-    : {}
-  createDialogInitialArtifacts.value = []
-  createDialogInitialSnapshot.value = { uiState: { activeSectionKey: createDialogInitialSectionKey.value }, hasUserChanges: true }
-  upsertLocalDraftRow(
-    activeContentSourceKey.value,
-    createDialogDraftRecordId.value,
-    createDialogInitialValues.value,
-    createDialogFieldMeta.value,
-    {},
-  )
-  createDialogRenderKey.value += 1
-  createDialogOpen.value = true
-}
-
-async function openEditRecordShell(row) {
-  if (!supportsActiveSourceEditing.value) return
-  if (!row?.recordId) return
-  if (row?.isLocalDraft) {
-    resetCreateDialogAutosaveState()
-    createDialogMode.value = 'create'
-    createDialogPreferAddLayout.value = true
-    const expandBothPanels = String(activeContentSourceKey.value || '').trim().toLowerCase() === 'opportunities'
-    createDialogResourcesCollapsed.value = !expandBothPanels
-    createDialogRecordDataCollapsed.value = !expandBothPanels
-    createDialogDraftRecordId.value = String(row.recordId || '').trim()
-    createDialogDraftSourceKey.value = activeContentSourceKey.value
-    editDialogRow.value = row
-    editDialogRecordPayload.value = null
-    createDialogInitialSectionKey.value = 'general'
-    createDialogPrefillValues.value = buildDraftDialogInitialValuesFromRow(row)
-    createDialogFieldMeta.value = {}
-    createDialogInitialArtifacts.value = []
-    createDialogInitialSnapshot.value = { uiState: { activeSectionKey: createDialogInitialSectionKey.value }, hasUserChanges: true }
-    createDialogRenderKey.value += 1
-    createDialogOpen.value = true
-    return
-  }
-  resetCreateDialogAutosaveState()
-  createDialogMode.value = 'edit'
-  createDialogPreferAddLayout.value = false
-  createDialogResourcesCollapsed.value = true
-  createDialogRecordDataCollapsed.value = false
-  createDialogInitialSnapshot.value = null
-  editDialogRow.value = row
-  editDialogRecordPayload.value = null
-  createDialogDraftRecordId.value = String(row.recordId || '').trim()
-  createDialogDraftEntityName.value = resolveEditEntityName(row)
-  createDialogInitialSectionKey.value = 'general'
-  createDialogInitialArtifacts.value = await resolveTrueArtifactsForRow(row)
-  try {
-    editDialogRecordPayload.value = await loadEditDialogRecordPayload(
-      createDialogDraftEntityName.value,
-      createDialogDraftRecordId.value,
-    )
-  } catch {
-    editDialogRecordPayload.value = null
-  }
-  if (!editDialogRecordPayload.value?.record) {
-    $q.notify({ type: 'negative', message: 'Could not load the true record fields for edit.' })
-    editDialogRow.value = null
-    createDialogMode.value = 'create'
-    return
-  }
-  createDialogPrefillValues.value = buildEditDialogInitialValuesFromPayload(editDialogRecordPayload.value)
-  createDialogFieldMeta.value = buildEditDialogFieldMetaFromPayload(
-    editDialogRecordPayload.value,
-    createDialogDraftEntityName.value,
-    createDialogDraftRecordId.value,
-  )
-  createDialogRenderKey.value += 1
-  createDialogOpen.value = true
-}
-
-async function openAddRelationShell(row) {
-  if (!supportsActiveSourceEditing.value) return
-  if (!row?.recordId) return
-  if (row?.isLocalDraft) {
-    await openEditRecordShell(row)
-    return
-  }
-  resetCreateDialogAutosaveState()
-  createDialogMode.value = 'edit'
-  createDialogPreferAddLayout.value = false
-  createDialogResourcesCollapsed.value = true
-  createDialogRecordDataCollapsed.value = false
-  createDialogInitialSnapshot.value = null
-  editDialogRow.value = row
-  editDialogRecordPayload.value = null
-  createDialogDraftRecordId.value = String(row.recordId || '').trim()
-  createDialogDraftEntityName.value = resolveEditEntityName(row)
-  createDialogInitialSectionKey.value = createDialogLdbViewKey.value || 'general'
-  createDialogInitialArtifacts.value = await resolveTrueArtifactsForRow(row)
-  try {
-    editDialogRecordPayload.value = await loadEditDialogRecordPayload(
-      createDialogDraftEntityName.value,
-      createDialogDraftRecordId.value,
-    )
-  } catch {
-    editDialogRecordPayload.value = null
-  }
-  if (!editDialogRecordPayload.value?.record) {
-    $q.notify({ type: 'negative', message: 'Could not load the true record fields for edit.' })
-    editDialogRow.value = null
-    createDialogMode.value = 'create'
-    return
-  }
-  createDialogPrefillValues.value = buildEditDialogInitialValuesFromPayload(editDialogRecordPayload.value)
-  createDialogFieldMeta.value = buildEditDialogFieldMetaFromPayload(
-    editDialogRecordPayload.value,
-    createDialogDraftEntityName.value,
-    createDialogDraftRecordId.value,
-  )
-  createDialogRenderKey.value += 1
-  createDialogOpen.value = true
-}
-
-async function submitCreateRecordShell({ values, verification, artifacts } = {}) {
-  clearCreateDialogAutosaveTimer()
-  const isEditMode = createDialogMode.value === 'edit'
-  if (!isEditMode) {
-    const missingLabels = missingRequiredCreateTokenLabels(values)
-    if (missingLabels.length) {
-      $q.notify({
-        type: 'negative',
-        message: `Complete required fields before creating: ${missingLabels.join(', ')}.`,
-      })
-      return
-    }
-  }
-  const activeEntityName = isEditMode
-    ? activeRegistryEntry.value?.entityName || ''
-    : resolveCreateDialogEntityName(buildCreatePayload(values))
-  assertNoUnsupportedRelationshipWrites(values, activeEntityName)
-
-  if (!isEditMode && !canCreateWithShell.value) {
-    notifyShellAction(`Create ${String(activeRegistryEntry.value?.singularLabel || 'missing record type').trim().toLowerCase()}`)
-    return
-  }
-
-  const payload = buildCreatePayload(values)
-  if (!Object.keys(payload).length) {
-    $q.notify({ type: 'negative', message: 'Add at least one field before creating the record.' })
-    return
-  }
-  if (!isEditMode && activeSourceKey.value === 'artifacts') {
-    const stagedArtifactPath = Array.isArray(artifacts?.stagedFiles)
-      ? String(
-        artifacts.stagedFiles.find((artifact) => String(artifact?.path || artifact?.fs_path || '').trim())?.path
-          || artifacts.stagedFiles.find((artifact) => String(artifact?.path || artifact?.fs_path || '').trim())?.fs_path
-          || '',
-      ).trim()
-      : ''
-    if (!String(payload.fs_path || '').trim() && !String(payload.path || '').trim() && stagedArtifactPath) {
-      payload.path = stagedArtifactPath
-    }
-    if (!String(payload.fs_path || '').trim() && !String(payload.path || '').trim()) {
-      $q.notify({ type: 'negative', message: 'Add a file in Resources before creating an artifact.' })
-      return
-    }
-  }
-
-  createDialogLoading.value = true
-  try {
-    if (isEditMode) {
-      if (!activeRegistryEntry.value?.entityName || !editDialogRow.value?.recordId) {
-        $q.notify({ type: 'negative', message: 'This record cannot be edited from the shared shell yet.' })
-        return
-      }
-
-      await updateRecordFromPayload(
-        editDialogRow.value.recordId,
-        activeRegistryEntry.value.entityName,
-        values,
-      )
-      await applyVerificationChanges(
-        editDialogRow.value.recordId,
-        activeRegistryEntry.value.entityName,
-        verification || {},
-      )
-
-      createDialogOpen.value = false
-      resetCreateDialogAutosaveState()
-      createDialogMode.value = 'create'
-      editDialogRow.value = null
-      editDialogRecordPayload.value = null
-      createDialogInitialSectionKey.value = 'general'
-      createDialogPrefillValues.value = {}
-      createDialogFieldMeta.value = {}
-      createDialogInitialArtifacts.value = []
-      $q.notify({ type: 'positive', message: `${activeRegistryEntry.value?.singularLabel || 'Missing record type'} updated.` })
-      await loadRows()
-    } else {
-      const sourceKey = activeSourceKey.value
-      let result = null
-
-      const branchTarget = resolveCreateBranchTarget(payload)
-      if (branchTarget?.targetSourceKey) {
-        result = await bridge.value?.[branchTarget.targetSourceKey]?.create?.(payload)
-      } else if (getCreateBranches(sourceKey).length) {
-        const branchLabel = String(activeRegistryEntry.value?.createBranchLabel || 'Fork').trim()
-        $q.notify({ type: 'negative', message: `Choose ${branchLabel} before creating.` })
-        return
-      } else {
-        result = await bridge.value?.[sourceKey]?.create?.(payload)
-      }
-
-      if (!result) {
-        $q.notify({ type: 'negative', message: 'Create bridge is not available for this record type yet.' })
-        return
-      }
-
-      const createdEntityName =
-        sourceKey === 'opportunities'
-          ? String(payload.Opportunity_Kind || payload.kind || '').trim().toLowerCase() === 'fund'
-            ? 'Funds'
-            : 'Rounds'
-          : activeRegistryEntry.value?.entityName || ''
-      const createdRecordId = String(result?.id || '').trim()
-      if (createdRecordId && createdEntityName) {
-        await updateRecordFromPayload(createdRecordId, createdEntityName, values)
-        await applyVerificationChanges(createdRecordId, createdEntityName, verification || {})
-      }
-
-      removeLocalDraftRow(createDialogDraftSourceKey.value, createDialogDraftRecordId.value)
-      createDialogOpen.value = false
-      resetCreateDialogAutosaveState()
-      editDialogRecordPayload.value = null
-      createDialogInitialSectionKey.value = 'general'
-      createDialogPrefillValues.value = {}
-      createDialogFieldMeta.value = {}
-      createDialogInitialArtifacts.value = []
-      $q.notify({ type: 'positive', message: `${activeRegistryEntry.value?.singularLabel || 'Missing record type'} created.` })
-      await loadRows()
-    }
-  } catch (createError) {
-    $q.notify({ type: 'negative', message: createError?.message || String(createError) })
-  } finally {
-    createDialogLoading.value = false
-  }
-}
-
-function handleCreateDialogChange(snapshot) {
-  createDialogLastChangeSnapshot.value = snapshot
-  createDialogInitialSnapshot.value = snapshot?.uiState ? snapshot : null
-  updateLocalDraftRowFromSnapshot(snapshot)
-  if (createDialogMode.value === 'create') return
-  if (!snapshot?.hasUserChanges) return
-  queueCreateDialogAutosave(snapshot)
-}
-
-async function handleCreateDialogClose(snapshot) {
-  createDialogLastChangeSnapshot.value = snapshot
-  updateLocalDraftRowFromSnapshot(snapshot)
-  if (snapshot?.closeReason === 'discard') {
-    removeLocalDraftRow(createDialogDraftSourceKey.value, createDialogDraftRecordId.value)
-    resetCreateDialogAutosaveState()
-  } else if (createDialogMode.value !== 'create') {
-    await flushCreateDialogAutosave(snapshot, { immediate: true, reloadRows: true })
-    removeLocalDraftRow(createDialogDraftSourceKey.value, createDialogDraftRecordId.value)
-    resetCreateDialogAutosaveState()
-  } else if (snapshot?.hasUserChanges) {
-    createDialogOpen.value = false
-  } else {
-    createDialogOpen.value = false
-  }
-  createDialogMode.value = 'create'
-  createDialogPreferAddLayout.value = false
-  editDialogRow.value = null
-  editDialogRecordPayload.value = null
-  createDialogInitialSectionKey.value = 'general'
-  createDialogPrefillValues.value = {}
-  createDialogFieldMeta.value = {}
-  createDialogInitialArtifacts.value = []
-  createDialogInitialSnapshot.value = null
-}
-
-function queueCreateDialogAutosave(snapshot) {
-  queuedCreateDialogSnapshot = snapshot
-  createDialogAutosavePending.value = true
-  clearCreateDialogAutosaveTimer()
-  createDialogAutosaveTimer = setTimeout(() => {
-    void flushCreateDialogAutosave(queuedCreateDialogSnapshot)
-  }, 280)
-}
-
-function clearCreateDialogAutosaveTimer() {
-  if (createDialogAutosaveTimer) {
-    clearTimeout(createDialogAutosaveTimer)
-    createDialogAutosaveTimer = null
-  }
-}
-
-function resetCreateDialogAutosaveState() {
-  clearCreateDialogAutosaveTimer()
-  createDialogDraftRecordId.value = ''
-  createDialogDraftEntityName.value = ''
-  createDialogDraftSourceKey.value = ''
-  createDialogLastChangeSnapshot.value = null
-  createDialogLastSavedSignature.value = ''
-  createDialogAutosavePending.value = false
-  queuedCreateDialogSnapshot = null
-}
-
-function buildCreateDialogAutosaveSignature(payload = {}, recordId = '', entityName = '') {
-  return JSON.stringify({
-    entityName: String(entityName || '').trim(),
-    recordId: String(recordId || '').trim(),
-    payload,
-  })
-}
-
-function resolveCreateBranchTarget(payload = {}) {
-  const branchTokenName = getCreateBranchTokenName(activeSourceKey.value)
-  const branchEntry = branchTokenName
-    ? getCreateBranchEntry(activeSourceKey.value, payload?.[branchTokenName] || payload?.kind)
-    : null
-  const targetSourceKey = String(branchEntry?.targetSourceKey || '').trim()
-  return targetSourceKey
-    ? {
-        targetSourceKey,
-        entityName: getFilePageRegistryEntry(targetSourceKey)?.entityName || '',
-      }
-    : null
-}
-
-function resolveCreateDialogEntityName(payload = {}) {
-  if (createDialogDraftEntityName.value) return createDialogDraftEntityName.value
-  const branchTarget = resolveCreateBranchTarget(payload)
-  if (branchTarget?.entityName) return branchTarget.entityName
-  return activeRegistryEntry.value?.entityName || ''
-}
-
 function resolveEditEntityName(row) {
   if (activeSourceKey.value !== 'opportunities') return activeRegistryEntry.value?.entityName || ''
   if (activeCreateBranchEntry.value?.targetSourceKey) {
@@ -3892,205 +3295,6 @@ function resolveEditEntityName(row) {
   return activeRegistryEntry.value?.entityName || ''
 }
 
-async function createRecordFromPayload(payload = {}) {
-  const sourceKey = activeSourceKey.value
-  let result = null
-  let entityName = activeRegistryEntry.value?.entityName || ''
-
-  const branchTarget = resolveCreateBranchTarget(payload)
-  if (branchTarget?.targetSourceKey) {
-    result = await bridge.value?.[branchTarget.targetSourceKey]?.create?.(payload)
-    entityName = branchTarget.entityName || entityName
-  } else if (getCreateBranches(sourceKey).length) {
-    const branchLabel = String(activeRegistryEntry.value?.createBranchLabel || 'Fork').trim()
-    throw new Error(`Choose ${branchLabel} before creating.`)
-  } else {
-    result = await bridge.value?.[sourceKey]?.create?.(payload)
-  }
-
-  if (!result?.id) {
-    throw new Error('Create bridge is not available for this record type yet.')
-  }
-
-  createDialogDraftRecordId.value = String(result.id || '').trim()
-  createDialogDraftEntityName.value = entityName
-  createDialogMode.value = 'edit'
-  editDialogRow.value = {
-    recordId: createDialogDraftRecordId.value,
-    raw: null,
-  }
-
-  await loadRows()
-  return { recordId: createDialogDraftRecordId.value, entityName }
-}
-
-async function updateRecordFromPayload(recordId, entityName, payload = {}) {
-  if (!recordId || !entityName) {
-    throw new Error('This record cannot be edited from the shared shell yet.')
-  }
-  const tableName = getRuntimeTableNameForEntityName(entityName)
-
-  const changes = buildUpdateChangesFromValues(payload, {
-    recordId,
-    entityName,
-    tableName,
-    idColumn: activeLoader.value?.recordIdField || 'id',
-  })
-  if (!changes.length) return
-
-  await bridge.value?.records?.update?.({
-    tableName,
-    recordId,
-    changes,
-    actionLabel: 'shared_shell_dialog_session',
-  })
-}
-
-async function applyVerificationChanges(recordId, entityName, verification = {}) {
-  const changes = Array.isArray(verification?.changes) ? verification.changes : []
-  if (!changes.length) return
-  const tableName = getRuntimeTableNameForEntityName(entityName)
-
-  for (const change of changes) {
-    const targetTableName = String(change?.tableName || tableName || '').trim()
-    const targetRecordId = String(change?.recordId || recordId || '').trim()
-    const fieldName = String(change?.fieldName || '').trim()
-    const state = String(change?.state || '').trim()
-    const source = String(change?.source || 'dialog_field_review').trim()
-    if (!targetTableName || !targetRecordId || !fieldName || !state) continue
-
-    await bridge.value?.verification?.upsert?.({
-      tableName: targetTableName,
-      recordId: targetRecordId,
-      fieldName,
-      state,
-      source,
-      actionLabel: 'shared_shell_dialog_session',
-    })
-  }
-}
-
-async function flushCreateDialogAutosave(snapshot, { immediate = false, reloadRows = false } = {}) {
-  if (!snapshot?.hasUserChanges) return
-  if (createDialogMode.value === 'create') {
-    createDialogAutosavePending.value = false
-    return
-  }
-  if (!immediate && createDialogAutosaveInFlight) {
-    queuedCreateDialogSnapshot = snapshot
-    return
-  }
-
-  clearCreateDialogAutosaveTimer()
-  const payload = buildCreatePayload(snapshot.values)
-  const currentRecordId = createDialogDraftRecordId.value || editDialogRow.value?.recordId || ''
-  const entityNameForValidation = resolveCreateDialogEntityName(payload)
-  assertNoUnsupportedRelationshipWrites(snapshot.values, entityNameForValidation)
-  const previewEntityName = entityNameForValidation || activeRegistryEntry.value?.entityName || ''
-  const pendingChanges = currentRecordId
-    ? buildUpdateChangesFromValues(snapshot.values || {}, {
-        recordId: currentRecordId,
-        entityName: previewEntityName,
-        idColumn: activeLoader.value?.recordIdField || 'id',
-      })
-    : []
-  if (!Object.keys(payload).length && !pendingChanges.length) {
-    createDialogAutosavePending.value = false
-    return
-  }
-
-  const currentEntityName = resolveCreateDialogEntityName(payload)
-  const signature = buildCreateDialogAutosaveSignature(snapshot.values || {}, currentRecordId, currentEntityName)
-  if (signature === createDialogLastSavedSignature.value) {
-    createDialogAutosavePending.value = false
-    return
-  }
-
-  if (createDialogAutosaveInFlight) {
-    queuedCreateDialogSnapshot = snapshot
-    return
-  }
-
-  createDialogAutosaveInFlight = true
-  createDialogAutosavePending.value = true
-  try {
-    let recordId = currentRecordId
-    let entityName = currentEntityName
-
-    if (!recordId) {
-      const createResult = await createRecordFromPayload(payload)
-      recordId = createResult.recordId
-      entityName = createResult.entityName
-    }
-    await updateRecordFromPayload(recordId, entityName, snapshot.values || {})
-    await applyVerificationChanges(recordId, entityName, snapshot.verification || {})
-    if (reloadRows) await loadRows()
-
-    createDialogLastSavedSignature.value = buildCreateDialogAutosaveSignature(snapshot.values || {}, recordId, entityName)
-  } catch (autosaveError) {
-    $q.notify({ type: 'negative', message: autosaveError?.message || String(autosaveError) })
-  } finally {
-    createDialogAutosaveInFlight = false
-    createDialogAutosavePending.value = false
-    if (queuedCreateDialogSnapshot && queuedCreateDialogSnapshot !== snapshot) {
-      const nextSnapshot = queuedCreateDialogSnapshot
-      queuedCreateDialogSnapshot = null
-      void flushCreateDialogAutosave(nextSnapshot, { immediate: true, reloadRows })
-    } else {
-      queuedCreateDialogSnapshot = null
-    }
-  }
-}
-
-function buildDraftRowFieldMeta(fieldMeta = {}, fieldVerificationStates = {}) {
-  const nextFieldMeta = {}
-  const keys = new Set([
-    ...Object.keys(fieldMeta && typeof fieldMeta === 'object' ? fieldMeta : {}),
-    ...Object.keys(fieldVerificationStates && typeof fieldVerificationStates === 'object' ? fieldVerificationStates : {}),
-  ])
-
-  keys.forEach((key) => {
-    const baseMeta = fieldMeta?.[key] && typeof fieldMeta[key] === 'object' ? { ...fieldMeta[key] } : {}
-    const verificationState = String(fieldVerificationStates?.[key] || baseMeta.verificationState || '').trim()
-    const verificationSource = String(baseMeta.verificationSource || '').trim()
-    if (!verificationState && !verificationSource) return
-    nextFieldMeta[key] = {
-      ...baseMeta,
-      ...(verificationState ? { verificationState } : {}),
-      ...(verificationSource ? { verificationSource } : {}),
-    }
-  })
-
-  return nextFieldMeta
-}
-
-function buildLocalDraftRowPayload(values = {}, fieldMeta = {}, fieldVerificationStates = {}) {
-  const payload = buildCreatePayload(values)
-  return {
-    id: createDialogDraftRecordId.value,
-    ...payload,
-    __fieldMeta: buildDraftRowFieldMeta(fieldMeta, fieldVerificationStates),
-  }
-}
-
-function upsertLocalDraftRow(sourceKey, draftId, values = {}, fieldMeta = {}, fieldVerificationStates = {}) {
-  const normalizedSourceKey = String(sourceKey || '').trim().toLowerCase()
-  const normalizedDraftId = String(draftId || '').trim()
-  if (!normalizedSourceKey || !normalizedDraftId) return
-
-  const nextRow = buildLocalDraftRowPayload(values, fieldMeta, fieldVerificationStates)
-  localDraftRowsBySource.value = {
-    ...localDraftRowsBySource.value,
-    [normalizedSourceKey]: [
-      nextRow,
-      ...(Array.isArray(localDraftRowsBySource.value[normalizedSourceKey]) ? localDraftRowsBySource.value[normalizedSourceKey] : []).filter(
-        (row) => String(row?.id || '').trim() !== normalizedDraftId,
-      ),
-    ],
-  }
-  upsertDraftRegistryEntry(normalizedSourceKey, normalizedDraftId, values)
-}
-
 function removeLocalDraftRow(sourceKey, draftId) {
   const normalizedSourceKey = String(sourceKey || '').trim().toLowerCase()
   const normalizedDraftId = String(draftId || '').trim()
@@ -4103,100 +3307,6 @@ function removeLocalDraftRow(sourceKey, draftId) {
     [normalizedSourceKey]: existingRows.filter((row) => String(row?.id || '').trim() !== normalizedDraftId),
   }
   removeDraftRegistryEntry(normalizedSourceKey, normalizedDraftId)
-}
-
-function hasPersistableDraftContent(values) {
-  const resolvedValues = values && typeof values === 'object'
-    ? values
-    : {}
-
-  return Object.values(resolvedValues).some((value) => {
-    if (Array.isArray(value)) {
-      return value.some((item) => String(item ?? '').trim().length > 0)
-    }
-    if (value == null) return false
-    return String(value).trim().length > 0
-  })
-}
-
-function updateLocalDraftRowFromSnapshot(snapshot) {
-  if (createDialogMode.value !== 'create') return
-  const values = snapshot?.values && typeof snapshot.values === 'object'
-    ? snapshot.values
-    : (createDialogInitialValues.value || {})
-  if (!hasPersistableDraftContent(values)) {
-    removeLocalDraftRow(createDialogDraftSourceKey.value, createDialogDraftRecordId.value)
-    return
-  }
-  upsertLocalDraftRow(
-    createDialogDraftSourceKey.value,
-    createDialogDraftRecordId.value,
-    values,
-    createDialogFieldMeta.value,
-    snapshot?.fieldVerificationStates || {},
-  )
-  upsertDraftRegistryEntry(
-    createDialogDraftSourceKey.value,
-    createDialogDraftRecordId.value,
-    values,
-  )
-}
-
-function buildCreatePayload(values = {}) {
-  const allTokens = [...createPrimaryTokens.value, ...createViewGroups.value.flatMap((section) => section.tokens)]
-  const payloadEntries = []
-
-  allTokens.forEach((token) => {
-    if (createDialogMode.value === 'create' && isAutomaticCreatorToken(token)) return
-    const rawValue = values?.[token.key]
-    const defaultValue = getDefaultTokenCreateValue(token)
-    const effectiveValue = rawValue == null || String(rawValue).trim() === ''
-      ? defaultValue
-      : rawValue
-    const normalizedValue = normalizeCreateFieldValue(token, effectiveValue)
-    if (normalizedValue == null) return
-    const fieldName = getCanonicalTokenWriteFieldName(token)
-    if (!fieldName) return
-    payloadEntries.push([fieldName, normalizedValue])
-  })
-
-  const payload = Object.fromEntries(payloadEntries)
-  const activeBranchEntry = activeCreateBranchEntry.value
-  if (activeBranchEntry) {
-    const branchTokenName = getCreateBranchTokenName(activeSourceKey.value)
-    const branchToken = branchTokenName
-      ? allTokens.find((token) => String(token?.tokenName || '').trim() === branchTokenName) || null
-      : null
-    const branchFieldName = branchToken ? getCanonicalTokenWriteFieldName(branchToken) : ''
-    if (branchFieldName && !normalizeCreateFieldValue(branchToken, payload[branchFieldName])) {
-      payload[branchFieldName] = resolveCreateDialogOptionValue(branchToken, activeBranchEntry.value)
-    }
-  }
-  if (activeSourceKey.value === 'file-system') {
-    const explicitSourceKey = String(payload.sourceKey || '').trim()
-    if (!explicitSourceKey) {
-      const fileName = String(payload.File_Name || '').trim()
-      const derivedSourceKey = deriveFileSourceKeyFromName(fileName)
-      if (derivedSourceKey) payload.sourceKey = derivedSourceKey
-    }
-  }
-
-  return payload
-}
-
-function missingRequiredCreateTokens(values = {}) {
-  return requiredCreateTokens.value.filter((token) => {
-    const rawValue = values?.[token.key]
-    const normalizedValue = normalizeCreateFieldValue(token, rawValue)
-    if (Array.isArray(normalizedValue)) return normalizedValue.length === 0
-    return normalizedValue == null
-  })
-}
-
-function missingRequiredCreateTokenLabels(values = {}) {
-  return missingRequiredCreateTokens(values)
-    .map((token) => String(token?.label || token?.tokenName || '').trim())
-    .filter(Boolean)
 }
 
 function tokenHasDirectWriteTarget(token) {
@@ -4214,239 +3324,6 @@ function isUnsupportedRelationshipWriteToken(token, entityName = '') {
   return !tokenHasDirectWriteTarget(token)
 }
 
-function getUnsupportedRelationshipWriteLabels(values = {}, entityName = '') {
-  const allTokens = [...createPrimaryTokens.value, ...createViewGroups.value.flatMap((section) => section.tokens)]
-  return allTokens
-    .filter((token) => {
-      if (isAutomaticCreatorToken(token)) return false
-      if (isBranchSelectorToken(token)) return false
-      if (!isUnsupportedRelationshipWriteToken(token, entityName)) return false
-      const rawValue = values?.[token.key]
-      const normalizedValue = normalizeCreateFieldValue(token, rawValue)
-      if (normalizedValue == null) return false
-      if (Array.isArray(normalizedValue)) return normalizedValue.length > 0
-      return String(normalizedValue || '').trim().length > 0
-    })
-    .map((token) => String(token?.label || token?.tokenName || '').trim())
-    .filter(Boolean)
-}
-
-function assertNoUnsupportedRelationshipWrites(values = {}, entityName = '') {
-  const labels = getUnsupportedRelationshipWriteLabels(values, entityName)
-  if (!labels.length) return
-  throw new Error(`Relationship save contract is not wired yet for: ${labels.join(', ')}`)
-}
-
-function haveNormalizedDialogValuesChanged(token, nextValue, initialValue) {
-  const normalizedNext = normalizeCreateFieldValue(token, nextValue)
-  const normalizedInitial = normalizeCreateFieldValue(token, initialValue)
-
-  if (Array.isArray(normalizedNext) || Array.isArray(normalizedInitial)) {
-    const nextList = Array.isArray(normalizedNext) ? normalizedNext : []
-    const initialList = Array.isArray(normalizedInitial) ? normalizedInitial : []
-    if (nextList.length !== initialList.length) return true
-    return nextList.some((value, index) => value !== initialList[index])
-  }
-
-  return (normalizedNext || null) !== (normalizedInitial || null)
-}
-
-function buildUpdateChangesFromValues(values = {}, { recordId = '', entityName = '', tableName = '', idColumn = 'id' } = {}) {
-  if (!recordId || !entityName) return []
-  const resolvedTableName = String(tableName || getRuntimeTableNameForEntityName(entityName) || entityName || '').trim()
-
-  const allTokens = [...createPrimaryTokens.value, ...createViewGroups.value.flatMap((section) => section.tokens)]
-
-  return allTokens.flatMap((token) => {
-    if (isBranchSelectorToken(token)) return []
-    if (createDialogFieldMeta.value?.[token.key]?.locked) return []
-    const rawValue = values?.[token.key]
-    const initialValue = createDialogPrefillValues.value?.[token.key]
-    if (!haveNormalizedDialogValuesChanged(token, rawValue, initialValue)) return []
-    const normalizedValue = normalizeCreateFieldValue(token, rawValue)
-
-    const relationshipContract = getLdbRelationshipContractForToken(entityName, token)
-    if (relationshipContract) {
-      const relationshipIds = Array.isArray(normalizedValue)
-        ? normalizedValue.map((value) => String(value || '').trim()).filter(Boolean)
-        : normalizedValue == null
-          ? []
-          : [String(normalizedValue || '').trim()].filter(Boolean)
-      return [
-        {
-          change_kind: 'relationship',
-          table_name: resolvedTableName,
-          record_id: recordId,
-          field_name: token.tokenName,
-          relationship_token: token.tokenName,
-          target_entity: String(relationshipContract?.targetEntity || token?.targetEntity || token?.optionEntity || token?.option_entity || '').trim(),
-          new_value: JSON.stringify(relationshipIds),
-        },
-      ]
-    }
-
-    if (isUnsupportedRelationshipWriteToken(token, entityName)) return []
-
-    const writeTarget = getCanonicalTokenWriteTarget(token, resolvedTableName, idColumn)
-    if (!writeTarget?.tableName || !writeTarget?.fieldName) return []
-
-    return [
-      {
-        table_name: writeTarget.tableName,
-        record_id: recordId,
-        field_name: writeTarget.fieldName,
-        id_column: writeTarget.idColumn,
-        new_value:
-          normalizedValue == null
-            ? null
-            : Array.isArray(normalizedValue)
-              ? JSON.stringify(normalizedValue)
-              : String(normalizedValue ?? ''),
-      },
-    ]
-  })
-}
-
-async function resolveTrueArtifactsForRow(row) {
-  const sourceKey = activeSourceKey.value
-  if (sourceKey === 'companies') return await loadCompanyArtifactsForRow(row)
-  if (sourceKey === 'contacts') return await loadContactArtifactsForRow(row)
-  return buildFallbackArtifactsForRow(row)
-}
-
-function buildFallbackArtifactsForRow(row) {
-  const artifactItems = Array.isArray(row?.relationshipItemsByType?.artifacts) ? row.relationshipItemsByType.artifacts : []
-  return artifactItems
-    .map((name, index) => ({
-      id: `${row?.recordId || 'record'}:artifact:${index}`,
-      name: String(name || '').trim(),
-    }))
-    .filter((artifact) => artifact.name)
-}
-
-async function loadCompanyArtifactsForRow(row) {
-  const recordId = String(row?.recordId || '').trim()
-  if (!recordId || !bridge.value?.artifacts?.list || !bridge.value?.db?.query) return buildFallbackArtifactsForRow(row)
-
-  try {
-    const [artifactResult, relatedArtifactIds] = await Promise.all([
-      bridge.value.artifacts.list(),
-      resolveRelatedArtifactIdsForShell({
-        targetEntity: 'Companies',
-        targetRecordId: recordId,
-        sourceToken: 'Opportunity_Company',
-      }),
-    ])
-    const artifacts = Array.isArray(artifactResult?.artifacts) ? artifactResult.artifacts : []
-    const grouped = new Map()
-
-    for (const artifact of artifacts) {
-      const artifactId = String(artifact?.artifact_id || '').trim()
-      if (!artifactId || !relatedArtifactIds.has(artifactId)) continue
-      const groupKey = String(artifact?.original_artifact_id || '').trim() || artifactId
-      if (!groupKey) continue
-      const existing = grouped.get(groupKey)
-      if (!existing) grouped.set(groupKey, artifact)
-    }
-
-    return Array.from(grouped.values())
-      .map((artifact, index) => ({
-        id: String(artifact?.original_artifact_id || artifact?.artifact_id || `artifact:${index}`).trim(),
-        name:
-          String(artifact?.title || '').trim() ||
-          String(artifact?.fs_path || '').split('/').pop()?.trim() ||
-          `Artifact ${index + 1}`,
-      }))
-      .filter((artifact) => artifact.name)
-  } catch {
-    return buildFallbackArtifactsForRow(row)
-  }
-}
-
-async function loadContactArtifactsForRow(row) {
-  const recordId = String(row?.recordId || '').trim()
-  if (!recordId || !bridge.value?.artifacts?.list || !bridge.value?.db?.query) return buildFallbackArtifactsForRow(row)
-
-  try {
-    const [artifactResult, relatedArtifactIds] = await Promise.all([
-      bridge.value.artifacts.list(),
-      resolveRelatedArtifactIdsForShell({
-        targetEntity: 'Contacts',
-        targetRecordId: recordId,
-        sourceToken: 'Opportunity_Contact',
-      }),
-    ])
-    const artifacts = Array.isArray(artifactResult?.artifacts) ? artifactResult.artifacts : []
-    const grouped = new Map()
-
-    for (const artifact of artifacts) {
-      const artifactId = String(artifact?.artifact_id || '').trim()
-      if (!artifactId || !relatedArtifactIds.has(artifactId)) continue
-      const groupKey = String(artifact?.original_artifact_id || '').trim() || artifactId
-      if (!groupKey) continue
-      const existing = grouped.get(groupKey)
-      if (!existing) grouped.set(groupKey, artifact)
-    }
-
-    return Array.from(grouped.values())
-      .map((artifact, index) => ({
-        id: String(artifact?.original_artifact_id || artifact?.artifact_id || `artifact:${index}`).trim(),
-        name:
-          String(artifact?.title || '').trim() ||
-          String(artifact?.fs_path || '').split('/').pop()?.trim() ||
-          `Artifact ${index + 1}`,
-      }))
-      .filter((artifact) => artifact.name)
-  } catch {
-    return buildFallbackArtifactsForRow(row)
-  }
-}
-
-async function resolveRelatedArtifactIdsForShell({ targetEntity = '', targetRecordId = '', sourceToken = '' } = {}) {
-  const normalizedTargetEntity = String(targetEntity || '').trim()
-  const normalizedTargetRecordId = String(targetRecordId || '').trim()
-  const normalizedSourceToken = String(sourceToken || '').trim()
-  if (!normalizedTargetEntity || !normalizedTargetRecordId || !normalizedSourceToken || !bridge.value?.db?.query) {
-    return new Set()
-  }
-
-  const opportunityRows = await bridge.value.db.query(
-    `
-      SELECT DISTINCT source_record_id AS opportunity_id
-      FROM LDB_Links
-      WHERE source_entity = 'Opportunities'
-        AND source_token = ?
-        AND target_entity = ?
-        AND target_record_id = ?
-    `,
-    [normalizedSourceToken, normalizedTargetEntity, normalizedTargetRecordId],
-  )
-
-  const opportunityIds = (Array.isArray(opportunityRows) ? opportunityRows : [])
-    .map((row) => String(row?.opportunity_id || '').trim())
-    .filter(Boolean)
-
-  if (!opportunityIds.length) return new Set()
-
-  const placeholders = opportunityIds.map(() => '?').join(', ')
-  const artifactRows = await bridge.value.db.query(
-    `
-      SELECT DISTINCT target_record_id AS artifact_id
-      FROM LDB_Links
-      WHERE source_entity = 'Opportunities'
-        AND source_token = 'Opportunity_Artifact'
-        AND source_record_id IN (${placeholders})
-    `,
-    opportunityIds,
-  )
-
-  return new Set(
-    (Array.isArray(artifactRows) ? artifactRows : [])
-      .map((row) => String(row?.artifact_id || '').trim())
-      .filter(Boolean),
-  )
-}
-
 function normalizeCreateFieldValue(token, value) {
   const tokenType = String(token?.tokenType || '').trim()
   if (tokenType === 'select_multi') {
@@ -4461,15 +3338,6 @@ function normalizeCreateFieldValue(token, value) {
 
   const normalized = String(value || '').trim()
   return normalized ? normalized : null
-}
-
-function deriveFileSourceKeyFromName(value) {
-  return String(value || '')
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '')
-    .slice(0, 80)
 }
 
 function setActiveFilterView(viewKey) {
@@ -4653,13 +3521,6 @@ function applyBbFilterSelection(value) {
   }
 }
 
-function notifyShellAction(label) {
-  $q.notify({
-    type: 'info',
-    message: `${label} is visible in the shared shell, but the explicit shell action contract is not defined yet.`,
-  })
-}
-
 async function handleSelectedRowsShare() {
   const rows = Array.isArray(selectedRows.value) ? selectedRows.value : []
   if (!rows.length) return
@@ -4687,7 +3548,7 @@ async function handleSelectedRowsShare() {
 
 function handleSelectedRowsEdit() {
   const row = selectedRows.value[0] || null
-  openEditRecordShell(row)
+  requestEditRecordShell(row)
 }
 
 async function handleSelectedRowsDelete() {
