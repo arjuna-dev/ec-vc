@@ -2199,7 +2199,8 @@ function buildFilesAcceptanceValidation(rows = []) {
 }
 
 function listFiles() {
-  initDb()
+  const database = initDb()
+  ensureBootstrapFiles(database)
   const files = dbAll(
     `
       SELECT
@@ -2238,6 +2239,86 @@ function listFiles() {
     files,
     validation: buildFilesAcceptanceValidation(files),
   }
+}
+
+function ensureBootstrapFiles(database) {
+  const existingCount = Number(
+    database.prepare('SELECT COUNT(*) AS c FROM Files').get()?.c || 0,
+  )
+  if (existingCount > 0) return
+
+  const actor = getAuditActor(database)
+  const insertRow = database.prepare(`
+    INSERT INTO Files (
+      id,
+      File_Order,
+      File_Name,
+      File_Summary,
+      File_Status,
+      File_Guide_Path,
+      File_Class,
+      File_Bucket,
+      Ownership_Mode,
+      File_Owner,
+      File_Steward,
+      Rulebook_Dependencies,
+      Fork_Mode,
+      Fork_Enabled,
+      Create_Fork_Instructions,
+      View_Fork_Instructions,
+      Structure,
+      Glossary_Terms,
+      sourceKey,
+      File_Canonical_Entity,
+      File_Runtime_Entity,
+      File_Route_Name,
+      File_Path,
+      File_EventLog,
+      created_by,
+      created_at,
+      updated_at
+    ) VALUES (
+      @id,
+      @File_Order,
+      @File_Name,
+      @File_Summary,
+      @File_Status,
+      @File_Guide_Path,
+      @File_Class,
+      @File_Bucket,
+      @Ownership_Mode,
+      @File_Owner,
+      @File_Steward,
+      @Rulebook_Dependencies,
+      @Fork_Mode,
+      @Fork_Enabled,
+      @Create_Fork_Instructions,
+      @View_Fork_Instructions,
+      @Structure,
+      @Glossary_Terms,
+      @sourceKey,
+      @File_Canonical_Entity,
+      @File_Runtime_Entity,
+      @File_Route_Name,
+      @File_Path,
+      @File_EventLog,
+      @created_by,
+      datetime('now'),
+      datetime('now')
+    )
+  `)
+
+  const tx = database.transaction(() => {
+    FILE_PAGE_REGISTRY.forEach((entry, index) => {
+      const row = buildDefaultFileRegistryRow(entry, index)
+      insertRow.run({
+        ...row,
+        created_by: actor.user_id,
+      })
+    })
+  })
+
+  tx()
 }
 
 function createFile(payload = {}) {
