@@ -922,6 +922,161 @@ export function getFilePageBirthTokens(sourceKey = '') {
     : []
 }
 
+export function buildRegistryFileStructure(sourceKey = '') {
+  const normalizedSourceKey = String(sourceKey || '').trim().toLowerCase()
+  const birthDefaults = getFilePageBirthDefaults(normalizedSourceKey)
+  const nameField = String(birthDefaults.primaryNameField || 'Name').trim() || 'Name'
+  const summaryField = String(birthDefaults.primarySummaryField || '').trim()
+  const nameTokenName = nameField || 'Name'
+  const summaryTokenName = summaryField || 'Summary'
+  const makeWriteTarget = (fieldName = '') => ({ dbWriteField: String(fieldName || '').trim() })
+  const baseTokenNames = new Set([nameTokenName, summaryTokenName, 'ID', 'History', 'System.Status'])
+  const fileSpecificTokens = getFilePageBirthTokens(normalizedSourceKey)
+    .filter((token) => token && !baseTokenNames.has(String(token.tokenName || '').trim()))
+    .map((token, index) => ({
+      key: String(token.tokenName || '').trim(),
+      tokenName: String(token.tokenName || '').trim(),
+      tokenRole: '',
+      tokenOrder: String(index + 3),
+      address: '',
+      label: String(token.label || token.tokenName || '').trim(),
+      tokenType: 'text',
+      optionSource: '',
+      optionEntity: '',
+      optionList: '',
+      optionEntities: [],
+      ...makeWriteTarget(String(token.dbWriteField || token.tokenName || '').trim()),
+      relationshipGroup: '',
+      definition: '',
+      defaultVerificationState: 'Input',
+      defaultVerificationSource: 'system_defined',
+    }))
+
+  return {
+    version: 1,
+    sections: [
+      {
+        key: `${normalizedSourceKey}-system`,
+        label: 'System',
+        address: '',
+        structureToken: '',
+        displayGroup: '',
+        tokens: [
+          {
+            key: 'ID',
+            tokenName: 'ID',
+            tokenRole: 'id',
+            tokenOrder: '1',
+            address: '',
+            label: 'ID',
+            tokenType: 'id',
+            optionSource: '',
+            optionEntity: '',
+            optionList: '',
+            optionEntities: [],
+            ...makeWriteTarget('id'),
+            relationshipGroup: '',
+            definition: '',
+            defaultVerificationState: 'Verified',
+            defaultVerificationSource: 'system_defined',
+          },
+          {
+            key: 'History',
+            tokenName: 'History',
+            tokenRole: '',
+            tokenOrder: '2',
+            address: '',
+            label: 'History',
+            tokenType: 'event_log',
+            optionSource: '',
+            optionEntity: '',
+            optionList: '',
+            optionEntities: [],
+            ...makeWriteTarget(''),
+            relationshipGroup: '',
+            definition: '',
+            defaultVerificationState: 'Verified',
+            defaultVerificationSource: 'system_defined',
+          },
+          {
+            key: 'System.Status',
+            tokenName: 'System.Status',
+            tokenRole: 'status',
+            tokenOrder: '3',
+            address: '',
+            label: 'System.Status',
+            tokenType: 'select_single',
+            optionSource: 'static',
+            optionEntity: '',
+            optionList: 'Active, Archived',
+            optionEntities: [],
+            inputOptions: ['Active', 'Archived'],
+            ...makeWriteTarget('File_Status'),
+            relationshipGroup: '',
+            definition: '',
+            defaultVerificationState: 'Verified',
+            defaultVerificationSource: 'system_defined',
+          },
+        ],
+      },
+      {
+        key: `${normalizedSourceKey}-general`,
+        label: 'General',
+        address: '',
+        structureToken: '',
+        displayGroup: '',
+        tokens: [
+          {
+            key: nameTokenName,
+            tokenName: nameTokenName,
+            tokenRole: 'title',
+            tokenOrder: '1',
+            address: '',
+            label: 'Name',
+            tokenType: 'text',
+            optionSource: '',
+            optionEntity: '',
+            optionList: '',
+            optionEntities: [],
+            ...makeWriteTarget(nameField),
+            relationshipGroup: '',
+            definition: '',
+            defaultVerificationState: 'Input',
+            defaultVerificationSource: 'system_defined',
+          },
+          ...(summaryField ? [{
+            key: summaryTokenName,
+            tokenName: summaryTokenName,
+            tokenRole: 'summary',
+            tokenOrder: '2',
+            address: '',
+            label: 'Summary',
+            tokenType: 'text',
+            optionSource: '',
+            optionEntity: '',
+            optionList: '',
+            optionEntities: [],
+            ...makeWriteTarget(summaryField),
+            relationshipGroup: '',
+            definition: '',
+            defaultVerificationState: 'Input',
+            defaultVerificationSource: 'system_defined',
+          }] : []),
+          ...fileSpecificTokens,
+        ],
+      },
+      {
+        key: `${normalizedSourceKey}-ldb`,
+        label: 'LDB',
+        address: '',
+        structureToken: '',
+        displayGroup: '',
+        tokens: [],
+      },
+    ],
+  }
+}
+
 export function getRegistryTitleTokenForSource(sourceKey = '') {
   const payload = buildFileShellPayload(sourceKey)
   if (!payload.registryEntry) return null
@@ -998,6 +1153,97 @@ export function getViewForks(sourceKey = '') {
 export function getViewForkEntry(sourceKey = '', forkValue = '') {
   const normalizedForkValue = String(forkValue || '').trim().toLowerCase()
   return getViewForks(sourceKey).find((fork) => String(fork?.value || '').trim().toLowerCase() === normalizedForkValue) || null
+}
+
+export function getFilePageForkMode(sourceKey = '') {
+  const normalizedSourceKey = String(sourceKey || '').trim()
+  const hasCreateBranches = getCreateBranches(normalizedSourceKey).length > 0
+  const hasViewForks = getViewForks(normalizedSourceKey).length > 0
+  if (hasCreateBranches && hasViewForks) return 'view_and_create'
+  if (hasCreateBranches) return 'create'
+  if (hasViewForks) return 'view'
+  return 'none'
+}
+
+export function getFilePageForkEnabled(sourceKey = '') {
+  return getFilePageForkMode(sourceKey) === 'none' ? 'No' : 'Yes'
+}
+
+export function buildFilePageCreateForkInstructions(sourceKey = '') {
+  const entry = getFilePageRegistryEntry(sourceKey)
+  const normalizedSourceKey = String(entry?.sourceKey || entry?.key || sourceKey || '').trim()
+  const branches = getCreateBranches(normalizedSourceKey)
+  if (!branches.length) return ''
+  return JSON.stringify({
+    type: 'create',
+    sourceKey: normalizedSourceKey,
+    label: String(entry?.createBranchLabel || '').trim() || 'Type',
+    tokenName: String(entry?.createBranchTokenName || '').trim(),
+    options: branches.map((branch) => ({
+      value: String(branch?.value || '').trim(),
+      label: String(branch?.label || '').trim(),
+      targetSourceKey: String(branch?.targetSourceKey || '').trim(),
+    })),
+  })
+}
+
+export function buildFilePageViewForkInstructions(sourceKey = '') {
+  const entry = getFilePageRegistryEntry(sourceKey)
+  const normalizedSourceKey = String(entry?.sourceKey || entry?.key || sourceKey || '').trim()
+  const forks = getViewForks(normalizedSourceKey)
+  if (!forks.length) return ''
+  return JSON.stringify({
+    type: 'view',
+    sourceKey: normalizedSourceKey,
+    options: forks.map((fork) => ({
+      value: String(fork?.value || '').trim(),
+      label: String(fork?.label || '').trim(),
+      sectionRawLabels: Array.isArray(fork?.sectionRawLabels)
+        ? fork.sectionRawLabels.map((label) => String(label || '').trim()).filter(Boolean)
+        : [],
+    })),
+  })
+}
+
+export function buildApprovedFileRegistryRow(sourceKey = '', index = 0) {
+  const entry = getFilePageRegistryEntry(sourceKey)
+  if (!entry) return null
+
+  const normalizedSourceKey = String(entry.sourceKey || entry.key || sourceKey || '').trim()
+  const birthDefaults = entry.birthDefaults && typeof entry.birthDefaults === 'object'
+    ? { ...entry.birthDefaults }
+    : {}
+  const defaultFileStatus =
+    String(birthDefaults.defaultFileStatus || '').trim()
+    || (String(entry.filePack || '').trim() === 'owner' ? 'Active' : 'Archived')
+  const defaultFileBucket = String(birthDefaults.defaultFileBucket || '').trim() || 'Shared'
+
+  return {
+    id: `file:${normalizedSourceKey || index + 1}`,
+    File_Order: index + 1,
+    File_Name: String(entry.label || entry.singularLabel || entry.key || '').trim(),
+    File_Summary: `System definition for ${String(entry.label || entry.singularLabel || 'file').trim()}.`,
+    File_Status: defaultFileStatus,
+    File_Guide_Path: String(entry.fileGuidePath || '').trim() || null,
+    File_Class: 'L1',
+    File_Bucket: defaultFileBucket,
+    Ownership_Mode: 'root_owned',
+    File_Owner: 'Owner',
+    File_Steward: 'File Steward',
+    Rulebook_Dependencies: 'docs/010/System.md',
+    Fork_Mode: getFilePageForkMode(normalizedSourceKey),
+    Fork_Enabled: getFilePageForkEnabled(normalizedSourceKey),
+    Create_Fork_Instructions: buildFilePageCreateForkInstructions(normalizedSourceKey),
+    View_Fork_Instructions: buildFilePageViewForkInstructions(normalizedSourceKey),
+    Structure: JSON.stringify(buildRegistryFileStructure(normalizedSourceKey)),
+    Glossary_Terms: '',
+    sourceKey: normalizedSourceKey,
+    File_Canonical_Entity: String(entry.canonicalEntityName || '').trim(),
+    File_Runtime_Entity: String(entry.entityName || '').trim(),
+    File_Route_Name: String(entry.routeName || '').trim(),
+    File_Path: String(entry.path || '').trim(),
+    File_EventLog: '',
+  }
 }
 
 export function getFilePageCreateSurface(sourceKey = '') {

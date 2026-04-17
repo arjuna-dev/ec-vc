@@ -32,12 +32,10 @@ import {
 import { formatSharedDisplayLabel } from '../src/shared/labelFormatting.js'
 import { DEFAULT_BUILDING_BLOCK_FILE_ROWS } from '../src/utils/buildingBlocks.js'
 import {
-  buildRegistryFileStructure,
+  buildApprovedFileRegistryRow,
   FILE_PAGE_REGISTRY,
-  getCreateBranches,
   getFilePageBirthDefaults,
   getFilePageRegistryEntry,
-  getViewForks,
 } from '../src/utils/structureRegistry.js'
 
 const APP_DISPLAY_NAME = 'EC VC'
@@ -1094,92 +1092,8 @@ function listCompanionRoles() {
   )
 }
 
-function buildStructureJson(entry) {
-  return JSON.stringify(buildRegistryFileStructure(String(entry?.key || '').trim()))
-}
-
-function getFileRegistryForkMode(entry) {
-  const sourceKey = String(entry?.key || '').trim()
-  const hasCreateBranches = getCreateBranches(sourceKey).length > 0
-  const hasViewForks = getViewForks(sourceKey).length > 0
-  if (hasCreateBranches && hasViewForks) return 'view_and_create'
-  if (hasCreateBranches) return 'create'
-  if (hasViewForks) return 'view'
-  return 'none'
-}
-
-function getFileRegistryForkEnabled(entry) {
-  return getFileRegistryForkMode(entry) === 'none' ? 'No' : 'Yes'
-}
-
-function buildCreateForkInstructions(entry) {
-  const sourceKey = String(entry?.key || '').trim()
-  const branches = getCreateBranches(sourceKey)
-  if (!branches.length) return ''
-  return JSON.stringify({
-    type: 'create',
-    sourceKey,
-    label: String(entry?.createBranchLabel || '').trim() || 'Type',
-    tokenName: String(entry?.createBranchTokenName || '').trim(),
-    options: branches.map((branch) => ({
-      value: String(branch?.value || '').trim(),
-      label: String(branch?.label || '').trim(),
-      targetSourceKey: String(branch?.targetSourceKey || '').trim(),
-    })),
-  })
-}
-
-function buildViewForkInstructions(entry) {
-  const sourceKey = String(entry?.key || '').trim()
-  const forks = getViewForks(sourceKey)
-  if (!forks.length) return ''
-  return JSON.stringify({
-    type: 'view',
-    sourceKey,
-    options: forks.map((fork) => ({
-      value: String(fork?.value || '').trim(),
-      label: String(fork?.label || '').trim(),
-      sectionRawLabels: Array.isArray(fork?.sectionRawLabels)
-        ? fork.sectionRawLabels.map((label) => String(label || '').trim()).filter(Boolean)
-        : [],
-    })),
-  })
-}
-
 function buildDefaultFileRegistryRow(entry, index) {
-  const sourceKey = String(entry?.key || '').trim()
-  const birthDefaults = getFilePageBirthDefaults(sourceKey)
-  const guidePath = String(entry?.fileGuidePath || '').trim() || null
-  const defaultFileStatus =
-    String(birthDefaults.defaultFileStatus || '').trim()
-    || (String(entry?.filePack || '').trim() === 'owner' ? 'Active' : 'Archived')
-  const defaultFileBucket = String(birthDefaults.defaultFileBucket || '').trim() || 'Shared'
-  return {
-    id: `file:${sourceKey || index + 1}`,
-    File_Order: index + 1,
-    File_Name: String(entry?.label || entry?.singularLabel || entry?.key || '').trim(),
-    File_Summary: `System definition for ${String(entry?.label || entry?.singularLabel || 'file').trim()}.`,
-    File_Status: defaultFileStatus,
-    File_Guide_Path: guidePath,
-    File_Class: 'L1',
-    File_Bucket: defaultFileBucket,
-    Ownership_Mode: 'root_owned',
-    File_Owner: 'Owner',
-    File_Steward: 'File Steward',
-    Rulebook_Dependencies: 'docs/010/System.md',
-    Fork_Mode: getFileRegistryForkMode(entry),
-    Fork_Enabled: getFileRegistryForkEnabled(entry),
-    Create_Fork_Instructions: buildCreateForkInstructions(entry),
-    View_Fork_Instructions: buildViewForkInstructions(entry),
-    Structure: buildStructureJson(entry),
-    Glossary_Terms: '',
-    sourceKey,
-    File_Canonical_Entity: String(entry?.canonicalEntityName || '').trim(),
-    File_Runtime_Entity: String(entry?.entityName || '').trim(),
-    File_Route_Name: String(entry?.routeName || '').trim(),
-    File_Path: String(entry?.path || '').trim(),
-    File_EventLog: '',
-  }
+  return buildApprovedFileRegistryRow(String(entry?.key || '').trim(), index)
 }
 
 function getFileRegistryEntryBySourceKey(sourceKey) {
