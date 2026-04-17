@@ -66,7 +66,7 @@ import {
   resolveApprovedFileSectionKey,
   TEST_SHELL_SECTION_OPTIONS,
 } from 'src/utils/structureRegistry'
-import { loadLiveOptionRowsForSource } from 'src/utils/liveOptionRows'
+import { loadFileRecordRows } from 'src/utils/fileRecordLoaders'
 import { buildSurfaceSections, groupSurfaceViews, splitSurfaceSections } from 'src/utils/shellViewLayout'
 import { buildTokenUpdateChanges, normalizeTokenWriteValue } from 'src/utils/tokenWriteChanges'
 
@@ -440,7 +440,7 @@ async function ensureLiveOptionsLoaded() {
     }
   }
   for (const sourceKey of sourceKeys) {
-    liveOptionRowsBySource.value = await loadLiveOptionRowsForSource({
+    liveOptionRowsBySource.value = await loadFileRecordRows({
       sourceKey,
       bridgeValue: bridge.value,
       currentRowsBySource: liveOptionRowsBySource.value,

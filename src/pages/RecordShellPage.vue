@@ -374,10 +374,10 @@ import {
   resolveApprovedFileSectionKey,
 } from 'src/utils/structureRegistry'
 import {
-  hydrateLiveOptionUniverseFromSystemFiles,
-  loadLiveOptionRowsForSource,
-  normalizeLiveOptionListResult,
-} from 'src/utils/liveOptionRows'
+  hydrateFileRecordUniverseFromSystemFiles,
+  loadFileRecordRows,
+  normalizeFileRecordListResult,
+} from 'src/utils/fileRecordLoaders'
 import { buildSurfaceSections, groupSurfaceViews } from 'src/utils/shellViewLayout'
 import { filterRecordFeedTabs, RECORD_FEED_GROUP_OPTIONS } from 'src/utils/recordFeedContract'
 import { buildShellToolbarFeed } from 'src/utils/shellToolbarFeeder'
@@ -1040,7 +1040,7 @@ async function ensureLiveOptionsLoaded() {
     }
   }
   for (const sourceKey of sourceKeys) {
-    liveOptionRowsBySource.value = await loadLiveOptionRowsForSource({
+    liveOptionRowsBySource.value = await loadFileRecordRows({
       sourceKey,
       bridgeValue: bridge.value,
       currentRowsBySource: liveOptionRowsBySource.value,
@@ -1048,7 +1048,7 @@ async function ensureLiveOptionsLoaded() {
     })
   }
 
-  liveOptionRowsBySource.value = await hydrateLiveOptionUniverseFromSystemFiles({
+  liveOptionRowsBySource.value = await hydrateFileRecordUniverseFromSystemFiles({
     bridgeValue: bridge.value,
     currentRowsBySource: liveOptionRowsBySource.value,
     skipSourceKey: activeSourceKey.value,
@@ -1056,7 +1056,7 @@ async function ensureLiveOptionsLoaded() {
 }
 
 function normalizeListResult(result) {
-  return normalizeLiveOptionListResult(result)
+  return normalizeFileRecordListResult(result)
 }
 
 function resolveSourceKeyFromTableName(tableName) {

@@ -689,8 +689,7 @@ import { getLdbRelationshipContractForToken } from 'src/shared/ldbRelationshipCo
 import { getTokenInputOptions } from 'src/utils/tokenSurfaceContract'
 import { buildTokenUpdateChanges } from 'src/utils/tokenWriteChanges'
 import { buildSurfaceSections, groupSurfaceViews } from 'src/utils/shellViewLayout'
-import { getFileRecordLoader } from 'src/utils/fileRecordLoaders'
-import { loadLiveOptionRowsForSource } from 'src/utils/liveOptionRows'
+import { getFileRecordLoader, loadFileRecordRows } from 'src/utils/fileRecordLoaders'
 import { buildRecordViewLocation } from 'src/utils/recordViewNavigation'
 import { getBuildingBlockGraphCounts, getBuildingBlockGraphLinks } from 'src/utils/buildingBlocks'
 
@@ -1338,7 +1337,7 @@ function getLiveEntitySetOptionsForToken(token) {
 async function ensureLiveOptionRowsLoaded(sourceKey) {
   const normalized = normalizeEntitySourceKey(sourceKey)
   if (!normalized || normalized === activeContentSourceKey.value) return
-  liveOptionRowsBySource.value = await loadLiveOptionRowsForSource({
+  liveOptionRowsBySource.value = await loadFileRecordRows({
     sourceKey: normalized,
     bridgeValue: bridge.value,
     currentRowsBySource: liveOptionRowsBySource.value,
