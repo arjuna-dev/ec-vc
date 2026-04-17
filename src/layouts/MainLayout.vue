@@ -350,7 +350,6 @@ import {
   resolveIntakeReviewItem,
   useIntakeReviewQueueState,
 } from 'src/utils/intakeReviewQueueState'
-import { setPendingAddEditShellRequest } from 'src/utils/addEditShellState'
 
 const leftDrawerOpen = ref(false)
 const quickActionsOpen = ref(false)
@@ -1038,10 +1037,6 @@ function openActiveEntityCreateDialog() {
   const routeName = routeNameByEntityType[entityTypeName]
   const sourceKey = sourceKeyByEntityType[entityTypeName]
   if (!routeName || !sourceKey) return
-  setPendingAddEditShellRequest({
-    sourceKey,
-    initialValues: JSON.parse(JSON.stringify(activeItem.payload?.entity || {})),
-  })
   router.push({ name: routeName, query: { ...route.query, create: '1' } })
   const itemId = String(activeItem.id || '').trim()
   if (itemId) resolveIntakeReviewItem(itemId)

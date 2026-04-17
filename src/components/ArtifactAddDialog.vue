@@ -114,7 +114,6 @@ import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useQuasar } from 'quasar'
 import { useRouter } from 'vue-router'
 import { getRuntimeStructureVersion, subscribeRuntimeFileStructures } from 'src/utils/structureRegistry'
-import { setPendingAddEditShellRequest } from 'src/utils/addEditShellState'
 import {
   createIntakeDraft,
   removeIntakeDraft,
@@ -203,11 +202,6 @@ async function loadAll() {
 }
 
 function openOpportunityCreateInPmp() {
-  setPendingAddEditShellRequest({
-    sourceKey: 'opportunities',
-    initialValues: {},
-    initialFieldMeta: {},
-  })
   open.value = false
   router.push({
     name: 'draft-window',

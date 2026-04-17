@@ -359,13 +359,12 @@ import RecordHistoryBox from 'src/components/RecordHistoryBox.vue'
 import { buildTokenGovernanceColumns } from 'src/utils/structureGovernanceColumns'
 import RecordHero from 'src/components/RecordHero.vue'
 import StructureGovernancePanel from 'src/components/StructureGovernancePanel.vue'
-import { setPendingAddEditShellRequest } from 'src/utils/addEditShellState'
 import {
   getCanonicalTokenFieldNames,
   getCanonicalTokenValue,
   getFilePageRegistryEntry,
   getFilePageRegistryEntryByEntityReference,
-  getRegistrySummaryTokenForSource,
+  getRegistryDefinitionTokenForSource,
   getRegistryTitleTokenForSource,
   getRuntimeStructureVersion,
   subscribeRuntimeFileStructures,
@@ -497,12 +496,12 @@ const runtimeTableName = computed(() =>
 )
 
 const canonicalNameToken = computed(() => getRegistryTitleTokenForSource(activeSourceKey.value) || null)
-const canonicalSummaryToken = computed(() => getRegistrySummaryTokenForSource(activeSourceKey.value) || null)
+const canonicalDefinitionToken = computed(() => getRegistryDefinitionTokenForSource(activeSourceKey.value) || null)
 
 const selectableTokens = computed(() =>
   fileTokens.value.filter((token) => {
     const label = String(token.label || '').trim().toLowerCase()
-    return label !== 'name' && label !== 'summary'
+    return label !== 'name' && label !== 'definition'
   }),
 )
 const viewDisplayTokens = computed(() => fileTokens.value.map((token) => normalizeCreateDialogToken(token)))
@@ -568,7 +567,7 @@ const heroSelectableTokens = computed(() => {
 const selectedHeroTokens = computed(() =>
   heroSelectableTokens.value.filter((token) => selectedTokenKeySet.value.has(token.key)),
 )
-const createKeyFieldTokens = computed(() => [canonicalNameToken.value, canonicalSummaryToken.value].filter(Boolean).map(normalizeCreateDialogToken))
+const createKeyFieldTokens = computed(() => [canonicalNameToken.value, canonicalDefinitionToken.value].filter(Boolean).map(normalizeCreateDialogToken))
 const groupedViews = computed(() =>
   groupSurfaceViews(fileViews.value).map((group) => {
     if (Array.isArray(group.views) && group.views.length === 1) {
@@ -675,16 +674,16 @@ const heroName = computed(() => {
   return value || 'Missing Name value'
 })
 const heroSummaryValue = computed(() => {
-  if (!canonicalSummaryToken.value) return 'Missing canonical Summary token'
-  const value = getTokenDisplayValue(canonicalSummaryToken.value)
-  return value || 'Summary not set'
+  if (!canonicalDefinitionToken.value) return 'Missing canonical Definition token'
+  const value = getTokenDisplayValue(canonicalDefinitionToken.value)
+  return value || 'Definition not set'
 })
 const recordHeroCollapsedText = computed(() => {
   const summary = String(heroSummaryValue.value || '').trim()
   if (!summary) return 'Record hero collapsed'
   return summary.length > 160 ? `${summary.slice(0, 157)}...` : summary
 })
-const heroSummaryStatusIcon = computed(() => (tokenHasStoredValue(canonicalSummaryToken.value) ? 'task_alt' : ''))
+const heroSummaryStatusIcon = computed(() => (tokenHasStoredValue(canonicalDefinitionToken.value) ? 'task_alt' : ''))
 const recordFeedArtifactContext = computed(() => {
   if (!isRecordRoute.value) return null
   const entityName = String(activeRegistryEntry.value?.entityName || tableNameParam.value || '').trim()
@@ -958,10 +957,6 @@ function handleRecordFeedAdd(feedTab) {
     return
   }
 
-  setPendingAddEditShellRequest({
-    sourceKey: normalizedFeedTab,
-    initialValues: {},
-  })
   router.push({
     name: 'draft-window',
     query: {

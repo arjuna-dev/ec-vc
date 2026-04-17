@@ -697,10 +697,10 @@ export function getRegistryTitleTokenForSource(sourceKey = '') {
   return payload.tokens.find((token) => String(token.tokenRole || '').trim().toLowerCase() === 'title') || null
 }
 
-export function getRegistrySummaryTokenForSource(sourceKey = '') {
+export function getRegistryDefinitionTokenForSource(sourceKey = '') {
   const payload = buildFileShellPayload(sourceKey)
   if (!payload.registryEntry) return null
-  return payload.tokens.find((token) => String(token.tokenRole || '').trim().toLowerCase() === 'summary') || null
+  return payload.tokens.find((token) => String(token.tokenRole || '').trim().toLowerCase() === 'definition') || null
 }
 
 export function getRuntimeTableNameForEntityName(entityName = '') {
