@@ -3393,10 +3393,23 @@ function canCreateForSourceKey(sourceKey) {
       nextInitialValues[canonicalTitleToken.value.key] = suggestedName
       nextFieldMeta[canonicalTitleToken.value.key] = { verificationState: 'suggested_unverified' }
     }
-
-    openCreateRecordShell({
+    setPendingAddEditShellRequest({
+      sourceKey: normalizedSourceKey,
       initialValues: nextInitialValues,
       initialFieldMeta: nextFieldMeta,
+    })
+    const nextQuery = {
+      section: normalizedSourceKey,
+      create: '1',
+      returnTo: route.fullPath,
+      open: String(Date.now()),
+    }
+    if (requestedBranch) nextQuery.kind = requestedBranch
+    if (String(options?.contextEntity || '').trim()) nextQuery.contextEntity = String(options.contextEntity).trim()
+    if (String(options?.contextRecordId || '').trim()) nextQuery.contextRecordId = String(options.contextRecordId).trim()
+    router.push({
+      name: 'draft-window',
+      query: nextQuery,
     })
   }
 
@@ -3485,12 +3498,16 @@ function requestEditRecordShell(row, options = {}) {
     return
   }
 
-  const nextQuery = {
-    ...route.query,
-    edit: recordId,
-  }
-  delete nextQuery.editSection
-  router.push({ name: route.name, params: route.params, query: nextQuery })
+  router.push({
+    name: 'draft-window',
+    query: {
+      section: activeSourceKey.value,
+      edit: recordId,
+      entity: resolveEditEntityName(row),
+      returnTo: route.fullPath,
+      open: String(Date.now()),
+    },
+  })
 }
 
   function openCreateRecordShell(options = {}) {
