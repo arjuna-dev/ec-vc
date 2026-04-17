@@ -99,59 +99,6 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_Companies_company_name
 CREATE INDEX IF NOT EXISTS idx_Companies_created_by
   ON Companies(created_by);
 
-CREATE TABLE IF NOT EXISTS Company_Incorporation_Info (
-  company_id INTEGER PRIMARY KEY,
-  Company_Type TEXT CHECK (
-    Company_Type IS NULL OR Company_Type IN (
-      'Venture',
-      'Corporation',
-      'Asset Manager',
-      'Academia',
-      'Government',
-      'Other'
-    )
-  ),
-  Legal_Entity TEXT,
-  Date_of_Incorporation TEXT,
-  incorporation_country TEXT,
-  Incorporation_Type TEXT,
-  created_at TEXT NOT NULL DEFAULT (datetime('now')),
-  updated_at TEXT NOT NULL DEFAULT (datetime('now')),
-  FOREIGN KEY (company_id) REFERENCES Companies(id) ON UPDATE CASCADE ON DELETE CASCADE
-);
-
-CREATE INDEX IF NOT EXISTS idx_Company_Incorporation_Info_company_type
-  ON Company_Incorporation_Info(Company_Type);
-
-CREATE INDEX IF NOT EXISTS idx_Company_Incorporation_Info_country
-  ON Company_Incorporation_Info(incorporation_country);
-
-CREATE TABLE IF NOT EXISTS Company_Incorporation_Legal_Founders (
-  company_id INTEGER NOT NULL,
-  contact_id TEXT NOT NULL,
-  PRIMARY KEY (company_id, contact_id),
-  FOREIGN KEY (company_id) REFERENCES Company_Incorporation_Info(company_id) ON UPDATE CASCADE ON DELETE CASCADE,
-  FOREIGN KEY (contact_id) REFERENCES Contacts(id) ON UPDATE CASCADE ON DELETE CASCADE
-);
-
-CREATE TABLE IF NOT EXISTS Asset_Manager_Companies (
-  company_id TEXT PRIMARY KEY,
-  AUM REAL,
-  Funds_Managed_Count INTEGER,
-  Investment_Count INTEGER,
-  Exit_Count INTEGER,
-  Asset_Classes TEXT,
-  Investment_Stages TEXT,
-  Investment_Focus_Regions TEXT,
-  Investment_Focus_Industries TEXT,
-  LP_Investor_Relationships TEXT,
-  Strategy_Defaults TEXT,
-  Portfolio_Construction_Defaults TEXT,
-  created_at TEXT NOT NULL DEFAULT (datetime('now')),
-  updated_at TEXT NOT NULL DEFAULT (datetime('now')),
-  FOREIGN KEY (company_id) REFERENCES Companies(id) ON UPDATE CASCADE ON DELETE CASCADE
-);
-
 CREATE TABLE IF NOT EXISTS Funds (
   id TEXT PRIMARY KEY,
   Fund_Name TEXT,
@@ -998,7 +945,7 @@ CREATE TABLE IF NOT EXISTS Companies_Artifacts_documents (
   artifact_id TEXT NOT NULL,
   PRIMARY KEY (company_id, artifact_id),
   FOREIGN KEY (company_id) REFERENCES Companies(id) ON UPDATE CASCADE ON DELETE CASCADE,
-  FOREIGN KEY (artifact_id) REFERENCES Company_Artifacts(artifact_id) ON UPDATE CASCADE ON DELETE CASCADE
+  FOREIGN KEY (artifact_id) REFERENCES Artifacts(artifact_id) ON UPDATE CASCADE ON DELETE CASCADE
 );
 
 -- Join Tables referencing Artifacts (Moved to end)
@@ -1080,76 +1027,6 @@ FOR EACH ROW
 WHEN NEW.updated_at = OLD.updated_at
 BEGIN
   UPDATE Companies SET updated_at = datetime('now') WHERE id = OLD.id;
-END;
-
-CREATE TRIGGER IF NOT EXISTS trg_Company_Incorporation_Info_updated_at
-AFTER UPDATE ON Company_Incorporation_Info
-FOR EACH ROW
-WHEN NEW.updated_at = OLD.updated_at
-BEGIN
-  UPDATE Company_Incorporation_Info
-  SET updated_at = datetime('now')
-  WHERE company_id = OLD.company_id;
-END;
-
-CREATE TRIGGER IF NOT EXISTS trg_Company_Operations_Overview_updated_at
-AFTER UPDATE ON Company_Operations_Overview
-FOR EACH ROW
-WHEN NEW.updated_at = OLD.updated_at
-BEGIN
-  UPDATE Company_Operations_Overview
-  SET updated_at = datetime('now')
-  WHERE company_id = OLD.company_id;
-END;
-
-CREATE TRIGGER IF NOT EXISTS trg_Company_Business_Overview_updated_at
-AFTER UPDATE ON Company_Business_Overview
-FOR EACH ROW
-WHEN NEW.updated_at = OLD.updated_at
-BEGIN
-  UPDATE Company_Business_Overview
-  SET updated_at = datetime('now')
-  WHERE company_id = OLD.company_id;
-END;
-
-CREATE TRIGGER IF NOT EXISTS trg_Company_Market_Overview_updated_at
-AFTER UPDATE ON Company_Market_Overview
-FOR EACH ROW
-WHEN NEW.updated_at = OLD.updated_at
-BEGIN
-  UPDATE Company_Market_Overview
-  SET updated_at = datetime('now')
-  WHERE company_id = OLD.company_id;
-END;
-
-CREATE TRIGGER IF NOT EXISTS trg_Company_Results_Overview_updated_at
-AFTER UPDATE ON Company_Results_Overview
-FOR EACH ROW
-WHEN NEW.updated_at = OLD.updated_at
-BEGIN
-  UPDATE Company_Results_Overview
-  SET updated_at = datetime('now')
-  WHERE company_id = OLD.company_id;
-END;
-
-CREATE TRIGGER IF NOT EXISTS trg_Company_Business_Plan_updated_at
-AFTER UPDATE ON Company_Business_Plan
-FOR EACH ROW
-WHEN NEW.updated_at = OLD.updated_at
-BEGIN
-  UPDATE Company_Business_Plan
-  SET updated_at = datetime('now')
-  WHERE company_id = OLD.company_id;
-END;
-
-CREATE TRIGGER IF NOT EXISTS trg_Company_Fund_Raising_updated_at
-AFTER UPDATE ON Company_Fund_Raising
-FOR EACH ROW
-WHEN NEW.updated_at = OLD.updated_at
-BEGIN
-  UPDATE Company_Fund_Raising
-  SET updated_at = datetime('now')
-  WHERE company_id = OLD.company_id;
 END;
 
 
@@ -1285,62 +1162,6 @@ BEGIN
 END;
 
 -- Stage must belong to pipeline on UPDATE too
-
--- Asset manager subtype rows are only valid for Companies whose incorporation info type is Asset Manager
-CREATE TRIGGER IF NOT EXISTS trg_Asset_Manager_Companies_type_ins
-BEFORE INSERT ON Asset_Manager_Companies
-FOR EACH ROW
-BEGIN
-  SELECT CASE
-    WHEN NOT EXISTS (
-      SELECT 1
-      FROM Company_Incorporation_Info cii
-      WHERE cii.company_id = NEW.company_id
-        AND cii.Company_Type = 'Asset Manager'
-    )
-    THEN RAISE(ABORT, 'asset manager subtype requires parent company type Asset Manager')
-  END;
-END;
-
-CREATE TRIGGER IF NOT EXISTS trg_Asset_Manager_Companies_type_upd
-BEFORE UPDATE OF company_id ON Asset_Manager_Companies
-FOR EACH ROW
-BEGIN
-  SELECT CASE
-    WHEN NOT EXISTS (
-      SELECT 1
-      FROM Company_Incorporation_Info cii
-      WHERE cii.company_id = NEW.company_id
-        AND cii.Company_Type = 'Asset Manager'
-    )
-    THEN RAISE(ABORT, 'asset manager subtype requires parent company type Asset Manager')
-  END;
-END;
-
-CREATE TRIGGER IF NOT EXISTS trg_Company_Incorporation_Info_asset_manager_type_guard
-BEFORE UPDATE OF Company_Type ON Company_Incorporation_Info
-FOR EACH ROW
-BEGIN
-  SELECT CASE
-    WHEN NEW.Company_Type <> 'Asset Manager'
-      AND EXISTS (
-        SELECT 1
-        FROM Asset_Manager_Companies am
-        WHERE am.company_id = NEW.company_id
-      )
-    THEN RAISE(ABORT, 'cannot change company type while asset manager subtype exists')
-  END;
-END;
-
-CREATE TRIGGER IF NOT EXISTS trg_Asset_Manager_Companies_updated_at
-AFTER UPDATE ON Asset_Manager_Companies
-FOR EACH ROW
-WHEN NEW.updated_at = OLD.updated_at
-BEGIN
-  UPDATE Asset_Manager_Companies
-  SET updated_at = datetime('now')
-  WHERE company_id = OLD.company_id;
-END;
 
 CREATE TRIGGER IF NOT EXISTS trg_Artifact_Raw_single_subtype_ins
 BEFORE INSERT ON Artifact_Raw
