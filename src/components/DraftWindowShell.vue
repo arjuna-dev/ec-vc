@@ -480,7 +480,7 @@ const sharedLdbDataTokens = computed(() => {
 
   const systemFileTitleToken = getRegistryTitleTokenForSource('file-system')
   const seenSourceKeys = new Set()
-  const rows = Array.isArray(rawRowsBySource.value['file-system']) ? rawRowsBySource.value['file-system'] : []
+  const rows = Array.isArray(loadedRowsBySource.value['file-system']) ? loadedRowsBySource.value['file-system'] : []
   const sourceEntity = String(activeRegistryEntry.value?.entityName || '').trim()
   const allowedTargetEntities = new Set(
     getLdbRelationshipContractsForEntity(sourceEntity)
@@ -1038,7 +1038,7 @@ function getSharedLdbTokenValue(row = {}, token = {}) {
     : []
   if (!targetIds.length) return ''
 
-  const targetRows = Array.isArray(rawRowsBySource.value[targetSourceKey]) ? rawRowsBySource.value[targetSourceKey] : []
+  const targetRows = Array.isArray(loadedRowsBySource.value[targetSourceKey]) ? loadedRowsBySource.value[targetSourceKey] : []
   const targetTitleToken = getRegistryTitleTokenForSource(targetSourceKey)
 
   return targetIds
@@ -1158,7 +1158,7 @@ async function persistStructureSections(nextSections = [], actionLabel = 'draft_
   const bridgeValue = bridge.value
   if (!sourceKey || !bridgeValue?.records?.update) return false
 
-  const fileSystemRows = rawRowsBySource.value['file-system'] || await loadRowsForSource('file-system')
+  const fileSystemRows = loadedRowsBySource.value['file-system'] || await loadRowsForSource('file-system')
   const fileDefinitionRow = getFileDefinitionRowForSource(sourceKey, fileSystemRows)
   const recordId = String(fileDefinitionRow?.id || '').trim()
   if (!recordId) {
@@ -1234,7 +1234,7 @@ async function updateDataCell(rowKey, columnKey, value) {
 
   try {
     if (sourceKey === 'file-system' && isDraftRowKey(normalizedRowKey)) {
-      const draftRows = Array.isArray(rawRowsBySource.value[sourceKey]) ? rawRowsBySource.value[sourceKey] : []
+      const draftRows = Array.isArray(draftRowsBySource.value[sourceKey]) ? draftRowsBySource.value[sourceKey] : []
       const draftRow = draftRows.find((entry) => String(getRecordIdValue(entry, sourceKey) || '').trim() === normalizedRowKey) || null
       if (!draftRow) throw new Error('Could not find the draft System Files row to create.')
 
@@ -1551,7 +1551,7 @@ watch(
       sharedLdbLinksByRecordId.value = {}
       return
     }
-    if (!rawRowsBySource.value['file-system']) {
+    if (!loadedRowsBySource.value['file-system']) {
       await loadRowsForSource('file-system')
     }
   },
@@ -1567,7 +1567,7 @@ watch(
 
     await Promise.all(
       sourceKeys.map((sourceKey) => (
-        rawRowsBySource.value[sourceKey] ? Promise.resolve(rawRowsBySource.value[sourceKey]) : loadRowsForSource(sourceKey)
+        loadedRowsBySource.value[sourceKey] ? Promise.resolve(loadedRowsBySource.value[sourceKey]) : loadRowsForSource(sourceKey)
       )),
     )
   },
@@ -1575,7 +1575,7 @@ watch(
 )
 
 watch(
-  [() => rawRowsBySource.value[activeSettingsSourceKey.value], sharedLdbDataTokens, activeRegistryEntry, bridge],
+  [() => loadedRowsBySource.value[activeSettingsSourceKey.value], sharedLdbDataTokens, activeRegistryEntry, bridge],
   async ([rows, tokens]) => {
     if (!isLdbDataViewActive.value) {
       sharedLdbLinksByRecordId.value = {}
