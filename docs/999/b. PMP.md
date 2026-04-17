@@ -123,6 +123,8 @@ The `LAMP` target is:
 5. shared surfaces stay dumb
 6. special cases are explicit exceptions, not default architecture
 7. file classes are clear and useful
+8. default birth is limited to the `Owner Everyday Pack`
+9. domain files arrive through explicit expansion packs, not silent rebirth
 
 The system should become predictable enough that:
 
@@ -200,11 +202,18 @@ They are:
 
 Examples may include:
 
+- System Files
+- History
+- Users
 - Contacts
 - Companies
+- User Roles
+- Companion Roles
+- Projects
 - Tasks
 - Notes
 - Artifacts
+- Intake
 - other owner-level work files
 
 ### 3. Auxiliary Files
@@ -216,6 +225,7 @@ They extend it.
 
 Examples may include:
 
+- Opportunities
 - Markets
 - Funds
 - Rounds
@@ -224,6 +234,45 @@ Examples may include:
 These should not distort the core lower chain.
 
 They should extend it.
+
+## Pack Rule
+
+Default file birth should not mean “every possible file the app has ever known.”
+
+It should mean:
+
+- birth the `Owner Everyday Pack`
+- install expansion packs intentionally
+
+Current approved pack split:
+
+### Owner Everyday Pack
+
+- `System Files`
+- `History`
+- `Users`
+- `Contacts`
+- `Companies`
+- `Projects`
+- `Tasks`
+- `Notes`
+- `Artifacts`
+- `User Roles`
+- `Companion Roles`
+- `Intake`
+
+### VC Pack
+
+- `Opportunities`
+- `Funds`
+- `Rounds`
+- `Markets`
+- `Securities`
+
+Migration consequence:
+
+- if a full DB rebuild happens, only the `Owner Everyday Pack` should be guaranteed to reappear by default
+- expansion-pack files should not silently rebirth unless that pack is installed as part of the owner setup
 
 ## Runtime Contract Lessons Already Learned
 

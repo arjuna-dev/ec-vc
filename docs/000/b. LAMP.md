@@ -60,12 +60,13 @@ Working rule:
 - prove that this minimum construct works as a coherent local system
 - only then layer contextual or domain-specific repositories on top
 
-Current construct-birth minimum:
+Current construct-birth minimum should be the `Owner Everyday Pack`:
 
 - `System Files`
 - `History`
 - `Users`
 - `Contacts`
+- `Companies`
 - `User Roles`
 - `Companion Roles`
 - `Projects`
@@ -76,6 +77,17 @@ Current construct-birth minimum:
 
 This minimum set should be enough for the app to function as a true local operating system for records, guidance, intake, and work.
 
+Everything outside this set should be treated as an explicit expansion pack, not as default birth.
+
+Current approved example:
+
+- `VC Pack`
+  - `Opportunities`
+  - `Funds`
+  - `Rounds`
+  - `Markets`
+  - `Securities`
+
 Working note:
 
 - `events` should be treated as part of storage files
@@ -83,7 +95,7 @@ Working note:
 - but `History` remains a real shared-base dependency
 - `History` should resolve through the `History` file by record `ID`
 
-Everything beyond this set should be treated as extension, not birth requirement.
+Everything beyond the `Owner Everyday Pack` should be treated as extension, not birth requirement.
 
 ## File Classes
 

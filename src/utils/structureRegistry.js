@@ -1,6 +1,29 @@
 
 export const DEFAULT_L1_REQUIRED_RUNTIME_CAPABILITIES = Object.freeze(['list', 'create', 'delete'])
 
+export const OWNER_EVERYDAY_FILE_KEYS = Object.freeze([
+  'file-system',
+  'events',
+  'users',
+  'contacts',
+  'companies',
+  'projects',
+  'tasks',
+  'notes',
+  'artifacts',
+  'user-roles',
+  'companion-roles',
+  'intake',
+])
+
+export const VC_PACK_FILE_KEYS = Object.freeze([
+  'opportunities',
+  'funds',
+  'rounds',
+  'markets',
+  'securities',
+])
+
 const FILE_PAGE_ROUTE_META = Object.freeze({
   Building_Blocks: {
     key: 'bb-file',
@@ -358,12 +381,19 @@ function buildEntityRegistry(entityName) {
   const canonicalEntityName = String(meta.canonicalEntityName || entityName).trim()
   const runtimeEntityName = String(meta.runtimeEntityName || entityName).trim()
   const customSubsections = Array.isArray(meta.customSubsections) ? meta.customSubsections : []
+  const sourceKey = String(meta.key || '').trim()
+  const filePack = OWNER_EVERYDAY_FILE_KEYS.includes(sourceKey)
+    ? 'owner_everyday'
+    : VC_PACK_FILE_KEYS.includes(sourceKey)
+      ? 'vc'
+      : 'auxiliary'
 
   return {
     ...meta,
-    sourceKey: String(meta.key || '').trim(),
+    sourceKey,
     entityName: runtimeEntityName,
     canonicalEntityName,
+    filePack,
     fileGuidePath: String(meta.fileGuidePath || '').trim(),
     birthDefaults: meta.birthDefaults && typeof meta.birthDefaults === 'object' ? { ...meta.birthDefaults } : {},
     primaryStewardDoc: normalizeReferenceDoc(meta.primaryStewardDoc),

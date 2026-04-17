@@ -31,7 +31,12 @@ import {
 } from '../src/shared/ldbRelationshipContracts.js'
 import { formatSharedDisplayLabel } from '../src/shared/labelFormatting.js'
 import { DEFAULT_BUILDING_BLOCK_FILE_ROWS } from '../src/utils/buildingBlocks.js'
-import { FILE_PAGE_REGISTRY, getCreateBranches, getViewForks } from '../src/utils/structureRegistry.js'
+import {
+  FILE_PAGE_REGISTRY,
+  OWNER_EVERYDAY_FILE_KEYS,
+  getCreateBranches,
+  getViewForks,
+} from '../src/utils/structureRegistry.js'
 
 const APP_DISPLAY_NAME = 'EC VC'
 
@@ -1748,6 +1753,7 @@ const ACCEPTED_FILE_STATUS_VALUES = Object.freeze(['Active', 'Archived'])
 const ACCEPTED_FILE_BUCKET_VALUES = Object.freeze(['Owner', 'Companion', 'Work', 'Shared'])
 const ACCEPTED_FORK_MODE_VALUES = Object.freeze(['none', 'view', 'create', 'view_and_create'])
 const PROTECTED_BOOTSTRAP_FILE_SOURCE_KEYS = new Set(['file-system', 'events', 'bb-file'])
+const OWNER_EVERYDAY_FILE_SOURCE_KEY_SET = new Set(OWNER_EVERYDAY_FILE_KEYS)
 const FILE_BUCKET_BY_SOURCE_KEY = Object.freeze({
   'file-system': 'Shared',
   events: 'Shared',
@@ -1833,6 +1839,12 @@ function normalizeForkModeValue(value) {
 function buildFilesAcceptanceValidation(rows = []) {
   const issues = []
   const rowsBySourceKey = new Map()
+  const bootstrapRegistryEntries = FILE_PAGE_REGISTRY.filter((entry) =>
+    OWNER_EVERYDAY_FILE_SOURCE_KEY_SET.has(String(entry?.sourceKey || entry?.key || '').trim()),
+  )
+  const optionalRegistryEntries = FILE_PAGE_REGISTRY.filter((entry) =>
+    !OWNER_EVERYDAY_FILE_SOURCE_KEY_SET.has(String(entry?.sourceKey || entry?.key || '').trim()),
+  )
 
   rows.forEach((row) => {
     const sourceKey = String(row?.sourceKey || '').trim()
@@ -1887,7 +1899,7 @@ function buildFilesAcceptanceValidation(rows = []) {
     )
   }
 
-  FILE_PAGE_REGISTRY.forEach((entry, index) => {
+  bootstrapRegistryEntries.forEach((entry, index) => {
     const sourceKey = String(entry?.key || '').trim()
     const row = rowsBySourceKey.get(sourceKey)
     const expected = buildDefaultFileRegistryRow(entry, index)
@@ -2135,6 +2147,18 @@ function buildFilesAcceptanceValidation(rows = []) {
     }
   })
 
+  optionalRegistryEntries.forEach((entry) => {
+    const sourceKey = String(entry?.key || '').trim()
+    if (rowsBySourceKey.has(sourceKey)) return
+    addIssue({
+      severity: 'info',
+      sourceKey,
+      field: 'sourceKey',
+      issue: 'Optional file pack row is not installed in System Files.',
+      suggestedAction: 'Install the corresponding file expansion pack if this file should participate in the current owner workspace.',
+    })
+  })
+
   rows.forEach((row) => {
     const sourceKey = String(row?.sourceKey || '').trim()
     if (!sourceKey) {
@@ -2174,8 +2198,10 @@ function buildFilesAcceptanceValidation(rows = []) {
     checkedAt: new Date().toISOString(),
     statuses: [...ACCEPTED_FILE_STATUS_VALUES],
     protectedBootstrapSourceKeys: [...PROTECTED_BOOTSTRAP_FILE_SOURCE_KEYS],
+    ownerEverydaySourceKeys: [...OWNER_EVERYDAY_FILE_KEYS],
     rowCount: rows.length,
-    registryCount: FILE_PAGE_REGISTRY.length,
+    registryCount: bootstrapRegistryEntries.length,
+    optionalRegistryCount: optionalRegistryEntries.length,
     driftFree: issues.length === 0,
     severityCounts,
     issues,
@@ -2230,6 +2256,9 @@ function ensureBootstrapFiles(database) {
     database.prepare('SELECT COUNT(*) AS c FROM Files').get()?.c || 0,
   )
   if (existingCount > 0) return
+  const bootstrapRegistryEntries = FILE_PAGE_REGISTRY.filter((entry) =>
+    OWNER_EVERYDAY_FILE_SOURCE_KEY_SET.has(String(entry?.sourceKey || entry?.key || '').trim()),
+  )
 
   const actor = getAuditActor(database)
   const insertRow = database.prepare(`
@@ -2293,7 +2322,7 @@ function ensureBootstrapFiles(database) {
   `)
 
   const tx = database.transaction(() => {
-    FILE_PAGE_REGISTRY.forEach((entry, index) => {
+    bootstrapRegistryEntries.forEach((entry, index) => {
       const row = buildDefaultFileRegistryRow(entry, index)
       insertRow.run({
         ...row,
