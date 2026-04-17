@@ -293,7 +293,12 @@ import { buildTokenGovernanceColumns } from 'src/utils/structureGovernanceColumn
 import { buildShellToolbarFeed } from 'src/utils/shellToolbarFeeder'
 import { buildStructureToolbarItems } from 'src/utils/structureToolbarContract'
 import { splitSurfaceSections } from 'src/utils/shellViewLayout'
-import { getFileRecordLoader, loadFileRecordRows } from 'src/utils/fileRecordLoaders'
+import {
+  getFileRecordLoader,
+  getLiveOptionRowsState,
+  loadFileRecordRows,
+  subscribeLiveOptionRowsState,
+} from 'src/utils/fileRecordLoaders'
 import {
   buildFileShellPayload,
   getCanonicalTokenFieldNames,
@@ -331,6 +336,7 @@ const bridge = computed(() => (typeof window !== 'undefined' ? window.ecvc : nul
 const shellSelectorOpen = ref(false)
 const runtimeStructureVersion = ref(getRuntimeStructureVersion())
 let runtimeStructureUnsub = null
+let liveOptionRowsUnsub = null
 const shellSelectorButton = ref(null)
 const shellSelectorMenu = ref(null)
 const pendingShellSelectorValue = ref('')
@@ -344,7 +350,21 @@ const searchQuery = ref('')
 const governanceSearchQuery = ref('')
 const viewMode = ref('page')
 const governanceViewMode = ref('page')
-const rawRowsBySource = ref({})
+const loadedRowsBySource = ref(getLiveOptionRowsState())
+const draftRowsBySource = ref({})
+const rawRowsBySource = computed(() => {
+  const loadedRows = loadedRowsBySource.value && typeof loadedRowsBySource.value === 'object' ? loadedRowsBySource.value : {}
+  const draftRows = draftRowsBySource.value && typeof draftRowsBySource.value === 'object' ? draftRowsBySource.value : {}
+  const sourceKeys = new Set([...Object.keys(loadedRows), ...Object.keys(draftRows)])
+  const nextRowsBySource = {}
+  sourceKeys.forEach((sourceKey) => {
+    nextRowsBySource[sourceKey] = [
+      ...(Array.isArray(loadedRows[sourceKey]) ? loadedRows[sourceKey] : []),
+      ...(Array.isArray(draftRows[sourceKey]) ? draftRows[sourceKey] : []),
+    ]
+  })
+  return nextRowsBySource
+})
 const structureStateBySource = ref({})
 const sharedLdbLinksByRecordId = ref({})
 const selectedLeafKeysBySource = ref({})
@@ -1083,6 +1103,19 @@ function isDraftRowKey(rowKey = '') {
   return String(rowKey || '').trim().toLowerCase().startsWith('draft-row-')
 }
 
+function clearDraftRowsForSource(sourceKey = '', draftRowKey = '') {
+  const normalizedSourceKey = String(sourceKey || '').trim()
+  if (!normalizedSourceKey) return
+  const currentDraftRows = Array.isArray(draftRowsBySource.value[normalizedSourceKey]) ? draftRowsBySource.value[normalizedSourceKey] : []
+  const nextDraftRows = draftRowKey
+    ? currentDraftRows.filter((row) => String(getRecordIdValue(row, normalizedSourceKey) || '').trim() !== String(draftRowKey || '').trim())
+    : []
+  draftRowsBySource.value = {
+    ...draftRowsBySource.value,
+    [normalizedSourceKey]: nextDraftRows,
+  }
+}
+
 function serializeStructureToken(token = {}) {
   const nextToken = { ...token }
   ;[
@@ -1211,6 +1244,7 @@ async function updateDataCell(rowKey, columnKey, value) {
       }
 
       await bridge.value?.['file-system']?.create?.(payload)
+      clearDraftRowsForSource(sourceKey, normalizedRowKey)
 
       const refreshedRows = await loadRowsForSource(sourceKey)
       setRuntimeFileStructures(refreshedRows)
@@ -1357,9 +1391,9 @@ function handleDataAdd() {
     })
   })
 
-  rawRowsBySource.value = {
-    ...rawRowsBySource.value,
-    [sourceKey]: [...(rawRowsBySource.value[sourceKey] || []), nextRow],
+  draftRowsBySource.value = {
+    ...draftRowsBySource.value,
+    [sourceKey]: [...(draftRowsBySource.value[sourceKey] || []), nextRow],
   }
 }
 
@@ -1376,30 +1410,21 @@ function stringifyValue(value) {
 
 async function loadRows() {
   const sourceKey = activeSettingsSourceKey.value
-  const loader = activeLoader.value
   const bridgeValue = bridge.value
 
   error.value = ''
   if (!sourceKey) return
 
-  if (!loader || !bridgeValue) {
-    rawRowsBySource.value = {
-      ...rawRowsBySource.value,
-      [sourceKey]: [],
-    }
-    return
-  }
-
   loading.value = true
   try {
-    rawRowsBySource.value = await loadFileRecordRows({
+    loadedRowsBySource.value = await loadFileRecordRows({
       sourceKey,
       bridgeValue,
-      currentRowsBySource: rawRowsBySource.value,
+      currentRowsBySource: loadedRowsBySource.value,
     })
   } catch (loadError) {
-    rawRowsBySource.value = {
-      ...rawRowsBySource.value,
+    loadedRowsBySource.value = {
+      ...loadedRowsBySource.value,
       [sourceKey]: [],
     }
     error.value = loadError?.message || `Could not load ${String(activeRegistryEntry.value?.label || 'records').toLowerCase()}.`
@@ -1414,20 +1439,12 @@ async function loadRowsForSource(sourceKey = '') {
 
   if (!normalizedSourceKey) return []
 
-  if (!getFileRecordLoader(normalizedSourceKey) || !bridgeValue) {
-    rawRowsBySource.value = {
-      ...rawRowsBySource.value,
-      [normalizedSourceKey]: [],
-    }
-    return []
-  }
-
-  rawRowsBySource.value = await loadFileRecordRows({
+  loadedRowsBySource.value = await loadFileRecordRows({
     sourceKey: normalizedSourceKey,
     bridgeValue,
-    currentRowsBySource: rawRowsBySource.value,
+    currentRowsBySource: loadedRowsBySource.value,
   })
-  return Array.isArray(rawRowsBySource.value[normalizedSourceKey]) ? rawRowsBySource.value[normalizedSourceKey] : []
+  return Array.isArray(loadedRowsBySource.value[normalizedSourceKey]) ? loadedRowsBySource.value[normalizedSourceKey] : []
 }
 
 function handleGlobalPointerDown(event) {
@@ -1445,6 +1462,9 @@ onMounted(() => {
   runtimeStructureUnsub = subscribeRuntimeFileStructures((version) => {
     runtimeStructureVersion.value = version
   })
+  liveOptionRowsUnsub = subscribeLiveOptionRowsState((rowsBySource) => {
+    loadedRowsBySource.value = rowsBySource && typeof rowsBySource === 'object' ? { ...rowsBySource } : {}
+  })
 })
 
 onBeforeUnmount(() => {
@@ -1453,6 +1473,8 @@ onBeforeUnmount(() => {
   }
   if (runtimeStructureUnsub) runtimeStructureUnsub()
   runtimeStructureUnsub = null
+  if (liveOptionRowsUnsub) liveOptionRowsUnsub()
+  liveOptionRowsUnsub = null
 })
 
 watch(
