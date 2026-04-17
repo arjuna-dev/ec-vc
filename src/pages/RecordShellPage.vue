@@ -502,28 +502,6 @@
         </div>
       </section>
 
-      <AddEditRecordShellDialog
-        :key="createDialogRenderKey"
-        v-model="createDialogOpen"
-        :mode="createDialogMode"
-        :source-label="activeRegistryEntry?.label || 'Records'"
-        :singular-label="activeRegistryEntry?.singularLabel || 'record'"
-        :primary-tokens="createKeyFieldTokens"
-        :left-sections="createDialogLeftViews"
-        :right-sections="createDialogRightViews"
-        :loading="createDialogLoading"
-        :submit-disabled="createDialogLoading"
-        :initial-values="dialogInitialValues"
-        :initial-field-meta="dialogInitialFieldMeta"
-        initial-section-key="general"
-        :initial-artifacts="[]"
-        :artifact-context="null"
-        :initial-resources-collapsed="createDialogMode === 'edit' ? true : false"
-        :initial-record-data-collapsed="createDialogMode === 'edit' ? false : true"
-        @change="handleDialogChange"
-        @request-close="handleDialogClose"
-        @submit="submitCreateRecord"
-      />
     </div>
   </q-page>
 </template>
@@ -532,7 +510,6 @@
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useQuasar } from 'quasar'
 import { useRoute, useRouter } from 'vue-router'
-import AddEditRecordShellDialog from 'src/components/AddEditRecordShellDialog.vue'
 import FileShellControlBar from 'src/components/FileShellControlBar.vue'
 import RecordHistoryBox from 'src/components/RecordHistoryBox.vue'
 import { buildTokenGovernanceColumns } from 'src/utils/structureGovernanceColumns'
@@ -541,8 +518,6 @@ import StructureGovernancePanel from 'src/components/StructureGovernancePanel.vu
 import { setPendingAddEditShellRequest } from 'src/utils/addEditShellState'
 import {
   getCanonicalTokenFieldNames,
-  getCanonicalTokenWriteFieldName,
-  getDefaultTokenCreateValue,
   getCanonicalTokenValue,
   getFilePageRegistryEntry,
   getFilePageRegistryEntryByEntityReference,
@@ -555,7 +530,7 @@ import {
   FILE_SOURCE_REGISTRY,
   resolveApprovedFileSectionKey,
 } from 'src/utils/structureRegistry'
-import { buildDialogViews, groupDialogViews, splitDialogViews } from 'src/utils/dialogShellPayload'
+import { buildDialogViews, groupDialogViews } from 'src/utils/dialogShellPayload'
 import { filterRecordFeedTabs, RECORD_FEED_GROUP_OPTIONS } from 'src/utils/recordFeedContract'
 import { setPendingIntakeShellRequest } from 'src/utils/intakeShellState'
 import { loadShellFieldSelectionMap, persistShellFieldSelectionMap } from 'src/utils/shellFieldSelection'
@@ -566,9 +541,6 @@ import { buildTokenUpdateChanges, tokenSupportsRecordUpdate } from 'src/utils/to
 const route = useRoute()
 const router = useRouter()
 const $q = useQuasar()
-const createDialogOpen = ref(false)
-const createDialogRenderKey = ref(0)
-const createDialogLoading = ref(false)
 const liveOptionRowsBySource = ref({})
 const expandedViewKeys = ref([])
 const expandedHeroGroupKeys = ref([])
@@ -869,9 +841,6 @@ const createViewGroups = computed(() =>
     keepEmptySections: true,
   }),
 )
-const createDialogViewSplit = computed(() => splitDialogViews(createViewGroups.value))
-const createDialogLeftViews = computed(() => createDialogViewSplit.value.leftSections)
-const createDialogRightViews = computed(() => createDialogViewSplit.value.rightSections)
 const activeGovernanceToolbarKey = computed(() => {
   const current = String(activeViewGroupKey.value || '').trim().toLowerCase()
   return current.startsWith('governance:') ? current : ''
@@ -1020,20 +989,12 @@ const controlBarItems = computed(() =>
     isRelationshipSectionLabel: recordShellToolbarFeed.value.isRelationshipSectionLabel,
   }),
 )
-const createDialogMode = computed(() => (isRecordRoute.value ? 'edit' : 'create'))
 const fieldVerificationActionOptions = [
   { label: 'Verify field', value: 'verified', icon: 'check_circle', color: 'rgba(35, 92, 26, 0.96)' },
   { label: 'Pre-Selected', value: 'default_preselected_unverified', icon: 'auto_awesome', color: 'rgba(64, 121, 210, 0.92)' },
   { label: 'Suggested', value: 'suggested_unverified', icon: 'lightbulb', color: 'rgba(186, 129, 13, 0.92)' },
   { label: 'Reject field', value: 'rejected', icon: 'cancel', color: 'rgba(166, 43, 43, 0.92)' },
 ]
-const dialogInitialValues = computed(() => {
-  const tokens = [...createKeyFieldTokens.value, ...createViewGroups.value.flatMap((section) => section.tokens)]
-  return Object.fromEntries(
-    tokens.map((token) => [token.key, getTokenDialogValue(token)]),
-  )
-})
-const dialogInitialFieldMeta = computed(() => ({}))
 const heroSettingsGroups = computed(() => heroSourceGroups.value.map((group) => ({
   key: group.value,
   label: group.title,
@@ -1186,29 +1147,6 @@ function setTokenSelected(tokenKey, isSelected) {
   selectedTokenKeys.value = Array.from(next)
 }
 
-function handleDialogChange(snapshot) {
-  if (!snapshot?.hasUserChanges) return
-  setPendingAddEditShellRequest({
-    sourceKey: activeSourceKey.value,
-    initialValues: snapshot.values || {},
-    initialFieldMeta: snapshot?.verification?.changes || {},
-    snapshot,
-  })
-}
-function handleDialogClose(snapshot) {
-  if (snapshot?.closeReason === 'discard' || !snapshot?.hasUserChanges) {
-    setPendingAddEditShellRequest(null)
-  } else {
-    setPendingAddEditShellRequest({
-      sourceKey: activeSourceKey.value,
-      initialValues: snapshot?.values || {},
-      initialFieldMeta: snapshot?.verification?.changes || {},
-      snapshot,
-    })
-  }
-  createDialogOpen.value = false
-}
-
 function handleRecordFeedAdd(feedTab) {
   const normalizedFeedTab = String(feedTab || '').trim().toLowerCase()
   if (!['notes', 'artifacts', 'intake'].includes(normalizedFeedTab)) return
@@ -1242,124 +1180,6 @@ function handleRecordFeedAdd(feedTab) {
       contextRecordId: String(recordFeedArtifactContext.value?.recordId || '').trim(),
     },
   })
-}
-
-async function submitCreateRecord({ values } = {}) {
-  if (isRecordRoute.value) {
-    await submitRecordUpdate(values)
-    return
-  }
-  const payload = buildCreatePayload(values)
-  if (!Object.keys(payload).length) {
-    $q.notify({ type: 'negative', message: 'Add at least one field before creating the record.' })
-    return
-  }
-  createDialogLoading.value = true
-  try {
-    const result = await bridge.value?.[activeSourceKey.value]?.create?.(payload)
-    if (!result) {
-      $q.notify({ type: 'negative', message: 'Create bridge is not available for this record type yet.' })
-      return
-    }
-    createDialogOpen.value = false
-    $q.notify({ type: 'positive', message: `${activeRegistryEntry.value?.singularLabel || 'Missing record type'} created.` })
-  } catch (error) {
-    $q.notify({ type: 'negative', message: error?.message || String(error) })
-  } finally {
-    createDialogLoading.value = false
-  }
-}
-
-async function submitRecordUpdate(values = {}) {
-  const changes = buildRecordUpdateChanges(values)
-  if (!changes.length) {
-    createDialogOpen.value = false
-    $q.notify({ type: 'info', message: 'No record changes to save.' })
-    return
-  }
-  createDialogLoading.value = true
-  try {
-    const result = await bridge.value?.records?.update?.({
-      tableName: runtimeTableName.value,
-      recordId: recordIdParam.value,
-      changes,
-      actionLabel: 'record_shell_edit_session',
-    })
-    for (const change of changes.filter((entry) => entry.review_tracked)) {
-      await bridge.value?.verification?.upsert?.({
-        tableName: change.table_name,
-        recordId: change.record_id,
-        fieldName: change.field_name,
-        state: 'verified',
-        source: 'direct_user_input',
-        actionLabel: 'record_shell_edit_session',
-      })
-    }
-    currentView.value = result?.view || currentView.value
-    fields.value = Array.isArray(result?.view?.fields) ? result.view.fields : fields.value
-    createDialogOpen.value = false
-    $q.notify({ type: 'positive', message: `${activeRegistryEntry.value?.singularLabel || 'Missing record type'} updated.` })
-  } catch (submitError) {
-    const message = normalizeIpcErrorMessage(submitError)
-    error.value = message
-    $q.notify({ type: 'negative', message })
-  } finally {
-    createDialogLoading.value = false
-  }
-}
-
-function buildRecordUpdateChanges(values = {}) {
-  const seenChangeKeys = new Set()
-  return [...createKeyFieldTokens.value, ...createViewGroups.value.flatMap((section) => section.tokens)]
-    .flatMap((token) => {
-      const field = resolveExistingFieldForToken(token)
-      if (field && !field.editable) return []
-      const changes = buildTokenUpdateChanges(token, {
-        nextValue: values?.[token.key],
-        initialValue: field ? field.value : getTokenDialogValue(token),
-        recordId: recordIdParam.value,
-        entityName: activeRegistryEntry.value?.entityName || tableNameParam.value,
-        idColumn: String(field?.id_column || 'id').trim() || 'id',
-      }).map((change) => ({
-        ...change,
-        review_tracked: isInlineReviewTrackedField(token),
-      }))
-      return changes.filter((change) => {
-        const changeKey = [
-          String(change?.change_kind || 'field').trim(),
-          String(change?.table_name || '').trim(),
-          String(change?.field_name || '').trim(),
-          String(change?.relationship_token || '').trim(),
-        ].join(':')
-        if (!change?.field_name || seenChangeKeys.has(changeKey)) return false
-        seenChangeKeys.add(changeKey)
-        return true
-      })
-    })
-}
-
-function buildCreatePayload(values = {}) {
-  const allTokens = [...createKeyFieldTokens.value, ...createViewGroups.value.flatMap((section) => section.tokens)]
-  return Object.fromEntries(
-    allTokens
-      .map((token) => {
-        const rawValue = values?.[token.key]
-        const defaultValue = getDefaultTokenCreateValue(token)
-        const effectiveValue = rawValue == null || String(rawValue ?? '').trim() === ''
-          ? defaultValue
-          : rawValue
-        if (Array.isArray(effectiveValue) && !effectiveValue.length) return null
-        if (!Array.isArray(effectiveValue) && String(effectiveValue ?? '').trim() === '') return null
-        const writeField = resolveWriteField(token)
-        if (!writeField) return null
-        return [writeField, effectiveValue]
-      })
-      .filter(Boolean),
-  )
-}
-
-function resolveWriteField(token) {
-  return getCanonicalTokenWriteFieldName(token)
 }
 
 function normalizeCreateDialogToken(token) {
