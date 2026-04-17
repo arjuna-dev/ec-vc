@@ -2840,14 +2840,15 @@ function getLegacyOpportunityDatabookView(opportunityId) {
         SELECT
           a.artifact_id,
           a.title AS artifact_title,
-          a.artifact_type,
-          a.fs_path,
+          'raw' AS artifact_type,
+          ar.fs_path,
           a.created_at AS artifact_created_at
-        FROM Artifact_Details a
-        WHERE a.opportunity_id = ?
+        FROM Artifacts a
+        LEFT JOIN Artifact_Raw ar ON ar.artifact_id = a.artifact_id
+        WHERE a.round_id = ? OR a.fund_id = ?
         ORDER BY COALESCE(a.created_at, ''), a.artifact_id
       `,
-        [oid],
+        [oid, oid],
       )
     : []
 
@@ -4295,8 +4296,9 @@ async function resolveArtifactFileForAction(artifactId) {
   const artifact = database
     .prepare(
       `
-      SELECT artifact_id, fs_path, title
-      FROM Artifact_Details
+      SELECT a.artifact_id, ar.fs_path, a.title
+      FROM Artifacts a
+      LEFT JOIN Artifact_Raw ar ON ar.artifact_id = a.artifact_id
       WHERE artifact_id = ?
       LIMIT 1
     `,
@@ -4336,7 +4338,15 @@ async function deleteArtifact(artifactId) {
   if (!id) throw new Error('artifactId is required')
 
   const artifact = database
-    .prepare('SELECT artifact_id, fs_path FROM Artifact_Details WHERE artifact_id = ? LIMIT 1')
+    .prepare(
+      `
+      SELECT a.artifact_id, ar.fs_path
+      FROM Artifacts a
+      LEFT JOIN Artifact_Raw ar ON ar.artifact_id = a.artifact_id
+      WHERE a.artifact_id = ?
+      LIMIT 1
+    `,
+    )
     .get(id)
   if (!artifact) return { changes: 0, file_deleted: false, cleanup_warning: null }
 
@@ -4348,7 +4358,7 @@ async function deleteArtifact(artifactId) {
 
   if (result.changes > 0 && fsPath) {
     const refs = Number(
-      database.prepare('SELECT COUNT(*) AS c FROM Artifact_Details WHERE fs_path = ?').get(fsPath)
+      database.prepare('SELECT COUNT(*) AS c FROM Artifact_Raw WHERE fs_path = ?').get(fsPath)
         ?.c || 0,
     )
     if (refs === 0) {
