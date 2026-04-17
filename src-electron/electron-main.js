@@ -123,7 +123,6 @@ function upsertProjects(rows = []) {
     for (const r of input) {
       const projectId =
         normalizeNullableString(r?.project_id) ||
-        normalizeNullableString(r?.pipeline_id) ||
         `project:${crypto.randomUUID()}`
       const name = normalizeNullableString(r?.name)
       if (!name) {
@@ -180,7 +179,6 @@ function createProject(payload = {}) {
 
   const projectId =
     normalizeNullableString(payload.project_id) ||
-    normalizeNullableString(payload.pipeline_id) ||
     `project:${crypto.randomUUID()}`
 
   const tx = database.transaction(() => {
@@ -8414,10 +8412,10 @@ function registerIpc() {
     return result
   })
 
-  ipcMain.handle('projects:delete', async (_event, { projectId, pipelineId } = {}) => {
+  ipcMain.handle('projects:delete', async (_event, { projectId } = {}) => {
     initDb()
-    const pid = String(projectId || pipelineId || '')
-    if (!pid) throw new Error('pipelineId is required')
+    const pid = String(projectId || '')
+    if (!pid) throw new Error('projectId is required')
     auditDeletedRecord('Projects', pid)
     const result = deleteRow('Projects', 'id', pid)
     await syncWorkspaceWorkbooksSafe()

@@ -723,19 +723,6 @@ CREATE TABLE IF NOT EXISTS Resources (
   updated_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
-CREATE TABLE IF NOT EXISTS PipelineInvestmentProcess (
-  id TEXT PRIMARY KEY,
-  Task_Name TEXT,
-  Task_Description TEXT,
-  Assigned_Position TEXT,
-  Assigned_Person TEXT,
-  Due TEXT,
-  Last_Edited TEXT,
-  File_Reference TEXT,
-  created_at TEXT NOT NULL DEFAULT (datetime('now')),
-  updated_at TEXT NOT NULL DEFAULT (datetime('now'))
-);
-
 CREATE TABLE IF NOT EXISTS Notes (
   id TEXT PRIMARY KEY,
   created_by TEXT,
@@ -1373,59 +1360,6 @@ CREATE TABLE IF NOT EXISTS EPL_Business_Units_BusinessModels_business_models (
 );
 CREATE INDEX IF NOT EXISTS idx_EPL_Business_Units_BusinessModels_business_models_to ON EPL_Business_Units_BusinessModels_business_models(to_id);
 
-CREATE TABLE IF NOT EXISTS PipelineInvestmentProcess_Companies_companies (
-  from_id TEXT NOT NULL,
-  to_id TEXT NOT NULL,
-  PRIMARY KEY (from_id, to_id),
-  FOREIGN KEY (from_id) REFERENCES PipelineInvestmentProcess(id) ON UPDATE CASCADE ON DELETE CASCADE,
-  FOREIGN KEY (to_id) REFERENCES Companies(id) ON UPDATE CASCADE ON DELETE CASCADE
-);
-CREATE INDEX IF NOT EXISTS idx_PipelineInvestmentProcess_Companies_companies_to ON PipelineInvestmentProcess_Companies_companies(to_id);
-
-CREATE TABLE IF NOT EXISTS PipelineInvestmentProcess_Rounds_rounds (
-  from_id TEXT NOT NULL,
-  to_id TEXT NOT NULL,
-  PRIMARY KEY (from_id, to_id),
-  FOREIGN KEY (from_id) REFERENCES PipelineInvestmentProcess(id) ON UPDATE CASCADE ON DELETE CASCADE,
-  FOREIGN KEY (to_id) REFERENCES Rounds(id) ON UPDATE CASCADE ON DELETE CASCADE
-);
-CREATE INDEX IF NOT EXISTS idx_PipelineInvestmentProcess_Rounds_rounds_to ON PipelineInvestmentProcess_Rounds_rounds(to_id);
-
-CREATE TABLE IF NOT EXISTS PipelineInvestmentProcess_Funds_funds (
-  from_id TEXT NOT NULL,
-  to_id TEXT NOT NULL,
-  PRIMARY KEY (from_id, to_id),
-  FOREIGN KEY (from_id) REFERENCES PipelineInvestmentProcess(id) ON UPDATE CASCADE ON DELETE CASCADE,
-  FOREIGN KEY (to_id) REFERENCES Funds(id) ON UPDATE CASCADE ON DELETE CASCADE
-);
-CREATE INDEX IF NOT EXISTS idx_PipelineInvestmentProcess_Funds_funds_to ON PipelineInvestmentProcess_Funds_funds(to_id);
-
-CREATE TABLE IF NOT EXISTS PipelineInvestmentProcess_Contacts_contacts (
-  from_id TEXT NOT NULL,
-  to_id TEXT NOT NULL,
-  PRIMARY KEY (from_id, to_id),
-  FOREIGN KEY (from_id) REFERENCES PipelineInvestmentProcess(id) ON UPDATE CASCADE ON DELETE CASCADE,
-  FOREIGN KEY (to_id) REFERENCES Contacts(id) ON UPDATE CASCADE ON DELETE CASCADE
-);
-CREATE INDEX IF NOT EXISTS idx_PipelineInvestmentProcess_Contacts_contacts_to ON PipelineInvestmentProcess_Contacts_contacts(to_id);
-
-CREATE TABLE IF NOT EXISTS PipelineInvestmentProcess_PipelineInvestmentProcess_parent_child (
-  from_id TEXT NOT NULL,
-  to_id TEXT NOT NULL,
-  PRIMARY KEY (from_id, to_id),
-  FOREIGN KEY (from_id) REFERENCES PipelineInvestmentProcess(id) ON UPDATE CASCADE ON DELETE CASCADE,
-  FOREIGN KEY (to_id) REFERENCES PipelineInvestmentProcess(id) ON UPDATE CASCADE ON DELETE CASCADE
-);
-CREATE INDEX IF NOT EXISTS idx_PipelineInvestmentProcess_PipelineInvestmentProcess_parent_child_to ON PipelineInvestmentProcess_PipelineInvestmentProcess_parent_child(to_id);
-
-CREATE TABLE IF NOT EXISTS PipelineInvestmentProcess_PipelineInvestmentProcess_blocked_by_blocking (
-  from_id TEXT NOT NULL,
-  to_id TEXT NOT NULL,
-  PRIMARY KEY (from_id, to_id),
-  FOREIGN KEY (from_id) REFERENCES PipelineInvestmentProcess(id) ON UPDATE CASCADE ON DELETE CASCADE,
-  FOREIGN KEY (to_id) REFERENCES PipelineInvestmentProcess(id) ON UPDATE CASCADE ON DELETE CASCADE
-);
-CREATE INDEX IF NOT EXISTS idx_PipelineInvestmentProcess_PipelineInvestmentProcess_blocked_by_blocking_to ON PipelineInvestmentProcess_PipelineInvestmentProcess_blocked_by_blocking(to_id);
 `
 
 const PIPELINES_SQL = `
