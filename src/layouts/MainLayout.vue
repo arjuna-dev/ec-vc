@@ -14,7 +14,7 @@
           />
         </div>
 
-        <div v-if="isDialogShellRoute || isForkShellRoute" class="ec-shell-toolbar-center">
+        <div v-if="isForkShellRoute" class="ec-shell-toolbar-center">
           <ShellOpenDialogButton
             :kind="isForkShellRoute ? 'fork' : 'record'"
             @click="reopenActiveRouteShellFromHeader"
@@ -421,8 +421,6 @@ const testShellNavigationItems = [
   { label: 'BB Shell', to: '/bb-file', exact: true, icon: 'dashboard_customize' },
   { label: 'File Shell', to: '/test-shell', exact: true, icon: 'science' },
   { label: 'Record Shell', to: '/record-shell?section=tasks', exact: true, icon: 'album' },
-  { label: 'Add/Edit File Shell', to: '/file-dialog-shell?section=file-system', exact: true, icon: 'web_asset' },
-  { label: 'Add/Edit Record Shell', to: '/dialog-shell?section=tasks', exact: true, icon: 'web_asset' },
   { label: 'PMP Window', to: '/draft-window?section=file-system', exact: true, icon: 'design_services' },
   { label: 'Intake Shell', to: '/intake-shell', exact: true, icon: 'hourglass_top' },
   { label: 'Fork Shell', to: '/fork-shell', exact: true, icon: 'call_split' },
@@ -450,8 +448,6 @@ const routeLabelByName = {
   'test-shell': 'File Shell',
   'record-shell': 'Record Shell',
   'fork-shell': 'Fork Shell',
-  'file-dialog-shell': 'Add/Edit File Shell',
-  'dialog-shell': 'Add/Edit Record Shell',
   'draft-window': 'PMP Window',
   'intake-shell': 'Intake Shell',
   'user-roles': 'User Roles',
@@ -584,7 +580,6 @@ const developerHoverStyle = computed(() => ({
   top: `${developerHoverPosition.value.y}px`,
 }))
 const isSelectableShellRoute = computed(() => ['test-shell', 'record-shell'].includes(String(route.name || '')))
-const isDialogShellRoute = computed(() => String(route.name || '') === 'dialog-shell')
 const isForkShellRoute = computed(() => String(route.name || '') === 'fork-shell')
 const shellSectionOptions = TEST_SHELL_SECTION_OPTIONS
 const selectedShellSection = computed({
@@ -608,9 +603,7 @@ function reopenActiveRouteShellFromHeader() {
   if (typeof window === 'undefined') return
   if (isForkShellRoute.value) {
     window.dispatchEvent(new CustomEvent('ecvc:reopen-fork-shell'))
-    return
   }
-  window.dispatchEvent(new CustomEvent('ecvc:reopen-dialog-shell'))
 }
 
 const quickWidgetStyle = computed(() => ({
@@ -1450,7 +1443,7 @@ async function openRoundFromQuickAction() {
   }
     if (requestedBranch && getCreateBranchEntry(sourceKey, requestedBranch)) {
       await router.push({
-        name: 'dialog-shell',
+        name: 'draft-window',
         query: {
           section: sourceKey,
           create: String(Date.now()),
@@ -1460,7 +1453,7 @@ async function openRoundFromQuickAction() {
       return
     }
     await router.push({
-      name: 'dialog-shell',
+      name: 'draft-window',
       query: {
         section: sourceKey,
         create: String(Date.now()),
@@ -1656,10 +1649,6 @@ function handleDrawerItemClick(item) {
   const itemTarget = String(item?.to || '').trim()
   const routeName = String(route.name || '').trim()
   if (typeof window === 'undefined' || typeof window.dispatchEvent !== 'function') return
-  if (itemTarget === '/dialog-shell' && routeName === 'dialog-shell') {
-    window.dispatchEvent(new CustomEvent('ecvc:reopen-dialog-shell'))
-    return
-  }
   if (itemTarget === '/fork-shell' && routeName === 'fork-shell') {
     window.dispatchEvent(new CustomEvent('ecvc:reopen-fork-shell'))
     return

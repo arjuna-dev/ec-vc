@@ -1234,7 +1234,7 @@ function handleRecordFeedAdd(feedTab) {
     initialValues: {},
   })
   router.push({
-    name: 'dialog-shell',
+    name: 'draft-window',
     query: {
       section: normalizedFeedTab,
       create: '1',

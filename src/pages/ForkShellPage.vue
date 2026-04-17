@@ -133,7 +133,7 @@ function selectBranch(branch) {
   const branchEntry = getCreateBranchEntry(activeSourceKey.value, branch?.value)
   if (!branchEntry) return
   router.push({
-    name: 'dialog-shell',
+    name: 'draft-window',
     query: {
       section: activeSourceKey.value,
       create: String(Date.now()),

@@ -1623,7 +1623,7 @@ async function startArtifactProcessing(artifactId) {
     if (intakeSessionId.value && !intakeDialogOpened.value) {
       intakeDialogOpened.value = true
       router.push({
-        name: 'dialog-shell',
+        name: 'draft-window',
         query: {
           section: 'intake',
           edit: intakeSessionId.value,

@@ -3293,7 +3293,7 @@ function canCreateForSourceKey(sourceKey) {
   const createSurface = getFilePageCreateSurface(normalizedSourceKey)
   if (createSurface === 'file-dialog') {
     router.push({
-      name: 'file-dialog-shell',
+      name: 'draft-window',
       query: {
         section: normalizedSourceKey,
         returnTo: route.fullPath,
@@ -3361,7 +3361,7 @@ function canCreateForSourceKey(sourceKey) {
     if (String(options?.contextEntity || '').trim()) nextQuery.contextEntity = String(options.contextEntity).trim()
     if (String(options?.contextRecordId || '').trim()) nextQuery.contextRecordId = String(options.contextRecordId).trim()
     router.push({
-      name: 'dialog-shell',
+      name: 'draft-window',
       query: nextQuery,
     })
     return
@@ -3461,7 +3461,7 @@ function requestEditRecordShell(row, options = {}) {
   if (editSurface === 'file-dialog') {
     const fileSection = String(row?.raw?.sourceKey || '').trim().toLowerCase()
     router.push({
-      name: 'file-dialog-shell',
+      name: 'draft-window',
       query: {
         section: fileSection || activeSourceKey.value,
         returnTo: route.fullPath,
@@ -3474,7 +3474,7 @@ function requestEditRecordShell(row, options = {}) {
 
   if (isRelationshipSectionLabel(normalizedSectionKey)) {
     router.push({
-      name: 'dialog-shell',
+      name: 'draft-window',
       query: {
         section: activeSourceKey.value,
         edit: recordId,
