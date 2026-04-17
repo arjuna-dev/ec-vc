@@ -66,6 +66,7 @@ import {
   resolveApprovedFileSectionKey,
   TEST_SHELL_SECTION_OPTIONS,
 } from 'src/utils/structureRegistry'
+import { loadLiveOptionRowsForSource } from 'src/utils/liveOptionRows'
 import { buildSurfaceSections, groupSurfaceViews, splitSurfaceSections } from 'src/utils/shellViewLayout'
 import { buildTokenUpdateChanges, normalizeTokenWriteValue } from 'src/utils/tokenWriteChanges'
 
@@ -439,14 +440,12 @@ async function ensureLiveOptionsLoaded() {
     }
   }
   for (const sourceKey of sourceKeys) {
-    if (liveOptionRowsBySource.value[sourceKey]) continue
-    try {
-      const result = await bridge.value?.[sourceKey]?.list?.()
-      const rows = Array.isArray(result) ? result : Object.values(result || {}).find((value) => Array.isArray(value)) || []
-      liveOptionRowsBySource.value = { ...liveOptionRowsBySource.value, [sourceKey]: rows }
-    } catch {
-      liveOptionRowsBySource.value = { ...liveOptionRowsBySource.value, [sourceKey]: [] }
-    }
+    liveOptionRowsBySource.value = await loadLiveOptionRowsForSource({
+      sourceKey,
+      bridgeValue: bridge.value,
+      currentRowsBySource: liveOptionRowsBySource.value,
+      skipSourceKey: activeSourceKey.value,
+    })
   }
 }
 
