@@ -228,20 +228,6 @@ CREATE TABLE IF NOT EXISTS Contacts (
   FOREIGN KEY (linked_user_id) REFERENCES Users(id) ON UPDATE CASCADE ON DELETE SET NULL
 );
 
-CREATE TABLE IF NOT EXISTS Universities (
-  id TEXT PRIMARY KEY,
-  Name TEXT
-);
-
-CREATE TABLE IF NOT EXISTS EPL_Business_Units (
-  id TEXT PRIMARY KEY,
-  Business_Unit_Name TEXT,
-  BU_Type TEXT,
-  Parent_BU TEXT,
-  created_at TEXT NOT NULL DEFAULT (datetime('now')),
-  updated_at TEXT NOT NULL DEFAULT (datetime('now'))
-);
-
 CREATE TABLE IF NOT EXISTS Projects (
   id TEXT PRIMARY KEY,
   created_by TEXT,
@@ -275,28 +261,6 @@ CREATE TABLE IF NOT EXISTS Tasks (
   FOREIGN KEY (created_by) REFERENCES Users(id) ON UPDATE CASCADE ON DELETE SET NULL
 );
 
-CREATE TABLE IF NOT EXISTS IC_Scorecard (
-  id TEXT PRIMARY KEY,
-  Member_Name TEXT,
-  Opportunity_Alignment TEXT,
-  Founder_Team TEXT,
-  Advisors_Support TEXT,
-  Business_Model TEXT,
-  Industry_Outlook TEXT,
-  Vote TEXT,
-  Degree_of_Confidence TEXT,
-  created_at TEXT NOT NULL DEFAULT (datetime('now')),
-  updated_at TEXT NOT NULL DEFAULT (datetime('now'))
-);
-
-CREATE TABLE IF NOT EXISTS Intros (
-  id TEXT PRIMARY KEY,
-  Intro TEXT,
-  Date TEXT,
-  created_at TEXT NOT NULL DEFAULT (datetime('now')),
-  updated_at TEXT NOT NULL DEFAULT (datetime('now'))
-);
-
 CREATE TABLE IF NOT EXISTS Markets (
   id TEXT PRIMARY KEY,
   Market_Name TEXT,
@@ -311,80 +275,6 @@ CREATE TABLE IF NOT EXISTS Securities (
   Security_Name TEXT,
   Security_Summary TEXT,
   Status TEXT,
-  created_at TEXT NOT NULL DEFAULT (datetime('now')),
-  updated_at TEXT NOT NULL DEFAULT (datetime('now'))
-);
-
-CREATE TABLE IF NOT EXISTS SectorGroups (
-  id TEXT PRIMARY KEY,
-  Sector_Name TEXT,
-  created_at TEXT NOT NULL DEFAULT (datetime('now')),
-  updated_at TEXT NOT NULL DEFAULT (datetime('now'))
-);
-
-CREATE TABLE IF NOT EXISTS VerticalIndustries (
-  id TEXT PRIMARY KEY,
-  Vertical_Market_Name TEXT,
-  Full_Description TEXT,
-  Example_related_company TEXT,
-  Company_Website TEXT,
-  created_at TEXT NOT NULL DEFAULT (datetime('now')),
-  updated_at TEXT NOT NULL DEFAULT (datetime('now'))
-);
-
-CREATE TABLE IF NOT EXISTS BusinessModels (
-  id TEXT PRIMARY KEY,
-  Business_Models TEXT,
-  Description TEXT,
-  Examples TEXT,
-  Category TEXT,
-  created_at TEXT NOT NULL DEFAULT (datetime('now')),
-  updated_at TEXT NOT NULL DEFAULT (datetime('now'))
-);
-
-CREATE TABLE IF NOT EXISTS Regions (
-  id TEXT PRIMARY KEY,
-  Name TEXT,
-  created_at TEXT NOT NULL DEFAULT (datetime('now')),
-  updated_at TEXT NOT NULL DEFAULT (datetime('now'))
-);
-
-INSERT OR IGNORE INTO Regions (id, Name) VALUES
-  ('region_africa', 'Africa'),
-  ('region_asia', 'Asia'),
-  ('region_europe', 'Europe'),
-  ('region_latin_america', 'Latin America'),
-  ('region_middle_east', 'Middle East'),
-  ('region_north_america', 'North America'),
-  ('region_oceania', 'Oceania');
-
-CREATE TABLE IF NOT EXISTS VC_Terms_Glossary (
-  id TEXT PRIMARY KEY,
-  Key_Term TEXT,
-  Definition TEXT,
-  Insights TEXT,
-  Related_Formula TEXT,
-  Abbreviation TEXT,
-  created_at TEXT NOT NULL DEFAULT (datetime('now')),
-  updated_at TEXT NOT NULL DEFAULT (datetime('now'))
-);
-
-CREATE TABLE IF NOT EXISTS Control_Terms_Description (
-  id TEXT PRIMARY KEY,
-  Term TEXT,
-  What_is TEXT,
-  Where_to_find_it TEXT,
-  Text TEXT,
-  created_at TEXT NOT NULL DEFAULT (datetime('now')),
-  updated_at TEXT NOT NULL DEFAULT (datetime('now'))
-);
-
-CREATE TABLE IF NOT EXISTS Resources (
-  id TEXT PRIMARY KEY,
-  Nombre TEXT,
-  Summary TEXT,
-  Archivos_y_multimedia TEXT,
-  Author TEXT,
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
   updated_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
