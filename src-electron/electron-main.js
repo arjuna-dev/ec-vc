@@ -13,10 +13,14 @@ import { ingestArtifactsFromPaths } from './services/artifact-ingestion.js'
 import { getArtifactRawPath } from './services/workspace-structure.js'
 import { previewAutofillFromFiles } from './services/autofill-extraction.js'
 import {
-  getNetworkDatabasesPath,
-  NETWORK_DATABASES_DIR,
-  NETWORK_DATABASE_SECTION_DIRS,
-  USER_WORKSPACE_DIR,
+  ACTIVE_DIR,
+  ARCHIVED_DIR,
+  AUXILIARY_FILES_DIR,
+  getAuxiliaryFilesPath,
+  getOwnerFilesPath,
+  getOwnerPath,
+  OWNER_FILES_DIR,
+  OWNER_ROOT_DIR,
 } from './services/workspace-structure.js'
 import {
   getGenericLdbRelationshipTableName,
@@ -4844,10 +4848,7 @@ async function resolveArtifactFileForAction(artifactId) {
 function normalizeLegacyArtifactWorkspacePath(relativePath) {
   const normalized = String(relativePath || '').trim()
   if (!normalized) return ''
-
   return normalized
-    .replace(/User[\\/]+WORKSPACE FILES[\\/]+Artifacts(?=[\\/])/i, 'User/WORKSPACE FILES/2. Artifacts')
-    .replace(/User[\\/]+WORKSPACE FILES[\\/]+Company(?=[\\/])/i, 'User/WORKSPACE FILES/4. Companies')
 }
 
 async function deleteArtifact(artifactId) {
@@ -8342,17 +8343,24 @@ function registerIpc() {
     const resolvedPath = path.resolve(String(dirPath || ''))
     const workspace = await ensureWorkspace()
     const workspaceRootPath = path.resolve(workspace.rootPath)
-    const userWorkspacePath = path.resolve(path.join(workspace.rootPath, USER_WORKSPACE_DIR))
-    const networkDatabasesPath = path.resolve(getNetworkDatabasesPath(workspace.rootPath))
+    const ownerPath = path.resolve(getOwnerPath(workspace.rootPath))
+    const ownerFilesPath = path.resolve(getOwnerFilesPath(workspace.rootPath))
+    const auxiliaryFilesPath = path.resolve(getAuxiliaryFilesPath(workspace.rootPath))
 
     const dirents = await fs.readdir(resolvedPath, { withFileTypes: true })
     let sortOrder = null
     if (resolvedPath === workspaceRootPath) {
-      sortOrder = new Map([[USER_WORKSPACE_DIR, 0]])
-    } else if (resolvedPath === userWorkspacePath) {
-      sortOrder = new Map([[NETWORK_DATABASES_DIR, 0]])
-    } else if (resolvedPath === networkDatabasesPath) {
-      sortOrder = new Map(NETWORK_DATABASE_SECTION_DIRS.map((name, index) => [name, index]))
+      sortOrder = new Map([[OWNER_ROOT_DIR, 0]])
+    } else if (resolvedPath === ownerPath) {
+      sortOrder = new Map([
+        [OWNER_FILES_DIR, 0],
+        [AUXILIARY_FILES_DIR, 1],
+      ])
+    } else if (resolvedPath === ownerFilesPath || resolvedPath === auxiliaryFilesPath) {
+      sortOrder = new Map([
+        [ACTIVE_DIR, 0],
+        [ARCHIVED_DIR, 1],
+      ])
     }
 
     const entries = dirents
@@ -9213,7 +9221,7 @@ function registerIpc() {
       if (count > 0) {
         emitStatus?.({
           type: 'success',
-          message: `Artifacts saved in ${workspace.rootPath}/${USER_WORKSPACE_DIR}/${NETWORK_DATABASES_DIR}/Artifacts`,
+          message: `Artifacts saved in ${workspace.rootPath}/${OWNER_ROOT_DIR}/${OWNER_FILES_DIR}/${ACTIVE_DIR}/Artifacts`,
         })
       }
     await syncWorkspaceWorkbooksSafe(workspace.rootPath)

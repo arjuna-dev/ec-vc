@@ -1,30 +1,32 @@
 import path from 'node:path'
 import fse from 'fs-extra'
 import {
+  ACTIVE_DIR,
+  ARCHIVED_DIR,
   ARTIFACT_STAGE_DIRS,
-  getNetworkDatabaseSectionDirName,
-  NETWORK_DATABASES_DIR,
-  USER_WORKSPACE_DIR,
+  ARTIFACTS_DIR,
+  AUXILIARY_FILES_DIR,
+  OWNER_FILES_DIR,
+  OWNER_ROOT_DIR,
 } from './workspace-structure.js'
 
 export const DEFAULT_PROJECT_ROOT_NAME = 'ec-vc'
 
 export const DEFAULT_PROJECT_STRUCTURE = {
-  [USER_WORKSPACE_DIR]: {
-    [NETWORK_DATABASES_DIR]: {
-      [getNetworkDatabaseSectionDirName('Users')]: {},
-      [getNetworkDatabaseSectionDirName('Artifacts')]: {
-        [ARTIFACT_STAGE_DIRS[0]]: {},
-        [ARTIFACT_STAGE_DIRS[1]]: {},
-        [ARTIFACT_STAGE_DIRS[2]]: {},
+  [OWNER_ROOT_DIR]: {
+    [OWNER_FILES_DIR]: {
+      [ACTIVE_DIR]: {
+        [ARTIFACTS_DIR]: {
+          [ARTIFACT_STAGE_DIRS[0]]: {},
+          [ARTIFACT_STAGE_DIRS[1]]: {},
+          [ARTIFACT_STAGE_DIRS[2]]: {},
+        },
       },
-      [getNetworkDatabaseSectionDirName('Contacts')]: {},
-      [getNetworkDatabaseSectionDirName('Company')]: {},
-      [getNetworkDatabaseSectionDirName('Opportunities')]: {},
-      [getNetworkDatabaseSectionDirName('Projects')]: {},
-      [getNetworkDatabaseSectionDirName('Notes')]: {},
-      [getNetworkDatabaseSectionDirName('Tasks')]: {},
-      [getNetworkDatabaseSectionDirName('Agents')]: {},
+      [ARCHIVED_DIR]: {},
+    },
+    [AUXILIARY_FILES_DIR]: {
+      [ACTIVE_DIR]: {},
+      [ARCHIVED_DIR]: {},
     },
   },
 }
