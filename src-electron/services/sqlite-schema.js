@@ -163,80 +163,26 @@ CREATE INDEX IF NOT EXISTS idx_Opportunities_name
 CREATE TABLE IF NOT EXISTS Rounds (
   id TEXT PRIMARY KEY,
   Round_Name TEXT,
+  company_id INTEGER,
+  Raising_Status TEXT,
+  Type_of_Security TEXT,
+  Target_Size REAL,
+  Committed_Amounts REAL,
+  Close_Date TEXT,
+  Summary TEXT,
+  Pre_Valuation REAL,
+  Post_Valuation REAL,
+  Previous_Post_Valuation REAL,
   Status TEXT,
   created_by TEXT,
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
   updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+  FOREIGN KEY (company_id) REFERENCES Companies(id) ON UPDATE CASCADE ON DELETE RESTRICT,
   FOREIGN KEY (created_by) REFERENCES Users(id) ON UPDATE CASCADE ON DELETE SET NULL
 );
 
 CREATE INDEX IF NOT EXISTS idx_Rounds_created_by
   ON Rounds(created_by);
-
-CREATE TABLE IF NOT EXISTS Round_Overview (
-  round_id TEXT PRIMARY KEY,
-  sponsor_company_id INTEGER,
-  Round_Raising_Status TEXT CHECK (
-    Round_Raising_Status IS NULL OR Round_Raising_Status IN ('Raising', 'Raised', 'Abandoned')
-  ),
-  Security_Type TEXT CHECK (
-    Security_Type IS NULL OR Security_Type IN (
-      'Debt_Secured',
-      'Debt_Unsecured',
-      'Debt_Structured',
-      'Equity_Common',
-      'Equity_Preferred',
-      'Equity_SAFE'
-    )
-  ),
-  Round_Target_Size REAL,
-  Round_Commited_Amounts REAL,
-  Round_Min_Ticket_Size REAL,
-  Round_Close_Date TEXT,
-  Round_Summary TEXT,
-  created_at TEXT NOT NULL DEFAULT (datetime('now')),
-  updated_at TEXT NOT NULL DEFAULT (datetime('now')),
-  FOREIGN KEY (round_id) REFERENCES Rounds(id) ON UPDATE CASCADE ON DELETE CASCADE,
-  FOREIGN KEY (sponsor_company_id) REFERENCES Companies(id) ON UPDATE CASCADE ON DELETE RESTRICT
-);
-
-CREATE INDEX IF NOT EXISTS idx_Round_Overview_sponsor_company_id
-  ON Round_Overview(sponsor_company_id);
-
-CREATE TABLE IF NOT EXISTS Round_Economics (
-  round_id TEXT PRIMARY KEY,
-  Round_Pre_Valuation REAL,
-  Round_Post_Valuation REAL,
-  Round_Previous_Post_Valuation REAL,
-  Round_Economic_Provisions_Artifact_Id TEXT,
-  Round_Liquidation_Preference_Artifact_Id TEXT,
-  Round_Drag_Tag_Artifact_Id TEXT,
-  Round_Put_Call_Artifact_Id TEXT,
-  Round_Conversion_Artifact_Id TEXT,
-  created_at TEXT NOT NULL DEFAULT (datetime('now')),
-  updated_at TEXT NOT NULL DEFAULT (datetime('now')),
-  FOREIGN KEY (round_id) REFERENCES Rounds(id) ON UPDATE CASCADE ON DELETE CASCADE,
-  FOREIGN KEY (Round_Economic_Provisions_Artifact_Id) REFERENCES Artifacts(artifact_id) ON UPDATE CASCADE ON DELETE SET NULL,
-  FOREIGN KEY (Round_Liquidation_Preference_Artifact_Id) REFERENCES Artifacts(artifact_id) ON UPDATE CASCADE ON DELETE SET NULL,
-  FOREIGN KEY (Round_Drag_Tag_Artifact_Id) REFERENCES Artifacts(artifact_id) ON UPDATE CASCADE ON DELETE SET NULL,
-  FOREIGN KEY (Round_Put_Call_Artifact_Id) REFERENCES Artifacts(artifact_id) ON UPDATE CASCADE ON DELETE SET NULL,
-  FOREIGN KEY (Round_Conversion_Artifact_Id) REFERENCES Artifacts(artifact_id) ON UPDATE CASCADE ON DELETE SET NULL
-);
-
-CREATE TABLE IF NOT EXISTS Round_Controls (
-  round_id TEXT PRIMARY KEY,
-  Round_Control_Provisions_Artifact_Id TEXT,
-  Round_Information_Rights_Artifact_Id TEXT,
-  Round_Board_Representation_Artifact_Id TEXT,
-  Round_Item_Voting_Artifact_Id TEXT,
-  created_at TEXT NOT NULL DEFAULT (datetime('now')),
-  updated_at TEXT NOT NULL DEFAULT (datetime('now')),
-  FOREIGN KEY (round_id) REFERENCES Rounds(id) ON UPDATE CASCADE ON DELETE CASCADE,
-  FOREIGN KEY (Round_Control_Provisions_Artifact_Id) REFERENCES Artifacts(artifact_id) ON UPDATE CASCADE ON DELETE SET NULL,
-  FOREIGN KEY (Round_Information_Rights_Artifact_Id) REFERENCES Artifacts(artifact_id) ON UPDATE CASCADE ON DELETE SET NULL,
-  FOREIGN KEY (Round_Board_Representation_Artifact_Id) REFERENCES Artifacts(artifact_id) ON UPDATE CASCADE ON DELETE SET NULL,
-  FOREIGN KEY (Round_Item_Voting_Artifact_Id) REFERENCES Artifacts(artifact_id) ON UPDATE CASCADE ON DELETE SET NULL
-);
 
 CREATE TABLE IF NOT EXISTS LVPortfolio (
   id TEXT PRIMARY KEY,
@@ -933,30 +879,6 @@ FOR EACH ROW
 WHEN NEW.updated_at = OLD.updated_at
 BEGIN
   UPDATE Rounds SET updated_at = datetime('now') WHERE id = OLD.id;
-END;
-
-CREATE TRIGGER IF NOT EXISTS trg_Round_Overview_updated_at
-AFTER UPDATE ON Round_Overview
-FOR EACH ROW
-WHEN NEW.updated_at = OLD.updated_at
-BEGIN
-  UPDATE Round_Overview SET updated_at = datetime('now') WHERE round_id = OLD.round_id;
-END;
-
-CREATE TRIGGER IF NOT EXISTS trg_Round_Economics_updated_at
-AFTER UPDATE ON Round_Economics
-FOR EACH ROW
-WHEN NEW.updated_at = OLD.updated_at
-BEGIN
-  UPDATE Round_Economics SET updated_at = datetime('now') WHERE round_id = OLD.round_id;
-END;
-
-CREATE TRIGGER IF NOT EXISTS trg_Round_Controls_updated_at
-AFTER UPDATE ON Round_Controls
-FOR EACH ROW
-WHEN NEW.updated_at = OLD.updated_at
-BEGIN
-  UPDATE Round_Controls SET updated_at = datetime('now') WHERE round_id = OLD.round_id;
 END;
 
 CREATE TRIGGER IF NOT EXISTS trg_Artifacts_updated_at

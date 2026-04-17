@@ -498,30 +498,28 @@ function listOpportunities() {
       SELECT
         r.id,
         'round' AS kind,
-        ro.sponsor_company_id AS company_id,
-        ro.Round_Target_Size AS Investment_Ask,
-        ro.Round_Commited_Amounts AS Hard_Commits,
+        r.company_id,
+        r.Target_Size AS Investment_Ask,
+        r.Committed_Amounts AS Hard_Commits,
         NULL AS Soft_Commits,
         NULL AS First_Close_Date,
         NULL AS Next_Close_Date,
-        ro.Round_Close_Date AS Final_Close_Date,
+        r.Close_Date AS Final_Close_Date,
         NULL AS Round_Stage,
-        ro.Security_Type AS Type_of_Security,
-        ro.Round_Target_Size AS Round_Amount,
-        re.Round_Pre_Valuation AS Pre_Valuation,
-        re.Round_Post_Valuation AS Post_Valuation,
-        re.Round_Previous_Post_Valuation AS Previous_Post,
+        r.Type_of_Security,
+        r.Target_Size AS Round_Amount,
+        r.Pre_Valuation,
+        r.Post_Valuation,
+        r.Previous_Post_Valuation AS Previous_Post,
         r.Round_Name AS opportunity_name,
         r.Round_Name AS Venture_Oppty_Name,
         NULL AS Fund_Type,
         NULL AS Fund_Size_Target,
-        ro.Round_Raising_Status AS Raising_Status,
+        r.Raising_Status,
         r.created_at,
         c.Company_Name
       FROM Rounds r
-      LEFT JOIN Round_Overview ro ON ro.round_id = r.id
-      LEFT JOIN Round_Economics re ON re.round_id = r.id
-      LEFT JOIN Companies c ON c.id = ro.sponsor_company_id
+      LEFT JOIN Companies c ON c.id = r.company_id
 
       UNION ALL
 
@@ -590,14 +588,13 @@ function listRounds() {
     SELECT
       r.id,
       r.Round_Name,
-      ro.sponsor_company_id,
-      ro.Round_Raising_Status,
-      ro.Security_Type,
-      ro.Round_Target_Size,
-      ro.Round_Commited_Amounts,
-      ro.Round_Close_Date
+      r.company_id,
+      r.Raising_Status,
+      r.Type_of_Security,
+      r.Target_Size,
+      r.Committed_Amounts,
+      r.Close_Date
     FROM Rounds r
-    LEFT JOIN Round_Overview ro ON ro.round_id = r.id
     ORDER BY COALESCE(r.Round_Name, '') ASC, r.id DESC
   `,
   )
@@ -7184,25 +7181,30 @@ function createRound(payload = {}) {
     database
       .prepare(
         `
-        INSERT INTO Rounds (id, Round_Name, Status, created_by, created_at, updated_at)
-        VALUES (?, ?, ?, ?, datetime('now'), datetime('now'))
-      `,
-      )
-      .run(roundId, uniqueRoundName, statusValue, actor.user_id)
-
-    database
-      .prepare(
-        `
-        INSERT INTO Round_Overview (
-          round_id, sponsor_company_id, Round_Raising_Status, Security_Type,
-          Round_Target_Size, Round_Commited_Amounts, Round_Close_Date, Round_Summary,
-          created_at, updated_at
+        INSERT INTO Rounds (
+          id,
+          Round_Name,
+          company_id,
+          Raising_Status,
+          Type_of_Security,
+          Target_Size,
+          Committed_Amounts,
+          Close_Date,
+          Summary,
+          Pre_Valuation,
+          Post_Valuation,
+          Previous_Post_Valuation,
+          Status,
+          created_by,
+          created_at,
+          updated_at
         )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
       `,
       )
       .run(
         roundId,
+        uniqueRoundName,
         companyId,
         normalizeEntityRaisingStatus(payload?.Raising_Status),
         normalizeRoundSecurityType(payload?.Type_of_Security),
@@ -7210,30 +7212,12 @@ function createRound(payload = {}) {
         normalizeNullableNumber(payload?.Hard_Commits),
         normalizeNullableString(payload?.Final_Close_Date),
         normalizeNullableString(payload?.company?.One_Liner),
+        normalizeNullableNumber(payload?.Pre_Valuation),
+        normalizeNullableNumber(payload?.Post_Valuation),
+        normalizeNullableNumber(payload?.Previous_Post),
+        statusValue,
+        actor.user_id,
       )
-
-    if (
-      hasMeaningfulValue(payload?.Pre_Valuation) ||
-      hasMeaningfulValue(payload?.Post_Valuation) ||
-      hasMeaningfulValue(payload?.Previous_Post)
-    ) {
-      database
-        .prepare(
-          `
-          INSERT INTO Round_Economics (
-            round_id, Round_Pre_Valuation, Round_Post_Valuation, Round_Previous_Post_Valuation,
-            created_at, updated_at
-          )
-          VALUES (?, ?, ?, ?, datetime('now'), datetime('now'))
-        `,
-        )
-        .run(
-          roundId,
-          normalizeNullableNumber(payload?.Pre_Valuation),
-          normalizeNullableNumber(payload?.Post_Valuation),
-          normalizeNullableNumber(payload?.Previous_Post),
-        )
-    }
   })
 
   tx()
