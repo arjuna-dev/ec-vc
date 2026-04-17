@@ -315,6 +315,7 @@
 import { computed, onBeforeUnmount, onMounted, ref, watchEffect } from 'vue'
 import HomeDashboardHero from 'src/components/HomeDashboardHero.vue'
 import { clearBreadcrumbActions, setBreadcrumbActions } from 'src/utils/breadcrumbActionsState'
+import { runFileRecordLoader } from 'src/utils/fileRecordLoaders'
 
 const isElectronRuntime = computed(() => {
   if (typeof navigator === 'undefined') return false
@@ -324,15 +325,7 @@ const isElectronRuntime = computed(() => {
 const bridge = computed(() => (typeof window !== 'undefined' ? window.ecvc : null))
 const hasBridge = computed(
   () =>
-    !!bridge.value?.fs?.workspaceRoot &&
-    !!bridge.value?.companies?.list &&
-    !!bridge.value?.contacts?.list &&
-    !!bridge.value?.opportunities?.list &&
-    !!bridge.value?.projects?.list &&
-    !!bridge.value?.artifacts?.list &&
-    !!bridge.value?.notes?.list &&
-    !!bridge.value?.tasks?.list &&
-    !!bridge.value?.['user-roles']?.list,
+    !!bridge.value?.fs?.workspaceRoot,
 )
 
 const collectionConfigs = [
@@ -343,7 +336,7 @@ const collectionConfigs = [
     to: '/companies',
     accent: '#1d1d1b',
     actionLabel: 'Open companies',
-    load: async () => (await bridge.value.companies.list())?.companies || [],
+    load: async () => (await runFileRecordLoader('companies', bridge.value)).rows || [],
   },
   {
     key: 'contacts',
@@ -352,7 +345,7 @@ const collectionConfigs = [
     to: '/contacts',
     accent: '#2647ff',
     actionLabel: 'Open contacts',
-    load: async () => (await bridge.value.contacts.list())?.contacts || [],
+    load: async () => (await runFileRecordLoader('contacts', bridge.value)).rows || [],
   },
   {
     key: 'funds',
@@ -362,7 +355,7 @@ const collectionConfigs = [
     accent: '#ff5521',
     actionLabel: 'Open funds',
     load: async () =>
-      ((await bridge.value.opportunities.list())?.opportunities || []).filter(
+      ((await runFileRecordLoader('opportunities', bridge.value)).rows || []).filter(
         (row) => String(row?.kind || '').trim().toLowerCase() === 'fund',
       ),
   },
@@ -374,7 +367,7 @@ const collectionConfigs = [
     accent: '#ff7a59',
     actionLabel: 'Open rounds',
     load: async () =>
-      ((await bridge.value.opportunities.list())?.opportunities || []).filter(
+      ((await runFileRecordLoader('opportunities', bridge.value)).rows || []).filter(
         (row) => String(row?.kind || '').trim().toLowerCase() === 'round',
       ),
   },
@@ -385,7 +378,7 @@ const collectionConfigs = [
     to: '/projects',
     accent: '#0f766e',
     actionLabel: 'Open projects',
-    load: async () => (await bridge.value.projects.list())?.projects || [],
+    load: async () => (await runFileRecordLoader('projects', bridge.value)).rows || [],
   },
   {
     key: 'artifacts',
@@ -394,7 +387,7 @@ const collectionConfigs = [
     to: '/artifacts',
     accent: '#9333ea',
     actionLabel: 'Open artifacts',
-    load: async () => (await bridge.value.artifacts.list())?.artifacts || [],
+    load: async () => (await runFileRecordLoader('artifacts', bridge.value)).rows || [],
   },
   {
     key: 'notes',
@@ -403,7 +396,7 @@ const collectionConfigs = [
     to: '/notes',
     accent: '#2563eb',
     actionLabel: 'Open notes',
-    load: async () => (await bridge.value.notes.list())?.notes || [],
+    load: async () => (await runFileRecordLoader('notes', bridge.value)).rows || [],
   },
   {
     key: 'tasks',
@@ -412,7 +405,7 @@ const collectionConfigs = [
     to: '/tasks',
     accent: '#111827',
     actionLabel: 'Open tasks',
-    load: async () => (await bridge.value.tasks.list())?.tasks || [],
+    load: async () => (await runFileRecordLoader('tasks', bridge.value)).rows || [],
   },
   {
     key: 'user-roles',
@@ -421,7 +414,7 @@ const collectionConfigs = [
     to: '/user-roles',
     accent: '#db2777',
     actionLabel: 'Open user roles',
-    load: async () => (await bridge.value['user-roles'].list())?.roles || [],
+    load: async () => (await runFileRecordLoader('user-roles', bridge.value)).rows || [],
   },
 ]
 
