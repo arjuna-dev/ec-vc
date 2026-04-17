@@ -35,6 +35,7 @@ import {
   FILE_PAGE_REGISTRY,
   OWNER_PACK_FILE_KEYS,
   getCreateBranches,
+  getFilePageBirthDefaults,
   getViewForks,
 } from '../src/utils/structureRegistry.js'
 
@@ -1089,28 +1090,6 @@ function listCompanionRoles() {
   )
 }
 
-const BASE_FILE_TOKEN_FIELDS = Object.freeze({
-  'file-system': { nameField: 'File_Name', summaryField: 'File_Summary' },
-  companion: { nameField: 'Companion_Name', summaryField: 'Companion_Summary' },
-  companies: { nameField: 'Company_Name', summaryField: 'Summary' },
-  contacts: { nameField: 'Name', summaryField: '' },
-  users: { nameField: 'User_Name', summaryField: '' },
-  notes: { nameField: 'Note_Name', summaryField: 'Note_Content' },
-  tasks: { nameField: 'Task_Name', summaryField: 'Task_Summary' },
-  projects: { nameField: 'Project_Name', summaryField: 'Project_Summary' },
-  artifacts: { nameField: 'Name', summaryField: 'Summary' },
-  opportunities: { nameField: 'Venture_Oppty_Name', summaryField: 'Summary' },
-  funds: { nameField: 'Fund_Name', summaryField: 'Summary' },
-  rounds: { nameField: 'Round_Name', summaryField: 'Summary' },
-  markets: { nameField: 'Market_Name', summaryField: 'Market_Summary' },
-  securities: { nameField: 'Security_Name', summaryField: 'Security_Summary' },
-  events: { nameField: 'Event_Name', summaryField: 'Event_Summary' },
-  'bb-file': { nameField: 'Name', summaryField: 'Summary' },
-  intake: { nameField: 'Intake_Name', summaryField: 'Intake_Summary' },
-  'user-roles': { nameField: 'Role_Name', summaryField: 'Role_Summary' },
-  'companion-roles': { nameField: 'Companion_Role_Name', summaryField: 'Companion_Role_Summary' },
-})
-
 const FILE_SPECIFIC_BIRTH_TOKENS = Object.freeze({
   companies: [
     { tokenName: 'One_Liner', label: 'One-Liner', dbWriteField: 'One_Liner' },
@@ -1184,9 +1163,9 @@ const FILE_SPECIFIC_BIRTH_TOKENS = Object.freeze({
 
 function buildBaseFileStructure(entry) {
   const sourceKey = String(entry?.key || '').trim().toLowerCase()
-  const mapping = BASE_FILE_TOKEN_FIELDS[sourceKey] || { nameField: '', summaryField: '' }
-  const nameField = String(mapping.nameField || '').trim()
-  const summaryField = String(mapping.summaryField || '').trim()
+  const birthDefaults = getFilePageBirthDefaults(sourceKey)
+  const nameField = String(birthDefaults.primaryNameField || 'Name').trim() || 'Name'
+  const summaryField = String(birthDefaults.primarySummaryField || '').trim()
   const nameTokenName = nameField || 'Name'
   const summaryTokenName = summaryField || 'Summary'
   const makeWriteTarget = (fieldName) => ({ dbWriteField: fieldName })
@@ -1719,7 +1698,7 @@ function buildFilesAcceptanceValidation(rows = []) {
               suggestedAction: 'Restore the Name token in the General section.',
             })
           }
-          const requiresSummaryToken = Boolean(String((BASE_FILE_TOKEN_FIELDS[sourceKey] || {}).summaryField || '').trim())
+          const requiresSummaryToken = Boolean(String(getFilePageBirthDefaults(sourceKey)?.primarySummaryField || '').trim())
           if (requiresSummaryToken && !tokenHasRole(generalTokens, 'summary')) {
             addIssue({
               severity: 'error',

@@ -46,6 +46,10 @@ const FILE_PAGE_ROUTE_META = Object.freeze({
     requiredSubsections: ['General', 'Usage', 'Anatomy', 'Source', 'Reconstruction', 'Variants'],
     optionalStandardSubsections: [],
     requiredRuntimeCapabilities: ['list', 'create', 'delete'],
+    birthDefaults: {
+      primaryNameField: 'Name',
+      primarySummaryField: 'Summary',
+    },
     address: 'BB.0.0',
     structureToken: 'Building_Blocks_File',
     customSubsections: [
@@ -129,6 +133,10 @@ const FILE_PAGE_ROUTE_META = Object.freeze({
       path: 'docs/000/g. Intake.md',
       icon: 'description',
     },
+    birthDefaults: {
+      primaryNameField: 'Event_Name',
+      primarySummaryField: 'Event_Summary',
+    },
   },
   Files: {
     key: 'file-system',
@@ -142,13 +150,29 @@ const FILE_PAGE_ROUTE_META = Object.freeze({
     shellGroup: 'system_level',
     fileGuidePath: 'docs/000/c. System.md',
     birthDefaults: {
+      primaryNameField: 'File_Name',
+      primarySummaryField: 'File_Summary',
       File_Owner: 'Owner',
       File_Steward: 'File Steward',
       Ownership_Mode: 'root_owned',
     },
     extraReferenceDocs: [],
   },
-  Users: { key: 'users', label: 'Users', singularLabel: 'User', routeName: 'users', path: '/users', icon: 'badge', showInWorkspaceNav: true, workspaceNavGroup: 'files', shellGroup: 'first_order', fileGuidePath: 'docs/100/a5. Users.md' },
+  Users: {
+    key: 'users',
+    label: 'Users',
+    singularLabel: 'User',
+    routeName: 'users',
+    path: '/users',
+    icon: 'badge',
+    showInWorkspaceNav: true,
+    workspaceNavGroup: 'files',
+    shellGroup: 'first_order',
+    fileGuidePath: 'docs/100/a5. Users.md',
+    birthDefaults: {
+      primaryNameField: 'User_Name',
+    },
+  },
   Companion: {
     key: 'companion',
     label: 'Companion',
@@ -160,6 +184,10 @@ const FILE_PAGE_ROUTE_META = Object.freeze({
     workspaceNavGroup: 'files',
     shellGroup: 'knowledge_db',
     fileGuidePath: 'docs/002/a. Companion.md',
+    birthDefaults: {
+      primaryNameField: 'Companion_Name',
+      primarySummaryField: 'Companion_Summary',
+    },
   },
   Artifacts: {
     key: 'artifacts',
@@ -179,8 +207,26 @@ const FILE_PAGE_ROUTE_META = Object.freeze({
       path: 'docs/000/g. Intake.md',
       icon: 'description',
     },
+    birthDefaults: {
+      primaryNameField: 'Name',
+      primarySummaryField: 'Summary',
+    },
   },
-  Contacts: { key: 'contacts', label: 'Contacts', singularLabel: 'Contact', routeName: 'contacts', path: '/contacts', icon: 'people', showInWorkspaceNav: true, workspaceNavGroup: 'files', shellGroup: 'first_order', fileGuidePath: 'docs/100/a4. Contacts.md' },
+  Contacts: {
+    key: 'contacts',
+    label: 'Contacts',
+    singularLabel: 'Contact',
+    routeName: 'contacts',
+    path: '/contacts',
+    icon: 'people',
+    showInWorkspaceNav: true,
+    workspaceNavGroup: 'files',
+    shellGroup: 'first_order',
+    fileGuidePath: 'docs/100/a4. Contacts.md',
+    birthDefaults: {
+      primaryNameField: 'Name',
+    },
+  },
   Companies: {
     key: 'companies',
     label: 'Companies',
@@ -192,6 +238,10 @@ const FILE_PAGE_ROUTE_META = Object.freeze({
     workspaceNavGroup: 'files',
     shellGroup: 'first_order',
     fileGuidePath: 'docs/100/c1. Companies.md',
+    birthDefaults: {
+      primaryNameField: 'Company_Name',
+      primarySummaryField: 'Summary',
+    },
     viewForks: [
       {
         value: 'overview',
@@ -243,14 +293,61 @@ const FILE_PAGE_ROUTE_META = Object.freeze({
     workspaceNavGroup: 'files',
     shellGroup: 'first_order',
     fileGuidePath: 'docs/100/c2. Opportunities.md',
+    birthDefaults: {
+      primaryNameField: 'Venture_Oppty_Name',
+      primarySummaryField: 'Summary',
+    },
     createBranches: [
       { value: 'fund', label: 'Fund', icon: 'account_balance_wallet', targetSourceKey: 'funds' },
       { value: 'round', label: 'Round', icon: 'donut_large', targetSourceKey: 'rounds' },
     ],
   },
-  Funds: { key: 'funds', label: 'Funds', singularLabel: 'Fund', routeName: 'funds', path: '/funds', icon: 'account_balance', showInWorkspaceNav: false, shellGroup: 'first_order', fileGuidePath: 'docs/100/c7. Funds.md' },
-  Rounds: { key: 'rounds', label: 'Rounds', singularLabel: 'Round', routeName: 'rounds', path: '/rounds', icon: 'toll', showInWorkspaceNav: false, shellGroup: 'first_order', fileGuidePath: 'docs/100/c8. Rounds.md' },
-  Projects: { key: 'projects', label: 'Projects', singularLabel: 'Project', routeName: 'projects', path: '/projects', icon: 'schema', showInWorkspaceNav: true, workspaceNavGroup: 'files', shellGroup: 'first_order', fileGuidePath: 'docs/100/c3. Projects.md' },
+  Funds: {
+    key: 'funds',
+    label: 'Funds',
+    singularLabel: 'Fund',
+    routeName: 'funds',
+    path: '/funds',
+    icon: 'account_balance',
+    showInWorkspaceNav: false,
+    shellGroup: 'first_order',
+    fileGuidePath: 'docs/100/c7. Funds.md',
+    birthDefaults: {
+      primaryNameField: 'Fund_Name',
+      primarySummaryField: 'Summary',
+    },
+  },
+  Rounds: {
+    key: 'rounds',
+    label: 'Rounds',
+    singularLabel: 'Round',
+    routeName: 'rounds',
+    path: '/rounds',
+    icon: 'toll',
+    showInWorkspaceNav: false,
+    shellGroup: 'first_order',
+    fileGuidePath: 'docs/100/c8. Rounds.md',
+    birthDefaults: {
+      primaryNameField: 'Round_Name',
+      primarySummaryField: 'Summary',
+    },
+  },
+  Projects: {
+    key: 'projects',
+    label: 'Projects',
+    singularLabel: 'Project',
+    routeName: 'projects',
+    path: '/projects',
+    icon: 'schema',
+    showInWorkspaceNav: true,
+    workspaceNavGroup: 'files',
+    shellGroup: 'first_order',
+    fileGuidePath: 'docs/100/c3. Projects.md',
+    birthDefaults: {
+      primaryNameField: 'Project_Name',
+      primarySummaryField: 'Project_Summary',
+    },
+  },
   Tasks: {
     key: 'tasks',
     label: 'Tasks',
@@ -262,13 +359,32 @@ const FILE_PAGE_ROUTE_META = Object.freeze({
     workspaceNavGroup: 'files',
     shellGroup: 'first_order',
     fileGuidePath: 'docs/100/c4. Tasks.md',
+    birthDefaults: {
+      primaryNameField: 'Task_Name',
+      primarySummaryField: 'Task_Summary',
+    },
     tokenOverrides: {
       Task_Team_Owner: { option_entity: 'Contacts' },
       Task_Team_Assigned: { option_entity: 'Contacts' },
       Task_Team_Support: { option_entity: 'Contacts' },
     },
   },
-  Notes: { key: 'notes', label: 'Notes', singularLabel: 'Note', routeName: 'notes', path: '/notes', icon: 'note', showInWorkspaceNav: true, workspaceNavGroup: 'files', shellGroup: 'first_order', fileGuidePath: 'docs/100/c5. Notes.md' },
+  Notes: {
+    key: 'notes',
+    label: 'Notes',
+    singularLabel: 'Note',
+    routeName: 'notes',
+    path: '/notes',
+    icon: 'note',
+    showInWorkspaceNav: true,
+    workspaceNavGroup: 'files',
+    shellGroup: 'first_order',
+    fileGuidePath: 'docs/100/c5. Notes.md',
+    birthDefaults: {
+      primaryNameField: 'Note_Name',
+      primarySummaryField: 'Note_Content',
+    },
+  },
   Roles: {
     key: 'user-roles',
     label: 'User Roles',
@@ -281,6 +397,10 @@ const FILE_PAGE_ROUTE_META = Object.freeze({
     shellGroup: 'knowledge_db',
     runtimeEntityName: 'Roles',
     fileGuidePath: 'docs/100/a3. User_Roles.md',
+    birthDefaults: {
+      primaryNameField: 'Role_Name',
+      primarySummaryField: 'Role_Summary',
+    },
   },
   Companion_Roles: {
     key: 'companion-roles',
@@ -294,6 +414,10 @@ const FILE_PAGE_ROUTE_META = Object.freeze({
     shellGroup: 'knowledge_db',
     runtimeEntityName: 'Companion_Roles',
     fileGuidePath: 'docs/100/Archive/100-Companion_Roles.md',
+    birthDefaults: {
+      primaryNameField: 'Companion_Role_Name',
+      primarySummaryField: 'Companion_Role_Summary',
+    },
   },
   Markets: {
     key: 'markets',
@@ -312,6 +436,10 @@ const FILE_PAGE_ROUTE_META = Object.freeze({
       caption: 'docs/000/b. LAMP.md',
       path: 'docs/000/b. LAMP.md',
       icon: 'description',
+    },
+    birthDefaults: {
+      primaryNameField: 'Market_Name',
+      primarySummaryField: 'Market_Summary',
     },
   },
   Securities: {
@@ -332,6 +460,10 @@ const FILE_PAGE_ROUTE_META = Object.freeze({
       path: 'docs/000/b. LAMP.md',
       icon: 'description',
     },
+    birthDefaults: {
+      primaryNameField: 'Security_Name',
+      primarySummaryField: 'Security_Summary',
+    },
   },
   Intake: {
     key: 'intake',
@@ -345,6 +477,10 @@ const FILE_PAGE_ROUTE_META = Object.freeze({
     shellGroup: 'knowledge_db',
     runtimeEntityName: 'Intake',
     fileGuidePath: 'docs/100/b2. Intake.md',
+    birthDefaults: {
+      primaryNameField: 'Intake_Name',
+      primarySummaryField: 'Intake_Summary',
+    },
   },
 })
 
