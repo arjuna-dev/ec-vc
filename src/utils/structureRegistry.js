@@ -1,7 +1,7 @@
 
 export const DEFAULT_L1_REQUIRED_RUNTIME_CAPABILITIES = Object.freeze(['list', 'create', 'delete'])
 
-export const OWNER_EVERYDAY_FILE_KEYS = Object.freeze([
+export const OWNER_PACK_FILE_KEYS = Object.freeze([
   'file-system',
   'events',
   'users',
@@ -148,6 +148,18 @@ const FILE_PAGE_ROUTE_META = Object.freeze({
     extraReferenceDocs: [],
   },
   Users: { key: 'users', label: 'Users', singularLabel: 'User', routeName: 'users', path: '/users', icon: 'badge', showInWorkspaceNav: true, workspaceNavGroup: 'files', shellGroup: 'first_order', fileGuidePath: 'docs/100/a5. Users.md' },
+  Companion: {
+    key: 'companion',
+    label: 'Companion',
+    singularLabel: 'Companion',
+    routeName: 'companion',
+    path: '/companion',
+    icon: 'smart_toy',
+    showInWorkspaceNav: true,
+    workspaceNavGroup: 'files',
+    shellGroup: 'knowledge_db',
+    fileGuidePath: 'docs/002/a. Companion.md',
+  },
   Artifacts: {
     key: 'artifacts',
     label: 'Artifacts',
@@ -340,6 +352,7 @@ const FILE_PAGE_ENTITY_ORDER = [
   'Building_Blocks',
   'Events',
   'Users',
+  'Companion',
   'Contacts',
   'Roles',
   'Companion_Roles',
@@ -382,8 +395,8 @@ function buildEntityRegistry(entityName) {
   const runtimeEntityName = String(meta.runtimeEntityName || entityName).trim()
   const customSubsections = Array.isArray(meta.customSubsections) ? meta.customSubsections : []
   const sourceKey = String(meta.key || '').trim()
-  const filePack = OWNER_EVERYDAY_FILE_KEYS.includes(sourceKey)
-    ? 'owner_everyday'
+  const filePack = OWNER_PACK_FILE_KEYS.includes(sourceKey)
+    ? 'owner'
     : VC_PACK_FILE_KEYS.includes(sourceKey)
       ? 'vc'
       : 'auxiliary'

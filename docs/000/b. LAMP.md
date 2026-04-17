@@ -60,11 +60,12 @@ Working rule:
 - prove that this minimum construct works as a coherent local system
 - only then layer contextual or domain-specific repositories on top
 
-Current construct-birth minimum should be the `Owner Everyday Pack`:
+Current construct-birth minimum should be the `Owner Pack`:
 
 - `System Files`
 - `History`
 - `Users`
+- `Companion`
 - `Contacts`
 - `Companies`
 - `User Roles`
@@ -95,7 +96,7 @@ Working note:
 - but `History` remains a real shared-base dependency
 - `History` should resolve through the `History` file by record `ID`
 
-Everything beyond the `Owner Everyday Pack` should be treated as extension, not birth requirement.
+Everything beyond the `Owner Pack` should be treated as extension, not birth requirement.
 
 ## File Classes
 

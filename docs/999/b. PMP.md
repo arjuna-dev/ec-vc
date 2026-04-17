@@ -123,7 +123,7 @@ The `LAMP` target is:
 5. shared surfaces stay dumb
 6. special cases are explicit exceptions, not default architecture
 7. file classes are clear and useful
-8. default birth is limited to the `Owner Everyday Pack`
+8. default birth is limited to the `Owner Pack`
 9. domain files arrive through explicit expansion packs, not silent rebirth
 
 The system should become predictable enough that:
@@ -205,6 +205,7 @@ Examples may include:
 - System Files
 - History
 - Users
+- Companion
 - Contacts
 - Companies
 - User Roles
@@ -241,16 +242,17 @@ Default file birth should not mean “every possible file the app has ever known
 
 It should mean:
 
-- birth the `Owner Everyday Pack`
+- birth the `Owner Pack`
 - install expansion packs intentionally
 
 Current approved pack split:
 
-### Owner Everyday Pack
+### Owner Pack
 
 - `System Files`
 - `History`
 - `Users`
+- `Companion`
 - `Contacts`
 - `Companies`
 - `Projects`
@@ -271,7 +273,7 @@ Current approved pack split:
 
 Migration consequence:
 
-- if a full DB rebuild happens, only the `Owner Everyday Pack` should be guaranteed to reappear by default
+- if a full DB rebuild happens, only the `Owner Pack` should be guaranteed to reappear by default
 - expansion-pack files should not silently rebirth unless that pack is installed as part of the owner setup
 
 ## Runtime Contract Lessons Already Learned

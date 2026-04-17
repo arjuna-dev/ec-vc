@@ -33,7 +33,7 @@ import { formatSharedDisplayLabel } from '../src/shared/labelFormatting.js'
 import { DEFAULT_BUILDING_BLOCK_FILE_ROWS } from '../src/utils/buildingBlocks.js'
 import {
   FILE_PAGE_REGISTRY,
-  OWNER_EVERYDAY_FILE_KEYS,
+  OWNER_PACK_FILE_KEYS,
   getCreateBranches,
   getViewForks,
 } from '../src/utils/structureRegistry.js'
@@ -1457,6 +1457,7 @@ function listCompanionRoles() {
 
 const BASE_FILE_TOKEN_FIELDS = Object.freeze({
   'file-system': { nameField: 'File_Name', summaryField: 'File_Summary' },
+  companion: { nameField: '', summaryField: '' },
   companies: { nameField: 'Company_Name', summaryField: 'One_Liner' },
   contacts: { nameField: 'Name', summaryField: '' },
   users: { nameField: 'User_Name', summaryField: '' },
@@ -1753,11 +1754,12 @@ const ACCEPTED_FILE_STATUS_VALUES = Object.freeze(['Active', 'Archived'])
 const ACCEPTED_FILE_BUCKET_VALUES = Object.freeze(['Owner', 'Companion', 'Work', 'Shared'])
 const ACCEPTED_FORK_MODE_VALUES = Object.freeze(['none', 'view', 'create', 'view_and_create'])
 const PROTECTED_BOOTSTRAP_FILE_SOURCE_KEYS = new Set(['file-system', 'events', 'bb-file'])
-const OWNER_EVERYDAY_FILE_SOURCE_KEY_SET = new Set(OWNER_EVERYDAY_FILE_KEYS)
+const OWNER_PACK_FILE_SOURCE_KEY_SET = new Set(OWNER_PACK_FILE_KEYS)
 const FILE_BUCKET_BY_SOURCE_KEY = Object.freeze({
   'file-system': 'Shared',
   events: 'Shared',
   users: 'Owner',
+  companion: 'Companion',
   contacts: 'Shared',
   'user-roles': 'Owner',
   'companion-roles': 'Companion',
@@ -1779,6 +1781,7 @@ const FILE_GUIDE_PATH_BY_SOURCE_KEY = Object.freeze({
   events: 'docs/100/Archive/100-Events.md',
   'file-system': 'docs/010/System.md',
   users: 'docs/100/Archive/100-Users.md',
+  companion: 'docs/002/a. Companion.md',
   artifacts: 'docs/100/Archive/100-Artifacts.md',
   contacts: 'docs/100/Archive/100-Contacts.md',
   companies: 'docs/100/Archive/100-Companies.md',
@@ -1840,10 +1843,10 @@ function buildFilesAcceptanceValidation(rows = []) {
   const issues = []
   const rowsBySourceKey = new Map()
   const bootstrapRegistryEntries = FILE_PAGE_REGISTRY.filter((entry) =>
-    OWNER_EVERYDAY_FILE_SOURCE_KEY_SET.has(String(entry?.sourceKey || entry?.key || '').trim()),
+    OWNER_PACK_FILE_SOURCE_KEY_SET.has(String(entry?.sourceKey || entry?.key || '').trim()),
   )
   const optionalRegistryEntries = FILE_PAGE_REGISTRY.filter((entry) =>
-    !OWNER_EVERYDAY_FILE_SOURCE_KEY_SET.has(String(entry?.sourceKey || entry?.key || '').trim()),
+    !OWNER_PACK_FILE_SOURCE_KEY_SET.has(String(entry?.sourceKey || entry?.key || '').trim()),
   )
 
   rows.forEach((row) => {
@@ -2198,7 +2201,7 @@ function buildFilesAcceptanceValidation(rows = []) {
     checkedAt: new Date().toISOString(),
     statuses: [...ACCEPTED_FILE_STATUS_VALUES],
     protectedBootstrapSourceKeys: [...PROTECTED_BOOTSTRAP_FILE_SOURCE_KEYS],
-    ownerEverydaySourceKeys: [...OWNER_EVERYDAY_FILE_KEYS],
+    ownerPackSourceKeys: [...OWNER_PACK_FILE_KEYS],
     rowCount: rows.length,
     registryCount: bootstrapRegistryEntries.length,
     optionalRegistryCount: optionalRegistryEntries.length,
@@ -2257,7 +2260,7 @@ function ensureBootstrapFiles(database) {
   )
   if (existingCount > 0) return
   const bootstrapRegistryEntries = FILE_PAGE_REGISTRY.filter((entry) =>
-    OWNER_EVERYDAY_FILE_SOURCE_KEY_SET.has(String(entry?.sourceKey || entry?.key || '').trim()),
+    OWNER_PACK_FILE_SOURCE_KEY_SET.has(String(entry?.sourceKey || entry?.key || '').trim()),
   )
 
   const actor = getAuditActor(database)

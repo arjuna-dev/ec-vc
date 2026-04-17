@@ -86,7 +86,7 @@ Working note:
 
 - `History` should resolve through the `History` file by record `ID`
 - token metadata may enrich provenance, but does not yet replace `History`
-- default file birth should be limited to the `Owner Everyday Pack`; domain files should arrive through explicit expansion packs
+- default file birth should be limited to the `Owner Pack`; domain files should arrive through explicit expansion packs
 
 ### 3. Data Surface Contract
 
