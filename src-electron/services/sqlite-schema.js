@@ -1630,20 +1630,6 @@ CREATE INDEX IF NOT EXISTS idx_Fund_Pipeline_pipeline
 CREATE INDEX IF NOT EXISTS idx_Fund_Pipeline_stage
   ON Fund_Pipeline(stage_id);
 
-INSERT OR IGNORE INTO Projects (id, Project_Name)
-VALUES ('pipeline_default', 'Default Investment Pipeline');
-
-INSERT OR IGNORE INTO Project_Overview (project_id, Project_Status, Project_Priority_Rank)
-VALUES ('pipeline_default', 'On-Going', 'Mid');
-
-INSERT OR IGNORE INTO Project_Stages (stage_id, project_id, name, position, is_terminal)
-VALUES
-  ('stage_thesis_alignment', 'pipeline_default', '1_thesis_alignment', 1, 0),
-  ('stage_team_analysis', 'pipeline_default', '2_team_analysis', 2, 0),
-  ('stage_investment_committee', 'pipeline_default', '3_investment_committee', 3, 0),
-  ('stage_due_diligence', 'pipeline_default', '4_due_diligence', 4, 0),
-  ('stage_closing_documents', 'pipeline_default', '5_closing_documents', 5, 1);
-
 CREATE TABLE IF NOT EXISTS Artifacts (
   artifact_id TEXT PRIMARY KEY,
   round_id TEXT,
