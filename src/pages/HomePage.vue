@@ -544,7 +544,12 @@ const activityItems = computed(() => [
     ...artifacts.value.map((row) => ({
       key: `artifacts-${row.artifact_id}`,
       title: row.title || 'Untitled artifact',
-      subtitle: row.artifact_type ? `Artifact • ${row.artifact_type}` : 'Artifact',
+      subtitle:
+        row.type
+          ? `Artifact • ${row.type}`
+          : row.artifact_format
+            ? `Artifact • ${row.artifact_format}`
+            : 'Artifact',
       date: parseDateValue(row.created_at),
       icon: 'attach_file',
       to: '/artifacts',

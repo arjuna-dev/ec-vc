@@ -3264,10 +3264,10 @@ function getLegacyOpportunityDatabookView(opportunityId) {
     addField({
       section: prefix,
       label: 'Type',
-      value: artifact.artifact_type,
+      value: artifact.type,
       tableName: 'Artifacts',
       recordId: artifact.artifact_id,
-      fieldName: 'artifact_type',
+      fieldName: 'type',
       idColumn: 'artifact_id',
     })
   })

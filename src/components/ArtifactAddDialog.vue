@@ -279,7 +279,6 @@ async function findExistingDroppedFiles(files = []) {
   const artifacts = Array.isArray(result?.artifacts) ? result.artifacts : []
   const rawNames = new Set(
     artifacts
-      .filter((artifact) => String(artifact?.artifact_type || '').toLowerCase() === 'raw')
       .map((artifact) => String(artifact?.fs_path || '').split('/').pop()?.toLowerCase())
       .filter(Boolean),
   )
