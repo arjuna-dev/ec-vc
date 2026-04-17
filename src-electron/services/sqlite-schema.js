@@ -182,8 +182,6 @@ CREATE TABLE IF NOT EXISTS Opportunities (
   First_Close_Date TEXT,
   Next_Close_Date TEXT,
   Final_Close_Date TEXT,
-  Pipeline_Stage TEXT,
-  Pipeline_Status TEXT,
   Raising_Status TEXT,
   Status TEXT,
   Board_Seats TEXT,
@@ -209,17 +207,6 @@ CREATE INDEX IF NOT EXISTS idx_Opportunities_company
 
 CREATE INDEX IF NOT EXISTS idx_Opportunities_name
   ON Opportunities(Venture_Oppty_Name);
-
-CREATE TABLE IF NOT EXISTS Opportunity_Pipeline (
-  opportunity_id TEXT NOT NULL,
-  pipeline_id TEXT NOT NULL,
-  stage_id TEXT,
-  status TEXT,
-  created_at TEXT NOT NULL DEFAULT (datetime('now')),
-  updated_at TEXT NOT NULL DEFAULT (datetime('now')),
-  PRIMARY KEY (opportunity_id, pipeline_id),
-  FOREIGN KEY (opportunity_id) REFERENCES Opportunities(id) ON UPDATE CASCADE ON DELETE CASCADE
-);
 
 CREATE TABLE IF NOT EXISTS Fund_Overview (
   fund_id TEXT PRIMARY KEY,
@@ -740,8 +727,6 @@ CREATE TABLE IF NOT EXISTS PipelineInvestmentProcess (
   id TEXT PRIMARY KEY,
   Task_Name TEXT,
   Task_Description TEXT,
-  Pipeline_Stage TEXT,
-  Pipeline_Status TEXT,
   Assigned_Position TEXT,
   Assigned_Person TEXT,
   Due TEXT,
@@ -1579,57 +1564,6 @@ CREATE TABLE IF NOT EXISTS Users_Roles (
 CREATE INDEX IF NOT EXISTS idx_Users_Roles_role_id
   ON Users_Roles(role_id);
 
-CREATE TABLE IF NOT EXISTS Project_Stages (
-  stage_id TEXT PRIMARY KEY,
-  project_id TEXT NOT NULL,
-  name TEXT NOT NULL,
-  position INTEGER NOT NULL,
-  is_terminal INTEGER NOT NULL DEFAULT 0 CHECK (is_terminal IN (0, 1)),
-  created_at TEXT NOT NULL DEFAULT (datetime('now')),
-  updated_at TEXT NOT NULL DEFAULT (datetime('now')),
-  FOREIGN KEY (project_id) REFERENCES Projects(id) ON DELETE CASCADE,
-  UNIQUE (project_id, name),
-  UNIQUE (project_id, position)
-);
-
-CREATE TABLE IF NOT EXISTS Round_Pipeline (
-  round_id TEXT NOT NULL,
-  pipeline_id TEXT NOT NULL,
-  stage_id TEXT NOT NULL,
-  status TEXT,
-  created_at TEXT NOT NULL DEFAULT (datetime('now')),
-  updated_at TEXT NOT NULL DEFAULT (datetime('now')),
-  PRIMARY KEY (round_id, pipeline_id),
-  FOREIGN KEY (round_id) REFERENCES Rounds(id) ON DELETE CASCADE,
-  FOREIGN KEY (pipeline_id) REFERENCES Projects(id) ON DELETE CASCADE,
-  FOREIGN KEY (stage_id) REFERENCES Project_Stages(stage_id) ON DELETE RESTRICT
-);
-
-CREATE INDEX IF NOT EXISTS idx_Round_Pipeline_pipeline
-  ON Round_Pipeline(pipeline_id);
-
-CREATE INDEX IF NOT EXISTS idx_Round_Pipeline_stage
-  ON Round_Pipeline(stage_id);
-
-CREATE TABLE IF NOT EXISTS Fund_Pipeline (
-  fund_id TEXT NOT NULL,
-  pipeline_id TEXT NOT NULL,
-  stage_id TEXT NOT NULL,
-  status TEXT,
-  created_at TEXT NOT NULL DEFAULT (datetime('now')),
-  updated_at TEXT NOT NULL DEFAULT (datetime('now')),
-  PRIMARY KEY (fund_id, pipeline_id),
-  FOREIGN KEY (fund_id) REFERENCES Funds(id) ON DELETE CASCADE,
-  FOREIGN KEY (pipeline_id) REFERENCES Projects(id) ON DELETE CASCADE,
-  FOREIGN KEY (stage_id) REFERENCES Project_Stages(stage_id) ON DELETE RESTRICT
-);
-
-CREATE INDEX IF NOT EXISTS idx_Fund_Pipeline_pipeline
-  ON Fund_Pipeline(pipeline_id);
-
-CREATE INDEX IF NOT EXISTS idx_Fund_Pipeline_stage
-  ON Fund_Pipeline(stage_id);
-
 CREATE TABLE IF NOT EXISTS Artifacts (
   artifact_id TEXT PRIMARY KEY,
   round_id TEXT,
@@ -1996,38 +1930,6 @@ CREATE INDEX IF NOT EXISTS idx_LDB_Relationships_target
 const TRIGGERS_SQL = `
 -- 0. PIPELINE INTEGRITY TRIGGERS
 
-CREATE TRIGGER IF NOT EXISTS trg_Round_Pipeline_stage_matches_ins
-BEFORE INSERT ON Round_Pipeline
-FOR EACH ROW
-BEGIN
-  SELECT
-    CASE
-      WHEN NOT EXISTS (
-        SELECT 1
-        FROM Project_Stages s
-        WHERE s.stage_id = NEW.stage_id
-          AND s.project_id = NEW.pipeline_id
-      )
-      THEN RAISE(ABORT, 'stage_id does not belong to pipeline_id')
-    END;
-END;
-
-CREATE TRIGGER IF NOT EXISTS trg_Fund_Pipeline_stage_matches_ins
-BEFORE INSERT ON Fund_Pipeline
-FOR EACH ROW
-BEGIN
-  SELECT
-    CASE
-      WHEN NOT EXISTS (
-        SELECT 1
-        FROM Project_Stages s
-        WHERE s.stage_id = NEW.stage_id
-          AND s.project_id = NEW.pipeline_id
-      )
-      THEN RAISE(ABORT, 'fund stage_id does not belong to pipeline_id')
-    END;
-END;
-
 -- 1. AUTO-UPDATE TIMESTAMP TRIGGERS (Core Tables)
 
 CREATE TRIGGER IF NOT EXISTS trg_Companies_updated_at
@@ -2241,31 +2143,6 @@ BEGIN
 END;
 
 -- Stage must belong to pipeline on UPDATE too
-CREATE TRIGGER IF NOT EXISTS trg_Round_Pipeline_stage_matches_upd
-BEFORE UPDATE OF stage_id, pipeline_id ON Round_Pipeline
-FOR EACH ROW
-BEGIN
-  SELECT CASE
-    WHEN NOT EXISTS (
-      SELECT 1 FROM Project_Stages s
-      WHERE s.stage_id = NEW.stage_id AND s.project_id = NEW.pipeline_id
-    )
-    THEN RAISE(ABORT, 'stage_id does not belong to pipeline_id')
-  END;
-END;
-
-CREATE TRIGGER IF NOT EXISTS trg_Fund_Pipeline_stage_matches_upd
-BEFORE UPDATE OF stage_id, pipeline_id ON Fund_Pipeline
-FOR EACH ROW
-BEGIN
-  SELECT CASE
-    WHEN NOT EXISTS (
-      SELECT 1 FROM Project_Stages s
-      WHERE s.stage_id = NEW.stage_id AND s.project_id = NEW.pipeline_id
-    )
-    THEN RAISE(ABORT, 'fund stage_id does not belong to pipeline_id')
-  END;
-END;
 
 -- Asset manager subtype rows are only valid for Companies whose incorporation info type is Asset Manager
 CREATE TRIGGER IF NOT EXISTS trg_Asset_Manager_Companies_type_ins

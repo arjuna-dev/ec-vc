@@ -90,7 +90,7 @@ async function ensureWorkspace() {
 
 async function syncWorkspaceWorkbooksSafe() {}
 
-function listPipelines() {
+function listProjects() {
   return dbAll(
     `
     SELECT 
@@ -111,7 +111,7 @@ function listPipelines() {
   }))
 }
 
-function upsertPipelines(rows = []) {
+function upsertProjects(rows = []) {
   const database = initDb()
   const input = Array.isArray(rows) ? rows : []
 
@@ -121,8 +121,10 @@ function upsertPipelines(rows = []) {
     let skipped = 0
 
     for (const r of input) {
-      const pipelineId =
-        normalizeNullableString(r?.pipeline_id) || `pipeline:${crypto.randomUUID()}`
+      const projectId =
+        normalizeNullableString(r?.project_id) ||
+        normalizeNullableString(r?.pipeline_id) ||
+        `project:${crypto.randomUUID()}`
       const name = normalizeNullableString(r?.name)
       if (!name) {
         skipped++
@@ -131,7 +133,7 @@ function upsertPipelines(rows = []) {
 
       const exists = database
         .prepare('SELECT 1 FROM Projects WHERE id = ? LIMIT 1')
-        .get(pipelineId)
+        .get(projectId)
 
       database
         .prepare(
@@ -144,7 +146,7 @@ function upsertPipelines(rows = []) {
         `,
         )
         .run({
-          project_id: pipelineId,
+          project_id: projectId,
           Project_Name: name,
         })
 
@@ -156,7 +158,7 @@ function upsertPipelines(rows = []) {
           ON CONFLICT(project_id) DO NOTHING
         `,
         )
-        .run(pipelineId)
+        .run(projectId)
 
       if (exists) updated++
       else inserted++
@@ -168,16 +170,18 @@ function upsertPipelines(rows = []) {
   return tx()
 }
 
-function createPipeline(payload = {}) {
+function createProject(payload = {}) {
   const database = initDb()
   const actor = getAuditActor(database)
   const name =
     normalizeNullableString(payload.Project_Name) ||
     normalizeNullableString(payload.name)
-  if (!name) throw new Error('Pipeline name is required')
+  if (!name) throw new Error('Project name is required')
 
-  const pipelineId =
-    normalizeNullableString(payload.pipeline_id) || `pipeline:${crypto.randomUUID()}`
+  const projectId =
+    normalizeNullableString(payload.project_id) ||
+    normalizeNullableString(payload.pipeline_id) ||
+    `project:${crypto.randomUUID()}`
 
   const tx = database.transaction(() => {
     database
@@ -188,7 +192,7 @@ function createPipeline(payload = {}) {
       `,
       )
       .run(
-        pipelineId,
+        projectId,
         normalizeNullableString(payload?.created_by) || actor.user_id,
         name,
       )
@@ -200,12 +204,12 @@ function createPipeline(payload = {}) {
         VALUES (?, datetime('now'), datetime('now'))
       `,
       )
-      .run(pipelineId)
+      .run(projectId)
   })
 
   tx()
 
-  return { id: pipelineId }
+  return { id: projectId }
 }
 
 function listCompanies() {
@@ -5563,7 +5567,7 @@ function resolveLifecycleRecordId(result = {}, fallback = null) {
   return (
     normalizeNullableString(result?.id) ||
     normalizeNullableString(result?.artifact_id) ||
-    normalizeNullableString(result?.pipeline_id) ||
+    normalizeNullableString(result?.project_id) ||
     normalizeNullableString(fallback)
   )
 }
@@ -7868,8 +7872,6 @@ function createOpportunity(payload = {}) {
     First_Close_Date: normalizeNullableString(payload.First_Close_Date),
     Next_Close_Date: normalizeNullableString(payload.Next_Close_Date),
     Final_Close_Date: normalizeNullableString(payload.Final_Close_Date),
-    Pipeline_Stage: normalizeNullableString(payload.Pipeline_Stage),
-    Pipeline_Status: normalizeNullableString(payload.Pipeline_Status),
     Raising_Status: normalizeNullableString(payload.Raising_Status),
     Board_Seats: normalizeNullableString(payload.Board_Seats),
     Information_Rights: normalizeNullableString(payload.Information_Rights),
@@ -8004,8 +8006,6 @@ function updateOpportunity(payload = {}) {
     First_Close_Date: normalizeNullableString(payload.First_Close_Date),
     Next_Close_Date: normalizeNullableString(payload.Next_Close_Date),
     Final_Close_Date: normalizeNullableString(payload.Final_Close_Date),
-    Pipeline_Stage: normalizeNullableString(payload.Pipeline_Stage),
-    Pipeline_Status: normalizeNullableString(payload.Pipeline_Status),
     Raising_Status: normalizeNullableString(payload.Raising_Status),
     Board_Seats: normalizeNullableString(payload.Board_Seats),
     Information_Rights: normalizeNullableString(payload.Information_Rights),
@@ -8044,8 +8044,6 @@ function updateOpportunity(payload = {}) {
             First_Close_Date = @First_Close_Date,
             Next_Close_Date = @Next_Close_Date,
             Final_Close_Date = @Final_Close_Date,
-            Pipeline_Stage = @Pipeline_Stage,
-            Pipeline_Status = @Pipeline_Status,
             Raising_Status = @Raising_Status,
             Board_Seats = @Board_Seats,
             Information_Rights = @Information_Rights,
@@ -8171,8 +8169,6 @@ function upsertOpportunities(rows = []) {
         First_Close_Date: normalizeNullableString(r?.First_Close_Date),
         Next_Close_Date: normalizeNullableString(r?.Next_Close_Date),
         Final_Close_Date: normalizeNullableString(r?.Final_Close_Date),
-        Pipeline_Stage: normalizeNullableString(r?.Pipeline_Stage),
-        Pipeline_Status: normalizeNullableString(r?.Pipeline_Status),
         Raising_Status: normalizeNullableString(r?.Raising_Status),
         Board_Seats: normalizeNullableString(r?.Board_Seats),
         Information_Rights: normalizeNullableString(r?.Information_Rights),
@@ -8201,7 +8197,7 @@ function upsertOpportunities(rows = []) {
             Investment_Ask, Round_Amount, Hard_Commits, Soft_Commits,
             Pre_Valuation, Post_Valuation, Previous_Post,
             First_Close_Date, Next_Close_Date, Final_Close_Date,
-            Pipeline_Stage, Pipeline_Status, Raising_Status,
+            Raising_Status,
             Board_Seats, Information_Rights, Voting_Rights,
             Liquidation_Preference, Anti_Dilution_Provisions, Conversion_Features,
             Most_Favored_Nation, ROFO_ROR, Co_Sale_Right, Tag_Drag_Along,
@@ -8212,7 +8208,7 @@ function upsertOpportunities(rows = []) {
             @Investment_Ask, @Round_Amount, @Hard_Commits, @Soft_Commits,
             @Pre_Valuation, @Post_Valuation, @Previous_Post,
             @First_Close_Date, @Next_Close_Date, @Final_Close_Date,
-            @Pipeline_Stage, @Pipeline_Status, @Raising_Status,
+            @Raising_Status,
             @Board_Seats, @Information_Rights, @Voting_Rights,
             @Liquidation_Preference, @Anti_Dilution_Provisions, @Conversion_Features,
             @Most_Favored_Nation, @ROFO_ROR, @Co_Sale_Right, @Tag_Drag_Along,
@@ -8234,8 +8230,6 @@ function upsertOpportunities(rows = []) {
             First_Close_Date = excluded.First_Close_Date,
             Next_Close_Date = excluded.Next_Close_Date,
             Final_Close_Date = excluded.Final_Close_Date,
-            Pipeline_Stage = excluded.Pipeline_Stage,
-            Pipeline_Status = excluded.Pipeline_Status,
             Raising_Status = excluded.Raising_Status,
             Board_Seats = excluded.Board_Seats,
             Information_Rights = excluded.Information_Rights,
@@ -8402,19 +8396,19 @@ function registerIpc() {
 
   ipcMain.handle('projects:list', async () => {
     initDb()
-    return { projects: listPipelines() }
+    return { projects: listProjects() }
   })
 
   ipcMain.handle('projects:upsertMany', async (_event, { rows } = {}) => {
     initDb()
-    const result = upsertPipelines(rows)
+    const result = upsertProjects(rows)
     await syncWorkspaceWorkbooksSafe()
     return result
   })
 
   ipcMain.handle('projects:create', async (_event, payload) => {
     initDb()
-    const result = createPipeline(payload)
+    const result = createProject(payload)
     auditCreatedRecord('Projects', result, payload)
     await syncWorkspaceWorkbooksSafe()
     return result
