@@ -33,9 +33,11 @@ import { formatSharedDisplayLabel } from '../src/shared/labelFormatting.js'
 import { DEFAULT_BUILDING_BLOCK_FILE_ROWS } from '../src/utils/buildingBlocks.js'
 import {
   buildApprovedFileRegistryRow,
-  FILE_PAGE_REGISTRY,
+  getBootstrapFileRegistryEntries,
+  getFilePageRegistryIndex,
   getFilePageBirthDefaults,
   getFilePageRegistryEntry,
+  getOptionalFileRegistryEntries,
 } from '../src/utils/structureRegistry.js'
 
 const APP_DISPLAY_NAME = 'EC VC'
@@ -512,7 +514,7 @@ function listRounds() {
     SELECT
       r.id,
       r.Round_Name,
-      r.company_id,
+      NULL AS company_id,
       r.Raising_Status,
       r.Type_of_Security,
       r.Target_Size,
@@ -1128,12 +1130,8 @@ function normalizeForkModeValue(value) {
 function buildFilesAcceptanceValidation(rows = []) {
   const issues = []
   const rowsBySourceKey = new Map()
-  const bootstrapRegistryEntries = FILE_PAGE_REGISTRY.filter((entry) =>
-    String(entry?.filePack || '').trim() === 'owner',
-  )
-  const optionalRegistryEntries = FILE_PAGE_REGISTRY.filter((entry) =>
-    String(entry?.filePack || '').trim() !== 'owner',
-  )
+  const bootstrapRegistryEntries = getBootstrapFileRegistryEntries()
+  const optionalRegistryEntries = getOptionalFileRegistryEntries()
 
   rows.forEach((row) => {
     const sourceKey = String(row?.sourceKey || '').trim()
@@ -1546,9 +1544,7 @@ function ensureBootstrapFiles(database) {
     database.prepare('SELECT COUNT(*) AS c FROM Files').get()?.c || 0,
   )
   if (existingCount > 0) return
-  const bootstrapRegistryEntries = FILE_PAGE_REGISTRY.filter((entry) =>
-    String(entry?.filePack || '').trim() === 'owner',
-  )
+  const bootstrapRegistryEntries = getBootstrapFileRegistryEntries()
 
   const actor = getAuditActor(database)
   const insertRow = database.prepare(`
@@ -1642,7 +1638,7 @@ function createFile(payload = {}) {
   if (!registryEntry) {
     throw new Error('File source key is not mapped to an approved file source')
   }
-  const registryDefaults = buildApprovedFileRegistryRow(sourceKey, FILE_PAGE_REGISTRY.indexOf(registryEntry))
+  const registryDefaults = buildApprovedFileRegistryRow(sourceKey, getFilePageRegistryIndex(sourceKey))
   const existingFile = database.prepare('SELECT id FROM Files WHERE sourceKey = ? LIMIT 1').get(sourceKey)
   if (existingFile?.id) throw new Error('File source key is already in use')
 
@@ -8367,7 +8363,7 @@ function resolveTargetEntityFromSharedToken(tokenName = '') {
   if (!raw.startsWith('__shared_ldb__:')) return ''
   const sourceKey = raw.slice('__shared_ldb__:'.length).trim().toLowerCase()
   if (!sourceKey) return ''
-  const entry = FILE_PAGE_REGISTRY.find((candidate) => String(candidate?.key || '').trim().toLowerCase() === sourceKey)
+  const entry = getFilePageRegistryEntry(sourceKey)
   return String(entry?.entityName || '').trim()
 }
 
