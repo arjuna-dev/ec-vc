@@ -58,7 +58,7 @@ import {
   getCanonicalTokenValue,
   getFilePageRegistryEntry,
   getFilePageRegistryEntryByEntityReference,
-  getRegistryDefinitionTokenForSource,
+  getRegistrySummaryTokenForSource,
   getRegistryTitleTokenForSource,
   getRuntimeStructureVersion,
   subscribeRuntimeFileStructures,
@@ -111,7 +111,7 @@ const createPrimaryTokens = computed(() => {
     : null
   const tokens = [
     getRegistryTitleTokenForSource(activeSourceKey.value),
-    getRegistryDefinitionTokenForSource(activeSourceKey.value),
+    getRegistrySummaryTokenForSource(activeSourceKey.value),
   ]
   return [...tokens, branchToken]
     .filter(Boolean)

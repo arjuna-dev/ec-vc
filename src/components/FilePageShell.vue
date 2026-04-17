@@ -673,7 +673,7 @@ import { buildStructureToolbarItems } from 'src/utils/structureToolbarContract'
     getFilePageRegistryEntryByEntityReference,
     getFilePageRegistryEntryByRouteName,
     getFilePageReferenceDocs,
-    getRegistryDefinitionTokenForSource,
+    getRegistrySummaryTokenForSource,
     getRegistryTitleTokenForSource,
     getRuntimeStructureVersion,
     setRuntimeFileStructures,
@@ -923,7 +923,7 @@ const sharedLdbViewTokens = computed(() => {
 })
 
 const canonicalTitleToken = computed(() => getRegistryTitleTokenForSource(activeSourceKey.value) || null)
-const canonicalDefinitionToken = computed(() => getRegistryDefinitionTokenForSource(activeSourceKey.value) || null)
+const canonicalSummaryToken = computed(() => getRegistrySummaryTokenForSource(activeSourceKey.value) || null)
 const leadTitleColumnKey = computed(() => String(canonicalTitleToken.value?.key || 'name').trim() || 'name')
 const leadTitleColumnLabel = computed(() => String(canonicalTitleToken.value?.label || 'Missing title token').trim() || 'Missing title token')
 const selectedRecordShellLevel3Keys = computed(() => {
@@ -995,7 +995,7 @@ const createPrimaryTokens = computed(() => {
   const branchToken = branchTokenName
     ? fileTokens.value.find((token) => String(token?.tokenName || '').trim() === branchTokenName) || null
     : null
-  const tokens = [canonicalTitleToken.value, canonicalDefinitionToken.value, branchToken, ...requiredCreateTokens.value].filter(Boolean)
+  const tokens = [canonicalTitleToken.value, canonicalSummaryToken.value, branchToken, ...requiredCreateTokens.value].filter(Boolean)
   const seen = new Set()
   return tokens
     .filter((token) => {
@@ -2023,7 +2023,7 @@ function getInitialTableColumns() {
   const isLongTextToken = (token = {}) => {
     const tokenType = String(token?.tokenType || '').trim().toLowerCase()
     const tokenRole = String(token?.tokenRole || '').trim().toLowerCase()
-    return ['long_text', 'textarea', 'rich_text'].includes(tokenType) || tokenRole === 'definition'
+    return ['long_text', 'textarea', 'rich_text'].includes(tokenType) || tokenRole === 'summary'
   }
   const getTokenContentWidth = (token = {}) => {
     if (isLongTextToken(token)) return LONG_TEXT_COLUMN_DEFAULT_WIDTH
