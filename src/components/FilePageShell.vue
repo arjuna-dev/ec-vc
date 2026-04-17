@@ -679,7 +679,6 @@ import { buildStructureToolbarItems } from 'src/utils/structureToolbarContract'
     subscribeRuntimeFileStructures,
     getRuntimeTableNameForEntityName,
   getCanonicalTokenFieldNames,
-  getCanonicalTokenWriteFieldName,
   getCanonicalTokenWriteTarget,
     getCanonicalTokenValue,
     resolveApprovedFileSectionKey,
@@ -694,7 +693,6 @@ import { loadShellFieldSelectionMap, persistShellFieldSelectionMap } from 'src/u
 import { getBuildingBlockGraphCounts, getBuildingBlockGraphLinks } from 'src/utils/buildingBlocks'
 import { setPendingAddEditShellRequest } from 'src/utils/addEditShellState'
 import { setPendingIntakeShellRequest } from 'src/utils/intakeShellState'
-import { removeDraftRegistryEntry } from 'src/utils/draftRegistry'
 
 const props = defineProps({
   shellMode: {
@@ -725,10 +723,6 @@ const loaderDiagnostics = ref({})
 const heroCollapsed = ref(false)
 const viewMode = ref('page')
 const dataSurfaceCollapsed = ref(false)
-const createDialogOpen = ref(false)
-const createDialogMode = ref('create')
-const createDialogDraftRecordId = ref('')
-const createDialogDraftSourceKey = ref('')
 const heroDocumentDialogOpen = ref(false)
 const heroDocumentDialogTitle = ref('')
 const heroDocumentDialogContent = ref('')
@@ -750,7 +744,6 @@ const bbTileCollapseState = ref('')
 const bbTileGroupOpenState = ref({})
 const cardItemKeysBySource = ref(loadShellFieldSelectionMap())
 const liveOptionRowsBySource = ref({})
-const localDraftRowsBySource = ref({})
   const optionEntityOptions = Object.freeze(
     FILE_SOURCE_REGISTRY
       .map((entry) => {
@@ -1069,7 +1062,7 @@ const createPrimaryTokens = computed(() => {
   const seen = new Set()
   return tokens
     .filter((token) => {
-      if (createDialogMode.value === 'create' && isAutomaticCreatorToken(token)) return false
+      if (isAutomaticCreatorToken(token)) return false
       if (seen.has(token.key)) return false
       seen.add(token.key)
       return true
@@ -1094,7 +1087,7 @@ const createViewGroups = computed(() => {
       (token) =>
         token.parentKey === section.key &&
         !primaryTokenKeys.has(token.key) &&
-        !(createDialogMode.value === 'create' && isAutomaticCreatorToken(token)) &&
+        !isAutomaticCreatorToken(token) &&
         (!isRecordShellMode.value || selectedRecordShellLevel3KeySet.value.has(token.key)),
     ),
     mapToken: normalizeCreateDialogToken,
@@ -1185,18 +1178,7 @@ const tableViewTokens = computed(() => {
 
 const displayRows = computed(() => {
   const query = String(searchQuery.value || '').trim().toLowerCase()
-  const localDraftRows =
-    createDialogOpen.value &&
-    createDialogMode.value === 'create' &&
-    String(createDialogDraftSourceKey.value || '').trim().toLowerCase() === activeContentSourceKey.value
-      ? (Array.isArray(localDraftRowsBySource.value[activeContentSourceKey.value])
-          ? localDraftRowsBySource.value[activeContentSourceKey.value].filter(
-              (row) => String(row?.id || '').trim() === String(createDialogDraftRecordId.value || '').trim(),
-            )
-          : [])
-      : []
-
-  const rows = [...localDraftRows, ...rawRows.value].map((row, index) => buildShellRow(row, index))
+  const rows = [...rawRows.value].map((row, index) => buildShellRow(row, index))
   if (isBbFileSource.value) {
     return rows.filter((row) => {
       const blockKey = getBbTileBlockKey(row)
@@ -1942,15 +1924,6 @@ watch(
 )
 
 watch(
-  [createDialogOpen, activeSourceKey, createPrimaryTokens, createViewGroups],
-  async ([isOpen]) => {
-    if (!isOpen) return
-    await preloadCreateDialogOptionSources()
-  },
-  { immediate: true },
-)
-
-watch(
   [() => route.name, () => route.query.create, activeSourceKey, createPrimaryTokens, createViewGroups],
   async ([, createFlag]) => {
     if (!String(createFlag || '').trim()) return
@@ -2352,7 +2325,6 @@ function buildShellRow(row, index) {
   return {
     cardId: `${recordId || 'row'}:${index}`,
     recordId,
-    isLocalDraft: Boolean(row?.__localDraft) || String(recordId || '').trim().startsWith('draft:'),
     raw: row,
     avatarText: buildInitialsFromName(titleValue) || activeRegistryEntry.value?.singularLabel?.slice(0, 2)?.toUpperCase() || 'TS',
     titleValue,
@@ -2838,8 +2810,6 @@ function canInlineEditTableCell(row, token) {
   if (!isTableInlineEditingAvailable.value) return false
   if (!token?.key || !row?.recordId) return false
   if (isSystemManagedReadOnlyToken(token)) return false
-  if (row?.isLocalDraft) return true
-
   const entityName = String(activeRegistryEntry.value?.entityName || '').trim()
   if (!entityName) return false
 
@@ -2965,25 +2935,6 @@ function getLdbCellItems(tokenRow) {
   })
 }
 
-function updateLocalDraftTokenValue(row, token, value) {
-  const sourceKey = activeContentSourceKey.value
-  const draftId = String(row?.recordId || '').trim()
-  const writeFieldName = getCanonicalTokenWriteFieldName(token)
-  if (!sourceKey || !draftId || !writeFieldName) return
-  const normalizedValue = normalizeCreateFieldValue(token, value)
-  const existingRows = Array.isArray(localDraftRowsBySource.value[sourceKey]) ? localDraftRowsBySource.value[sourceKey] : []
-  localDraftRowsBySource.value = {
-    ...localDraftRowsBySource.value,
-    [sourceKey]: existingRows.map((entry) => {
-      if (String(entry?.id || '').trim() !== draftId) return entry
-      return {
-        ...entry,
-        [writeFieldName]: Array.isArray(normalizedValue) ? normalizedValue.join(', ') : normalizedValue,
-      }
-    }),
-  }
-}
-
 function openLdbSourceCell(item) {
   if (!item?.canOpen || !item?.entityName || !item?.recordId) return
   const location = buildRecordViewLocation({
@@ -2999,12 +2950,6 @@ function openLdbSourceCell(item) {
 async function commitInlineTableEdit(row, token, immediateValue) {
   if (!token || !row?.recordId) return
   const nextValue = arguments.length >= 3 ? immediateValue : inlineTableEditState.value.value
-  if (row?.isLocalDraft) {
-    updateLocalDraftTokenValue(row, token, nextValue)
-    cancelInlineTableEdit()
-    return
-  }
-
   const entityName = activeRegistryEntry.value?.entityName || ''
   const tableName = getRuntimeTableNameForEntityName(entityName)
   const changes = buildTokenUpdateChanges(token, {
@@ -3295,20 +3240,6 @@ function resolveEditEntityName(row) {
   return activeRegistryEntry.value?.entityName || ''
 }
 
-function removeLocalDraftRow(sourceKey, draftId) {
-  const normalizedSourceKey = String(sourceKey || '').trim().toLowerCase()
-  const normalizedDraftId = String(draftId || '').trim()
-  if (!normalizedSourceKey || !normalizedDraftId) return
-  const existingRows = Array.isArray(localDraftRowsBySource.value[normalizedSourceKey])
-    ? localDraftRowsBySource.value[normalizedSourceKey]
-    : []
-  localDraftRowsBySource.value = {
-    ...localDraftRowsBySource.value,
-    [normalizedSourceKey]: existingRows.filter((row) => String(row?.id || '').trim() !== normalizedDraftId),
-  }
-  removeDraftRegistryEntry(normalizedSourceKey, normalizedDraftId)
-}
-
 function tokenHasDirectWriteTarget(token) {
   return Boolean(String(token?.dbWriteField || '').trim())
 }
@@ -3322,22 +3253,6 @@ function isUnsupportedRelationshipWriteToken(token, entityName = '') {
   if (!['live_entity', 'live_entity_set', 'record_subset'].includes(optionSource)) return false
   if (tokenHasRelationshipWriteContract(token, entityName)) return false
   return !tokenHasDirectWriteTarget(token)
-}
-
-function normalizeCreateFieldValue(token, value) {
-  const tokenType = String(token?.tokenType || '').trim()
-  if (tokenType === 'select_multi') {
-    const normalized = Array.isArray(value)
-      ? value.map((item) => String(item || '').trim()).filter(Boolean)
-      : String(value || '')
-          .split(',')
-          .map((item) => item.trim())
-          .filter(Boolean)
-    return normalized.length ? normalized : null
-  }
-
-  const normalized = String(value || '').trim()
-  return normalized ? normalized : null
 }
 
 function setActiveFilterView(viewKey) {
@@ -3581,10 +3496,7 @@ async function handleSelectedRowsDelete() {
       for (const row of selectedRows.value) {
         await deleteFn(row.recordId)
 
-        if (contentSourceKey && row?.recordId) {
-          removeDraftRegistryEntry(contentSourceKey, row.recordId)
-          removeLocalDraftRow(contentSourceKey, row.recordId)
-        }
+        void contentSourceKey
       }
 
       selectedRowIds.value = []
