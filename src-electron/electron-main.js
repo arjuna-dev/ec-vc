@@ -155,16 +155,6 @@ function upsertProjects(rows = []) {
           Project_Name: name,
         })
 
-      database
-        .prepare(
-          `
-          INSERT INTO Project_Overview (project_id, created_at, updated_at)
-          VALUES (?, datetime('now'), datetime('now'))
-          ON CONFLICT(project_id) DO NOTHING
-        `,
-        )
-        .run(projectId)
-
       if (exists) updated++
       else inserted++
     }
@@ -188,27 +178,38 @@ function createProject(payload = {}) {
     `project:${crypto.randomUUID()}`
 
   const tx = database.transaction(() => {
-    database
-      .prepare(
-        `
-        INSERT INTO Projects (id, created_by, Project_Name, created_at, updated_at)
-        VALUES (?, ?, ?, datetime('now'), datetime('now'))
+      database
+        .prepare(
+          `
+        INSERT INTO Projects (
+          id,
+          created_by,
+          Project_Name,
+          Project_Status,
+          Project_Priority_Rank,
+          Project_Start_Date,
+          Project_Due_Date,
+          Project_End_Date,
+          Project_Target_Amount,
+          Project_Summary,
+          created_at,
+          updated_at
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
       `,
       )
       .run(
         projectId,
         normalizeNullableString(payload?.created_by) || actor.user_id,
         name,
+        normalizeNullableString(payload?.Project_Status),
+        normalizeNullableString(payload?.Project_Priority_Rank),
+        normalizeNullableString(payload?.Project_Start_Date),
+        normalizeNullableString(payload?.Project_Due_Date),
+        normalizeNullableString(payload?.Project_End_Date),
+        normalizeNullableNumber(payload?.Project_Target_Amount),
+        normalizeNullableString(payload?.Project_Summary),
       )
-
-    database
-      .prepare(
-        `
-        INSERT INTO Project_Overview (project_id, created_at, updated_at)
-        VALUES (?, datetime('now'), datetime('now'))
-      `,
-      )
-      .run(projectId)
   })
 
   tx()
@@ -2683,11 +2684,10 @@ function getLegacyOpportunityDatabookView(opportunityId) {
       SELECT
         p.id AS project_id,
         p.Project_Name,
-        po.Project_Status AS project_status,
-        po.Project_Priority_Rank AS project_priority,
-        po.Project_Due_Date AS project_due_date
+        p.Project_Status AS project_status,
+        p.Project_Priority_Rank AS project_priority,
+        p.Project_Due_Date AS project_due_date
       FROM Projects p
-      LEFT JOIN Project_Overview po ON po.project_id = p.id
       WHERE p.id IN (${placeholders})
       ORDER BY COALESCE(p.Project_Name, ''), p.id
     `,
@@ -3102,28 +3102,28 @@ function getLegacyOpportunityDatabookView(opportunityId) {
       section: prefix,
       label: 'Status',
       value: project.project_status,
-      tableName: 'Project_Overview',
+      tableName: 'Projects',
       recordId: project.project_id,
       fieldName: 'Project_Status',
-      idColumn: 'project_id',
+      idColumn: 'id',
     })
     addField({
       section: prefix,
       label: 'Priority',
       value: project.project_priority,
-      tableName: 'Project_Overview',
+      tableName: 'Projects',
       recordId: project.project_id,
       fieldName: 'Project_Priority_Rank',
-      idColumn: 'project_id',
+      idColumn: 'id',
     })
     addField({
       section: prefix,
       label: 'Due Date',
       value: project.project_due_date,
-      tableName: 'Project_Overview',
+      tableName: 'Projects',
       recordId: project.project_id,
       fieldName: 'Project_Due_Date',
-      idColumn: 'project_id',
+      idColumn: 'id',
     })
   })
 

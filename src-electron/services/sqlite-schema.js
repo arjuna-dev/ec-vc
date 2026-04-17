@@ -246,83 +246,17 @@ CREATE TABLE IF NOT EXISTS Projects (
   id TEXT PRIMARY KEY,
   created_by TEXT,
   Project_Name TEXT,
-  Status TEXT,
-  created_at TEXT NOT NULL DEFAULT (datetime('now')),
-  updated_at TEXT NOT NULL DEFAULT (datetime('now')),
-  FOREIGN KEY (created_by) REFERENCES Users(id) ON UPDATE CASCADE ON DELETE SET NULL
-);
-
-CREATE TABLE IF NOT EXISTS Project_Overview (
-  project_id TEXT PRIMARY KEY,
-  Project_Status TEXT CHECK (
-    Project_Status IS NULL OR Project_Status IN (
-      'Pre-Launch', 'On-Going', 'Paused', 'Finished', 'Dropped', 'Back-burner'
-    )
-  ),
-  Project_Priority_Rank TEXT CHECK (
-    Project_Priority_Rank IS NULL OR Project_Priority_Rank IN ('Low', 'Mid-Low', 'Mid', 'Mid-High', 'High')
-  ),
+  Project_Status TEXT,
+  Project_Priority_Rank TEXT,
   Project_Start_Date TEXT,
   Project_Due_Date TEXT,
   Project_End_Date TEXT,
   Project_Target_Amount REAL,
   Project_Summary TEXT,
+  Status TEXT,
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
   updated_at TEXT NOT NULL DEFAULT (datetime('now')),
-  FOREIGN KEY (project_id) REFERENCES Projects(id) ON UPDATE CASCADE ON DELETE CASCADE
-);
-
-CREATE TABLE IF NOT EXISTS Project_Team (
-  project_id TEXT PRIMARY KEY,
-  Project_Team_Owner TEXT,
-  Project_Team_Other_Artifact_Id TEXT,
-  created_at TEXT NOT NULL DEFAULT (datetime('now')),
-  updated_at TEXT NOT NULL DEFAULT (datetime('now')),
-  FOREIGN KEY (project_id) REFERENCES Projects(id) ON UPDATE CASCADE ON DELETE CASCADE,
-  FOREIGN KEY (Project_Team_Owner) REFERENCES Contacts(id) ON UPDATE CASCADE ON DELETE SET NULL,
-  FOREIGN KEY (Project_Team_Other_Artifact_Id) REFERENCES Artifacts(artifact_id) ON UPDATE CASCADE ON DELETE SET NULL
-);
-
-CREATE INDEX IF NOT EXISTS idx_Project_Team_owner
-  ON Project_Team(Project_Team_Owner);
-
-CREATE TABLE IF NOT EXISTS Project_Team_Lead (
-  project_id TEXT NOT NULL,
-  contact_id TEXT NOT NULL,
-  PRIMARY KEY (project_id, contact_id),
-  FOREIGN KEY (project_id) REFERENCES Projects(id) ON UPDATE CASCADE ON DELETE CASCADE,
-  FOREIGN KEY (contact_id) REFERENCES Contacts(id) ON UPDATE CASCADE ON DELETE CASCADE
-);
-
-CREATE TABLE IF NOT EXISTS Project_Team_Senior (
-  project_id TEXT NOT NULL,
-  contact_id TEXT NOT NULL,
-  PRIMARY KEY (project_id, contact_id),
-  FOREIGN KEY (project_id) REFERENCES Projects(id) ON UPDATE CASCADE ON DELETE CASCADE,
-  FOREIGN KEY (contact_id) REFERENCES Contacts(id) ON UPDATE CASCADE ON DELETE CASCADE
-);
-
-CREATE TABLE IF NOT EXISTS Project_Team_Mid (
-  project_id TEXT NOT NULL,
-  contact_id TEXT NOT NULL,
-  PRIMARY KEY (project_id, contact_id),
-  FOREIGN KEY (project_id) REFERENCES Projects(id) ON UPDATE CASCADE ON DELETE CASCADE,
-  FOREIGN KEY (contact_id) REFERENCES Contacts(id) ON UPDATE CASCADE ON DELETE CASCADE
-);
-
-CREATE TABLE IF NOT EXISTS Project_Team_Junior (
-  project_id TEXT NOT NULL,
-  contact_id TEXT NOT NULL,
-  PRIMARY KEY (project_id, contact_id),
-  FOREIGN KEY (project_id) REFERENCES Projects(id) ON UPDATE CASCADE ON DELETE CASCADE,
-  FOREIGN KEY (contact_id) REFERENCES Contacts(id) ON UPDATE CASCADE ON DELETE CASCADE
-);
-
-CREATE TABLE IF NOT EXISTS Project_Team_Agents (
-  project_id TEXT NOT NULL,
-  agent_name TEXT NOT NULL,
-  PRIMARY KEY (project_id, agent_name),
-  FOREIGN KEY (project_id) REFERENCES Projects(id) ON UPDATE CASCADE ON DELETE CASCADE
+  FOREIGN KEY (created_by) REFERENCES Users(id) ON UPDATE CASCADE ON DELETE SET NULL
 );
 
 CREATE TABLE IF NOT EXISTS Tasks (
@@ -922,22 +856,6 @@ FOR EACH ROW
 WHEN NEW.updated_at = OLD.updated_at
 BEGIN
   UPDATE Projects SET updated_at = datetime('now') WHERE id = OLD.id;
-END;
-
-CREATE TRIGGER IF NOT EXISTS trg_Project_Overview_updated_at
-AFTER UPDATE ON Project_Overview
-FOR EACH ROW
-WHEN NEW.updated_at = OLD.updated_at
-BEGIN
-  UPDATE Project_Overview SET updated_at = datetime('now') WHERE project_id = OLD.project_id;
-END;
-
-CREATE TRIGGER IF NOT EXISTS trg_Project_Team_updated_at
-AFTER UPDATE ON Project_Team
-FOR EACH ROW
-WHEN NEW.updated_at = OLD.updated_at
-BEGIN
-  UPDATE Project_Team SET updated_at = datetime('now') WHERE project_id = OLD.project_id;
 END;
 
 -- Stage must belong to pipeline on UPDATE too
