@@ -65,14 +65,6 @@ const api = {
     create: (payload) => ipcRenderer.invoke('projects:create', payload),
     delete: (projectId) => ipcRenderer.invoke('projects:delete', { projectId }),
   },
-  pipelines: {
-    list: () => ipcRenderer.invoke('projects:list'),
-    install: (pipelineId) => ipcRenderer.invoke('projects:install', { projectId: pipelineId }),
-    uninstall: (pipelineId) => ipcRenderer.invoke('projects:uninstall', { projectId: pipelineId }),
-    upsertMany: (rows) => ipcRenderer.invoke('projects:upsertMany', { rows }),
-    create: (payload) => ipcRenderer.invoke('projects:create', payload),
-    delete: (pipelineId) => ipcRenderer.invoke('projects:delete', { projectId: pipelineId }),
-  },
   events: {
     list: ({ limit } = {}) => ipcRenderer.invoke('events:list', { limit }),
     create: (payload) => ipcRenderer.invoke('events:create', payload),

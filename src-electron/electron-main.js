@@ -8612,47 +8612,6 @@ function registerIpc() {
     return result
   })
 
-  ipcMain.handle('pipelines:list', async () => {
-    initDb()
-    return { pipelines: listPipelines() }
-  })
-
-  ipcMain.handle('pipelines:install', async (_event, { pipelineId } = {}) => {
-    initDb()
-    return installPipeline(String(pipelineId || ''))
-  })
-
-  ipcMain.handle('pipelines:uninstall', async (_event, { pipelineId } = {}) => {
-    initDb()
-    return uninstallPipeline(String(pipelineId || ''))
-  })
-
-  ipcMain.handle('pipelines:upsertMany', async (_event, { rows } = {}) => {
-    initDb()
-    const result = upsertPipelines(rows)
-    await syncWorkspaceWorkbooksSafe()
-    return result
-  })
-
-  ipcMain.handle('pipelines:create', async (_event, payload) => {
-    initDb()
-    const result = createPipeline(payload)
-    auditCreatedRecord('Projects', result, payload)
-    await syncWorkspaceWorkbooksSafe()
-    return result
-  })
-
-  ipcMain.handle('pipelines:delete', async (_event, { pipelineId } = {}) => {
-    initDb()
-    const pid = String(pipelineId || '')
-    if (!pid) throw new Error('pipelineId is required')
-    if (pid === 'pipeline_default') throw new Error('Cannot delete the default pipeline')
-    auditDeletedRecord('Projects', pid)
-    const result = deleteRow('Projects', 'id', pid)
-    await syncWorkspaceWorkbooksSafe()
-    return result
-  })
-
   ipcMain.handle('events:list', async (_event, { limit } = {}) => {
     initDb()
     return { events: listEventRows(limit) }
