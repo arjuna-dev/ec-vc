@@ -1284,7 +1284,7 @@ function buildDefaultFileRegistryRow(entry, index) {
     File_Order: index + 1,
     File_Name: String(entry?.label || entry?.singularLabel || entry?.key || '').trim(),
     File_Summary: `System definition for ${String(entry?.label || entry?.singularLabel || 'file').trim()}.`,
-    File_Status: getDefaultFileStatusForGuidePath(guidePath),
+    File_Status: getDefaultFileStatusForSourceKey(sourceKey, guidePath),
     File_Guide_Path: guidePath,
     File_Class: 'L1',
     File_Bucket: getDefaultFileBucketForSourceKey(sourceKey),
@@ -1404,9 +1404,11 @@ const FILE_GUIDE_PATH_BY_SOURCE_KEY = Object.freeze({
   intake: 'docs/100/Archive/100-Intake.md',
 })
 
-function getDefaultFileStatusForGuidePath(guidePath = '') {
+function getDefaultFileStatusForSourceKey(sourceKey = '', guidePath = '') {
+  const normalizedSourceKey = String(sourceKey || '').trim().toLowerCase()
+  if (OWNER_PACK_FILE_SOURCE_KEY_SET.has(normalizedSourceKey)) return 'Active'
+
   const normalizedPath = String(guidePath || '').trim().toLowerCase()
-  if (normalizedPath.startsWith('docs/') && !normalizedPath.includes('/archive/')) return 'Active'
   if (normalizedPath.includes('/active/')) return 'Active'
   if (normalizedPath.includes('/archive/')) return 'Archived'
   return 'Archived'
