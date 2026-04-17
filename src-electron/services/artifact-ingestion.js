@@ -341,8 +341,8 @@ export async function ingestArtifactsFromPaths({
       if (duplicateStrategy !== 'rename' && (await fse.pathExists(rawCandidatePath))) {
         const rawRelPath = toWorkspaceRelativePath(workspaceRoot, rawCandidatePath)
         const refs = Number(
-          dbAll('SELECT COUNT(*) AS c FROM Artifact_Details WHERE fs_path = ?', [rawRelPath])?.[0]
-            ?.c || 0,
+          dbAll('SELECT COUNT(*) AS c FROM Artifact_Raw WHERE fs_path = ?', [rawRelPath])?.[0]?.c ||
+            0,
         )
         if (refs > 0) {
           emitStatus?.({

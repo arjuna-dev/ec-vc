@@ -527,43 +527,6 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_Artifact_Llm_Generated_unique_path
 CREATE INDEX IF NOT EXISTS idx_Artifact_Llm_Generated_source
   ON Artifact_Llm_Generated(source_artifact_id);
 
-CREATE VIEW IF NOT EXISTS Artifact_Details AS
-SELECT
-  a.artifact_id,
-  a.round_id,
-  a.fund_id,
-  a.created_by,
-  a.artifact_format,
-  a.type,
-  a.title,
-  a.description,
-  a.created_at,
-  a.updated_at,
-  COALESCE(ar.fs_path, alr.fs_path, alg.fs_path) AS fs_path,
-  COALESCE(ar.fs_hash, alr.fs_hash, alg.fs_hash) AS fs_hash,
-  COALESCE(ar.fs_size_bytes, alr.fs_size_bytes, alg.fs_size_bytes) AS fs_size_bytes,
-  COALESCE(alr.source_artifact_id, alg.source_artifact_id) AS source_artifact_id,
-  COALESCE(alr.original_artifact_id, alg.original_artifact_id) AS original_artifact_id,
-  COALESCE(alr.assistant_system_prompt_id, alg.assistant_system_prompt_id) AS assistant_system_prompt_id,
-  CASE
-    WHEN ar.artifact_id IS NOT NULL THEN 'user'
-    WHEN alr.artifact_id IS NOT NULL THEN alr.generated_by
-    WHEN alg.artifact_id IS NOT NULL THEN 'llm'
-    ELSE NULL
-  END AS generated_by,
-  COALESCE(alr.llm_provider, alg.llm_provider) AS llm_provider,
-  COALESCE(alr.llm_model, alg.llm_model) AS llm_model,
-  CASE
-    WHEN ar.artifact_id IS NOT NULL THEN 'raw'
-    WHEN alr.artifact_id IS NOT NULL THEN 'llm-ready'
-    WHEN alg.artifact_id IS NOT NULL THEN 'llm-generated'
-    ELSE NULL
-  END AS artifact_type
-FROM Artifacts a
-LEFT JOIN Artifact_Raw ar ON ar.artifact_id = a.artifact_id
-LEFT JOIN Artifact_Llm_Ready alr ON alr.artifact_id = a.artifact_id
-LEFT JOIN Artifact_Llm_Generated alg ON alg.artifact_id = a.artifact_id;
-
 CREATE TABLE IF NOT EXISTS Intake (
   id TEXT PRIMARY KEY,
   Intake_Name TEXT NOT NULL,
