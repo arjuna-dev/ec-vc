@@ -30,6 +30,10 @@ This is not a loose note.
 
 It should become the working migration guide for moving the system from inherited uneven behavior toward one coherent lower architecture.
 
+Companion audit:
+
+- [File Carry-Forward Audit](/abs/path/c:/Users/erikc/Coding_Repository/ec-vc/docs/999/d.%20File%20Carry-Forward%20Audit.md)
+
 ## Audit Vocabulary
 
 This migration pass should use three fixed audit labels:
