@@ -1405,20 +1405,7 @@ const heroPayload = computed(() => {
   const sourceKey = getHeroContractSourceKey(activeSourceKey.value)
   const heroRegistryEntry = getFilePageRegistryEntry(sourceKey) || activeRegistryEntry.value || null
   const fileLabel = String(heroRegistryEntry?.label || pageShellLabel.value || 'File').trim() || 'File'
-  const validation = sourceKey === 'file-system' ? fileSystemValidation.value : null
   const totalRows = rawRows.value.length
-  const hasValidator = sourceKey === 'file-system'
-  const totalDriftPoints = Math.max(
-    hasValidator
-      ? Number(validation?.registryCount || validation?.rowCount || totalRows || 0)
-      : Number(totalRows || 0),
-    0,
-  )
-  const activeDriftPoints = Math.min(
-    hasValidator ? fileSystemValidationIssueCount.value : 0,
-    totalDriftPoints,
-  )
-  const remainingDriftPoints = Math.max(totalDriftPoints - activeDriftPoints, 0)
   const sharedText = isRecordShellMode.value
     ? 'This is the shared record-create shell. The selected file sets the real source entity, while the active view defines which token fields are visible in the row surface.'
     : `This is the shared file shell for ${fileLabel}. The active file determines the local payload while the hero structure remains owned by bb:file-hero.`
@@ -1429,28 +1416,21 @@ const heroPayload = computed(() => {
       {
         label: 'Rows',
         value: totalRows,
-        caption: sourceKey === 'file-system' ? 'Registry rows loaded' : 'Real rows loaded',
+        caption: 'Real rows loaded',
         tone: 'neutral',
       },
       {
         label: 'Drift',
-        value: hasValidator ? activeDriftPoints : 'N/A',
-        caption: hasValidator ? 'Current validator issues' : 'Validator not connected',
-        tone: hasValidator && activeDriftPoints > 0 ? 'rich' : 'neutral',
+        value: 'N/A',
+        caption: 'Validator not connected',
+        tone: 'neutral',
       },
     ],
-    healthText: hasValidator && validation
-      ? `Checked ${Number(validation?.rowCount || 0)} rows against ${Number(validation?.registryCount || 0)} executable registry entries. Errors: ${Number(validation?.severityCounts?.error || 0)}. Warnings: ${Number(validation?.severityCounts?.warn || 0)}. Info: ${Number(validation?.severityCounts?.info || 0)}.`
-      : `This file page is rendering through the shared File Shell hero contract. Local payload comes from ${fileLabel}, while the hero structure remains linked to bb:file-hero. Validator coverage has not been attached yet.`,
-    healthSegments: hasValidator && totalDriftPoints > 0
-      ? [
-          { tone: 'sparse', width: (activeDriftPoints / totalDriftPoints) * 100 },
-          { tone: 'rich', width: (remainingDriftPoints / totalDriftPoints) * 100 },
-        ]
-      : [
-          { tone: 'sparse', width: 100 },
-          { tone: 'rich', width: 0 },
-        ],
+    healthText: `This file page is rendering through the shared File Shell hero contract. Local payload comes from ${fileLabel}, while the hero structure remains linked to bb:file-hero. Validator coverage has not been attached yet.`,
+    healthSegments: [
+      { tone: 'sparse', width: 100 },
+      { tone: 'rich', width: 0 },
+    ],
     actionLabel: 'File Health',
     actionTitle: 'Reference Documents',
     actionItems: getFilePageReferenceDocs(sourceKey),
@@ -1468,17 +1448,6 @@ const fileHeroCollapsedText = computed(() => {
   const text = String(heroText.value || '').trim()
   if (!text) return 'File hero collapsed'
   return text.length > 160 ? `${text.slice(0, 157)}...` : text
-})
-
-const fileSystemValidation = computed(() =>
-  activeSourceKey.value === 'file-system' && loaderDiagnostics.value && typeof loaderDiagnostics.value === 'object'
-    ? loaderDiagnostics.value.validation || null
-    : null,
-)
-
-const fileSystemValidationIssueCount = computed(() => {
-  const validation = fileSystemValidation.value
-  return Array.isArray(validation?.issues) ? validation.issues.length : 0
 })
 
 const isBbFileSource = computed(() => activeSourceKey.value === 'bb-file')
