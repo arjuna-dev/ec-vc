@@ -1095,7 +1095,7 @@ const BASE_FILE_TOKEN_FIELDS = Object.freeze({
   notes: { nameField: 'Note_Name', summaryField: 'Note_Content' },
   tasks: { nameField: 'Task_Name', summaryField: 'Task_Summary' },
   projects: { nameField: 'Project_Name', summaryField: 'Project_Summary' },
-  artifacts: { nameField: 'title', summaryField: '' },
+  artifacts: { nameField: 'title', summaryField: 'description' },
   opportunities: { nameField: 'Venture_Oppty_Name', summaryField: 'Summary' },
   funds: { nameField: 'Fund_Name', summaryField: '' },
   rounds: { nameField: 'Round_Name', summaryField: '' },
@@ -1103,7 +1103,7 @@ const BASE_FILE_TOKEN_FIELDS = Object.freeze({
   securities: { nameField: 'Security_Name', summaryField: 'Security_Summary' },
   events: { nameField: 'Event_Name', summaryField: 'Event_Summary' },
   'bb-file': { nameField: 'Name', summaryField: 'Summary' },
-  intake: { nameField: 'Intake_Name', summaryField: '' },
+  intake: { nameField: 'Intake_Name', summaryField: 'Intake_Summary' },
   'user-roles': { nameField: 'Role_Name', summaryField: 'Role_Summary' },
   'companion-roles': { nameField: 'Companion_Role_Name', summaryField: 'Companion_Role_Summary' },
 })
@@ -1140,6 +1140,24 @@ const FILE_SPECIFIC_BIRTH_TOKENS = Object.freeze({
     { tokenName: 'Start_Date', label: 'Start Date', dbWriteField: 'Task_Start_Date' },
     { tokenName: 'Due_Date', label: 'Due Date', dbWriteField: 'Task_Due_Date' },
     { tokenName: 'End_Date', label: 'End Date', dbWriteField: 'Task_End_Date' },
+  ],
+  users: [
+    { tokenName: 'Primary_Email', label: 'Primary Email', dbWriteField: 'User_PEmail' },
+    { tokenName: 'Status', label: 'Status' },
+  ],
+  notes: [
+    { tokenName: 'Status', label: 'Status' },
+  ],
+  artifacts: [
+    { tokenName: 'Format', label: 'Format', dbWriteField: 'artifact_format' },
+    { tokenName: 'Type', label: 'Type', dbWriteField: 'type' },
+    { tokenName: 'Status', label: 'Status' },
+  ],
+  intake: [
+    { tokenName: 'Original_Artifact', label: 'Original Artifact', dbWriteField: 'Original_Artifact_Id' },
+    { tokenName: 'Created_Files', label: 'Created Files', dbWriteField: 'Created_Files_JSON' },
+    { tokenName: 'Working', label: 'Working', dbWriteField: 'Working' },
+    { tokenName: 'Status', label: 'Status' },
   ],
 })
 
