@@ -1079,6 +1079,10 @@ function getFileDefinitionRowForSource(sourceKey = '', rows = []) {
   ) || null
 }
 
+function isDraftRowKey(rowKey = '') {
+  return String(rowKey || '').trim().toLowerCase().startsWith('draft-row-')
+}
+
 function serializeStructureToken(token = {}) {
   const nextToken = { ...token }
   ;[
@@ -1196,6 +1200,23 @@ async function updateDataCell(rowKey, columnKey, value) {
     : String(value ?? '').trim()
 
   try {
+    if (sourceKey === 'file-system' && isDraftRowKey(normalizedRowKey)) {
+      const draftRows = Array.isArray(rawRowsBySource.value[sourceKey]) ? rawRowsBySource.value[sourceKey] : []
+      const draftRow = draftRows.find((entry) => String(getRecordIdValue(entry, sourceKey) || '').trim() === normalizedRowKey) || null
+      if (!draftRow) throw new Error('Could not find the draft System Files row to create.')
+
+      const payload = {
+        ...draftRow,
+        [writeTarget.fieldName]: nextValue,
+      }
+
+      await bridge.value?.['file-system']?.create?.(payload)
+
+      const refreshedRows = await loadRowsForSource(sourceKey)
+      setRuntimeFileStructures(refreshedRows)
+      return
+    }
+
     await bridge.value?.records?.update?.({
       tableName: writeTarget.tableName,
       recordId: normalizedRowKey,
