@@ -10,11 +10,6 @@ let db = null
 export function initDb() {
   if (db) {
     db.exec(SCHEMA_V1_SQL)
-    ensureColumn(db, 'events', 'payload_json', 'TEXT')
-    ensureColumn(db, 'Companion_Roles', 'Companion_Role_Type', 'TEXT')
-    ensureColumn(db, 'Companion_Roles', 'Companion_Role_Status', 'TEXT')
-    ensureColumn(db, 'Companion_Roles', 'Companion_Role_Contract_Path', 'TEXT')
-    ensureStatusColumns(db)
     db.pragma('user_version = 1')
     return db
   }
@@ -30,11 +25,6 @@ export function initDb() {
   db.pragma('synchronous = NORMAL')
   db.pragma('busy_timeout = 5000')
   db.exec(SCHEMA_V1_SQL)
-  ensureColumn(db, 'events', 'payload_json', 'TEXT')
-  ensureColumn(db, 'Companion_Roles', 'Companion_Role_Type', 'TEXT')
-  ensureColumn(db, 'Companion_Roles', 'Companion_Role_Status', 'TEXT')
-  ensureColumn(db, 'Companion_Roles', 'Companion_Role_Contract_Path', 'TEXT')
-  ensureStatusColumns(db)
   db.pragma('user_version = 1')
 
   return db
@@ -92,7 +82,6 @@ function maybeRecreateDb(dbPath) {
     hasColumn(probe, 'Rounds', 'Round_Name') &&
     hasColumn(probe, 'Funds', 'Fund_Name') &&
     hasColumn(probe, 'Users', 'User_PEmail') &&
-    !columnIsRequired(probe, 'Users', 'User_PEmail') &&
     hasColumn(probe, 'Contacts', 'Personal_Email') &&
     hasColumn(probe, 'Contacts', 'Professional_Email') &&
     hasColumn(probe, 'Contacts', 'linked_user_id') &&
@@ -155,47 +144,6 @@ function hasColumn(database, tableName, columnName) {
   if (!hasTable(database, tableName)) return false
   const cols = database.prepare(`PRAGMA table_info(${String(tableName)})`).all()
   return cols.some((c) => c?.name === String(columnName))
-}
-
-function ensureColumn(database, tableName, columnName, columnSql) {
-  if (hasColumn(database, tableName, columnName)) return
-  database.exec(`ALTER TABLE ${String(tableName)} ADD COLUMN ${String(columnName)} ${String(columnSql)}`)
-}
-
-function ensureStatusColumns(database) {
-  const tables = [
-    'events',
-    'Users',
-    'Contacts',
-    'Companies',
-    'Opportunities',
-    'Funds',
-    'Rounds',
-    'Projects',
-    'Tasks',
-    'Notes',
-    'Artifacts',
-    'Markets',
-    'Securities',
-    'Roles',
-    'Companion_Roles',
-    'Intake',
-  ]
-  tables.forEach((tableName) => {
-    ensureColumn(database, tableName, 'Status', 'TEXT')
-    ensureColumn(database, tableName, 'Data_Status', 'TEXT')
-  })
-}
-
-function columnMeta(database, tableName, columnName) {
-  if (!hasTable(database, tableName)) return null
-  const cols = database.prepare(`PRAGMA table_info(${String(tableName)})`).all()
-  return cols.find((c) => c?.name === String(columnName)) || null
-}
-
-function columnIsRequired(database, tableName, columnName) {
-  const meta = columnMeta(database, tableName, columnName)
-  return Boolean(meta && Number(meta.notnull || 0) === 1)
 }
 
 
