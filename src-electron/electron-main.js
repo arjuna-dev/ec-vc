@@ -32,11 +32,11 @@ import {
 import { formatSharedDisplayLabel } from '../src/shared/labelFormatting.js'
 import { DEFAULT_BUILDING_BLOCK_FILE_ROWS } from '../src/utils/buildingBlocks.js'
 import {
+  buildRegistryFileStructure,
   FILE_PAGE_REGISTRY,
   OWNER_PACK_FILE_KEYS,
   getCreateBranches,
   getFilePageBirthDefaults,
-  getFilePageBirthTokens,
   getViewForks,
 } from '../src/utils/structureRegistry.js'
 
@@ -1094,163 +1094,8 @@ function listCompanionRoles() {
   )
 }
 
-function buildBaseFileStructure(entry) {
-  const sourceKey = String(entry?.key || '').trim().toLowerCase()
-  const birthDefaults = getFilePageBirthDefaults(sourceKey)
-  const nameField = String(birthDefaults.primaryNameField || 'Name').trim() || 'Name'
-  const summaryField = String(birthDefaults.primarySummaryField || '').trim()
-  const nameTokenName = nameField || 'Name'
-  const summaryTokenName = summaryField || 'Summary'
-  const makeWriteTarget = (fieldName) => ({ dbWriteField: fieldName })
-  const baseTokenNames = new Set([nameTokenName, summaryTokenName, 'ID', 'History', 'System.Status'])
-  const fileSpecificTokens = getFilePageBirthTokens(sourceKey)
-    .filter((token) => token && !baseTokenNames.has(String(token.tokenName || '').trim()))
-    .map((token, index) => ({
-      key: String(token.tokenName || '').trim(),
-      tokenName: String(token.tokenName || '').trim(),
-      tokenRole: '',
-      tokenOrder: String(index + 3),
-      address: '',
-      label: String(token.label || token.tokenName || '').trim(),
-      tokenType: 'text',
-      optionSource: '',
-      optionEntity: '',
-      optionList: '',
-      optionEntities: [],
-      ...makeWriteTarget(String(token.dbWriteField || token.tokenName || '').trim()),
-      relationshipGroup: '',
-      definition: '',
-      defaultVerificationState: 'Input',
-      defaultVerificationSource: 'system_defined',
-    }))
-
-  return {
-    version: 1,
-    sections: [
-      {
-        key: `${sourceKey}-system`,
-        label: 'System',
-        address: '',
-        structureToken: '',
-        displayGroup: '',
-        tokens: [
-          {
-            key: 'ID',
-            tokenName: 'ID',
-            tokenRole: 'id',
-            tokenOrder: '1',
-            address: '',
-            label: 'ID',
-            tokenType: 'id',
-            optionSource: '',
-            optionEntity: '',
-            optionList: '',
-            optionEntities: [],
-            ...makeWriteTarget('id'),
-            relationshipGroup: '',
-            definition: '',
-            defaultVerificationState: 'Verified',
-            defaultVerificationSource: 'system_defined',
-          },
-          {
-            key: 'History',
-            tokenName: 'History',
-            tokenRole: '',
-            tokenOrder: '2',
-            address: '',
-            label: 'History',
-            tokenType: 'event_log',
-            optionSource: '',
-            optionEntity: '',
-            optionList: '',
-            optionEntities: [],
-            ...makeWriteTarget(''),
-            relationshipGroup: '',
-            definition: '',
-            defaultVerificationState: 'Verified',
-            defaultVerificationSource: 'system_defined',
-          },
-          {
-            key: 'System.Status',
-            tokenName: 'System.Status',
-            tokenRole: 'status',
-            tokenOrder: '3',
-            address: '',
-            label: 'System.Status',
-            tokenType: 'select_single',
-            optionSource: 'static',
-            optionEntity: '',
-            optionList: 'Active, Archived',
-            optionEntities: [],
-            inputOptions: ['Active', 'Archived'],
-            ...makeWriteTarget('File_Status'),
-            relationshipGroup: '',
-            definition: '',
-            defaultVerificationState: 'Verified',
-            defaultVerificationSource: 'system_defined',
-          },
-        ],
-      },
-      {
-        key: `${sourceKey}-general`,
-        label: 'General',
-        address: '',
-        structureToken: '',
-        displayGroup: '',
-        tokens: [
-          {
-            key: nameTokenName,
-            tokenName: nameTokenName,
-            tokenRole: 'title',
-            tokenOrder: '1',
-            address: '',
-            label: 'Name',
-            tokenType: 'text',
-            optionSource: '',
-            optionEntity: '',
-            optionList: '',
-            optionEntities: [],
-            ...makeWriteTarget(nameField),
-            relationshipGroup: '',
-            definition: '',
-            defaultVerificationState: 'Input',
-            defaultVerificationSource: 'system_defined',
-          },
-          ...(summaryField ? [{
-            key: summaryTokenName,
-            tokenName: summaryTokenName,
-            tokenRole: 'summary',
-            tokenOrder: '2',
-            address: '',
-            label: 'Summary',
-            tokenType: 'text',
-            optionSource: '',
-            optionEntity: '',
-            optionList: '',
-            optionEntities: [],
-            ...makeWriteTarget(summaryField),
-            relationshipGroup: '',
-            definition: '',
-            defaultVerificationState: 'Input',
-            defaultVerificationSource: 'system_defined',
-          }] : []),
-            ...fileSpecificTokens,
-          ],
-        },
-      {
-        key: `${sourceKey}-ldb`,
-        label: 'LDB',
-        address: '',
-        structureToken: '',
-        displayGroup: '',
-        tokens: [],
-      },
-    ],
-  }
-}
-
 function buildStructureJson(entry) {
-  return JSON.stringify(buildBaseFileStructure(entry))
+  return JSON.stringify(buildRegistryFileStructure(String(entry?.key || '').trim()))
 }
 
 function getFileRegistryForkMode(entry) {
