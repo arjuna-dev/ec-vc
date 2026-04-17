@@ -487,7 +487,7 @@ const dueThisWeekCount = computed(
 const linkedNotesCount = computed(
   () =>
     notes.value.filter((row) =>
-      [row?.opportunity_id, row?.contact_id, row?.pipeline_id, row?.company_id, row?.reference_id]
+      [row?.opportunity_id, row?.contact_id, row?.company_id, row?.reference_id]
         .map((value) => String(value || '').trim())
         .some(Boolean),
     ).length,

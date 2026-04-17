@@ -253,7 +253,6 @@ const TOKEN_GROUPS = {
     'Project_Task',
     'Project_Note',
     'Project_Status',
-    'Project_Stages',
     'Project_Current_Stage',
     'Project_Priority_Rank',
     'Project_Start_Date',
@@ -442,11 +441,10 @@ const WORKBOOK_DEFINITIONS = [
   },
   {
     key: 'Project',
-    fileName: '6. Pipelines.xlsx',
-    aliasFileNames: ['6. User_Default_Pipeline.xlsx'],
-    sheetName: 'Pipelines',
-    targetDir: (workspaceRootPath) => getNetworkDatabaseSectionPath(workspaceRootPath, 'Pipelines'),
-    eventTables: ['Projects', 'Project_Overview', 'Project_Stages', 'Project_Team'],
+    fileName: '6. Projects.xlsx',
+    sheetName: 'Projects',
+    targetDir: (workspaceRootPath) => getNetworkDatabaseSectionPath(workspaceRootPath, 'Projects'),
+    eventTables: ['Projects', 'Project_Overview', 'Project_Team'],
     getRows: listProjectRows,
   },
   {
@@ -814,8 +812,7 @@ function listProjectRows() {
       NULL AS Project_Task,
       NULL AS Project_Note,
       po.Project_Status,
-      stage_info.stage_names AS Project_Stages,
-      stage_info.current_stage AS Project_Current_Stage,
+      NULL AS Project_Current_Stage,
       po.Project_Priority_Rank,
       po.Project_Start_Date,
       po.Project_Due_Date,
@@ -833,11 +830,6 @@ function listProjectRows() {
     FROM Projects p
     LEFT JOIN Project_Overview po ON po.project_id = p.id
     LEFT JOIN Project_Team pt ON pt.project_id = p.id
-    LEFT JOIN (
-      SELECT project_id, group_concat(name, '|') AS stage_names, MAX(CASE WHEN is_terminal = 0 THEN name END) AS current_stage
-      FROM Project_Stages
-      GROUP BY project_id
-    ) stage_info ON stage_info.project_id = p.id
     ORDER BY COALESCE(p.Project_Name, '') ASC, p.id ASC
   `,
   ).map((row) => ({

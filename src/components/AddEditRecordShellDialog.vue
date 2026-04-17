@@ -1424,7 +1424,7 @@ async function ensureProjectsLoaded() {
     const rows = Array.isArray(result?.projects) ? result.projects : []
     projectOptions.value = rows
       .map((row) => ({
-        value: String(row?.id || row?.pipeline_id || '').trim(),
+        value: String(row?.id || '').trim(),
         label: String(row?.Project_Name || row?.name || '').trim(),
         isDefault: Boolean(row?.is_default),
       }))
