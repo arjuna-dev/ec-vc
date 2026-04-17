@@ -87,6 +87,8 @@ What is already clearer:
 - shared surfaces should stay dumb
 - token meaning should flow through explicit contract, not local restatement
 - archived files should remain governable but not load into runtime
+- `History` is still a real shared-base dependency
+- `History` should resolve through the `History` file by record `ID`
 
 What is still uneven:
 
@@ -133,7 +135,7 @@ The system should become predictable enough that:
 For any file to participate truthfully in the shared system, it must pass through the same minimum chain:
 
 1. file is born in `System Files`
-2. file has canonical `Defined_Structure`
+2. file has canonical `Structure`
 3. runtime hydrates that structure without dropping meaning
 4. payload is built from that runtime structure
 5. shared token-to-surface contract derives:
@@ -145,6 +147,11 @@ For any file to participate truthfully in the shared system, it must pass throug
 7. `Data` renders from that same structure truth
 
 If a file does not behave like another file, the break is in one of those layers.
+
+Shared base correction:
+
+- `History` remains part of the shared base
+- it should not be treated as already replaced by token metadata alone
 
 ## Why Files Drift
 

@@ -46,7 +46,8 @@ That means launch should not depend on every possible contextual repository alre
 The first requirement is a minimum construct that is enough for the app to:
 
 - govern its own files
-- record events and history
+- record local file data
+- preserve reconstructable history by record id
 - know who is using the system
 - know who and what the users are working with
 - hold local project and task work
@@ -75,6 +76,13 @@ Current construct-birth minimum:
 
 This minimum set should be enough for the app to function as a true local operating system for records, guidance, intake, and work.
 
+Working note:
+
+- `events` should be treated as part of storage files
+- token metadata may enrich provenance over time
+- but `History` remains a real shared-base dependency
+- `History` should resolve through the `History` file by record `ID`
+
 Everything beyond this set should be treated as extension, not birth requirement.
 
 ## File Classes
@@ -89,7 +97,7 @@ These are required for construct birth.
 
 They allow the app to function as a local system of record and workflow.
 
-They regulate identity, structure, actors, events, guidance, intake, and ongoing work.
+They regulate identity, structure, actors, history, guidance, intake, and ongoing work.
 
 ### 2. General Local Record / Guidance Repositories
 
@@ -183,11 +191,11 @@ The construct layer declares the minimum viable file set and file classes.
 
 ### 2. System Files define what each file is
 
-`System Files` declares the file registry and the owned `Defined_Structure` for each file.
+`System Files` declares the file registry and the owned `Structure` for each file.
 
 ### 3. Structure defines what each file can render
 
-Each file's `Defined_Structure` declares its views and tokens.
+Each file's `Structure` declares its views and tokens.
 
 ### 4. Governance defines structure changes
 

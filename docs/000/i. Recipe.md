@@ -57,12 +57,10 @@ Tested rule:
   - `System`
   - `General`
   - `LDB`
-  - `Other`
 
 Preserve because:
 
 - it keeps shared structure explicit
-- it makes extension areas clear
 - it reduces drift from improvised section naming
 
 ### 2. Shared Base Tokens
@@ -71,17 +69,23 @@ Tested rule:
 
 - `System`
   - `ID`
+  - `System.Status`
   - `History`
-  - `Data.Status`
 - `General`
   - `Name`
-  - `Summary`
+  - `Definition`
 
 Preserve because:
 
 - the shared base stays readable across files
-- `Data.Status` is separated from file-specific business status
+- `History` stays explicit as a shared dependency
+- file lifecycle stays separate from token/property status
 - shells can rely on a cleaner common structure
+
+Working note:
+
+- `History` should resolve through the `History` file by record `ID`
+- token metadata may enrich provenance, but does not yet replace `History`
 
 ### 3. Data Surface Contract
 
@@ -135,7 +139,7 @@ Preserve because:
 Tested rule:
 
 1. `electron-main.js` defines birth template
-2. `Files.Defined_Structure` stores structure truth
+2. `Files.Structure` stores structure truth
 3. `structureRegistry.js` parses runtime structure
 4. shell surfaces render from that parsed structure
 
