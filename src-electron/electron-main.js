@@ -225,6 +225,7 @@ function listCompanies() {
       c.Company_Name,
       c.Short_Name,
       c.Website,
+      c.Summary,
       c.One_Liner,
       c.Description,
       c.Notable_News,
@@ -343,6 +344,7 @@ function createCompany(payload = {}) {
     Company_Name: name,
     Short_Name: normalizeNullableString(payload.Short_Name) || normalizeNullableString(payload.shortening),
     Website: normalizeNullableString(payload.Website),
+    Summary: normalizeNullableString(payload.Summary),
     One_Liner: normalizeNullableString(payload.One_Liner),
     Description: normalizeNullableString(payload.Description),
     Notable_News: normalizeNullableString(payload.Notable_News),
@@ -361,10 +363,10 @@ function createCompany(payload = {}) {
             .prepare(
               `
               INSERT INTO Companies (
-                id, Company_Name, Short_Name, Website, One_Liner, Description, Notable_News,
+                id, Company_Name, Short_Name, Website, Summary, One_Liner, Description, Notable_News,
                 Updates, Status, created_by
               ) VALUES (
-                @id, @Company_Name, @Short_Name, @Website, @One_Liner, @Description, @Notable_News,
+                @id, @Company_Name, @Short_Name, @Website, @Summary, @One_Liner, @Description, @Notable_News,
                 @Updates, @Status, @created_by
               )
             `,
@@ -374,10 +376,10 @@ function createCompany(payload = {}) {
             .prepare(
               `
               INSERT INTO Companies (
-                Company_Name, Short_Name, Website, One_Liner, Description, Notable_News,
+                Company_Name, Short_Name, Website, Summary, One_Liner, Description, Notable_News,
                 Updates, Status, created_by
               ) VALUES (
-                @Company_Name, @Short_Name, @Website, @One_Liner, @Description, @Notable_News,
+                @Company_Name, @Short_Name, @Website, @Summary, @One_Liner, @Description, @Notable_News,
                 @Updates, @Status, @created_by
               )
             `,
@@ -391,6 +393,7 @@ function createCompany(payload = {}) {
           UPDATE Companies SET
             Short_Name = COALESCE(@Short_Name, Short_Name),
             Website = COALESCE(@Website, Website),
+            Summary = COALESCE(@Summary, Summary),
             One_Liner = COALESCE(@One_Liner, One_Liner),
             Description = COALESCE(@Description, Description),
             Notable_News = COALESCE(@Notable_News, Notable_News),
@@ -1089,7 +1092,7 @@ function listCompanionRoles() {
 const BASE_FILE_TOKEN_FIELDS = Object.freeze({
   'file-system': { nameField: 'File_Name', summaryField: 'File_Summary' },
   companion: { nameField: 'Companion_Name', summaryField: 'Companion_Summary' },
-  companies: { nameField: 'Company_Name', summaryField: 'One_Liner' },
+  companies: { nameField: 'Company_Name', summaryField: 'Summary' },
   contacts: { nameField: 'Name', summaryField: '' },
   users: { nameField: 'User_Name', summaryField: '' },
   notes: { nameField: 'Note_Name', summaryField: 'Note_Content' },
@@ -6732,6 +6735,7 @@ function upsertCompanyFromAutofill(database, companyPayload = {}, fallbackCompan
     'Company_Name',
     'Short_Name',
     'Company_Type',
+    'Summary',
     'One_Liner',
     'Description',
     'Notable_News',

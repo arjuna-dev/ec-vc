@@ -82,6 +82,7 @@ CREATE TABLE IF NOT EXISTS Companies (
   Company_Name TEXT NOT NULL,
   Short_Name TEXT,
   Website TEXT,
+  Summary TEXT,
   One_Liner TEXT,
   Description TEXT,
   Notable_News TEXT,
