@@ -653,8 +653,6 @@ BEGIN
   UPDATE Projects SET updated_at = datetime('now') WHERE id = OLD.id;
 END;
 
--- Stage must belong to pipeline on UPDATE too
-
 CREATE TRIGGER IF NOT EXISTS trg_Artifact_Raw_single_subtype_ins
 BEFORE INSERT ON Artifact_Raw
 FOR EACH ROW

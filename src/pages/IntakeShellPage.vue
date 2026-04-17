@@ -271,23 +271,13 @@ function buildCreateDialogInitialValues() {
   return nextInitialValues
 }
 
-function reopenDialogShell() {
-  dialogOpen.value = true
-}
-
 onMounted(() => {
-  if (typeof window !== 'undefined' && typeof window.addEventListener === 'function') {
-    window.addEventListener('ecvc:reopen-dialog-shell', reopenDialogShell)
-  }
   runtimeStructureUnsub = subscribeRuntimeFileStructures((version) => {
     runtimeStructureVersion.value = version
   })
 })
 
 onBeforeUnmount(() => {
-  if (typeof window !== 'undefined' && typeof window.removeEventListener === 'function') {
-    window.removeEventListener('ecvc:reopen-dialog-shell', reopenDialogShell)
-  }
   if (runtimeStructureUnsub) runtimeStructureUnsub()
   runtimeStructureUnsub = null
 })
