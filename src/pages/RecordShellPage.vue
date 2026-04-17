@@ -373,6 +373,11 @@ import {
   FILE_SOURCE_REGISTRY,
   resolveApprovedFileSectionKey,
 } from 'src/utils/structureRegistry'
+import {
+  hydrateLiveOptionUniverseFromSystemFiles,
+  loadLiveOptionRowsForSource,
+  normalizeLiveOptionListResult,
+} from 'src/utils/liveOptionRows'
 import { buildSurfaceSections, groupSurfaceViews } from 'src/utils/shellViewLayout'
 import { filterRecordFeedTabs, RECORD_FEED_GROUP_OPTIONS } from 'src/utils/recordFeedContract'
 import { buildShellToolbarFeed } from 'src/utils/shellToolbarFeeder'
@@ -1035,44 +1040,23 @@ async function ensureLiveOptionsLoaded() {
     }
   }
   for (const sourceKey of sourceKeys) {
-    if (liveOptionRowsBySource.value[sourceKey]) continue
-    try {
-      const result = await bridge.value?.[sourceKey]?.list?.()
-      liveOptionRowsBySource.value = { ...liveOptionRowsBySource.value, [sourceKey]: normalizeListResult(result) }
-    } catch {
-      liveOptionRowsBySource.value = { ...liveOptionRowsBySource.value, [sourceKey]: [] }
-    }
+    liveOptionRowsBySource.value = await loadLiveOptionRowsForSource({
+      sourceKey,
+      bridgeValue: bridge.value,
+      currentRowsBySource: liveOptionRowsBySource.value,
+      skipSourceKey: activeSourceKey.value,
+    })
   }
 
-  if (!liveOptionRowsBySource.value['file-system']) {
-    try {
-      const result = await bridge.value?.['file-system']?.list?.()
-      liveOptionRowsBySource.value = { ...liveOptionRowsBySource.value, ['file-system']: normalizeListResult(result) }
-    } catch {
-      liveOptionRowsBySource.value = { ...liveOptionRowsBySource.value, ['file-system']: [] }
-    }
-  }
-
-  const systemRows = Array.isArray(liveOptionRowsBySource.value['file-system']) ? liveOptionRowsBySource.value['file-system'] : []
-  for (const row of systemRows) {
-    const sourceKey = resolveApprovedFileSectionKey(
-      row?.sourceKey || row?.File_Route_Name || row?.File_Runtime_Entity || row?.File_Canonical_Entity,
-    )
-    if (!sourceKey || sourceKey === 'bb-file' || liveOptionRowsBySource.value[sourceKey]) continue
-    try {
-      const result = await bridge.value?.[sourceKey]?.list?.()
-      liveOptionRowsBySource.value = { ...liveOptionRowsBySource.value, [sourceKey]: normalizeListResult(result) }
-    } catch {
-      liveOptionRowsBySource.value = { ...liveOptionRowsBySource.value, [sourceKey]: [] }
-    }
-  }
+  liveOptionRowsBySource.value = await hydrateLiveOptionUniverseFromSystemFiles({
+    bridgeValue: bridge.value,
+    currentRowsBySource: liveOptionRowsBySource.value,
+    skipSourceKey: activeSourceKey.value,
+  })
 }
 
 function normalizeListResult(result) {
-  if (Array.isArray(result)) return result
-  if (!result || typeof result !== 'object') return []
-  const firstArray = Object.values(result).find((value) => Array.isArray(value))
-  return Array.isArray(firstArray) ? firstArray : []
+  return normalizeLiveOptionListResult(result)
 }
 
 function resolveSourceKeyFromTableName(tableName) {
