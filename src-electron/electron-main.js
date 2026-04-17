@@ -1124,6 +1124,23 @@ const FILE_SPECIFIC_BIRTH_TOKENS = Object.freeze({
     { tokenName: 'Status', label: 'Status' },
     { tokenName: 'linked_user_id', label: 'Linked User ID' },
   ],
+  projects: [
+    { tokenName: 'Status', label: 'Status' },
+    { tokenName: 'Project_Status', label: 'Project Status' },
+    { tokenName: 'Project_Priority_Rank', label: 'Project Priority Rank' },
+    { tokenName: 'Project_Start_Date', label: 'Project Start Date' },
+    { tokenName: 'Project_Due_Date', label: 'Project Due Date' },
+    { tokenName: 'Project_End_Date', label: 'Project End Date' },
+    { tokenName: 'Project_Target_Amount', label: 'Project Target Amount' },
+  ],
+  tasks: [
+    { tokenName: 'Status', label: 'Status' },
+    { tokenName: 'Task_Status', label: 'Task Status' },
+    { tokenName: 'Task_Priority_Rank', label: 'Task Priority Rank' },
+    { tokenName: 'Task_Start_Date', label: 'Task Start Date' },
+    { tokenName: 'Task_Due_Date', label: 'Task Due Date' },
+    { tokenName: 'Task_End_Date', label: 'Task End Date' },
+  ],
 })
 
 function buildBaseFileStructure(entry) {
