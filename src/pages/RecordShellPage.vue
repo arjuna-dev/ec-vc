@@ -374,7 +374,7 @@ import {
   FILE_SOURCE_REGISTRY,
   resolveApprovedFileSectionKey,
 } from 'src/utils/structureRegistry'
-import { buildDialogViews, groupDialogViews } from 'src/utils/dialogShellPayload'
+import { buildSurfaceSections, groupSurfaceViews } from 'src/utils/shellViewLayout'
 import { filterRecordFeedTabs, RECORD_FEED_GROUP_OPTIONS } from 'src/utils/recordFeedContract'
 import { setPendingIntakeShellRequest } from 'src/utils/intakeShellState'
 import { buildShellToolbarFeed } from 'src/utils/shellToolbarFeeder'
@@ -570,7 +570,7 @@ const selectedHeroTokens = computed(() =>
 )
 const createKeyFieldTokens = computed(() => [canonicalNameToken.value, canonicalSummaryToken.value].filter(Boolean).map(normalizeCreateDialogToken))
 const groupedViews = computed(() =>
-  groupDialogViews(fileViews.value).map((group) => {
+  groupSurfaceViews(fileViews.value).map((group) => {
     if (Array.isArray(group.views) && group.views.length === 1) {
       const viewLabel = String(group.views[0]?.label || '').trim()
       const normalized = viewLabel.toLowerCase()
@@ -619,7 +619,7 @@ const sharedLdbViewTokens = computed(() => {
     .filter(Boolean)
 })
 const createViewGroups = computed(() =>
-  buildDialogViews({
+  buildSurfaceSections({
     groupedViews: groupedViews.value,
     tokenFilter: (view) => (
       isRelationshipViewLabel(view?.label)

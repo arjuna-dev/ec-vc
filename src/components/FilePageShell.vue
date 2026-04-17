@@ -687,7 +687,7 @@ import { buildStructureToolbarItems } from 'src/utils/structureToolbarContract'
 import { getLdbRelationshipContractForToken } from 'src/shared/ldbRelationshipContracts'
 import { getTokenInputOptions } from 'src/utils/tokenSurfaceContract'
 import { buildTokenUpdateChanges } from 'src/utils/tokenWriteChanges'
-import { buildDialogViews, groupDialogViews } from 'src/utils/dialogShellPayload'
+import { buildSurfaceSections, groupSurfaceViews } from 'src/utils/shellViewLayout'
 import { buildRecordViewLocation } from 'src/utils/recordViewNavigation'
 import { getBuildingBlockGraphCounts, getBuildingBlockGraphLinks } from 'src/utils/buildingBlocks'
 import { setPendingAddEditShellRequest } from 'src/utils/addEditShellState'
@@ -1108,10 +1108,10 @@ const cardItemTokenGroups = computed(() =>
     }))
     .filter((group) => group.tokens.length),
 )
-const groupedViews = computed(() => groupDialogViews(fileViews.value))
+const groupedViews = computed(() => groupSurfaceViews(fileViews.value))
 const createViewGroups = computed(() => {
   const primaryTokenKeys = new Set(createPrimaryTokens.value.map((token) => token.key))
-  return buildDialogViews({
+  return buildSurfaceSections({
     groupedViews: groupedViews.value,
     tokenFilter: (section) => fileTokens.value.filter(
       (token) =>

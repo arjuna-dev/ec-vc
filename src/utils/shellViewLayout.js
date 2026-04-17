@@ -1,4 +1,4 @@
-export function getDialogViewGroupValue(view) {
+export function getSurfaceViewGroupValue(view) {
   const displayGroup = String(view?.displayGroup || '').trim()
   return displayGroup ? `group:${displayGroup}` : String(view?.key || '').trim()
 }
@@ -8,10 +8,10 @@ function isRelationshipSectionLabel(value = '') {
   return normalized === 'ldb'
 }
 
-export function groupDialogViews(views = []) {
+export function groupSurfaceViews(views = []) {
   const groups = []
   for (const view of Array.isArray(views) ? views : []) {
-    const value = getDialogViewGroupValue(view)
+    const value = getSurfaceViewGroupValue(view)
     const existing = groups.find((group) => group.value === value)
     if (existing) {
       existing.views.push(view)
@@ -26,7 +26,7 @@ export function groupDialogViews(views = []) {
   return groups
 }
 
-export function buildDialogViews({
+export function buildSurfaceSections({
   groupedViews = [],
   tokenFilter = () => true,
   mapToken = (token) => token,
@@ -52,12 +52,12 @@ export function buildDialogViews({
     .filter((group) => keepEmptySections || group.tokens.length)
 }
 
-export function splitDialogViews(viewGroups = []) {
+export function splitSurfaceSections(viewGroups = []) {
   const views = Array.isArray(viewGroups) ? viewGroups : []
   return {
     leftSections: views.filter((view) => {
       const viewLabel = String(view?.label || '').trim().toLowerCase()
-      return ![ 'system' ].includes(viewLabel) && !isRelationshipSectionLabel(viewLabel)
+      return !['system'].includes(viewLabel) && !isRelationshipSectionLabel(viewLabel)
     }),
     rightSections: views.filter((view) => {
       const viewLabel = String(view?.label || '').trim().toLowerCase()

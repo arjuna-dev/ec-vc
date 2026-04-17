@@ -292,7 +292,7 @@ import SelectionActionBar from 'src/components/SelectionActionBar.vue'
 import { buildTokenGovernanceColumns } from 'src/utils/structureGovernanceColumns'
 import { buildShellToolbarFeed } from 'src/utils/shellToolbarFeeder'
 import { buildStructureToolbarItems } from 'src/utils/structureToolbarContract'
-import { splitDialogViews } from 'src/utils/dialogShellPayload'
+import { splitSurfaceSections } from 'src/utils/shellViewLayout'
 import {
   buildFileShellPayload,
   getCanonicalTokenFieldNames,
@@ -424,7 +424,7 @@ const activeStructureSections = computed(() => {
   const sourceKey = activeSettingsSourceKey.value
   return structureStateBySource.value[sourceKey] || cloneFileStructureSections(fileViewGroups.value)
 })
-const toolbarViewSplit = computed(() => splitDialogViews(activeStructureSections.value))
+const toolbarViewSplit = computed(() => splitSurfaceSections(activeStructureSections.value))
 
 const controlBarFeed = computed(() =>
   buildShellToolbarFeed({
