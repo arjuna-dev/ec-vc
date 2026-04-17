@@ -689,7 +689,12 @@ import { getLdbRelationshipContractForToken } from 'src/shared/ldbRelationshipCo
 import { getTokenInputOptions } from 'src/utils/tokenSurfaceContract'
 import { buildTokenUpdateChanges } from 'src/utils/tokenWriteChanges'
 import { buildSurfaceSections, groupSurfaceViews } from 'src/utils/shellViewLayout'
-import { getFileRecordLoader, loadFileRecordRows } from 'src/utils/fileRecordLoaders'
+import {
+  getFileRecordLoader,
+  getLiveOptionRowsState,
+  loadFileRecordRows,
+  subscribeLiveOptionRowsState,
+} from 'src/utils/fileRecordLoaders'
 import { buildRecordViewLocation } from 'src/utils/recordViewNavigation'
 import { getBuildingBlockGraphCounts, getBuildingBlockGraphLinks } from 'src/utils/buildingBlocks'
 
@@ -709,6 +714,7 @@ const router = useRouter()
 const $q = useQuasar()
 const runtimeStructureVersion = ref(getRuntimeStructureVersion())
 let runtimeStructureUnsub = null
+let liveOptionRowsUnsub = null
 
 const bridge = computed(() => (typeof window !== 'undefined' ? window.ecvc : null))
 const isElectronRuntime = computed(() => typeof window !== 'undefined')
@@ -773,7 +779,7 @@ const bbTileCollapseVersion = ref(0)
 const bbTileCollapseState = ref('')
 const bbTileGroupOpenState = ref({})
 const cardItemKeysBySource = ref(loadShellFieldSelectionMap())
-const liveOptionRowsBySource = ref({})
+const liveOptionRowsBySource = ref(getLiveOptionRowsState())
   const optionEntityOptions = Object.freeze(
     FILE_SOURCE_REGISTRY
       .map((entry) => {
@@ -2107,11 +2113,16 @@ onBeforeUnmount(() => {
   stopColumnResize()
   if (runtimeStructureUnsub) runtimeStructureUnsub()
   runtimeStructureUnsub = null
+  if (liveOptionRowsUnsub) liveOptionRowsUnsub()
+  liveOptionRowsUnsub = null
 })
 
 onMounted(() => {
   runtimeStructureUnsub = subscribeRuntimeFileStructures((version) => {
     runtimeStructureVersion.value = version
+  })
+  liveOptionRowsUnsub = subscribeLiveOptionRowsState((rowsBySource) => {
+    liveOptionRowsBySource.value = { ...rowsBySource }
   })
 })
 

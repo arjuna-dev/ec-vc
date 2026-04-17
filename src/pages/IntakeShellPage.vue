@@ -66,7 +66,11 @@ import {
   resolveApprovedFileSectionKey,
   TEST_SHELL_SECTION_OPTIONS,
 } from 'src/utils/structureRegistry'
-import { loadFileRecordRows } from 'src/utils/fileRecordLoaders'
+import {
+  getLiveOptionRowsState,
+  loadFileRecordRows,
+  subscribeLiveOptionRowsState,
+} from 'src/utils/fileRecordLoaders'
 import { buildSurfaceSections, groupSurfaceViews, splitSurfaceSections } from 'src/utils/shellViewLayout'
 import { buildTokenUpdateChanges, normalizeTokenWriteValue } from 'src/utils/tokenWriteChanges'
 
@@ -76,7 +80,7 @@ const bridge = computed(() => (typeof window !== 'undefined' ? window.ecvc : nul
 const isElectronRuntime = computed(() => typeof window !== 'undefined')
 const dialogOpen = ref(false)
 const dialogLoading = ref(false)
-const liveOptionRowsBySource = ref({})
+const liveOptionRowsBySource = ref(getLiveOptionRowsState())
 const dialogRenderKey = ref(0)
 const dialogMode = ref('create')
 const dialogInitialValues = ref({})
@@ -91,6 +95,7 @@ const dialogArtifactContext = ref(null)
 const pendingIntakeRequest = ref(null)
 const runtimeStructureVersion = ref(getRuntimeStructureVersion())
 let runtimeStructureUnsub = null
+let liveOptionRowsUnsub = null
 
 const fallbackSectionKey = 'intake'
 const dialogShellSourceKey = ref(resolveValidShellSection(route.query.section || fallbackSectionKey))
@@ -294,11 +299,16 @@ onMounted(() => {
   runtimeStructureUnsub = subscribeRuntimeFileStructures((version) => {
     runtimeStructureVersion.value = version
   })
+  liveOptionRowsUnsub = subscribeLiveOptionRowsState((rowsBySource) => {
+    liveOptionRowsBySource.value = { ...rowsBySource }
+  })
 })
 
 onBeforeUnmount(() => {
   if (runtimeStructureUnsub) runtimeStructureUnsub()
   runtimeStructureUnsub = null
+  if (liveOptionRowsUnsub) liveOptionRowsUnsub()
+  liveOptionRowsUnsub = null
 })
 
 function resolveValidShellSection(value) {

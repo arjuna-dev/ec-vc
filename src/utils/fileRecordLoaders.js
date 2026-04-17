@@ -22,8 +22,33 @@ export const FILE_RECORD_LOADERS = Object.freeze({
   intake: { listFn: (bridgeValue) => bridgeValue?.intake?.list?.(), resultKey: 'intake', recordIdField: 'id' },
 })
 
+const liveOptionRowsState = {}
+const liveOptionRowSubscribers = new Set()
+
+function publishLiveOptionRowsState(nextState = {}) {
+  Object.keys(liveOptionRowsState).forEach((key) => delete liveOptionRowsState[key])
+  Object.assign(liveOptionRowsState, nextState && typeof nextState === 'object' ? nextState : {})
+  liveOptionRowSubscribers.forEach((listener) => {
+    try {
+      listener(liveOptionRowsState)
+    } catch {
+      // ignore subscriber errors
+    }
+  })
+}
+
 export function getFileRecordLoader(sourceKey = '') {
   return FILE_RECORD_LOADERS[String(sourceKey || '').trim().toLowerCase()] || null
+}
+
+export function getLiveOptionRowsState() {
+  return { ...liveOptionRowsState }
+}
+
+export function subscribeLiveOptionRowsState(listener) {
+  if (typeof listener !== 'function') return () => {}
+  liveOptionRowSubscribers.add(listener)
+  return () => liveOptionRowSubscribers.delete(listener)
 }
 
 export function normalizeFileRecordListResult(result) {
@@ -36,40 +61,49 @@ export function normalizeFileRecordListResult(result) {
 export async function loadFileRecordRows({
   sourceKey = '',
   bridgeValue = null,
-  currentRowsBySource = {},
+  currentRowsBySource = null,
   skipSourceKey = '',
 } = {}) {
   const normalizedSourceKey = String(sourceKey || '').trim().toLowerCase()
   const normalizedSkipSourceKey = String(skipSourceKey || '').trim().toLowerCase()
-  if (!normalizedSourceKey || normalizedSourceKey === normalizedSkipSourceKey) return currentRowsBySource
-  if (Array.isArray(currentRowsBySource?.[normalizedSourceKey])) return currentRowsBySource
+  const baseRowsBySource = currentRowsBySource && typeof currentRowsBySource === 'object'
+    ? currentRowsBySource
+    : liveOptionRowsState
+  if (!normalizedSourceKey || normalizedSourceKey === normalizedSkipSourceKey) return baseRowsBySource
+  if (Array.isArray(baseRowsBySource?.[normalizedSourceKey])) return baseRowsBySource
 
   const loader = getFileRecordLoader(normalizedSourceKey)
   if (!loader || !bridgeValue) {
-    return {
-      ...currentRowsBySource,
+    const nextRowsBySource = {
+      ...baseRowsBySource,
       [normalizedSourceKey]: [],
     }
+    publishLiveOptionRowsState(nextRowsBySource)
+    return nextRowsBySource
   }
 
   try {
     const result = await loader.listFn(bridgeValue)
     const rows = Array.isArray(result?.[loader.resultKey]) ? result[loader.resultKey] : normalizeFileRecordListResult(result)
-    return {
-      ...currentRowsBySource,
+    const nextRowsBySource = {
+      ...baseRowsBySource,
       [normalizedSourceKey]: rows,
     }
+    publishLiveOptionRowsState(nextRowsBySource)
+    return nextRowsBySource
   } catch {
-    return {
-      ...currentRowsBySource,
+    const nextRowsBySource = {
+      ...baseRowsBySource,
       [normalizedSourceKey]: [],
     }
+    publishLiveOptionRowsState(nextRowsBySource)
+    return nextRowsBySource
   }
 }
 
 export async function hydrateFileRecordUniverseFromSystemFiles({
   bridgeValue = null,
-  currentRowsBySource = {},
+  currentRowsBySource = null,
   skipSourceKey = '',
 } = {}) {
   let nextRowsBySource = await loadFileRecordRows({

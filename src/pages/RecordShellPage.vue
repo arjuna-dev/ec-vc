@@ -375,8 +375,10 @@ import {
 } from 'src/utils/structureRegistry'
 import {
   hydrateFileRecordUniverseFromSystemFiles,
+  getLiveOptionRowsState,
   loadFileRecordRows,
   normalizeFileRecordListResult,
+  subscribeLiveOptionRowsState,
 } from 'src/utils/fileRecordLoaders'
 import { buildSurfaceSections, groupSurfaceViews } from 'src/utils/shellViewLayout'
 import { filterRecordFeedTabs, RECORD_FEED_GROUP_OPTIONS } from 'src/utils/recordFeedContract'
@@ -419,7 +421,7 @@ function persistShellFieldSelectionMap(value) {
   return normalized
 }
 
-const liveOptionRowsBySource = ref({})
+const liveOptionRowsBySource = ref(getLiveOptionRowsState())
 const expandedViewKeys = ref([])
 const expandedHeroGroupKeys = ref([])
 const activeViewGroupKey = ref('')
@@ -427,6 +429,7 @@ const contactHeroRef = ref(null)
 const contactHeroGradient = ref({ x: 50, y: 30, size: 60, opacity: 0 })
 const runtimeStructureVersion = ref(getRuntimeStructureVersion())
 let runtimeStructureUnsub = null
+let liveOptionRowsUnsub = null
 const activeRecordFeedTab = ref('events')
 const heroCollapsed = ref(false)
 const recordDataSurfaceCollapsed = ref(false)
@@ -918,11 +921,16 @@ onBeforeUnmount(() => {
   }
   if (runtimeStructureUnsub) runtimeStructureUnsub()
   runtimeStructureUnsub = null
+  if (liveOptionRowsUnsub) liveOptionRowsUnsub()
+  liveOptionRowsUnsub = null
 })
 
 onMounted(() => {
   runtimeStructureUnsub = subscribeRuntimeFileStructures((version) => {
     runtimeStructureVersion.value = version
+  })
+  liveOptionRowsUnsub = subscribeLiveOptionRowsState((rowsBySource) => {
+    liveOptionRowsBySource.value = { ...rowsBySource }
   })
 })
 
@@ -1053,10 +1061,6 @@ async function ensureLiveOptionsLoaded() {
     currentRowsBySource: liveOptionRowsBySource.value,
     skipSourceKey: activeSourceKey.value,
   })
-}
-
-function normalizeListResult(result) {
-  return normalizeFileRecordListResult(result)
 }
 
 function resolveSourceKeyFromTableName(tableName) {
@@ -1357,7 +1361,7 @@ async function loadRecordView() {
         const usersResult = await bridge.value?.users?.list?.()
         liveOptionRowsBySource.value = {
           ...liveOptionRowsBySource.value,
-          users: normalizeListResult(usersResult),
+          users: normalizeFileRecordListResult(usersResult),
         }
       } catch {
         liveOptionRowsBySource.value = {

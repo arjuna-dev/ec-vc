@@ -58,6 +58,7 @@
 import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import PageBackSymbol from 'src/components/PageBackSymbol.vue'
+import { normalizeFileRecordListResult } from 'src/utils/fileRecordLoaders'
 import { RECORD_VIEW_ROUTE_NAME } from 'src/utils/recordViewNavigation'
 import { getCanonicalTokenValue, getRegistryTitleTokenForSource } from 'src/utils/structureRegistry'
 
@@ -91,7 +92,7 @@ async function loadEvent() {
       bridge.value?.users?.list?.(),
     ])
 
-    users.value = normalizeListResult(userResult)
+    users.value = normalizeFileRecordListResult(userResult)
     eventRecord.value = (Array.isArray(eventResult?.events) ? eventResult.events : []).find(
       (event) => String(event?.id || '').trim() === eventIdParam.value,
     ) || null
@@ -112,13 +113,6 @@ function goBackToRecord() {
       recordId: recordIdParam.value,
     },
   })
-}
-
-function normalizeListResult(result) {
-  if (Array.isArray(result)) return result
-  if (!result || typeof result !== 'object') return []
-  const firstArray = Object.values(result).find((value) => Array.isArray(value))
-  return Array.isArray(firstArray) ? firstArray : []
 }
 
 function stringifyAuditValue(value) {
