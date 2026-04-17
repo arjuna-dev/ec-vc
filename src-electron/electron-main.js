@@ -1092,14 +1092,6 @@ function listCompanionRoles() {
   )
 }
 
-function buildDefaultFileRegistryRow(entry, index) {
-  return buildApprovedFileRegistryRow(String(entry?.key || '').trim(), index)
-}
-
-function getFileRegistryEntryBySourceKey(sourceKey) {
-  return getFilePageRegistryEntry(sourceKey)
-}
-
 const ACCEPTED_FILE_STATUS_VALUES = Object.freeze(['Active', 'Archived'])
 const ACCEPTED_FILE_BUCKET_VALUES = Object.freeze(['Owner', 'Companion', 'Work', 'Shared'])
 const ACCEPTED_FORK_MODE_VALUES = Object.freeze(['none', 'view', 'create', 'view_and_create'])
@@ -1199,7 +1191,7 @@ function buildFilesAcceptanceValidation(rows = []) {
   bootstrapRegistryEntries.forEach((entry, index) => {
     const sourceKey = String(entry?.key || '').trim()
     const row = rowsBySourceKey.get(sourceKey)
-    const expected = buildDefaultFileRegistryRow(entry, index)
+    const expected = buildApprovedFileRegistryRow(String(entry?.key || '').trim(), index)
 
     if (!row) {
       addIssue({
@@ -1469,7 +1461,7 @@ function buildFilesAcceptanceValidation(rows = []) {
       })
       return
     }
-    if (!getFileRegistryEntryBySourceKey(sourceKey)) {
+    if (!getFilePageRegistryEntry(sourceKey)) {
       addIssue({
         severity: 'warn',
         sourceKey,
@@ -1621,7 +1613,7 @@ function ensureBootstrapFiles(database) {
 
   const tx = database.transaction(() => {
     bootstrapRegistryEntries.forEach((entry, index) => {
-      const row = buildDefaultFileRegistryRow(entry, index)
+      const row = buildApprovedFileRegistryRow(String(entry?.key || '').trim(), index)
       insertRow.run({
         ...row,
         created_by: actor.user_id,
@@ -1646,14 +1638,11 @@ function createFile(payload = {}) {
     toFileSourceKey(name)
   if (!sourceKey) throw new Error('File source key is required')
 
-  const registryEntry = getFileRegistryEntryBySourceKey(sourceKey)
+  const registryEntry = getFilePageRegistryEntry(sourceKey)
   if (!registryEntry) {
     throw new Error('File source key is not mapped to an approved file source')
   }
-  const registryDefaults = buildDefaultFileRegistryRow(
-    registryEntry,
-    FILE_PAGE_REGISTRY.indexOf(registryEntry),
-  )
+  const registryDefaults = buildApprovedFileRegistryRow(sourceKey, FILE_PAGE_REGISTRY.indexOf(registryEntry))
   const existingFile = database.prepare('SELECT id FROM Files WHERE sourceKey = ? LIMIT 1').get(sourceKey)
   if (existingFile?.id) throw new Error('File source key is already in use')
 
