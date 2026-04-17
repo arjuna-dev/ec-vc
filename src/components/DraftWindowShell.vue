@@ -293,6 +293,7 @@ import { buildTokenGovernanceColumns } from 'src/utils/structureGovernanceColumn
 import { buildShellToolbarFeed } from 'src/utils/shellToolbarFeeder'
 import { buildStructureToolbarItems } from 'src/utils/structureToolbarContract'
 import { splitSurfaceSections } from 'src/utils/shellViewLayout'
+import { getFileRecordLoader } from 'src/utils/fileRecordLoaders'
 import {
   buildFileShellPayload,
   getCanonicalTokenFieldNames,
@@ -325,27 +326,6 @@ const props = defineProps({
 
 const emit = defineEmits(['update:shellSelectorValue', 'change'])
 const $q = useQuasar()
-
-const SECTION_LOADERS = {
-  'file-system': { listFn: (bridgeValue) => bridgeValue?.['file-system']?.list?.(), resultKey: 'files', recordIdField: 'id' },
-  events: { listFn: (bridgeValue) => bridgeValue?.events?.list?.(), resultKey: 'events', recordIdField: 'id' },
-  users: { listFn: (bridgeValue) => bridgeValue?.users?.list?.(), resultKey: 'users', recordIdField: 'id' },
-  markets: { listFn: (bridgeValue) => bridgeValue?.markets?.list?.(), resultKey: 'markets', recordIdField: 'id' },
-  securities: { listFn: (bridgeValue) => bridgeValue?.securities?.list?.(), resultKey: 'securities', recordIdField: 'id' },
-  artifacts: { listFn: (bridgeValue) => bridgeValue?.artifacts?.list?.(), resultKey: 'artifacts', recordIdField: 'artifact_id' },
-  contacts: { listFn: (bridgeValue) => bridgeValue?.contacts?.list?.(), resultKey: 'contacts', recordIdField: 'id' },
-  companies: { listFn: (bridgeValue) => bridgeValue?.companies?.list?.(), resultKey: 'companies', recordIdField: 'id' },
-  opportunities: { listFn: (bridgeValue) => bridgeValue?.opportunities?.list?.(), resultKey: 'opportunities', recordIdField: 'id' },
-  funds: { listFn: (bridgeValue) => bridgeValue?.funds?.list?.(), resultKey: 'funds', recordIdField: 'id' },
-  rounds: { listFn: (bridgeValue) => bridgeValue?.rounds?.list?.(), resultKey: 'rounds', recordIdField: 'id' },
-  projects: { listFn: (bridgeValue) => bridgeValue?.projects?.list?.(), resultKey: 'projects', recordIdField: 'id' },
-  notes: { listFn: (bridgeValue) => bridgeValue?.notes?.list?.(), resultKey: 'notes', recordIdField: 'id' },
-  tasks: { listFn: (bridgeValue) => bridgeValue?.tasks?.list?.(), resultKey: 'tasks', recordIdField: 'id' },
-  'bb-file': { listFn: (bridgeValue) => bridgeValue?.['bb-file']?.list?.(), resultKey: 'buildingBlocks', recordIdField: 'id' },
-  'user-roles': { listFn: (bridgeValue) => bridgeValue?.['user-roles']?.list?.(), resultKey: 'roles', recordIdField: 'id' },
-  'companion-roles': { listFn: (bridgeValue) => bridgeValue?.['companion-roles']?.list?.() ?? { companionRoles: [] }, resultKey: 'companionRoles', recordIdField: 'id' },
-  intake: { listFn: (bridgeValue) => bridgeValue?.intake?.list?.(), resultKey: 'intake', recordIdField: 'id' },
-}
 
 const bridge = computed(() => (typeof window !== 'undefined' ? window.ecvc : null))
 const shellSelectorOpen = ref(false)
@@ -397,7 +377,7 @@ const activeShellSelectorOption = computed(() =>
 )
 
 const activeSettingsSourceKey = computed(() => activeShellSelectorOption.value.value || 'selected-file')
-const activeLoader = computed(() => SECTION_LOADERS[activeSettingsSourceKey.value] || null)
+const activeLoader = computed(() => getFileRecordLoader(activeSettingsSourceKey.value))
 
 const activeFilePayload = computed(() => {
   runtimeStructureVersion.value
@@ -1022,7 +1002,7 @@ function buildSharedLdbLookupKey(recordId, targetEntity) {
 }
 
 function getRecordIdValue(row = {}, sourceKey = '') {
-  const recordIdField = String(SECTION_LOADERS[sourceKey]?.recordIdField || 'id').trim() || 'id'
+  const recordIdField = String(getFileRecordLoader(sourceKey)?.recordIdField || 'id').trim() || 'id'
   return String(row?.[recordIdField] || '').trim()
 }
 
@@ -1410,7 +1390,7 @@ async function loadRows() {
 
 async function loadRowsForSource(sourceKey = '') {
   const normalizedSourceKey = String(sourceKey || '').trim()
-  const loader = SECTION_LOADERS[normalizedSourceKey] || null
+  const loader = getFileRecordLoader(normalizedSourceKey)
   const bridgeValue = bridge.value
 
   if (!normalizedSourceKey) return []

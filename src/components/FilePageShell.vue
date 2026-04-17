@@ -688,6 +688,7 @@ import { getLdbRelationshipContractForToken } from 'src/shared/ldbRelationshipCo
 import { getTokenInputOptions } from 'src/utils/tokenSurfaceContract'
 import { buildTokenUpdateChanges } from 'src/utils/tokenWriteChanges'
 import { buildSurfaceSections, groupSurfaceViews } from 'src/utils/shellViewLayout'
+import { getFileRecordLoader } from 'src/utils/fileRecordLoaders'
 import { buildRecordViewLocation } from 'src/utils/recordViewNavigation'
 import { getBuildingBlockGraphCounts, getBuildingBlockGraphLinks } from 'src/utils/buildingBlocks'
 import { setPendingAddEditShellRequest } from 'src/utils/addEditShellState'
@@ -799,99 +800,6 @@ const LDB_COLUMN_DEFAULT_WIDTH = 72
 const NAME_COLUMN_DEFAULT_WIDTH = 120
 const TABLE_CONTROL_COLUMN_WIDTH = 22
 
-const SECTION_LOADERS = {
-  'file-system': {
-    listFn: (bridgeValue) => bridgeValue?.['file-system']?.list?.(),
-    resultKey: 'files',
-    recordIdField: 'id',
-  },
-  events: {
-    listFn: (bridgeValue) => bridgeValue?.events?.list?.(),
-    resultKey: 'events',
-    recordIdField: 'id',
-  },
-  users: {
-    listFn: (bridgeValue) => bridgeValue?.users?.list?.(),
-    resultKey: 'users',
-    recordIdField: 'id',
-  },
-  markets: {
-    listFn: (bridgeValue) => bridgeValue?.markets?.list?.(),
-    resultKey: 'markets',
-    recordIdField: 'id',
-  },
-  securities: {
-    listFn: (bridgeValue) => bridgeValue?.securities?.list?.(),
-    resultKey: 'securities',
-    recordIdField: 'id',
-  },
-  artifacts: {
-    listFn: (bridgeValue) => bridgeValue?.artifacts?.list?.(),
-    resultKey: 'artifacts',
-    recordIdField: 'artifact_id',
-  },
-  contacts: {
-    listFn: (bridgeValue) => bridgeValue?.contacts?.list?.(),
-    resultKey: 'contacts',
-    recordIdField: 'id',
-  },
-  companies: {
-    listFn: (bridgeValue) => bridgeValue?.companies?.list?.(),
-    resultKey: 'companies',
-    recordIdField: 'id',
-  },
-  opportunities: {
-    listFn: (bridgeValue) => bridgeValue?.opportunities?.list?.(),
-    resultKey: 'opportunities',
-    recordIdField: 'id',
-  },
-  funds: {
-    listFn: (bridgeValue) => bridgeValue?.funds?.list?.(),
-    resultKey: 'funds',
-    recordIdField: 'id',
-  },
-  rounds: {
-    listFn: (bridgeValue) => bridgeValue?.rounds?.list?.(),
-    resultKey: 'rounds',
-    recordIdField: 'id',
-  },
-  projects: {
-    listFn: (bridgeValue) => bridgeValue?.projects?.list?.(),
-    resultKey: 'projects',
-    recordIdField: 'id',
-  },
-  notes: {
-    listFn: (bridgeValue) => bridgeValue?.notes?.list?.(),
-    resultKey: 'notes',
-    recordIdField: 'id',
-  },
-  tasks: {
-    listFn: (bridgeValue) => bridgeValue?.tasks?.list?.(),
-    resultKey: 'tasks',
-    recordIdField: 'id',
-  },
-  'bb-file': {
-    listFn: (bridgeValue) => bridgeValue?.['bb-file']?.list?.(),
-    resultKey: 'buildingBlocks',
-    recordIdField: 'id',
-  },
-  'user-roles': {
-    listFn: (bridgeValue) => bridgeValue?.['user-roles']?.list?.(),
-    resultKey: 'roles',
-    recordIdField: 'id',
-  },
-  'companion-roles': {
-    listFn: (bridgeValue) => bridgeValue?.['companion-roles']?.list?.() ?? { companionRoles: [] },
-    resultKey: 'companionRoles',
-    recordIdField: 'id',
-  },
-  intake: {
-    listFn: (bridgeValue) => bridgeValue?.intake?.list?.(),
-    resultKey: 'intake',
-    recordIdField: 'id',
-  },
-}
-
 const isRecordShellMode = computed(
   () => String(props.shellMode || '').trim().toLowerCase() === 'record' || String(route.name || '').trim().toLowerCase() === 'record-shell',
 )
@@ -935,7 +843,7 @@ const pageShellLabel = computed(() => {
   return routeRegistryEntry.value?.label || activeRegistryEntry.value?.label || 'Records'
 })
 
-const activeLoader = computed(() => SECTION_LOADERS[activeContentSourceKey.value] || null)
+const activeLoader = computed(() => getFileRecordLoader(activeContentSourceKey.value))
 const hasSupportedBridge = computed(() => {
   if (!activeLoader.value) return false
   return typeof activeLoader.value.listFn(bridge.value) !== 'undefined'
@@ -1394,7 +1302,7 @@ function matchesOptionSubset(row, sourceKey, optionSubset) {
 function buildOptionsFromSourceRows(sourceKey, token) {
   const rows = getOptionRowsForSource(sourceKey)
   const titleToken = getRegistryTitleTokenForSource(sourceKey)
-  const recordIdField = SECTION_LOADERS[sourceKey]?.recordIdField || 'id'
+  const recordIdField = getFileRecordLoader(sourceKey)?.recordIdField || 'id'
   const useRecordIdValue =
     tokenHasRelationshipWriteContract(token, activeRegistryEntry.value?.entityName || '') ||
     String(token?.optionValueMode || '').trim() === 'record_id'
@@ -1432,7 +1340,7 @@ async function ensureLiveOptionRowsLoaded(sourceKey) {
   if (!normalized || normalized === activeContentSourceKey.value) return
   if (Array.isArray(liveOptionRowsBySource.value[normalized])) return
 
-  const loader = SECTION_LOADERS[normalized]
+  const loader = getFileRecordLoader(normalized)
   const bridgeValue = bridge.value
   if (!loader || !bridgeValue) return
 
