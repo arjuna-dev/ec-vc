@@ -353,7 +353,7 @@ Goal:
 Every file should have:
 
 - `System Files` row
-- canonical `Defined_Structure`
+- canonical `Structure`
 - canonical file class
 - canonical active/archive status
 - canonical source/entity identity
@@ -479,7 +479,7 @@ Order:
 If one file behaves differently from another, inspect in this order:
 
 1. was the file born correctly in `System Files`?
-2. does it have canonical `Defined_Structure`?
+2. does it have canonical `Structure`?
 3. did runtime hydrate the structure without dropping meaning?
 4. did payload formation preserve the same truth?
 5. did token-to-surface translation preserve:
@@ -537,3 +537,5 @@ It becomes reliable when:
 - write ownership is explicit
 
 `PMP` exists to make that migration visible, ordered, and repeatable.
+
+

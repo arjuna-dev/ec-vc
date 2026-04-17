@@ -1426,7 +1426,7 @@ CREATE TABLE IF NOT EXISTS Files (
   Fork_Enabled TEXT,
   Create_Fork_Instructions TEXT,
   View_Fork_Instructions TEXT,
-  Defined_Structure TEXT,
+  Structure TEXT,
   Glossary_Terms TEXT,
   sourceKey TEXT NOT NULL UNIQUE,
   File_Canonical_Entity TEXT,
@@ -1835,7 +1835,7 @@ CREATE INDEX IF NOT EXISTS idx_Intake_original_artifact
 CREATE INDEX IF NOT EXISTS idx_Intake_created_by
   ON Intake(created_by);
 
-CREATE TABLE IF NOT EXISTS LDB_Relationships (
+CREATE TABLE IF NOT EXISTS LDB_Links (
   id TEXT PRIMARY KEY,
   source_entity TEXT NOT NULL,
   source_record_id TEXT NOT NULL,
@@ -1848,11 +1848,11 @@ CREATE TABLE IF NOT EXISTS LDB_Relationships (
   FOREIGN KEY (created_by) REFERENCES Users(id) ON UPDATE CASCADE ON DELETE SET NULL
 );
 
-CREATE INDEX IF NOT EXISTS idx_LDB_Relationships_source
-  ON LDB_Relationships(source_entity, source_record_id, source_token);
+CREATE INDEX IF NOT EXISTS idx_LDB_Links_source
+  ON LDB_Links(source_entity, source_record_id, source_token);
 
-CREATE INDEX IF NOT EXISTS idx_LDB_Relationships_target
-  ON LDB_Relationships(target_entity, target_record_id);
+CREATE INDEX IF NOT EXISTS idx_LDB_Links_target
+  ON LDB_Links(target_entity, target_record_id);
 
 -- Triggers (Omitted for brevity, but logically follow the same FK enforcement)
 `
@@ -2180,3 +2180,5 @@ ${PIPELINES_SQL}
 ${TRIGGERS_SQL}
 COMMIT;
 `
+
+

@@ -33,7 +33,7 @@ They are the working vocabulary for understanding whether the app is behaving th
 For `File` work, this means:
 
 - file birth is declared intentionally
-- stored `Defined_Structure` is the owned structure truth
+- stored `Structure` is the owned structure truth
 - runtime reads that structure directly
 - shared shells render from that same explicit structure truth
 
@@ -166,7 +166,7 @@ Working rule:
 
 - view metadata lives on the section object
 - token metadata lives on the token object
-- changing those surfaces should regulate `Defined_Structure`
+- changing those surfaces should regulate `Structure`
 
 Visual rule:
 
@@ -244,9 +244,9 @@ For active file structure, the backend and runtime chain is:
 
 1. `src-electron/electron-main.js`
    - defines the file birth template
-   - creates default `Defined_Structure` JSON for new file rows
+   - creates default `Structure` JSON for new file rows
 
-2. `Files.Defined_Structure`
+2. `Files.Structure`
    - stores the file's real structure contract after birth
    - this is what current runtime should trust
 
@@ -267,7 +267,7 @@ Working lesson:
 
 - when we say a field was `changed`, we should be precise about which layer changed:
   - bootstrap template
-  - stored `Defined_Structure`
+  - stored `Structure`
   - runtime parser
   - renderer
 
@@ -599,7 +599,7 @@ Current working `File` JSON shape:
   "sourceKey": "companies",
   "File_Name": "Companies",
   "File_Guide_Path": "docs/100/c1. Companies.md",
-  "Defined_Structure": {
+  "Structure": {
     "version": 1,
     "sections": [
       {
@@ -636,11 +636,12 @@ Current working `File` JSON shape:
 
 Reading note:
 
-- `File` owns the stored `Defined_Structure`
-- `Defined_Structure` owns sections/views
+- `File` owns the stored `Structure`
+- `Structure` owns sections/views
 - sections/views own tokens
 - base sections should already carry their governed shared tokens
 - an empty token list should usually mean the section is not yet declared or is waiting for file-specific extension
 - `Data.Status` belongs in `System`
 - file-specific status belongs in `Other` or another file-owned view
+
 

@@ -440,7 +440,7 @@ export function setRuntimeFileStructures(fileRows = []) {
     if (!shouldHydrateRuntimeFileStructure(row)) continue
     const sourceKey = String(row?.sourceKey || '').trim().toLowerCase()
     if (!sourceKey) continue
-    const rawStructure = String(row?.Defined_Structure || '').trim()
+    const rawStructure = String(row?.Structure || '').trim()
     if (!rawStructure) continue
     try {
       const parsed = JSON.parse(rawStructure)
@@ -777,3 +777,4 @@ export function getCanonicalTokenValue(row = {}, token = {}) {
   }
   return null
 }
+

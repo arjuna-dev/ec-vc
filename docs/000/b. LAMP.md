@@ -321,7 +321,7 @@ Drift signal:
 
 - `Views` edits section/view metadata
 - `Tokens` edits token metadata
-- both regulate `Defined_Structure` directly
+- both regulate `Structure` directly
 
 Drift signal:
 
@@ -494,7 +494,7 @@ That means:
 
 - `Views` edits section/view metadata
 - `Tokens` edits token metadata
-- both surfaces should regulate `Defined_Structure`
+- both surfaces should regulate `Structure`
 - they should not become side tables that only look structural
 - `Row Surface` is the shared editable governance surface
 - it mirrors governed JSON structure
@@ -605,3 +605,5 @@ For launch/birth thinking, this matters because a clean future build should aim 
 - reloadable runtime
 
 without forcing the operator to treat all three as the same thing.
+
+

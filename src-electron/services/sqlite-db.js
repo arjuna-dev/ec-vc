@@ -121,11 +121,11 @@ function maybeRecreateDb(dbPath) {
     hasTable(probe, 'Intake') &&
     hasColumn(probe, 'Intake', 'Intake_Name') &&
     hasColumn(probe, 'Intake', 'Original_Artifact_Id') &&
-    hasTable(probe, 'LDB_Relationships') &&
-    hasColumn(probe, 'LDB_Relationships', 'source_entity') &&
-    hasColumn(probe, 'LDB_Relationships', 'source_token') &&
-    hasColumn(probe, 'LDB_Relationships', 'target_entity') &&
-    hasColumn(probe, 'LDB_Relationships', 'target_record_id') &&
+    hasTable(probe, 'LDB_Links') &&
+    hasColumn(probe, 'LDB_Links', 'source_entity') &&
+    hasColumn(probe, 'LDB_Links', 'source_token') &&
+    hasColumn(probe, 'LDB_Links', 'target_entity') &&
+    hasColumn(probe, 'LDB_Links', 'target_record_id') &&
     hasTable(probe, 'Field_Verification_Metadata') &&
     hasColumn(probe, 'Field_Verification_Metadata', 'table_name') &&
     hasColumn(probe, 'Field_Verification_Metadata', 'record_id') &&
@@ -197,4 +197,5 @@ function columnIsRequired(database, tableName, columnName) {
   const meta = columnMeta(database, tableName, columnName)
   return Boolean(meta && Number(meta.notnull || 0) === 1)
 }
+
 

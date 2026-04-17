@@ -1629,7 +1629,7 @@ function buildBaseFileStructure(entry) {
   }
 }
 
-function buildDefinedStructureJson(entry) {
+function buildStructureJson(entry) {
   return JSON.stringify(buildBaseFileStructure(entry))
 }
 
@@ -1701,7 +1701,7 @@ function buildDefaultFileRegistryRow(entry, index) {
     Fork_Enabled: getFileRegistryForkEnabled(entry),
     Create_Fork_Instructions: buildCreateForkInstructions(entry),
     View_Fork_Instructions: buildViewForkInstructions(entry),
-    Defined_Structure: buildDefinedStructureJson(entry),
+    Structure: buildStructureJson(entry),
     Glossary_Terms: '',
     sourceKey,
     File_Canonical_Entity: String(entry?.canonicalEntityName || '').trim(),
@@ -1750,7 +1750,7 @@ function buildDraftFileDefinitionRow(sourceKey, payload = {}) {
     Fork_Enabled: normalizeNullableString(payload?.Fork_Enabled) || 'No',
     Create_Fork_Instructions: normalizeNullableString(payload?.Create_Fork_Instructions) || '',
     View_Fork_Instructions: normalizeNullableString(payload?.View_Fork_Instructions) || '',
-    Defined_Structure: normalizeNullableString(payload?.Defined_Structure) || '',
+    Structure: normalizeNullableString(payload?.Structure) || '',
     Glossary_Terms: normalizeNullableString(payload?.Glossary_Terms) || '',
     sourceKey: normalizedSourceKey,
     File_Canonical_Entity: normalizeNullableString(payload?.File_Canonical_Entity) || '',
@@ -1919,14 +1919,14 @@ function buildFilesAcceptanceValidation(rows = []) {
       return
     }
 
-    const definedStructure = String(row?.Defined_Structure || '').trim()
+    const definedStructure = String(row?.Structure || '').trim()
     if (!definedStructure) {
       addIssue({
         severity: 'error',
         sourceKey,
         fileId: String(row?.id || '').trim(),
-        field: 'Defined_Structure',
-        issue: 'Defined_Structure is missing for this file. Runtime shells cannot render views or tokens without it.',
+        field: 'Structure',
+        issue: 'Structure is missing for this file. Runtime shells cannot render views or tokens without it.',
         suggestedAction: 'Seed the base System/General/LDB structure for this file inside System Files.',
       })
     } else {
@@ -1936,8 +1936,8 @@ function buildFilesAcceptanceValidation(rows = []) {
           severity: 'error',
           sourceKey,
           fileId: String(row?.id || '').trim(),
-          field: 'Defined_Structure',
-          issue: 'Defined_Structure is not valid JSON and cannot be parsed.',
+          field: 'Structure',
+          issue: 'Structure is not valid JSON and cannot be parsed.',
           suggestedAction: 'Rebuild the structure payload for this file before trusting runtime shells.',
         })
       } else if (parsed) {
@@ -1950,8 +1950,8 @@ function buildFilesAcceptanceValidation(rows = []) {
             severity: 'error',
             sourceKey,
             fileId: String(row?.id || '').trim(),
-            field: 'Defined_Structure',
-            issue: 'Defined_Structure is missing the System section.',
+            field: 'Structure',
+            issue: 'Structure is missing the System section.',
             suggestedAction: 'Restore the System section with ID + History tokens.',
           })
         } else {
@@ -1961,7 +1961,7 @@ function buildFilesAcceptanceValidation(rows = []) {
               severity: 'error',
               sourceKey,
               fileId: String(row?.id || '').trim(),
-              field: 'Defined_Structure',
+              field: 'Structure',
               issue: 'System section is missing the ID token (tokenRole: id).',
               suggestedAction: 'Restore the ID token in the System section.',
             })
@@ -1971,7 +1971,7 @@ function buildFilesAcceptanceValidation(rows = []) {
               severity: 'error',
               sourceKey,
               fileId: String(row?.id || '').trim(),
-              field: 'Defined_Structure',
+              field: 'Structure',
               issue: 'System section is missing the History token (tokenType: event_log).',
               suggestedAction: 'Restore the History token in the System section.',
             })
@@ -1983,8 +1983,8 @@ function buildFilesAcceptanceValidation(rows = []) {
             severity: 'error',
             sourceKey,
             fileId: String(row?.id || '').trim(),
-            field: 'Defined_Structure',
-            issue: 'Defined_Structure is missing the General section.',
+            field: 'Structure',
+            issue: 'Structure is missing the General section.',
             suggestedAction: 'Restore the General section with Name + Summary tokens.',
           })
         } else {
@@ -1994,7 +1994,7 @@ function buildFilesAcceptanceValidation(rows = []) {
               severity: 'error',
               sourceKey,
               fileId: String(row?.id || '').trim(),
-              field: 'Defined_Structure',
+              field: 'Structure',
               issue: 'General section is missing the Name token (tokenRole: title).',
               suggestedAction: 'Restore the Name token in the General section.',
             })
@@ -2004,7 +2004,7 @@ function buildFilesAcceptanceValidation(rows = []) {
               severity: 'error',
               sourceKey,
               fileId: String(row?.id || '').trim(),
-              field: 'Defined_Structure',
+              field: 'Structure',
               issue: 'General section is missing the Summary token (tokenRole: summary).',
               suggestedAction: 'Restore the Summary token in the General section.',
             })
@@ -2219,7 +2219,7 @@ function listFiles() {
         Fork_Enabled,
         Create_Fork_Instructions,
         View_Fork_Instructions,
-        Defined_Structure,
+        Structure,
         Glossary_Terms,
         sourceKey,
         File_Canonical_Entity,
@@ -2305,7 +2305,7 @@ function createFile(payload = {}) {
       Fork_Enabled,
       Create_Fork_Instructions,
       View_Fork_Instructions,
-      Defined_Structure,
+      Structure,
       Glossary_Terms,
       sourceKey,
       File_Canonical_Entity,
@@ -2333,7 +2333,7 @@ function createFile(payload = {}) {
       @Fork_Enabled,
       @Create_Fork_Instructions,
       @View_Fork_Instructions,
-      @Defined_Structure,
+      @Structure,
       @Glossary_Terms,
       @sourceKey,
       @File_Canonical_Entity,
@@ -2367,7 +2367,7 @@ function createFile(payload = {}) {
       normalizeNullableString(payload?.Create_Fork_Instructions) || registryDefaults.Create_Fork_Instructions,
     View_Fork_Instructions:
       normalizeNullableString(payload?.View_Fork_Instructions) || registryDefaults.View_Fork_Instructions,
-    Defined_Structure: normalizeNullableString(payload?.Defined_Structure) || registryDefaults.Defined_Structure,
+    Structure: normalizeNullableString(payload?.Structure) || registryDefaults.Structure,
     Glossary_Terms: normalizeNullableString(payload?.Glossary_Terms) || registryDefaults.Glossary_Terms,
     sourceKey,
     File_Canonical_Entity: normalizeNullableString(payload?.File_Canonical_Entity) || registryDefaults.File_Canonical_Entity,
@@ -9234,3 +9234,4 @@ function resolveTargetEntityFromSharedToken(tokenName = '') {
   const entry = FILE_PAGE_REGISTRY.find((candidate) => String(candidate?.key || '').trim().toLowerCase() === sourceKey)
   return String(entry?.entityName || '').trim()
 }
+

@@ -583,7 +583,7 @@ const governanceViewRows = computed(() =>
       label: {
         editable: true,
         reason: 'View labels are descriptive structure fields.',
-        writePath: `Defined_Structure.sections[${String(section?.key || '').trim()}].label`,
+        writePath: `Structure.sections[${String(section?.key || '').trim()}].label`,
       },
     },
   })),
@@ -650,47 +650,47 @@ const tokenGroupsByView = computed(() =>
             label: {
               editable: true,
               reason: 'Token labels are descriptive file governance fields.',
-              writePath: `Defined_Structure.sections[${String(section?.key || '').trim()}].tokens[${String(token?.key || '').trim()}].label`,
+              writePath: `Structure.sections[${String(section?.key || '').trim()}].tokens[${String(token?.key || '').trim()}].label`,
             },
             tokenType: {
               editable: true,
               reason: 'Token type is governed through file structure.',
-              writePath: `Defined_Structure.sections[${String(section?.key || '').trim()}].tokens[${String(token?.key || '').trim()}].tokenType`,
+              writePath: `Structure.sections[${String(section?.key || '').trim()}].tokens[${String(token?.key || '').trim()}].tokenType`,
             },
             optionSource: {
               editable: true,
               reason: 'Option source is governed through file structure.',
-              writePath: `Defined_Structure.sections[${String(section?.key || '').trim()}].tokens[${String(token?.key || '').trim()}].optionSource`,
+              writePath: `Structure.sections[${String(section?.key || '').trim()}].tokens[${String(token?.key || '').trim()}].optionSource`,
             },
             optionEntity: {
               editable: true,
               reason: 'Option entity is governed through file structure.',
-              writePath: `Defined_Structure.sections[${String(section?.key || '').trim()}].tokens[${String(token?.key || '').trim()}].optionEntity`,
+              writePath: `Structure.sections[${String(section?.key || '').trim()}].tokens[${String(token?.key || '').trim()}].optionEntity`,
             },
             optionList: {
               editable: true,
               reason: 'Option list is governed through file structure.',
-              writePath: `Defined_Structure.sections[${String(section?.key || '').trim()}].tokens[${String(token?.key || '').trim()}].optionList`,
+              writePath: `Structure.sections[${String(section?.key || '').trim()}].tokens[${String(token?.key || '').trim()}].optionList`,
             },
             definition: {
               editable: true,
               reason: 'Definitions live with the file token governance.',
-              writePath: `Defined_Structure.sections[${String(section?.key || '').trim()}].tokens[${String(token?.key || '').trim()}].definition`,
+              writePath: `Structure.sections[${String(section?.key || '').trim()}].tokens[${String(token?.key || '').trim()}].definition`,
             },
             defaultVerificationState: {
               editable: true,
               reason: 'Token data status is part of governed token metadata.',
-              writePath: `Defined_Structure.sections[${String(section?.key || '').trim()}].tokens[${String(token?.key || '').trim()}].defaultVerificationState`,
+              writePath: `Structure.sections[${String(section?.key || '').trim()}].tokens[${String(token?.key || '').trim()}].defaultVerificationState`,
             },
             dbWriteField: {
               editable: true,
               reason: 'Write field is part of the governed token write contract.',
-              writePath: `Defined_Structure.sections[${String(section?.key || '').trim()}].tokens[${String(token?.key || '').trim()}].dbWriteField`,
+              writePath: `Structure.sections[${String(section?.key || '').trim()}].tokens[${String(token?.key || '').trim()}].dbWriteField`,
             },
             fieldClass: {
               editable: true,
               reason: 'Field class is part of the governed token write contract.',
-              writePath: `Defined_Structure.sections[${String(section?.key || '').trim()}].tokens[${String(token?.key || '').trim()}].fieldClass`,
+              writePath: `Structure.sections[${String(section?.key || '').trim()}].tokens[${String(token?.key || '').trim()}].fieldClass`,
             },
           },
         }
@@ -1108,10 +1108,10 @@ function serializeStructureSection(section = {}) {
   return nextSection
 }
 
-function stringifyDefinedStructure(sections = [], currentRow = null) {
+function stringifyStructure(sections = [], currentRow = null) {
   let version = 1
   try {
-    const parsed = JSON.parse(String(currentRow?.Defined_Structure || '').trim() || '{}')
+    const parsed = JSON.parse(String(currentRow?.Structure || '').trim() || '{}')
     version = Number(parsed?.version) || 1
   } catch {
     version = 1
@@ -1136,7 +1136,7 @@ async function persistStructureSections(nextSections = [], actionLabel = 'draft_
     return false
   }
 
-  const definedStructure = stringifyDefinedStructure(nextSections, fileDefinitionRow)
+  const definedStructure = stringifyStructure(nextSections, fileDefinitionRow)
 
   try {
     await bridgeValue.records.update({
@@ -1146,7 +1146,7 @@ async function persistStructureSections(nextSections = [], actionLabel = 'draft_
         {
           table_name: 'Files',
           record_id: recordId,
-          field_name: 'Defined_Structure',
+          field_name: 'Structure',
           id_column: 'id',
           new_value: definedStructure,
         },
@@ -1580,7 +1580,7 @@ watch(
     const rowsResult = await bridge.value.db.query(
       `
         SELECT source_record_id AS source_id, target_entity, target_record_id AS target_id
-        FROM LDB_Relationships
+        FROM LDB_Links
         WHERE source_entity = ?
           AND source_record_id IN (${recordPlaceholders})
           AND target_entity IN (${targetPlaceholders})
@@ -1879,3 +1879,5 @@ watch(
   }
 }
 </style>
+
+

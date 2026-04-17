@@ -49,7 +49,7 @@ Short reading:
 
 - `LAMP` defines what must exist
 - `System` defines what each file is
-- `Defined_Structure` defines what each file contains
+- `Structure` defines what each file contains
 
 ## Construct Classes
 
@@ -313,14 +313,14 @@ The active file-structure path works like this:
 
 1. `src-electron/electron-main.js`
    - defines the bootstrap template for file structure
-   - `buildBaseFileStructure(entry)` creates the default `Defined_Structure` JSON for a file
+   - `buildBaseFileStructure(entry)` creates the default `Structure` JSON for a file
 
-2. `Files.Defined_Structure`
+2. `Files.Structure`
    - stores the actual structure contract for each file
    - this is the main runtime truth holder for structure
 
 3. `src/utils/structureRegistry.js`
-   - reads `Files.Defined_Structure`
+   - reads `Files.Structure`
    - parses the stored JSON
    - turns it into runtime sections and tokens
 
@@ -330,14 +330,14 @@ The active file-structure path works like this:
 Short reading:
 
 - `electron-main.js` = birth template and repair logic
-- `Files.Defined_Structure` = stored structure truth
+- `Files.Structure` = stored structure truth
 - `structureRegistry.js` = runtime parser
 - shell surfaces = renderer
 
 Working rule:
 
 - changing bootstrap alone does not mean every existing file structure changed everywhere
-- if an old field contract is still stored in `Defined_Structure`, the UI should honestly keep reading that older contract until the stored structure is rewritten or repaired
+- if an old field contract is still stored in `Structure`, the UI should honestly keep reading that older contract until the stored structure is rewritten or repaired
 
 ## Parent File Guide Rule
 
@@ -364,8 +364,8 @@ This means:
 - Treat `Files` as the canonical registry entity for file-definition records.
 - Treat `System Files` as the app-facing surface backed by `Files`.
 - Treat canonical JSON as the first birth source for file structure; registry rows should register that structure, not invent it afterward.
-- Every file row must include a `Defined_Structure` payload that the shells can render.
-- Shells must refuse to infer fields when `Defined_Structure` is missing.
+- Every file row must include a `Structure` payload that the shells can render.
+- Shells must refuse to infer fields when `Structure` is missing.
 - Token-backed labels and meanings should come from the declared token layer inside that structure, not from local table or page hardcodes.
 - Do not create a file row without a clear file source key, class, owner, steward, guide path, and structure declaration.
 - Do not treat file visibility as equivalent to file birth.
@@ -533,3 +533,4 @@ Current map:
 - Should `Files` and `System Files` converge to one visible product name beyond this guide merge?
 - Which file-definition fields are canonical rows versus derived display helpers?
 - Which columns should appear first in the system-file table?
+

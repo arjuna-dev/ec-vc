@@ -1194,7 +1194,7 @@ watch(
     const rows = await bridge.value.db.query(
       `
         SELECT target_entity, target_record_id AS target_id
-        FROM LDB_Relationships
+        FROM LDB_Links
         WHERE source_entity = ?
           AND source_record_id = ?
           AND target_entity IN (${targetPlaceholders})
@@ -2754,3 +2754,4 @@ function onContactHeroPointerLeave() {
   .record-shell__toolbar-right { margin-left:0; justify-content:flex-start; }
 }
 </style>
+

@@ -125,7 +125,7 @@ Tested rule:
 
 - `Views` edits view metadata
 - `Tokens` edits token metadata
-- both should regulate `Defined_Structure` directly
+- both should regulate `Structure` directly
 - blue = editable
 - grey = locked
 
@@ -168,7 +168,7 @@ Tested rule:
 
 1. construct birth defines which files must exist
 2. `System Files` declares the runtime file registry
-3. each file row carries owned `Defined_Structure`
+3. each file row carries owned `Structure`
 4. `setRuntimeFileStructures(...)` forms runtime structure from that owned file structure
 5. runtime structure must preserve explicit:
    - sections
@@ -233,7 +233,7 @@ The shared render path should be understood in this order:
 
 1. construct declares minimum birth set
 2. `System Files` declares each file
-3. file row owns `Defined_Structure`
+3. file row owns `Structure`
 4. runtime parser forms runtime structure
 5. shared control reads runtime structure
 6. shared surface reads runtime structure and row data
@@ -253,3 +253,4 @@ Preserve because:
 - it gives future rebuild work a strict order to follow
 - it reduces confusion about where a bug starts
 - it keeps rendering downstream of structure instead of letting renderers invent structure locally
+

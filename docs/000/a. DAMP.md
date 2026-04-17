@@ -112,7 +112,7 @@ Approved runtime sources are:
 
 1. `System Files` registry rows
 2. file-owned tokens and view forks
-3. shared `LDB_Relationships` contract
+3. shared `LDB_Links` contract
 
 The workbook companion still helps with:
 
@@ -159,7 +159,7 @@ This section is the current source of truth. If anything below conflicts, this s
 
 - `System Files` defines the file universe.
 - file-owned tokens and view forks are the live shell payload source.
-- shared relationships are stored and read through `LDB_Relationships`.
+- shared relationships are stored and read through `LDB_Links`.
 - workbook and canonical JSON are reference inputs only; they do not drive live shell payload truth.
 
 Safe ownership chain:
@@ -690,7 +690,7 @@ That means the app should create and own the current baseline table set as part 
 - current first-order `File` tables such as `Companies`, `Funds`, `Rounds`, `Users`, `Contacts`, `Projects`, `Tasks`, `Notes`, `Roles`, `Artifacts`, and related current working record tables
 - current knowledge/reference tables such as `Markets`, `Securities`, `Regions`, `BusinessModels`, `SectorGroups`, `VerticalIndustries`, `VC_Terms_Glossary`, and related current supporting tables
 - current owned subtables and current relationship/join tables exactly as they are presently declared
-- current linkage/runtime tables such as `Users_Roles`, `Intake`, and `LDB_Relationships`
+- current linkage/runtime tables such as `Users_Roles`, `Intake`, and `LDB_Links`
 
 Working rule:
 
@@ -1338,7 +1338,7 @@ LDB propagation rule:
 - if the intended product rule is that records should be linkable across the DB set, that propagation must happen during the `File` bootstrap itself
 - reciprocal LDB declarations should be born with the `File`, not manually discovered later
 - the bridge contract should also be born with the `File`, not hand-added only after drift is noticed
-- bootstrap should decide whether each approved relationship uses a dedicated join table or the shared `LDB_Relationships` owner path
+- bootstrap should decide whether each approved relationship uses a dedicated join table or the shared `LDB_Links` owner path
 - manual back-wiring after file birth should be treated as a temporary repair, not as the intended architecture rule
 
 ### New File Bootstrap Algorithm
@@ -1364,7 +1364,7 @@ The intended birth sequence for a new normal `File` is:
 6. create the reciprocal LDB declarations against the approved active `File` set
 7. decide the owner path for each approved relationship:
    - dedicated join table
-   - shared `LDB_Relationships`
+   - shared `LDB_Links`
 8. create the bridge contract and reverse-read path for each approved relationship
 9. add route, registry, shell, and navigation ownership
 10. confirm list/create/edit/delete and shell launch behavior are working
@@ -1567,20 +1567,20 @@ Working rule:
 
 For canon-declared LDB relationships that do not already have an approved domain-specific join table, the standard owner path is now:
 
-- `LDB_Relationships`
+- `LDB_Links`
 
 This table exists to keep the missing relationship set on one shared contract instead of multiplying one-off pair tables.
 
 Working rule:
 
 - existing domain-specific relationship tables may continue where they are already meaningful and approved
-- canon-declared LDB links without that special owner path should use the shared `LDB_Relationships` contract
+- canon-declared LDB links without that special owner path should use the shared `LDB_Links` contract
 - reverse appearance should be maintained through the same shared contract
-- the choice between domain-specific join table and shared `LDB_Relationships` should be made during `File` bootstrap, not improvised later per page or per file
+- the choice between domain-specific join table and shared `LDB_Links` should be made during `File` bootstrap, not improvised later per page or per file
 
 Promotion rule:
 
-- shared `LDB_Relationships` should be treated as the default relationship-existence layer
+- shared `LDB_Links` should be treated as the default relationship-existence layer
 - a dedicated join table should be used when the relationship itself becomes a governed object
 - that promotion is appropriate when the relationship needs:
   - its own relationship metadata
@@ -2956,4 +2956,5 @@ Why:
 - many join tables are directional at the SQL layer
 - reusing the same join-column mapping in both directions can put the source record id into the wrong foreign-key column
 - that causes foreign-key failures even when the chosen linked record is valid
+
 

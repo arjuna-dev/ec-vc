@@ -21,14 +21,14 @@ The system chain works like this:
 
 1. `src-electron/electron-main.js`
    - this is where the app defines the bootstrap template for file structure
-   - `buildBaseFileStructure(entry)` creates the default `Defined_Structure` JSON for a file
+   - `buildBaseFileStructure(entry)` creates the default `Structure` JSON for a file
 
-2. `Files.Defined_Structure`
+2. `Files.Structure`
    - that JSON is then stored in the `Files` table as the actual structure contract for each file
    - this is the important truth holder for runtime structure
 
 3. `src/utils/structureRegistry.js`
-   - this reads `Files.Defined_Structure`
+   - this reads `Files.Structure`
    - it parses the stored JSON
    - it turns that structure into runtime sections and tokens the frontend can use
 
@@ -38,7 +38,7 @@ The system chain works like this:
 ### Short Reading
 
 - `electron-main.js` = birth template and repair logic
-- `Files.Defined_Structure` = stored structure truth
+- `Files.Structure` = stored structure truth
 - `structureRegistry.js` = runtime parser
 - shell surfaces = renderer
 
@@ -49,12 +49,12 @@ Changing bootstrap in `electron-main.js` does not automatically mean every exist
 It only guarantees:
 
 - new structures can be born differently
-- existing structures can change only if the stored `Defined_Structure` is explicitly rewritten or repaired
+- existing structures can change only if the stored `Structure` is explicitly rewritten or repaired
 
 That means a field contract change should always be checked across four layers:
 
 1. bootstrap template
-2. stored `Defined_Structure`
+2. stored `Structure`
 3. runtime parser
 4. renderer
 
@@ -85,13 +85,13 @@ Files work through a declared structure contract.
 The current logic is:
 
 1. a file is declared through `System Files`
-2. that file stores its structure in `Files.Defined_Structure`
+2. that file stores its structure in `Files.Structure`
 3. the structure declares views/sections
 4. those views/sections declare tokens
 
 REF REVIEW "good way to think about it.
 
-Files.Defined_Structure is the stored JSON structure contract for a file.
+Files.Structure is the stored JSON structure contract for a file.
 
 Inside that contract, the next layer is:
 
@@ -102,7 +102,7 @@ So the nesting is basically:
 Files
 
 the registry row exists
-Files.Defined_Structure
+Files.Structure
 
 the file’s stored structure contract
 sections/views
@@ -118,7 +118,7 @@ the leaf definitions inside each section/view"
 Short reading:
 
 - `System Files` says the file exists
-- `Defined_Structure` says what the file contains
+- `Structure` says what the file contains
 - runtime parsing makes that structure usable
 - shells render what the structure actually says
 
@@ -233,3 +233,4 @@ Placeholders for future mini-guides:
 - `docs/000/e. Token.md`
 - `docs/999/a. ECS_Tracker.md`
 - `docs/999/b. PMP.md`
+

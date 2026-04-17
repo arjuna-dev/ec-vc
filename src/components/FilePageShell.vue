@@ -2134,7 +2134,7 @@ watch(
     const rowsResult = await bridge.value.db.query(
       `
         SELECT source_record_id AS source_id, target_entity, target_record_id AS target_id
-        FROM LDB_Relationships
+        FROM LDB_Links
         WHERE source_entity = ?
           AND source_record_id IN (${recordPlaceholders})
           AND target_entity IN (${targetPlaceholders})
@@ -4434,7 +4434,7 @@ async function resolveRelatedArtifactIdsForShell({ targetEntity = '', targetReco
   const opportunityRows = await bridge.value.db.query(
     `
       SELECT DISTINCT source_record_id AS opportunity_id
-      FROM LDB_Relationships
+      FROM LDB_Links
       WHERE source_entity = 'Opportunities'
         AND source_token = ?
         AND target_entity = ?
@@ -4453,7 +4453,7 @@ async function resolveRelatedArtifactIdsForShell({ targetEntity = '', targetReco
   const artifactRows = await bridge.value.db.query(
     `
       SELECT DISTINCT target_record_id AS artifact_id
-      FROM LDB_Relationships
+      FROM LDB_Links
       WHERE source_entity = 'Opportunities'
         AND source_token = 'Opportunity_Artifact'
         AND source_record_id IN (${placeholders})
@@ -6893,4 +6893,5 @@ function isBbGraphLinkToken(tokenRow) {
   }
 }
 </style>
+
 
