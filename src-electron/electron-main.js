@@ -910,7 +910,6 @@ function listOpportunities() {
 
 function listContacts() {
   const database = initDb()
-  ensureContactsProvenanceColumns(database)
   ensureOwnerUserProfile(database)
   return dbAll(
     `
@@ -936,26 +935,6 @@ function listContacts() {
     ORDER BY COALESCE(c.Name, '') ASC, c.id DESC
   `,
   )
-}
-
-function ensureContactsProvenanceColumns(database) {
-  const contactsMeta = getTableMeta(database, 'Contacts')
-  if (!contactsMeta.columnsSet.has('created_by')) {
-    database.exec('ALTER TABLE Contacts ADD COLUMN created_by TEXT')
-  }
-  if (!contactsMeta.columnsSet.has('created_at')) {
-    database.exec('ALTER TABLE Contacts ADD COLUMN created_at TEXT')
-  }
-  if (!contactsMeta.columnsSet.has('updated_at')) {
-    database.exec('ALTER TABLE Contacts ADD COLUMN updated_at TEXT')
-  }
-  database.exec(`
-    UPDATE Contacts
-    SET
-      created_at = COALESCE(created_at, datetime('now')),
-      updated_at = COALESCE(updated_at, datetime('now'))
-    WHERE created_at IS NULL OR updated_at IS NULL
-  `)
 }
 
 function listRounds() {
@@ -2477,17 +2456,6 @@ function toFileSourceKey(value) {
 }
 
 function ensureDefaultBuildingBlocks(database) {
-  const buildingBlockMeta = getTableMeta(database, 'Building_Blocks')
-  if (!buildingBlockMeta.columnsSet.has('Used_In_Shells')) {
-    database.exec('ALTER TABLE Building_Blocks ADD COLUMN Used_In_Shells TEXT')
-  }
-  if (!buildingBlockMeta.columnsSet.has('Built_From_BBs')) {
-    database.exec('ALTER TABLE Building_Blocks ADD COLUMN Built_From_BBs TEXT')
-  }
-  if (!buildingBlockMeta.columnsSet.has('Convergence_Rule')) {
-    database.exec('ALTER TABLE Building_Blocks ADD COLUMN Convergence_Rule TEXT')
-  }
-
   const insertRow = database.prepare(`
     INSERT INTO Building_Blocks (
       id,
@@ -4568,7 +4536,6 @@ function getRecordView(tableName, recordId) {
 
 function createContact(payload = {}) {
   const database = initDb()
-  ensureContactsProvenanceColumns(database)
   const actor = getAuditActor(database)
   const id = normalizeNullableString(payload.id) || `contact:${crypto.randomUUID()}`
   const name = normalizeNullableString(payload.Name)
