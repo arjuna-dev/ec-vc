@@ -1106,6 +1106,26 @@ const BASE_FILE_TOKEN_FIELDS = Object.freeze({
   'companion-roles': { nameField: 'Companion_Role_Name', definitionField: 'Companion_Role_Summary' },
 })
 
+const FILE_SPECIFIC_BIRTH_TOKENS = Object.freeze({
+  companies: [
+    { tokenName: 'Short_Name', label: 'Short Name' },
+    { tokenName: 'Website', label: 'Website' },
+    { tokenName: 'Description', label: 'Description' },
+    { tokenName: 'Notable_News', label: 'Notable News' },
+    { tokenName: 'Updates', label: 'Updates' },
+    { tokenName: 'Status', label: 'Status' },
+  ],
+  contacts: [
+    { tokenName: 'Personal_Email', label: 'Personal Email' },
+    { tokenName: 'Professional_Email', label: 'Professional Email' },
+    { tokenName: 'Phone', label: 'Phone' },
+    { tokenName: 'Country_based', label: 'Country Based' },
+    { tokenName: 'LinkedIn', label: 'LinkedIn' },
+    { tokenName: 'Status', label: 'Status' },
+    { tokenName: 'linked_user_id', label: 'Linked User ID' },
+  ],
+})
+
 function buildBaseFileStructure(entry) {
   const sourceKey = String(entry?.key || '').trim().toLowerCase()
   const mapping = BASE_FILE_TOKEN_FIELDS[sourceKey] || { nameField: '', definitionField: '' }
@@ -1114,6 +1134,27 @@ function buildBaseFileStructure(entry) {
   const nameTokenName = nameField || 'Name'
   const definitionTokenName = definitionField || 'Definition'
   const makeWriteTarget = (fieldName) => ({ dbWriteField: fieldName })
+  const baseTokenNames = new Set([nameTokenName, definitionTokenName, 'ID', 'History', 'System.Status'])
+  const fileSpecificTokens = (FILE_SPECIFIC_BIRTH_TOKENS[sourceKey] || [])
+    .filter((token) => token && !baseTokenNames.has(String(token.tokenName || '').trim()))
+    .map((token, index) => ({
+      key: String(token.tokenName || '').trim(),
+      tokenName: String(token.tokenName || '').trim(),
+      tokenRole: '',
+      tokenOrder: String(index + 3),
+      address: '',
+      label: String(token.label || token.tokenName || '').trim(),
+      tokenType: 'text',
+      optionSource: '',
+      optionEntity: '',
+      optionList: '',
+      optionEntities: [],
+      ...makeWriteTarget(String(token.tokenName || '').trim()),
+      relationshipGroup: '',
+      definition: '',
+      defaultVerificationState: 'Input',
+      defaultVerificationSource: 'system_defined',
+    }))
 
   return {
     version: 1,
@@ -1225,6 +1266,7 @@ function buildBaseFileStructure(entry) {
               defaultVerificationState: 'Input',
               defaultVerificationSource: 'system_defined',
             },
+            ...fileSpecificTokens,
           ],
         },
       {
