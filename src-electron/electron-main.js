@@ -34,9 +34,9 @@ import { DEFAULT_BUILDING_BLOCK_FILE_ROWS } from '../src/utils/buildingBlocks.js
 import {
   buildRegistryFileStructure,
   FILE_PAGE_REGISTRY,
-  OWNER_PACK_FILE_KEYS,
   getCreateBranches,
   getFilePageBirthDefaults,
+  getFilePageRegistryEntry,
   getViewForks,
 } from '../src/utils/structureRegistry.js'
 
@@ -1148,16 +1148,21 @@ function buildViewForkInstructions(entry) {
 
 function buildDefaultFileRegistryRow(entry, index) {
   const sourceKey = String(entry?.key || '').trim()
-  const guidePath = FILE_GUIDE_PATH_BY_SOURCE_KEY[sourceKey] || null
+  const birthDefaults = getFilePageBirthDefaults(sourceKey)
+  const guidePath = String(entry?.fileGuidePath || '').trim() || null
+  const defaultFileStatus =
+    String(birthDefaults.defaultFileStatus || '').trim()
+    || (String(entry?.filePack || '').trim() === 'owner' ? 'Active' : 'Archived')
+  const defaultFileBucket = String(birthDefaults.defaultFileBucket || '').trim() || 'Shared'
   return {
     id: `file:${sourceKey || index + 1}`,
     File_Order: index + 1,
     File_Name: String(entry?.label || entry?.singularLabel || entry?.key || '').trim(),
     File_Summary: `System definition for ${String(entry?.label || entry?.singularLabel || 'file').trim()}.`,
-    File_Status: getDefaultFileStatusForSourceKey(sourceKey, guidePath),
+    File_Status: defaultFileStatus,
     File_Guide_Path: guidePath,
     File_Class: 'L1',
-    File_Bucket: getDefaultFileBucketForSourceKey(sourceKey),
+    File_Bucket: defaultFileBucket,
     Ownership_Mode: 'root_owned',
     File_Owner: 'Owner',
     File_Steward: 'File Steward',
@@ -1178,67 +1183,13 @@ function buildDefaultFileRegistryRow(entry, index) {
 }
 
 function getFileRegistryEntryBySourceKey(sourceKey) {
-  const normalizedSourceKey = String(sourceKey || '').trim()
-  return FILE_PAGE_REGISTRY.find((entry) => String(entry?.key || '').trim() === normalizedSourceKey) || null
+  return getFilePageRegistryEntry(sourceKey)
 }
 
 const ACCEPTED_FILE_STATUS_VALUES = Object.freeze(['Active', 'Archived'])
 const ACCEPTED_FILE_BUCKET_VALUES = Object.freeze(['Owner', 'Companion', 'Work', 'Shared'])
 const ACCEPTED_FORK_MODE_VALUES = Object.freeze(['none', 'view', 'create', 'view_and_create'])
 const PROTECTED_BOOTSTRAP_FILE_SOURCE_KEYS = new Set(['file-system', 'events', 'bb-file'])
-const OWNER_PACK_FILE_SOURCE_KEY_SET = new Set(OWNER_PACK_FILE_KEYS)
-const FILE_BUCKET_BY_SOURCE_KEY = Object.freeze({
-  'file-system': 'Shared',
-  events: 'Shared',
-  users: 'Owner',
-  companion: 'Companion',
-  contacts: 'Shared',
-  'user-roles': 'Owner',
-  'companion-roles': 'Companion',
-  projects: 'Work',
-  tasks: 'Work',
-  notes: 'Work',
-  artifacts: 'Work',
-  intake: 'Work',
-  companies: 'Shared',
-  opportunities: 'Shared',
-  funds: 'Shared',
-  rounds: 'Shared',
-  markets: 'Shared',
-  securities: 'Shared',
-  'bb-file': 'Shared',
-})
-const FILE_GUIDE_PATH_BY_SOURCE_KEY = Object.freeze({
-  'bb-file': 'docs/100/Archive/100-BB_Shell.md',
-  events: 'docs/100/Archive/100-Events.md',
-  'file-system': 'docs/010/System.md',
-  users: 'docs/100/Archive/100-Users.md',
-  companion: 'docs/002/a. Companion.md',
-  artifacts: 'docs/100/Archive/100-Artifacts.md',
-  contacts: 'docs/100/Archive/100-Contacts.md',
-  companies: 'docs/100/Archive/100-Companies.md',
-  opportunities: 'docs/100/Archive/100-Opportunities.md',
-  funds: 'docs/100/Archive/100-Funds.md',
-  rounds: 'docs/100/Archive/100-Rounds.md',
-  projects: 'docs/100/Archive/100-Projects.md',
-  tasks: 'docs/100/Archive/100-Tasks.md',
-  notes: 'docs/100/Archive/100-Notes.md',
-  'user-roles': 'docs/100/Archive/100-User_Roles.md',
-  'companion-roles': 'docs/100/Archive/100-Companion_Roles.md',
-  markets: 'docs/100/Archive/100-Markets.md',
-  securities: 'docs/100/Archive/100-Securities.md',
-  intake: 'docs/100/Archive/100-Intake.md',
-})
-
-function getDefaultFileStatusForSourceKey(sourceKey = '', guidePath = '') {
-  const normalizedSourceKey = String(sourceKey || '').trim().toLowerCase()
-  if (OWNER_PACK_FILE_SOURCE_KEY_SET.has(normalizedSourceKey)) return 'Active'
-
-  const normalizedPath = String(guidePath || '').trim().toLowerCase()
-  if (normalizedPath.includes('/active/')) return 'Active'
-  if (normalizedPath.includes('/archive/')) return 'Archived'
-  return 'Archived'
-}
 
 function normalizeFileStatusValue(value) {
   const normalized = String(value || '').trim().toLowerCase()
@@ -1247,11 +1198,6 @@ function normalizeFileStatusValue(value) {
   if (['archived', 'archive', 'draft', 'partial', 'hidden'].includes(normalized)) return 'Archived'
   const match = ACCEPTED_FILE_STATUS_VALUES.find((status) => status.toLowerCase() === normalized)
   return match || ''
-}
-
-function getDefaultFileBucketForSourceKey(sourceKey = '') {
-  const normalized = String(sourceKey || '').trim().toLowerCase()
-  return FILE_BUCKET_BY_SOURCE_KEY[normalized] || 'Shared'
 }
 
 function normalizeFileBucketValue(value = '') {
@@ -1277,10 +1223,10 @@ function buildFilesAcceptanceValidation(rows = []) {
   const issues = []
   const rowsBySourceKey = new Map()
   const bootstrapRegistryEntries = FILE_PAGE_REGISTRY.filter((entry) =>
-    OWNER_PACK_FILE_SOURCE_KEY_SET.has(String(entry?.sourceKey || entry?.key || '').trim()),
+    String(entry?.filePack || '').trim() === 'owner',
   )
   const optionalRegistryEntries = FILE_PAGE_REGISTRY.filter((entry) =>
-    !OWNER_PACK_FILE_SOURCE_KEY_SET.has(String(entry?.sourceKey || entry?.key || '').trim()),
+    String(entry?.filePack || '').trim() !== 'owner',
   )
 
   rows.forEach((row) => {
@@ -1636,7 +1582,7 @@ function buildFilesAcceptanceValidation(rows = []) {
     checkedAt: new Date().toISOString(),
     statuses: [...ACCEPTED_FILE_STATUS_VALUES],
     protectedBootstrapSourceKeys: [...PROTECTED_BOOTSTRAP_FILE_SOURCE_KEYS],
-    ownerPackSourceKeys: [...OWNER_PACK_FILE_KEYS],
+    ownerPackSourceKeys: bootstrapRegistryEntries.map((entry) => String(entry?.sourceKey || entry?.key || '').trim()),
     rowCount: rows.length,
     registryCount: bootstrapRegistryEntries.length,
     optionalRegistryCount: optionalRegistryEntries.length,
@@ -1695,7 +1641,7 @@ function ensureBootstrapFiles(database) {
   )
   if (existingCount > 0) return
   const bootstrapRegistryEntries = FILE_PAGE_REGISTRY.filter((entry) =>
-    OWNER_PACK_FILE_SOURCE_KEY_SET.has(String(entry?.sourceKey || entry?.key || '').trim()),
+    String(entry?.filePack || '').trim() === 'owner',
   )
 
   const actor = getAuditActor(database)

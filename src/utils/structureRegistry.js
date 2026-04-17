@@ -171,6 +171,7 @@ const FILE_PAGE_ROUTE_META = Object.freeze({
     fileGuidePath: 'docs/100/a5. Users.md',
     birthDefaults: {
       primaryNameField: 'User_Name',
+      defaultFileBucket: 'Owner',
     },
   },
   Companion: {
@@ -187,6 +188,7 @@ const FILE_PAGE_ROUTE_META = Object.freeze({
     birthDefaults: {
       primaryNameField: 'Companion_Name',
       primarySummaryField: 'Companion_Summary',
+      defaultFileBucket: 'Companion',
     },
   },
   Artifacts: {
@@ -387,6 +389,7 @@ const FILE_PAGE_ROUTE_META = Object.freeze({
     birthDefaults: {
       primaryNameField: 'Project_Name',
       primarySummaryField: 'Project_Summary',
+      defaultFileBucket: 'Work',
     },
     birthTokens: [
       { tokenName: 'Status', label: 'Status', dbWriteField: 'Project_Status' },
@@ -411,6 +414,7 @@ const FILE_PAGE_ROUTE_META = Object.freeze({
     birthDefaults: {
       primaryNameField: 'Task_Name',
       primarySummaryField: 'Task_Summary',
+      defaultFileBucket: 'Work',
     },
     birthTokens: [
       { tokenName: 'Status', label: 'Status', dbWriteField: 'Task_Status' },
@@ -439,6 +443,7 @@ const FILE_PAGE_ROUTE_META = Object.freeze({
     birthDefaults: {
       primaryNameField: 'Note_Name',
       primarySummaryField: 'Note_Content',
+      defaultFileBucket: 'Work',
     },
     birthTokens: [
       { tokenName: 'Status', label: 'Status' },
@@ -459,6 +464,7 @@ const FILE_PAGE_ROUTE_META = Object.freeze({
     birthDefaults: {
       primaryNameField: 'Role_Name',
       primarySummaryField: 'Role_Summary',
+      defaultFileBucket: 'Owner',
     },
     birthTokens: [
       { tokenName: 'Status', label: 'Status' },
@@ -479,6 +485,7 @@ const FILE_PAGE_ROUTE_META = Object.freeze({
     birthDefaults: {
       primaryNameField: 'Companion_Role_Name',
       primarySummaryField: 'Companion_Role_Summary',
+      defaultFileBucket: 'Companion',
     },
     birthTokens: [
       { tokenName: 'Type', label: 'Type', dbWriteField: 'Companion_Role_Type' },
@@ -553,6 +560,7 @@ const FILE_PAGE_ROUTE_META = Object.freeze({
     birthDefaults: {
       primaryNameField: 'Intake_Name',
       primarySummaryField: 'Intake_Summary',
+      defaultFileBucket: 'Work',
     },
     birthTokens: [
       { tokenName: 'Original_Artifact', label: 'Original Artifact', dbWriteField: 'Original_Artifact_Id' },
