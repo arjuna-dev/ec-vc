@@ -142,6 +142,10 @@ const api = {
     events: (filters) => ipcRenderer.invoke('audit:events', filters),
     history: (filters) => ipcRenderer.invoke('audit:history', filters),
   },
+  ldb: {
+    linksForRecord: ({ sourceEntity, recordId, targetEntities } = {}) =>
+      ipcRenderer.invoke('ldb:linksForRecord', { sourceEntity, recordId, targetEntities }),
+  },
   links: {
     openExternal: (url) => ipcRenderer.invoke('links:openExternal', { url }),
   },

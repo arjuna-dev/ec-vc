@@ -7838,6 +7838,37 @@ function registerIpc() {
     return { events: listEvents(filters) }
   })
 
+  ipcMain.handle('ldb:linksForRecord', async (_event, { sourceEntity, recordId, targetEntities } = {}) => {
+    initDb()
+    const normalizedSourceEntity = normalizeNullableString(sourceEntity)
+    const normalizedRecordId = normalizeNullableString(recordId)
+    const normalizedTargetEntities = Array.from(
+      new Set(
+        (Array.isArray(targetEntities) ? targetEntities : [])
+          .map((value) => normalizeNullableString(value))
+          .filter(Boolean),
+      ),
+    )
+
+    if (!normalizedSourceEntity || !normalizedRecordId || !normalizedTargetEntities.length) {
+      return { links: [] }
+    }
+
+    const targetPlaceholders = normalizedTargetEntities.map(() => '?').join(', ')
+    return {
+      links: dbAll(
+        `
+          SELECT target_entity, target_record_id AS target_id
+          FROM LDB_Links
+          WHERE source_entity = ?
+            AND source_record_id = ?
+            AND target_entity IN (${targetPlaceholders})
+        `,
+        [normalizedSourceEntity, normalizedRecordId, ...normalizedTargetEntities],
+      ),
+    }
+  })
+
   ipcMain.handle('links:openExternal', async (_event, { url } = {}) => {
     const target = String(url || '').trim()
     if (!target) return false

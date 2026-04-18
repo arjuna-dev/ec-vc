@@ -875,7 +875,7 @@ watch(
   async ([recordId]) => {
     const entityName = String(activeRegistryEntry.value?.entityName || '').trim()
     const normalizedRecordId = String(recordId || '').trim()
-    if (!entityName || !normalizedRecordId || !bridge.value?.db?.query) {
+    if (!entityName || !normalizedRecordId || !bridge.value?.ldb?.linksForRecord) {
       sharedLdbLinksByTargetEntity.value = {}
       return
     }
@@ -888,17 +888,12 @@ watch(
       return
     }
 
-    const targetPlaceholders = targetEntities.map(() => '?').join(', ')
-    const rows = await bridge.value.db.query(
-      `
-        SELECT target_entity, target_record_id AS target_id
-        FROM LDB_Links
-        WHERE source_entity = ?
-          AND source_record_id = ?
-          AND target_entity IN (${targetPlaceholders})
-      `,
-      [entityName, normalizedRecordId, ...targetEntities],
-    )
+    const result = await bridge.value.ldb.linksForRecord({
+      sourceEntity: entityName,
+      recordId: normalizedRecordId,
+      targetEntities,
+    })
+    const rows = Array.isArray(result?.links) ? result.links : []
 
     const nextMap = {}
     ;(Array.isArray(rows) ? rows : []).forEach((row) => {
