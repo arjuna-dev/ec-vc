@@ -117,6 +117,7 @@
     :columns="resolvedDataSurfaceColumns"
     :rows="resolvedDataSurfaceRows"
     :empty-label="emptyDataLabel"
+    @cell-click="handleDataSurfaceCellClick"
     @cell-dblclick="handleDataSurfaceCellDblclick"
   >
     <template #head="{ column }">
@@ -196,6 +197,7 @@ const emit = defineEmits([
   'toggle-view-select',
   'toggle-data-select',
   'toggle-select-all',
+  'data-cell-click',
   'update-view-cell',
   'update-data-cell',
   'update-token-cell',
@@ -410,6 +412,11 @@ function handleDataSurfaceCellDblclick(row, column) {
   if (!row || !column) return
   if (column.key === '__select__' || column.key === '__view__') return
   startDataCellEdit(row, column)
+}
+
+function handleDataSurfaceCellClick(row, column) {
+  if (!row || !column) return
+  emit('data-cell-click', row, column)
 }
 
 function cancelDataCellEdit() {

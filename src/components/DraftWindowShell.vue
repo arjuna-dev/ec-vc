@@ -235,6 +235,7 @@
               :select-all-indeterminate="dataSurfaceContract.someVisibleSelected"
               @toggle-select-all="toggleSelectAllVisible"
               @toggle-data-select="toggleLeafSelection"
+              @data-cell-click="handleDataCellClick"
               @update-data-cell="updateDataCell"
             />
           </div>
@@ -600,7 +601,9 @@ const fileHeroActionItems = computed(() => fileHeroPayload.value.actionItems)
 
 const activeRecordViewId = computed(() => {
   const selectedRow = Array.isArray(selectedDataRows.value) ? selectedDataRows.value[0] : null
-  return String(selectedRow?.key || '').trim()
+  if (selectedRow?.key) return String(selectedRow.key).trim()
+  const firstVisibleRow = Array.isArray(displayRows.value) ? displayRows.value[0] : null
+  return String(firstVisibleRow?.key || '').trim()
 })
 
 const activeRecordRuntimeTableName = computed(() =>
@@ -1232,6 +1235,19 @@ function toggleLeafSelection(rowKey) {
     [sourceKey]: current.includes(rowKey)
       ? current.filter((key) => key !== rowKey)
       : [...current, rowKey],
+  }
+}
+
+function handleDataCellClick(row = {}, column = {}) {
+  const rowKey = String(row?.key || '').trim()
+  const columnKey = String(column?.key || '').trim()
+  if (!rowKey || columnKey === '__select__' || columnKey === '__view__') return
+  const primaryColumnKey = String(recordDataColumns.value[0]?.key || '').trim()
+  if (!primaryColumnKey || columnKey !== primaryColumnKey) return
+
+  selectedLeafKeysBySource.value = {
+    ...selectedLeafKeysBySource.value,
+    [activeSettingsSourceKey.value]: [rowKey],
   }
 }
 
