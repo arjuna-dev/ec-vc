@@ -60,6 +60,56 @@
 
     <section class="draft-window-shell__data-section">
       <div class="draft-window-shell__data-title-row">
+        <DialogShellTitleRow title="File View" class="draft-window-shell__data-title" />
+        <button
+          type="button"
+          class="draft-window-shell__section-chevron"
+          :aria-label="fileViewCollapsed ? 'Expand file view section' : 'Collapse file view section'"
+          @click="fileViewCollapsed = !fileViewCollapsed"
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true" class="draft-window-shell__section-chevron-icon">
+            <path :d="fileViewCollapsed ? 'M7 10L12 15L17 10' : 'M7 14L12 9L17 14'" />
+          </svg>
+        </button>
+      </div>
+
+      <div v-if="!fileViewCollapsed" class="draft-window-shell__section-body">
+        <section class="draft-window-shell__placeholder">
+          <div class="draft-window-shell__placeholder-title">File View Placeholder</div>
+          <div class="draft-window-shell__placeholder-copy">
+            This section will hold the PMP file hero surface once we port the real contract-fed hero.
+          </div>
+        </section>
+      </div>
+    </section>
+
+    <section class="draft-window-shell__data-section">
+      <div class="draft-window-shell__data-title-row">
+        <DialogShellTitleRow title="Record View" class="draft-window-shell__data-title" />
+        <button
+          type="button"
+          class="draft-window-shell__section-chevron"
+          :aria-label="recordViewCollapsed ? 'Expand record view section' : 'Collapse record view section'"
+          @click="recordViewCollapsed = !recordViewCollapsed"
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true" class="draft-window-shell__section-chevron-icon">
+            <path :d="recordViewCollapsed ? 'M7 10L12 15L17 10' : 'M7 14L12 9L17 14'" />
+          </svg>
+        </button>
+      </div>
+
+      <div v-if="!recordViewCollapsed" class="draft-window-shell__section-body">
+        <section class="draft-window-shell__placeholder">
+          <div class="draft-window-shell__placeholder-title">Record View Placeholder</div>
+          <div class="draft-window-shell__placeholder-copy">
+            This section will hold the PMP record hero surface once we port the real contract-fed hero.
+          </div>
+        </section>
+      </div>
+    </section>
+
+    <section class="draft-window-shell__data-section">
+      <div class="draft-window-shell__data-title-row">
         <DialogShellTitleRow title="Data Section" class="draft-window-shell__data-title" />
         <button
           type="button"
@@ -342,6 +392,8 @@ const shellSelectorMenu = ref(null)
 const pendingShellSelectorValue = ref('')
 const dataToolbarView = ref('')
 const governanceToolbarView = ref('tokens')
+const fileViewCollapsed = ref(false)
+const recordViewCollapsed = ref(false)
 const dataSurfaceCollapsed = ref(false)
 const governanceSurfaceCollapsed = ref(false)
 const loading = ref(false)
