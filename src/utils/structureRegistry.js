@@ -656,6 +656,20 @@ export const FILE_PAGE_REGISTRY_BY_SOURCEKEY = Object.freeze(
   Object.fromEntries(FILE_PAGE_REGISTRY.map((entry) => [entry.sourceKey || entry.key, entry])),
 )
 
+export function getFilePageRegistryIndex(sourceKey = '') {
+  const entry = getFilePageRegistryEntry(sourceKey)
+  if (!entry) return -1
+  return FILE_PAGE_REGISTRY.findIndex((candidate) => String(candidate?.sourceKey || candidate?.key || '').trim() === String(entry.sourceKey || entry.key || '').trim())
+}
+
+export function getBootstrapFileRegistryEntries() {
+  return FILE_PAGE_REGISTRY.filter((entry) => String(entry?.filePack || '').trim() === 'owner')
+}
+
+export function getOptionalFileRegistryEntries() {
+  return FILE_PAGE_REGISTRY.filter((entry) => String(entry?.filePack || '').trim() !== 'owner')
+}
+
 function normalizeRuntimeFileStatus(value = '') {
   return String(value || '').trim().toLowerCase()
 }
