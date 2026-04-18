@@ -3,7 +3,7 @@ export const DEFAULT_L1_REQUIRED_RUNTIME_CAPABILITIES = Object.freeze(['list', '
 
 export const OWNER_PACK_FILE_KEYS = Object.freeze([
   'file-system',
-  'events',
+  'history',
   'users',
   'companion',
   'contacts',
@@ -116,7 +116,7 @@ const FILE_PAGE_ROUTE_META = Object.freeze({
     ],
   },
   Events: {
-    key: 'events',
+    key: 'history',
     label: 'History',
     singularLabel: 'History Entry',
     routeName: 'history',
@@ -791,7 +791,7 @@ export const FILE_SOURCE_REGISTRY = Object.freeze(
   })),
 )
 
-const TEST_SHELL_RENDERABLE_KEYS = ['bb-file', 'file-system', 'events', 'users', 'companion', 'artifacts', 'contacts', 'companies', 'opportunities', 'projects', 'notes', 'tasks', 'user-roles', 'companion-roles', 'markets', 'securities', 'intake']
+const TEST_SHELL_RENDERABLE_KEYS = ['bb-file', 'file-system', 'history', 'users', 'companion', 'artifacts', 'contacts', 'companies', 'opportunities', 'projects', 'notes', 'tasks', 'user-roles', 'companion-roles', 'markets', 'securities', 'intake']
 
 export const TEST_SHELL_SECTION_OPTIONS = Object.freeze(
   FILE_SOURCE_REGISTRY.filter((entry) => TEST_SHELL_RENDERABLE_KEYS.includes(entry.sourceKey)).map((entry) => ({
@@ -813,6 +813,7 @@ export const WORKSPACE_FILE_NAV_ITEMS = Object.freeze(
 export function getFilePageRegistryEntry(sourceKey) {
   const normalizedKey = String(sourceKey || '').trim().toLowerCase()
   const aliases = {
+    events: 'history',
     intake: 'intake',
   }
   return (
@@ -1109,6 +1110,7 @@ export function getRuntimeTableNameForEntityName(entityName = '') {
 
   const aliasMap = {
     events: 'Events',
+    history: 'Events',
     'file-system': 'Files',
     companies: 'Companies',
     companion: 'Companion',

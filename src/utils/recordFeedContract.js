@@ -4,7 +4,7 @@ export const RECORD_FEED_GROUP_OPTIONS = [
 ]
 
 export const RECORD_FEED_TAB_ORDER = [
-  { id: 'events', label: 'History' },
+  { id: 'history', label: 'History' },
   { id: 'notes', label: 'Notes' },
   { id: 'artifacts', label: 'Artifacts' },
   { id: 'intake', label: 'Intake' },

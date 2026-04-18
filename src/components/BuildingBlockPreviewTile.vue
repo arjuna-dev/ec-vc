@@ -1005,7 +1005,7 @@ const viewModeToggleOptions = viewOptions
 
 const activeLiveActionL1 = ref('companies')
 const activeRecordContextTab = ref('notes')
-const activeRecordFeedTabPreview = ref('events')
+const activeRecordFeedTabPreview = ref('history')
 const activeMiniToolbarPreview = ref('general')
 const activeGovernancePanelMode = ref('views')
 const fileFilterMenuSampleSections = [
@@ -1106,12 +1106,12 @@ const recordFeedTabOptions = RECORD_FEED_TAB_ORDER
 const recordFeedGroupOptions = RECORD_FEED_GROUP_OPTIONS
 
 const recordFeedItems = [
-  { id: 'feed-1', feedKey: 'events', groupKey: 'lifecycle', title: 'Record created', meta: '09:42', hasLogPage: true },
+  { id: 'feed-1', feedKey: 'history', groupKey: 'lifecycle', title: 'Record created', meta: '09:42', hasLogPage: true },
   { id: 'feed-2', feedKey: 'notes', groupKey: 'actions', title: 'Partner note attached', meta: '09:46', hasLogPage: true },
   { id: 'feed-3', feedKey: 'artifacts', groupKey: 'actions', title: 'Pitch deck linked', meta: '09:48', hasLogPage: true },
   { id: 'feed-4', feedKey: 'intake', groupKey: 'actions', title: 'Intake suggestion queued', meta: '09:50', hasLogPage: true },
-  { id: 'feed-5', feedKey: 'events', groupKey: 'actions', title: 'Companion suggestion queued', meta: '09:52', hasLogPage: true },
-  { id: 'feed-6', feedKey: 'events', groupKey: 'lifecycle', title: 'Summary updated', meta: 'Yesterday', hasLogPage: true },
+  { id: 'feed-5', feedKey: 'history', groupKey: 'actions', title: 'Companion suggestion queued', meta: '09:52', hasLogPage: true },
+  { id: 'feed-6', feedKey: 'history', groupKey: 'lifecycle', title: 'Summary updated', meta: 'Yesterday', hasLogPage: true },
 ]
 
 

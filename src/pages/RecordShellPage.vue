@@ -433,7 +433,7 @@ const contactHeroGradient = ref({ x: 50, y: 30, size: 60, opacity: 0 })
 const runtimeStructureVersion = ref(getRuntimeStructureVersion())
 let runtimeStructureUnsub = null
 let liveOptionRowsUnsub = null
-const activeRecordFeedTab = ref('events')
+const activeRecordFeedTab = ref('history')
 const heroCollapsed = ref(false)
 const recordDataSurfaceCollapsed = ref(false)
 const bridge = computed(() => (typeof window !== 'undefined' ? window.ecvc : null))
@@ -726,7 +726,7 @@ const feedItems = computed(() => {
   return [
     {
       id: 'feed-template-1',
-      feedKey: 'events',
+      feedKey: 'history',
       groupKey: 'lifecycle',
       sourceLabel: 'Record Shell',
       meta: 'Now',
@@ -736,7 +736,7 @@ const feedItems = computed(() => {
     },
     {
       id: 'feed-template-2',
-      feedKey: 'events',
+      feedKey: 'history',
       groupKey: 'actions',
       sourceLabel: 'Payload',
       meta: 'Live',

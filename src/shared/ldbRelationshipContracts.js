@@ -1,7 +1,7 @@
 import { FILE_SOURCE_REGISTRY } from 'src/utils/structureRegistry'
 
 const GENERIC_LDB_TABLE = 'LDB_Links'
-const EXCLUDED_LDB_SOURCE_KEYS = Object.freeze(['bb-file', 'events'])
+const EXCLUDED_LDB_SOURCE_KEYS = Object.freeze(['bb-file', 'history'])
 
 const EXPLICIT_LDB_RELATIONSHIP_PAIRS = Object.freeze([
   {

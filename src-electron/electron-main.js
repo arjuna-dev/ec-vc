@@ -1097,7 +1097,7 @@ function listCompanionRoles() {
 const ACCEPTED_FILE_STATUS_VALUES = Object.freeze(['Active', 'Archived'])
 const ACCEPTED_FILE_BUCKET_VALUES = Object.freeze(['Owner', 'Companion', 'Work', 'Shared'])
 const ACCEPTED_FORK_MODE_VALUES = Object.freeze(['none', 'view', 'create', 'view_and_create'])
-const PROTECTED_BOOTSTRAP_FILE_SOURCE_KEYS = new Set(['file-system', 'events', 'bb-file'])
+const PROTECTED_BOOTSTRAP_FILE_SOURCE_KEYS = new Set(['file-system', 'history', 'events', 'bb-file'])
 
 function normalizeFileStatusValue(value) {
   const normalized = String(value || '').trim().toLowerCase()
@@ -4518,7 +4518,7 @@ function resolveAuditCurrentFieldDisplayValue(database, tableName, recordId, fie
 }
 
 function resolveAuditFeedTab() {
-  return 'events'
+  return 'history'
 }
 
 function buildAuditEventPayload(
@@ -5640,11 +5640,11 @@ function resolveRecordShellAuditFeedTabKey(event = {}) {
     payload?.history_tab,
   )?.toLowerCase() || ''
 
-  if (['events', 'notes', 'artifacts', 'intake'].includes(explicitTab)) {
-    return explicitTab
+  if (['history', 'events', 'notes', 'artifacts', 'intake'].includes(explicitTab)) {
+    return explicitTab === 'events' ? 'history' : explicitTab
   }
 
-  return 'events'
+  return 'history'
 }
 
 function buildRecordShellAuditEventTitle(event = {}) {

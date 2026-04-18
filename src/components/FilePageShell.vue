@@ -306,7 +306,7 @@
                   :options="[]"
                   @update:model-value="setRowRelationshipPanel(row, $event)"
                 />
-                <q-btn flat no-caps class="test-shell-card__summary-add-relation" aria-label="Add Relation" :disable="!supportsActiveSourceEditing || getRowRelationshipPanel(row) === 'events'" @click="handleCardAddRelation(row)">
+                <q-btn flat no-caps class="test-shell-card__summary-add-relation" aria-label="Add Relation" :disable="!supportsActiveSourceEditing || getRowRelationshipPanel(row) === 'history'" @click="handleCardAddRelation(row)">
                   <span class="test-shell-card__summary-add-relation-plus">
                     <q-icon name="add" />
                   </span>
@@ -854,7 +854,7 @@ const hasSupportedBridge = computed(() => {
   if (!activeLoader.value) return false
   return typeof activeLoader.value.listFn(bridge.value) !== 'undefined'
 })
-const supportsActiveSourceEditing = computed(() => activeContentSourceKey.value !== 'events')
+const supportsActiveSourceEditing = computed(() => activeContentSourceKey.value !== 'history')
 function isRelationshipSectionLabel(value = '') {
   const normalized = String(value || '').trim().toLowerCase()
   return normalized === 'ldb'
@@ -1088,7 +1088,7 @@ const canCreateWithShell = computed(() => {
 
 const canDeleteSelectedRows = computed(() => {
   if (selectedRows.value.length === 0) return false
-  if (activeSourceKey.value === 'events') return false
+  if (activeSourceKey.value === 'history') return false
   return typeof bridge.value?.[activeSourceKey.value]?.delete === 'function'
 })
 const bbGraphRowColumns = computed(() => {
@@ -2386,7 +2386,7 @@ function getSharedLdbTokenRawValue(row, token) {
 }
 
 function getActiveRelationshipItems(row) {
-  if (String(getRowRelationshipPanel(row) || '').trim().toLowerCase() === 'events') {
+  if (String(getRowRelationshipPanel(row) || '').trim().toLowerCase() === 'history') {
     return getRowHistoryItems(row).map((item) => String(item?.title || '').trim()).filter(Boolean)
   }
   return row?.relationshipItemsByType?.[getRowRelationshipPanel(row)] || []
@@ -2394,7 +2394,7 @@ function getActiveRelationshipItems(row) {
 
 function getActiveRelationshipEmptyMessage(row) {
   const activePanel = String(getRowRelationshipPanel(row) || '').trim().toLowerCase()
-  if (activePanel === 'events') return 'No history yet for this record.'
+  if (activePanel === 'history') return 'No history yet for this record.'
   return `No ${String(activePanel || '').trim().toLowerCase()} linked to this record.`
 }
 
@@ -2573,7 +2573,7 @@ function updateTestShellCardGradientPosition(event) {
 
 function openRecordView(row) {
   if (!row?.recordId || !activeRegistryEntry.value?.entityName) return
-  if (activeSourceKey.value === 'events') {
+  if (activeSourceKey.value === 'history') {
     const sourceTableName = String(row?.raw?.source_table_name || '').trim()
     const sourceRecordId = String(row?.raw?.source_record_id || '').trim()
     if (!sourceTableName || !sourceRecordId) return

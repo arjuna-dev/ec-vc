@@ -2,7 +2,7 @@ import { resolveApprovedFileSectionKey } from './structureRegistry'
 
 export const FILE_RECORD_LOADERS = Object.freeze({
   'file-system': { listFn: (bridgeValue) => bridgeValue?.['file-system']?.list?.(), resultKey: 'files', recordIdField: 'id' },
-  events: { listFn: (bridgeValue) => bridgeValue?.events?.list?.(), resultKey: 'events', recordIdField: 'id' },
+  history: { listFn: (bridgeValue) => bridgeValue?.history?.list?.(), resultKey: 'events', recordIdField: 'id' },
   users: { listFn: (bridgeValue) => bridgeValue?.users?.list?.(), resultKey: 'users', recordIdField: 'id' },
   companion: { listFn: (bridgeValue) => bridgeValue?.companion?.list?.(), resultKey: 'companion', recordIdField: 'id' },
   markets: { listFn: (bridgeValue) => bridgeValue?.markets?.list?.(), resultKey: 'markets', recordIdField: 'id' },
