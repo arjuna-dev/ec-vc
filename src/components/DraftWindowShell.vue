@@ -105,7 +105,14 @@
       </div>
 
       <div v-if="!recordViewCollapsed" class="draft-window-shell__section-body">
-        <q-banner v-if="recordViewError" class="bg-red-2 text-black" rounded>
+        <section v-if="!isRecordViewSupported" class="draft-window-shell__placeholder">
+          <div class="draft-window-shell__placeholder-title">Record View Not Available</div>
+          <div class="draft-window-shell__placeholder-copy">
+            The current file does not expose the lower record shell contract.
+          </div>
+        </section>
+
+        <q-banner v-else-if="recordViewError" class="bg-red-2 text-black" rounded>
           {{ recordViewError }}
         </q-banner>
 
@@ -448,6 +455,7 @@ const $q = useQuasar()
 const router = useRouter()
 
 const bridge = computed(() => (typeof window !== 'undefined' ? window.ecvc : null))
+const RECORD_VIEW_UNSUPPORTED_SOURCE_KEYS = Object.freeze(new Set(['file-system', 'events', 'bb-file']))
 const shellSelectorOpen = ref(false)
 const runtimeStructureVersion = ref(getRuntimeStructureVersion())
 let runtimeStructureUnsub = null
@@ -609,6 +617,8 @@ const activeRecordViewId = computed(() => {
 const activeRecordRuntimeTableName = computed(() =>
   String(getRuntimeTableNameForEntityName(activeRegistryEntry.value?.entityName || '') || activeRegistryEntry.value?.entityName || '').trim(),
 )
+
+const isRecordViewSupported = computed(() => !RECORD_VIEW_UNSUPPORTED_SOURCE_KEYS.has(activeSettingsSourceKey.value))
 
 const recordHeroCanonicalNameToken = computed(() => getRegistryTitleTokenForSource(activeSettingsSourceKey.value) || null)
 const recordHeroCanonicalSummaryToken = computed(() => getRegistrySummaryTokenForSource(activeSettingsSourceKey.value) || null)
@@ -1864,7 +1874,7 @@ function handleRecordHeroFeedAdd(feedTab) {
 }
 
 async function loadRecordHeroView() {
-  if (!activeRecordRuntimeTableName.value || !activeRecordViewId.value || typeof bridge.value?.records?.shellView !== 'function') {
+  if (!isRecordViewSupported.value || !activeRecordRuntimeTableName.value || !activeRecordViewId.value || typeof bridge.value?.records?.shellView !== 'function') {
     recordViewCurrent.value = null
     recordViewFields.value = []
     recordViewAuditEvents.value = []
