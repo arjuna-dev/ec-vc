@@ -401,6 +401,7 @@ import {
 } from 'src/utils/structureRegistry'
 import { buildSurfaceColumnFromToken } from 'src/utils/tokenSurfaceContract'
 import { getLdbRelationshipContractsForEntity } from 'src/shared/ldbRelationshipContracts'
+import { filterRecordFeedTabs, RECORD_FEED_GROUP_OPTIONS } from 'src/utils/recordFeedContract'
 import { buildFileStructureSessionSnapshot } from 'src/utils/fileStructureSession'
 import {
   appendDraftStructureToken,
@@ -635,9 +636,20 @@ const recordHeroShellSettingsGroups = computed(() =>
     }))
     .filter((group) => group.items.length),
 )
-const recordHeroShellFeedTabs = computed(() => [])
-const recordHeroShellFeedGroups = computed(() => [])
-const recordHeroShellFeedItems = computed(() => [])
+const recordHeroShellFeedTabs = computed(() => filterRecordFeedTabs())
+const recordHeroShellFeedGroups = computed(() => RECORD_FEED_GROUP_OPTIONS)
+const recordHeroShellFeedItems = computed(() => {
+  const recordTitle = String(recordHeroShellTitle.value || '').trim()
+  if (!recordTitle) return []
+  return [{
+    id: `shell-history:${String(recordHeroSourceRow.value?.key || 'current').trim() || 'current'}`,
+    feedKey: 'history',
+    groupKey: 'lifecycle',
+    title: `Current row context: ${recordTitle}`,
+    meta: String(activeRegistryEntry.value?.label || 'Current File').trim() || 'Current File',
+    hasLogPage: false,
+  }]
+})
 
 const fileViewGroups = computed(() => payloadSections.value)
 const activeStructureSections = computed(() => {
