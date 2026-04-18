@@ -585,7 +585,6 @@ const recordHeroShellSummary = computed(() => {
   if (rowSummary) return rowSummary
   return 'Record View shell mounted. Summary contract not available from the current visible row yet.'
 })
-const recordHeroShellSettingsGroups = computed(() => [])
 const recordHeroShellFieldCards = computed(() => {
   const summaryToken = getRegistrySummaryTokenForSource(activeSettingsSourceKey.value)
   const excludedKeys = new Set(
@@ -608,6 +607,34 @@ const recordHeroShellFieldCards = computed(() => {
       statusIcon: '',
     }))
 })
+const recordHeroShellFieldCardKeySet = computed(() =>
+  new Set(recordHeroShellFieldCards.value.map((card) => String(card?.key || '').trim()).filter(Boolean)),
+)
+const recordHeroShellSettingsGroups = computed(() =>
+  activeStructureSections.value
+    .filter((section) => {
+      const label = String(section?.label || '').trim().toLowerCase()
+      return label !== 'general' && label !== 'system' && label !== 'ldb'
+    })
+    .map((section) => ({
+      key: String(section?.key || '').trim(),
+      label: String(section?.label || section?.key || 'Section').trim() || 'Section',
+      expanded: true,
+      items: (Array.isArray(section?.tokens) ? section.tokens : [])
+        .map((token) => {
+          const key = String(token?.key || '').trim()
+          const label = String(token?.label || token?.key || '').trim()
+          if (!key || !label) return null
+          return {
+            key,
+            label,
+            checked: recordHeroShellFieldCardKeySet.value.has(key),
+          }
+        })
+        .filter(Boolean),
+    }))
+    .filter((group) => group.items.length),
+)
 const recordHeroShellFeedTabs = computed(() => [])
 const recordHeroShellFeedGroups = computed(() => [])
 const recordHeroShellFeedItems = computed(() => [])
