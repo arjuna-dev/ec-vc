@@ -1078,6 +1078,7 @@ const displayRows = computed(() => {
       const searchValues = [recordId.toLowerCase()]
       const editableColumns = []
       const toneClassByColumn = {}
+      const cursorClassByColumn = {}
 
       effectiveDataTokens.value.forEach((token) => {
         const value = token?.isSharedLdbToken
@@ -1085,13 +1086,19 @@ const displayRows = computed(() => {
           : stringifyValue(getCanonicalTokenValue(row, token))
         mappedRow[token.key] = value
         if (value) searchValues.push(value.toLowerCase())
-        if (canInlineEditDataToken(token)) editableColumns.push(token.key)
+        if (canInlineEditDataToken(token)) {
+          editableColumns.push(token.key)
+          cursorClassByColumn[token.key] = token.key === titleToken.value?.key
+            ? 'shared-row-surface__cell--cursor-pointer'
+            : 'shared-row-surface__cell--cursor-text'
+        }
         const toneClass = getDataCellToneClass(token)
         if (toneClass) toneClassByColumn[token.key] = toneClass
       })
 
       mappedRow.__searchText = searchValues.join(' ')
       mappedRow.editableColumns = editableColumns
+      mappedRow.cursorClassByColumn = cursorClassByColumn
       mappedRow.toneClassByColumn = toneClassByColumn
       return mappedRow
     })

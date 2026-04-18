@@ -40,6 +40,7 @@
                 column.isControl ? 'shared-row-surface__cell--control' : '',
                 isEditableCell(row, column) ? 'shared-row-surface__cell--editable' : '',
                 column.cellClass || '',
+                row.cursorClassByColumn?.[column.key] || '',
                 row.toneClassByColumn?.[column.key] || '',
               ]"
               :style="columnStyle(column)"
@@ -327,6 +328,16 @@ onBeforeUnmount(() => {
 .shared-row-surface__cell--editable,
 .shared-row-surface__cell--editable :deep(*) {
   color: #2f6bff;
+}
+
+.shared-row-surface__cell--cursor-pointer,
+.shared-row-surface__cell--cursor-pointer :deep(*) {
+  cursor: pointer;
+}
+
+.shared-row-surface__cell--cursor-text,
+.shared-row-surface__cell--cursor-text :deep(*) {
+  cursor: text;
 }
 
 .shared-row-surface__tone--editable {
