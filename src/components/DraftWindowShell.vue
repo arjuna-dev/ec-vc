@@ -392,6 +392,7 @@ import {
   getCanonicalTokenWriteTarget,
   getFilePageRegistryEntry,
   getFilePageReferenceDocs,
+  getRegistrySummaryTokenForSource,
   getRegistryTitleTokenForSource,
   getRuntimeStructureVersion,
   resolveApprovedFileSectionKey,
@@ -578,7 +579,12 @@ const recordHeroShellInitials = computed(() => {
   const label = String(activeRegistryEntry.value?.singularLabel || activeRegistryEntry.value?.label || 'Record').trim() || 'Record'
   return label.slice(0, 2).toUpperCase()
 })
-const recordHeroShellSummary = computed(() => 'Record View shell mounted. Data contract intentionally disconnected while this section is rebuilt.')
+const recordHeroShellSummary = computed(() => {
+  const summaryToken = getRegistrySummaryTokenForSource(activeSettingsSourceKey.value)
+  const rowSummary = stringifyValue(summaryToken ? recordHeroSourceRow.value?.[summaryToken.key] : '')
+  if (rowSummary) return rowSummary
+  return 'Record View shell mounted. Summary contract not available from the current visible row yet.'
+})
 const recordHeroShellSettingsGroups = computed(() => [])
 const recordHeroShellFieldCards = computed(() => [])
 const recordHeroShellFeedTabs = computed(() => [])
