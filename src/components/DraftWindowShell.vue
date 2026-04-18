@@ -112,25 +112,20 @@
           </div>
         </section>
 
-        <q-banner v-else-if="recordViewError" class="bg-red-2 text-black" rounded>
-          {{ recordViewError }}
-        </q-banner>
+        <div v-else class="draft-window-shell__hero-stack">
+          <q-banner v-if="recordViewError" class="bg-red-2 text-black" rounded>
+            {{ recordViewError }}
+          </q-banner>
 
-        <section v-else-if="!activeRecordViewId" class="draft-window-shell__placeholder">
-          <div class="draft-window-shell__placeholder-title">Record View Placeholder</div>
-          <div class="draft-window-shell__placeholder-copy">
-            Select one row in Data Section to load the real record hero here.
-          </div>
-        </section>
+          <q-banner v-else-if="recordViewLoading" class="bg-grey-2 text-black" rounded>
+            Loading the focused record hero from the lower shell contract.
+          </q-banner>
 
-        <section v-else-if="recordViewLoading" class="draft-window-shell__placeholder">
-          <div class="draft-window-shell__placeholder-title">Loading Record View</div>
-          <div class="draft-window-shell__placeholder-copy">
-            Loading the selected record hero from the lower shell contract.
-          </div>
-        </section>
+          <q-banner v-else-if="!activeRecordViewId" class="bg-grey-1 text-black" rounded>
+            No record rows are available for the current file yet.
+          </q-banner>
 
-        <div v-else class="draft-window-shell__hero-frame">
+          <div class="draft-window-shell__hero-frame">
           <RecordHero
             :title="recordHeroName"
             :initials="recordHeroInitials"
@@ -150,6 +145,7 @@
             @open-feed-log="openRecordHeroFeedLog"
             @request-feed-add="handleRecordHeroFeedAdd"
           />
+          </div>
         </div>
       </div>
     </section>
@@ -506,6 +502,7 @@ const rawRowsBySource = computed(() => {
 const structureStateBySource = ref({})
 const sharedLdbLinksByRecordId = ref({})
 const selectedLeafKeysBySource = ref({})
+const focusedRecordKeyBySource = ref({})
 const selectedTokenKeysBySource = ref({})
 const selectedViewKeysBySource = ref({})
 const requiredFieldKeysBySource = ref({})
@@ -608,8 +605,8 @@ const fileHeroActionTitle = computed(() => fileHeroPayload.value.actionTitle)
 const fileHeroActionItems = computed(() => fileHeroPayload.value.actionItems)
 
 const activeRecordViewId = computed(() => {
-  const selectedRow = Array.isArray(selectedDataRows.value) ? selectedDataRows.value[0] : null
-  if (selectedRow?.key) return String(selectedRow.key).trim()
+  const focusedRecordId = String(focusedRecordKeyBySource.value[activeSettingsSourceKey.value] || '').trim()
+  if (focusedRecordId) return focusedRecordId
   const firstVisibleRow = Array.isArray(displayRows.value) ? displayRows.value[0] : null
   return String(firstVisibleRow?.key || '').trim()
 })
@@ -681,6 +678,10 @@ const selectedRecordHeroTokens = computed(() =>
 )
 
 const recordHeroName = computed(() => {
+  if (!activeRecordViewId.value) {
+    return `No ${String(activeRegistryEntry.value?.singularLabel || 'Record').trim() || 'Record'} Loaded`
+  }
+  if (recordViewLoading.value && !recordViewCurrent.value) return 'Loading Record Hero'
   if (!recordHeroCanonicalNameToken.value) return 'Missing canonical Name token'
   const value = getRecordHeroTokenDisplayValue(recordHeroCanonicalNameToken.value)
   return value || 'Missing Name value'
@@ -692,6 +693,10 @@ const recordHeroInitials = computed(() => {
 })
 
 const recordHeroSummaryValue = computed(() => {
+  if (!activeRecordViewId.value) {
+    return 'The hero frame stays mounted. Load or add a row in Data Section to populate this record contract.'
+  }
+  if (recordViewLoading.value && !recordViewCurrent.value) return 'Loading the focused record payload.'
   if (!recordHeroCanonicalSummaryToken.value) return 'Missing canonical Summary token'
   const value = getRecordHeroTokenDisplayValue(recordHeroCanonicalSummaryToken.value)
   return value || 'Summary not set'
@@ -1259,6 +1264,10 @@ function handleDataCellClick(row = {}, column = {}) {
   const rowKey = String(row?.key || '').trim()
   const columnKey = String(column?.key || '').trim()
   if (!rowKey || columnKey === '__select__' || columnKey === '__view__') return
+  focusedRecordKeyBySource.value = {
+    ...focusedRecordKeyBySource.value,
+    [activeSettingsSourceKey.value]: rowKey,
+  }
   const primaryColumnKey = String(recordDataColumns.value[0]?.key || '').trim()
   if (!primaryColumnKey || columnKey !== primaryColumnKey) return
 
@@ -1884,6 +1893,9 @@ async function loadRecordHeroView() {
 
   recordViewLoading.value = true
   recordViewError.value = ''
+  recordViewCurrent.value = null
+  recordViewFields.value = []
+  recordViewAuditEvents.value = []
   try {
     const result = await bridge.value.records.shellView(activeRecordRuntimeTableName.value, activeRecordViewId.value)
     recordViewCurrent.value = result?.view || null
@@ -2041,6 +2053,10 @@ watch(
   activeSettingsSourceKey,
   async (sourceKey) => {
     searchQuery.value = ''
+    focusedRecordKeyBySource.value = {
+      ...focusedRecordKeyBySource.value,
+      [sourceKey]: '',
+    }
     selectedLeafKeysBySource.value = {
       ...selectedLeafKeysBySource.value,
       [sourceKey]: [],
