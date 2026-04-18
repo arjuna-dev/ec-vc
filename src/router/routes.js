@@ -18,6 +18,20 @@ function buildDraftWindowRecordLocation(to = {}) {
   }
 }
 
+function buildDraftWindowFileLocation(to = {}) {
+  const routeName = String(to?.name || '').trim()
+  const section = resolveApprovedFileSectionKey(routeName)
+
+  return {
+    name: 'draft-window',
+    query: {
+      ...to.query,
+      ...(section ? { section } : {}),
+    },
+    hash: to.hash,
+  }
+}
+
 const routes = [
   {
     path: '/',
@@ -28,32 +42,32 @@ const routes = [
       { path: 'settings', redirect: { name: 'avatar' } },
       { path: '', name: 'home', component: () => import('pages/HomePage.vue') },
       { path: 'utils', name: 'bb-file', component: () => import('pages/UtilsPage.vue') },
-      { path: 'file-system', name: 'file-system', component: () => import('pages/FilesPage.vue') },
-      { path: 'history', name: 'history', component: () => import('pages/FilesPage.vue') },
+      { path: 'file-system', name: 'file-system', redirect: (to) => buildDraftWindowFileLocation(to) },
+      { path: 'history', name: 'history', redirect: (to) => buildDraftWindowFileLocation(to) },
       { path: 'events', redirect: { name: 'history' } },
-      { path: 'projects', name: 'projects', component: () => import('pages/FilesPage.vue') },
-      { path: 'opportunities', name: 'opportunities', component: () => import('pages/FilesPage.vue') },
-      { path: 'funds', name: 'funds', component: () => import('pages/FilesPage.vue') },
-      { path: 'rounds', name: 'rounds', component: () => import('pages/FilesPage.vue') },
-      { path: 'artifacts', name: 'artifacts', component: () => import('pages/FilesPage.vue') },
-      { path: 'companies', name: 'companies', component: () => import('pages/FilesPage.vue') },
-      { path: 'contacts', name: 'contacts', component: () => import('pages/FilesPage.vue') },
-      { path: 'users', name: 'users', component: () => import('pages/FilesPage.vue') },
-      { path: 'companion', name: 'companion', component: () => import('pages/FilesPage.vue') },
-      { path: 'markets', name: 'markets', component: () => import('pages/FilesPage.vue') },
+      { path: 'projects', name: 'projects', redirect: (to) => buildDraftWindowFileLocation(to) },
+      { path: 'opportunities', name: 'opportunities', redirect: (to) => buildDraftWindowFileLocation(to) },
+      { path: 'funds', name: 'funds', redirect: (to) => buildDraftWindowFileLocation(to) },
+      { path: 'rounds', name: 'rounds', redirect: (to) => buildDraftWindowFileLocation(to) },
+      { path: 'artifacts', name: 'artifacts', redirect: (to) => buildDraftWindowFileLocation(to) },
+      { path: 'companies', name: 'companies', redirect: (to) => buildDraftWindowFileLocation(to) },
+      { path: 'contacts', name: 'contacts', redirect: (to) => buildDraftWindowFileLocation(to) },
+      { path: 'users', name: 'users', redirect: (to) => buildDraftWindowFileLocation(to) },
+      { path: 'companion', name: 'companion', redirect: (to) => buildDraftWindowFileLocation(to) },
+      { path: 'markets', name: 'markets', redirect: (to) => buildDraftWindowFileLocation(to) },
       { path: 'industries', redirect: { name: 'markets' } },
-      { path: 'securities', name: 'securities', component: () => import('pages/FilesPage.vue') },
-      { path: 'intake', name: 'intake', component: () => import('pages/FilesPage.vue') },
-      { path: 'notes', name: 'notes', component: () => import('pages/FilesPage.vue') },
-      { path: 'tasks', name: 'tasks', component: () => import('pages/FilesPage.vue') },
+      { path: 'securities', name: 'securities', redirect: (to) => buildDraftWindowFileLocation(to) },
+      { path: 'intake', name: 'intake', redirect: (to) => buildDraftWindowFileLocation(to) },
+      { path: 'notes', name: 'notes', redirect: (to) => buildDraftWindowFileLocation(to) },
+      { path: 'tasks', name: 'tasks', redirect: (to) => buildDraftWindowFileLocation(to) },
       { path: 'test-shell', name: 'test-shell', component: () => import('pages/TestShellPage.vue') },
       { path: 'record-shell', name: 'record-shell', redirect: (to) => buildDraftWindowRecordLocation(to) },
       { path: 'draft-window', name: 'draft-window', component: () => import('pages/DraftWindowPage.vue') },
       { path: 'intake-shell', name: 'intake-shell', component: () => import('pages/IntakeShellPage.vue') },
       { path: 'ingestion-shell', redirect: { name: 'intake-shell' } },
-      { path: 'user-roles', name: 'user-roles', component: () => import('pages/FilesPage.vue') },
+      { path: 'user-roles', name: 'user-roles', redirect: (to) => buildDraftWindowFileLocation(to) },
       { path: 'roles', redirect: { name: 'user-roles' } },
-      { path: 'companion-roles', name: 'companion-roles', component: () => import('pages/FilesPage.vue') },
+      { path: 'companion-roles', name: 'companion-roles', redirect: (to) => buildDraftWindowFileLocation(to) },
       { path: 'records/:tableName/:recordId', name: RECORD_VIEW_ROUTE_NAME, redirect: (to) => buildDraftWindowRecordLocation(to) },
       { path: 'records/:tableName/:recordId/history/:eventId', name: 'record-history-entry', component: () => import('pages/RecordEventPage.vue') },
       { path: 'records/:tableName/:recordId/events/:eventId', redirect: (to) => ({ name: 'record-history-entry', params: to.params, query: to.query, hash: to.hash }) },
