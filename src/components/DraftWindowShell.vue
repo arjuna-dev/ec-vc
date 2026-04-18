@@ -74,12 +74,18 @@
       </div>
 
       <div v-if="!fileViewCollapsed" class="draft-window-shell__section-body">
-        <section class="draft-window-shell__placeholder">
-          <div class="draft-window-shell__placeholder-title">File View Placeholder</div>
-          <div class="draft-window-shell__placeholder-copy">
-            This section will hold the PMP file hero surface once we port the real contract-fed hero.
-          </div>
-        </section>
+        <div class="draft-window-shell__hero-frame">
+          <FileHero
+            :text="fileHeroText"
+            :stats="fileHeroStats"
+            :health-text="fileHeroHealthText"
+            :health-segments="fileHeroHealthSegments"
+            :action-label="fileHeroActionLabel"
+            :action-title="fileHeroActionTitle"
+            :action-items="fileHeroActionItems"
+            @action-item-click="handleFileHeroActionItemClick"
+          />
+        </div>
       </div>
     </section>
 
@@ -328,6 +334,23 @@
         </div>
       </div>
     </section>
+
+    <q-dialog v-model="heroDocumentDialogOpen" maximized>
+      <q-card class="hero-document-dialog">
+        <q-card-section class="hero-document-dialog__header">
+          <div class="hero-document-dialog__title">{{ heroDocumentDialogTitle || 'Document' }}</div>
+          <q-btn flat round dense icon="close" aria-label="Close document" @click="heroDocumentDialogOpen = false" />
+        </q-card-section>
+
+        <q-card-section class="hero-document-dialog__body">
+          <div v-if="heroDocumentDialogLoading" class="hero-document-dialog__status">Loading document...</div>
+          <div v-else-if="heroDocumentDialogError" class="hero-document-dialog__status hero-document-dialog__status--error">
+            {{ heroDocumentDialogError }}
+          </div>
+          <pre v-else class="hero-document-dialog__content">{{ heroDocumentDialogContent }}</pre>
+        </q-card-section>
+      </q-card>
+    </q-dialog>
   </section>
 </template>
 
@@ -335,6 +358,7 @@
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { copyToClipboard, useQuasar } from 'quasar'
 import DialogShellTitleRow from 'src/components/DialogShellTitleRow.vue'
+import FileHero from 'src/components/FileHero.vue'
 import RecordTitle from 'src/components/RecordTitle.vue'
 import FileShellControlBar from 'src/components/FileShellControlBar.vue'
 import StructureGovernancePanel from 'src/components/StructureGovernancePanel.vue'
@@ -355,6 +379,7 @@ import {
   getCanonicalTokenValue,
   getCanonicalTokenWriteTarget,
   getFilePageRegistryEntry,
+  getFilePageReferenceDocs,
   getRegistryTitleTokenForSource,
   getRuntimeStructureVersion,
   resolveApprovedFileSectionKey,
@@ -396,6 +421,11 @@ const fileViewCollapsed = ref(false)
 const recordViewCollapsed = ref(false)
 const dataSurfaceCollapsed = ref(false)
 const governanceSurfaceCollapsed = ref(false)
+const heroDocumentDialogOpen = ref(false)
+const heroDocumentDialogTitle = ref('')
+const heroDocumentDialogContent = ref('')
+const heroDocumentDialogLoading = ref(false)
+const heroDocumentDialogError = ref('')
 const loading = ref(false)
 const error = ref('')
 const searchQuery = ref('')
@@ -471,6 +501,56 @@ const activeFilePayload = computed(() => {
 const activeRegistryEntry = computed(() => activeFilePayload.value.registryEntry || null)
 const payloadSections = computed(() => activeFilePayload.value.sections)
 const payloadTokens = computed(() => activeFilePayload.value.tokens)
+
+function getHeroContractSourceKey(sourceKey = '') {
+  const normalizedSourceKey = String(sourceKey || '').trim().toLowerCase()
+  if (['opportunities', 'funds', 'rounds'].includes(normalizedSourceKey)) return 'opportunities'
+  return normalizedSourceKey
+}
+
+const fileHeroPayload = computed(() => {
+  const sourceKey = getHeroContractSourceKey(activeSettingsSourceKey.value)
+  const heroRegistryEntry = getFilePageRegistryEntry(sourceKey) || activeRegistryEntry.value || null
+  const fileLabel = String(heroRegistryEntry?.label || 'File').trim() || 'File'
+  const totalRows = Array.isArray(rawRowsBySource.value[activeSettingsSourceKey.value])
+    ? rawRowsBySource.value[activeSettingsSourceKey.value].length
+    : 0
+
+  return {
+    text: `This is the shared file shell for ${fileLabel}. The active file determines the local payload while the hero structure remains owned by bb:file-hero.`,
+    stats: [
+      {
+        label: 'Rows',
+        value: totalRows,
+        caption: 'Real rows loaded',
+        tone: 'neutral',
+      },
+      {
+        label: 'Drift',
+        value: 'N/A',
+        caption: 'Validator not connected',
+        tone: 'neutral',
+      },
+    ],
+    healthText: `This file page is rendering through the shared File Shell hero contract. Local payload comes from ${fileLabel}, while the hero structure remains linked to bb:file-hero. Validator coverage has not been attached yet.`,
+    healthSegments: [
+      { tone: 'sparse', width: 100 },
+      { tone: 'rich', width: 0 },
+    ],
+    actionLabel: 'File Health',
+    actionTitle: 'Reference Documents',
+    actionItems: getFilePageReferenceDocs(sourceKey),
+  }
+})
+
+const fileHeroText = computed(() => fileHeroPayload.value.text)
+const fileHeroStats = computed(() => fileHeroPayload.value.stats)
+const fileHeroHealthText = computed(() => fileHeroPayload.value.healthText)
+const fileHeroHealthSegments = computed(() => fileHeroPayload.value.healthSegments)
+const fileHeroActionLabel = computed(() => fileHeroPayload.value.actionLabel)
+const fileHeroActionTitle = computed(() => fileHeroPayload.value.actionTitle)
+const fileHeroActionItems = computed(() => fileHeroPayload.value.actionItems)
+
 const fileViewGroups = computed(() => payloadSections.value)
 const activeStructureSections = computed(() => {
   const sourceKey = activeSettingsSourceKey.value
@@ -1460,6 +1540,32 @@ function stringifyValue(value) {
   return String(value).trim()
 }
 
+function normalizeIpcErrorMessage(errorValue) {
+  const raw = String(errorValue?.message || errorValue || '').trim()
+  if (!raw) return 'An unexpected error occurred.'
+  return raw.replace(/^Error invoking remote method '[^']+':\s*/i, '').trim()
+}
+
+async function handleFileHeroActionItemClick(item = {}) {
+  const path = String(item?.path || '').trim()
+  if (!path || typeof bridge.value?.docs?.read !== 'function') return
+
+  heroDocumentDialogTitle.value = String(item?.label || 'Document').trim()
+  heroDocumentDialogContent.value = ''
+  heroDocumentDialogError.value = ''
+  heroDocumentDialogLoading.value = true
+  heroDocumentDialogOpen.value = true
+
+  try {
+    const result = await bridge.value.docs.read(path)
+    heroDocumentDialogContent.value = String(result?.content || '')
+  } catch (errorValue) {
+    heroDocumentDialogError.value = normalizeIpcErrorMessage(errorValue)
+  } finally {
+    heroDocumentDialogLoading.value = false
+  }
+}
+
 async function loadRows() {
   const sourceKey = activeSettingsSourceKey.value
   const bridgeValue = bridge.value
@@ -1818,6 +1924,10 @@ watch(
   line-height: 1.45;
 }
 
+.draft-window-shell__hero-frame {
+  position: relative;
+}
+
 .draft-window-shell__data-section {
   padding: 18px 18px 20px;
 }
@@ -1918,6 +2028,50 @@ watch(
   font-family: var(--ds-font-body);
   font-size: var(--ds-font-size-sm);
   text-align: center;
+}
+
+.hero-document-dialog {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.hero-document-dialog__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.hero-document-dialog__title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1c1c1c;
+}
+
+.hero-document-dialog__body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+}
+
+.hero-document-dialog__status {
+  font-size: 13px;
+  color: #5f5f5f;
+}
+
+.hero-document-dialog__status--error {
+  color: #9f1f1f;
+}
+
+.hero-document-dialog__content {
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-family: var(--ds-font-mono, 'Courier New', monospace);
+  font-size: 12px;
+  line-height: 1.5;
+  color: #1c1c1c;
 }
 
 .draft-window-shell__delete-btn {
