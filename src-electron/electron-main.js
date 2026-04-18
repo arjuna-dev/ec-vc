@@ -5606,6 +5606,109 @@ function listEvents(filters = {}) {
     }))
 }
 
+function stringifyRecordShellAuditValue(value) {
+  if (Array.isArray(value)) {
+    return value.map((item) => stringifyRecordShellAuditValue(item)).filter(Boolean).join(', ')
+  }
+  if (value && typeof value === 'object') {
+    return normalizeNullableString(JSON.stringify(value))
+  }
+  return normalizeNullableString(value)
+}
+
+function resolveRecordShellAuditFeedGroupKey(event = {}) {
+  const fieldName = normalizeNullableString(event?.field_name)?.toLowerCase() || ''
+  const actionLabel = normalizeNullableString(event?.action_label)?.toLowerCase() || ''
+  const payload = event?.payload && typeof event.payload === 'object' ? event.payload : {}
+  const state = normalizeNullableString(payload?.verification_state || payload?.state)?.toLowerCase() || ''
+
+  const lifecycleActions = new Set(['created', 'modified', 'deleted'])
+  const actionStates = new Set(['pre-selected', 'pre_selected', 'default_preselected_unverified', 'suggested', 'suggested_unverified', 'verified', 'rejected', 'approved'])
+
+  if (fieldName.endsWith('__verification')) return 'actions'
+  if (actionLabel.includes('verification')) return 'actions'
+  if (actionStates.has(state)) return 'actions'
+  if (lifecycleActions.has(actionLabel)) return 'lifecycle'
+  return 'actions'
+}
+
+function resolveRecordShellAuditFeedTabKey(event = {}) {
+  const payload = event?.payload && typeof event.payload === 'object' ? event.payload : {}
+  const explicitTab = normalizeNullableString(
+    payload?.feed_tab ||
+    payload?.feed_category ||
+    payload?.history_tab,
+  )?.toLowerCase() || ''
+
+  if (['events', 'notes', 'artifacts', 'intake'].includes(explicitTab)) {
+    return explicitTab
+  }
+
+  return 'events'
+}
+
+function buildRecordShellAuditEventTitle(event = {}) {
+  const payload = event?.payload && typeof event.payload === 'object' ? event.payload : {}
+  const actorLabel = normalizeNullableString(payload?.actor_label) || 'Missing actor'
+  const actionLabel = normalizeNullableString(event?.action_label)?.toLowerCase() || ''
+  const fieldName = normalizeNullableString(event?.field_name).replace(/__verification$/, '')
+  const fieldLabel = normalizeNullableString(payload?.field_label) || formatRecordFieldLabel(fieldName)
+  const recordLabel = normalizeNullableString(payload?.record_label) || normalizeNullableString(event?.record_id) || 'record'
+  const nextValue = normalizeNullableString(payload?.new_display_value) || stringifyRecordShellAuditValue(event?.new_value)
+  const previousValue = normalizeNullableString(payload?.old_display_value) || stringifyRecordShellAuditValue(event?.old_value)
+
+  if (actionLabel.includes('create')) {
+    return `${actorLabel}, created ${recordLabel}`
+  }
+
+  if (actionLabel.includes('delete')) {
+    return `${actorLabel}, deleted ${recordLabel}`
+  }
+
+  if (String(event?.field_name || '').trim().endsWith('__verification') || actionLabel.includes('verification')) {
+    if (nextValue) return `${actorLabel}, verified "${nextValue}" as ${fieldLabel} for ${recordLabel}`
+    return `${actorLabel}, verified ${fieldLabel} for ${recordLabel}`
+  }
+
+  if (!previousValue && nextValue) {
+    return `${actorLabel}, added "${nextValue}" as ${fieldLabel} for ${recordLabel}`
+  }
+
+  if (previousValue && !nextValue) {
+    return `${actorLabel}, cleared ${fieldLabel} for ${recordLabel}`
+  }
+
+  if (nextValue) {
+    return `${actorLabel}, updated ${fieldLabel} to "${nextValue}" for ${recordLabel}`
+  }
+
+  if (fieldLabel) {
+    return `${actorLabel}, updated ${fieldLabel} for ${recordLabel}`
+  }
+
+  return `${actorLabel}, updated ${recordLabel}`
+}
+
+function buildRecordShellAuditFeedItems(events = []) {
+  return (Array.isArray(events) ? events : [])
+    .map((event) => {
+      const title = buildRecordShellAuditEventTitle(event)
+      if (!title) return null
+      const payload = event?.payload && typeof event.payload === 'object' ? event.payload : {}
+      return {
+        id: normalizeNullableString(event?.id) || `audit:${Math.random()}`,
+        feedKey: resolveRecordShellAuditFeedTabKey(event),
+        groupKey: resolveRecordShellAuditFeedGroupKey(event),
+        sourceLabel: normalizeNullableString(payload?.actor_label) || 'Missing actor',
+        meta: normalizeNullableString(event?.edited_at) || 'Missing datetime',
+        title,
+        content: '',
+        hasLogPage: true,
+      }
+    })
+    .filter(Boolean)
+}
+
 const EVENT_RELATION_FIELD_BY_ENTITY_LABEL = Object.freeze({
   User: 'Event_User',
   Contact: 'Event_Contact',
@@ -7734,11 +7837,11 @@ function registerIpc() {
         tableName: config.tableName,
         recordId: normalizedRecordId,
       }),
-      auditEvents: listEvents({
+      auditFeedItems: buildRecordShellAuditFeedItems(listEvents({
         table_name: config.tableName,
         record_id: normalizedRecordId,
         limit: 5,
-      }),
+      })),
     }
   })
 
