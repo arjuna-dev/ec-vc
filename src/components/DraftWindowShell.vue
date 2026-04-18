@@ -562,7 +562,15 @@ const fileHeroHealthSegments = computed(() => fileHeroPayload.value.healthSegmen
 const fileHeroActionLabel = computed(() => fileHeroPayload.value.actionLabel)
 const fileHeroActionTitle = computed(() => fileHeroPayload.value.actionTitle)
 const fileHeroActionItems = computed(() => fileHeroPayload.value.actionItems)
+const recordHeroSourceRow = computed(() => {
+  const selectedRow = Array.isArray(selectedDataRows.value) ? selectedDataRows.value[0] : null
+  if (selectedRow) return selectedRow
+  const firstVisibleRow = Array.isArray(displayRows.value) ? displayRows.value[0] : null
+  return firstVisibleRow || null
+})
 const recordHeroShellTitle = computed(() => {
+  const rowTitle = stringifyValue(recordHeroSourceRow.value?.[titleToken.value?.key])
+  if (rowTitle) return rowTitle
   const label = String(activeRegistryEntry.value?.singularLabel || activeRegistryEntry.value?.label || 'Record').trim() || 'Record'
   return `${label} View`
 })
