@@ -420,7 +420,11 @@ function persistShellFieldSelectionMap(value) {
   return normalized
 }
 
-const liveOptionRowsBySource = ref(getLiveOptionRowsState())
+const liveOptionRowsVersion = ref(0)
+const liveOptionRowsBySource = computed(() => {
+  liveOptionRowsVersion.value
+  return getLiveOptionRowsState()
+})
 const expandedViewKeys = ref([])
 const expandedHeroGroupKeys = ref([])
 const activeViewGroupKey = ref('')
@@ -928,8 +932,8 @@ onMounted(() => {
   runtimeStructureUnsub = subscribeRuntimeFileStructures((version) => {
     runtimeStructureVersion.value = version
   })
-  liveOptionRowsUnsub = subscribeLiveOptionRowsState((rowsBySource) => {
-    liveOptionRowsBySource.value = { ...rowsBySource }
+  liveOptionRowsUnsub = subscribeLiveOptionRowsState(() => {
+    liveOptionRowsVersion.value += 1
   })
 })
 
@@ -1050,14 +1054,14 @@ async function ensureLiveOptionsLoaded() {
     await loadFileRecordRows({
       sourceKey,
       bridgeValue: bridge.value,
-      currentRowsBySource: liveOptionRowsBySource.value,
+      currentRowsBySource: getLiveOptionRowsState(),
       skipSourceKey: activeSourceKey.value,
     })
   }
 
   await hydrateFileRecordUniverseFromSystemFiles({
     bridgeValue: bridge.value,
-    currentRowsBySource: liveOptionRowsBySource.value,
+    currentRowsBySource: getLiveOptionRowsState(),
     skipSourceKey: activeSourceKey.value,
   })
 }
@@ -1359,7 +1363,7 @@ async function loadRecordView() {
       await loadFileRecordRows({
         sourceKey: 'users',
         bridgeValue: bridge.value,
-        currentRowsBySource: liveOptionRowsBySource.value,
+        currentRowsBySource: getLiveOptionRowsState(),
       })
     }
     try {
