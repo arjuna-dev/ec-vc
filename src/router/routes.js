@@ -1,4 +1,22 @@
 import { RECORD_VIEW_ROUTE_NAME } from 'src/utils/recordViewNavigation'
+import { resolveApprovedFileSectionKey } from 'src/utils/structureRegistry'
+
+function buildDraftWindowRecordLocation(to = {}) {
+  const tableName = String(to?.params?.tableName || to?.query?.entity || '').trim()
+  const recordId = String(to?.params?.recordId || to?.query?.recordId || '').trim()
+  const section = resolveApprovedFileSectionKey('', tableName)
+
+  return {
+    name: 'draft-window',
+    query: {
+      ...to.query,
+      ...(section ? { section } : {}),
+      ...(tableName ? { entity: tableName } : {}),
+      ...(recordId ? { recordId } : {}),
+    },
+    hash: to.hash,
+  }
+}
 
 const routes = [
   {
@@ -29,14 +47,14 @@ const routes = [
       { path: 'notes', name: 'notes', component: () => import('pages/FilesPage.vue') },
       { path: 'tasks', name: 'tasks', component: () => import('pages/FilesPage.vue') },
       { path: 'test-shell', name: 'test-shell', component: () => import('pages/TestShellPage.vue') },
-      { path: 'record-shell', name: 'record-shell', component: () => import('pages/RecordShellPage.vue') },
+      { path: 'record-shell', name: 'record-shell', redirect: (to) => buildDraftWindowRecordLocation(to) },
       { path: 'draft-window', name: 'draft-window', component: () => import('pages/DraftWindowPage.vue') },
       { path: 'intake-shell', name: 'intake-shell', component: () => import('pages/IntakeShellPage.vue') },
       { path: 'ingestion-shell', redirect: { name: 'intake-shell' } },
       { path: 'user-roles', name: 'user-roles', component: () => import('pages/FilesPage.vue') },
       { path: 'roles', redirect: { name: 'user-roles' } },
       { path: 'companion-roles', name: 'companion-roles', component: () => import('pages/FilesPage.vue') },
-      { path: 'records/:tableName/:recordId', name: RECORD_VIEW_ROUTE_NAME, component: () => import('pages/RecordShellPage.vue') },
+      { path: 'records/:tableName/:recordId', name: RECORD_VIEW_ROUTE_NAME, redirect: (to) => buildDraftWindowRecordLocation(to) },
       { path: 'records/:tableName/:recordId/history/:eventId', name: 'record-history-entry', component: () => import('pages/RecordEventPage.vue') },
       { path: 'records/:tableName/:recordId/events/:eventId', redirect: (to) => ({ name: 'record-history-entry', params: to.params, query: to.query, hash: to.hash }) },
       {
