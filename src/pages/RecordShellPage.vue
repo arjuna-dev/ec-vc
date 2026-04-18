@@ -1351,9 +1351,9 @@ async function loadRecordView() {
   loading.value = true
   error.value = ''
   try {
-    const result = await bridge.value.records.view(tableNameParam.value, recordIdParam.value)
-    currentView.value = result || null
-    fields.value = Array.isArray(result?.fields) ? result.fields : []
+    const result = await bridge.value.records.shellView(tableNameParam.value, recordIdParam.value)
+    currentView.value = result?.view || null
+    fields.value = Array.isArray(result?.view?.fields) ? result.view.fields : []
     if (!Array.isArray(liveOptionRowsBySource.value.users)) {
       await loadFileRecordRows({
         sourceKey: 'users',
@@ -1361,30 +1361,13 @@ async function loadRecordView() {
         currentRowsBySource: getLiveOptionRowsState(),
       })
     }
-    try {
-      const verificationResult = await bridge.value?.verification?.list?.({
-        tableName: tableNameParam.value,
-        recordId: recordIdParam.value,
-      })
-      fieldVerificationStates.value = Object.fromEntries(
-        (Array.isArray(verificationResult?.fields) ? verificationResult.fields : []).map((field) => [
-          String(field?.field_name || '').trim(),
-          String(field?.state || '').trim(),
-        ]),
-      )
-    } catch {
-      fieldVerificationStates.value = {}
-    }
-    try {
-      const auditResult = await bridge.value?.audit?.events?.({
-        table_name: runtimeTableName.value,
-        record_id: recordIdParam.value,
-        limit: 5,
-      })
-      auditEvents.value = normalizeAuditFeedEvents(auditResult?.events)
-    } catch {
-      auditEvents.value = []
-    }
+    fieldVerificationStates.value = Object.fromEntries(
+      (Array.isArray(result?.verificationFields) ? result.verificationFields : []).map((field) => [
+        String(field?.field_name || '').trim(),
+        String(field?.state || '').trim(),
+      ]),
+    )
+    auditEvents.value = normalizeAuditFeedEvents(result?.auditEvents)
     inlineFieldValues.value = Object.fromEntries(
       [...createKeyFieldTokens.value, ...createViewGroups.value.flatMap((section) => section.tokens)]
         .map((token) => [token.key, getTokenDialogValue(token)]),

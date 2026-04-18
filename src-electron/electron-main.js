@@ -7722,6 +7722,26 @@ function registerIpc() {
     return getRecordView(tableName, recordId)
   })
 
+  ipcMain.handle('records:shellView', async (_event, { tableName, recordId } = {}) => {
+    initDb()
+    const config = getRecordTableConfig(tableName)
+    const normalizedRecordId = normalizeNullableString(recordId)
+    if (!normalizedRecordId) throw new Error('recordId is required')
+
+    return {
+      view: getRecordView(config.tableName, normalizedRecordId),
+      verificationFields: listFieldVerificationMetadata({
+        tableName: config.tableName,
+        recordId: normalizedRecordId,
+      }),
+      auditEvents: listEvents({
+        table_name: config.tableName,
+        record_id: normalizedRecordId,
+        limit: 5,
+      }),
+    }
+  })
+
   ipcMain.handle('databooks:versions', async (_event, { tableName, recordId } = {}) => {
     initDb()
     return { versions: listRecordHistoryEntries(tableName, recordId) }
