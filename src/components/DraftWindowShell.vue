@@ -586,7 +586,28 @@ const recordHeroShellSummary = computed(() => {
   return 'Record View shell mounted. Summary contract not available from the current visible row yet.'
 })
 const recordHeroShellSettingsGroups = computed(() => [])
-const recordHeroShellFieldCards = computed(() => [])
+const recordHeroShellFieldCards = computed(() => {
+  const summaryToken = getRegistrySummaryTokenForSource(activeSettingsSourceKey.value)
+  const excludedKeys = new Set(
+    [titleToken.value?.key, summaryToken?.key]
+      .map((value) => String(value || '').trim())
+      .filter(Boolean),
+  )
+
+  return effectiveDataTokens.value
+    .filter((token) => {
+      const tokenKey = String(token?.key || '').trim()
+      return tokenKey && !excludedKeys.has(tokenKey)
+    })
+    .slice(0, 4)
+    .map((token) => ({
+      key: String(token?.key || '').trim(),
+      label: String(token?.label || token?.key || 'Field').trim() || 'Field',
+      description: String(activeViewSection.value?.label || 'Current View').trim() || 'Current View',
+      value: stringifyValue(recordHeroSourceRow.value?.[token.key]) || 'No value yet',
+      statusIcon: '',
+    }))
+})
 const recordHeroShellFeedTabs = computed(() => [])
 const recordHeroShellFeedGroups = computed(() => [])
 const recordHeroShellFeedItems = computed(() => [])
