@@ -105,47 +105,21 @@
       </div>
 
       <div v-if="!recordViewCollapsed" class="draft-window-shell__section-body">
-        <section v-if="!isRecordViewSupported" class="draft-window-shell__placeholder">
-          <div class="draft-window-shell__placeholder-title">Record View Not Available</div>
-          <div class="draft-window-shell__placeholder-copy">
-            The current file does not expose the lower record shell contract.
-          </div>
-        </section>
-
-        <div v-else class="draft-window-shell__hero-stack">
-          <q-banner v-if="recordViewError" class="bg-red-2 text-black" rounded>
-            {{ recordViewError }}
-          </q-banner>
-
-          <q-banner v-else-if="recordViewLoading" class="bg-grey-2 text-black" rounded>
-            Loading the focused record hero from the lower shell contract.
-          </q-banner>
-
-          <q-banner v-else-if="!activeRecordViewId" class="bg-grey-1 text-black" rounded>
-            No record rows are available for the current file yet.
-          </q-banner>
-
-          <div class="draft-window-shell__hero-frame">
+        <div class="draft-window-shell__hero-frame">
           <RecordHero
-            :title="recordHeroName"
-            :initials="recordHeroInitials"
-            :settings-groups="recordHeroSettingsGroups"
-            :field-cards="selectedRecordHeroFieldCards"
-            :summary-value="recordHeroSummaryValue"
-            :summary-status-icon="recordHeroSummaryStatusIcon"
-            :interactive="Boolean(activeRecordViewId)"
-            :feed-tab="activeRecordFeedTab"
-            :feed-tabs="recordFeedTabOptions"
-            :feed-groups="recordFeedGroupOptions"
-            :feed-items="recordViewAuditEvents"
-            feed-empty-message="No feed items yet for this record."
-            @update:feed-tab="activeRecordFeedTab = $event"
-            @toggle-settings-group="toggleRecordHeroGroup"
-            @toggle-settings-item="setRecordHeroTokenSelected"
-            @open-feed-log="openRecordHeroFeedLog"
-            @request-feed-add="handleRecordHeroFeedAdd"
+            :title="recordHeroShellTitle"
+            :initials="recordHeroShellInitials"
+            :settings-groups="recordHeroShellSettingsGroups"
+            :field-cards="recordHeroShellFieldCards"
+            :summary-value="recordHeroShellSummary"
+            summary-status-icon=""
+            :interactive="false"
+            feed-tab="history"
+            :feed-tabs="recordHeroShellFeedTabs"
+            :feed-groups="recordHeroShellFeedGroups"
+            :feed-items="recordHeroShellFeedItems"
+            feed-empty-message="Record View shell mounted. Data contract intentionally disconnected while this section is rebuilt."
           />
-          </div>
         </div>
       </div>
     </section>
@@ -394,7 +368,6 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { copyToClipboard, useQuasar } from 'quasar'
-import { useRouter } from 'vue-router'
 import DialogShellTitleRow from 'src/components/DialogShellTitleRow.vue'
 import FileHero from 'src/components/FileHero.vue'
 import RecordHero from 'src/components/RecordHero.vue'
@@ -405,7 +378,7 @@ import SelectionActionBar from 'src/components/SelectionActionBar.vue'
 import { buildTokenGovernanceColumns } from 'src/utils/structureGovernanceColumns'
 import { buildShellToolbarFeed } from 'src/utils/shellToolbarFeeder'
 import { buildStructureToolbarItems } from 'src/utils/structureToolbarContract'
-import { groupSurfaceViews, splitSurfaceSections } from 'src/utils/shellViewLayout'
+import { splitSurfaceSections } from 'src/utils/shellViewLayout'
 import {
   getFileRecordLoader,
   getLiveOptionRowsState,
@@ -419,9 +392,7 @@ import {
   getCanonicalTokenWriteTarget,
   getFilePageRegistryEntry,
   getFilePageReferenceDocs,
-  getRegistrySummaryTokenForSource,
   getRegistryTitleTokenForSource,
-  getRuntimeTableNameForEntityName,
   getRuntimeStructureVersion,
   resolveApprovedFileSectionKey,
   setRuntimeFileStructures,
@@ -429,7 +400,6 @@ import {
 } from 'src/utils/structureRegistry'
 import { buildSurfaceColumnFromToken } from 'src/utils/tokenSurfaceContract'
 import { getLdbRelationshipContractsForEntity } from 'src/shared/ldbRelationshipContracts'
-import { filterRecordFeedTabs, RECORD_FEED_GROUP_OPTIONS } from 'src/utils/recordFeedContract'
 import { buildFileStructureSessionSnapshot } from 'src/utils/fileStructureSession'
 import {
   appendDraftStructureToken,
@@ -448,10 +418,8 @@ const props = defineProps({
 
 const emit = defineEmits(['update:shellSelectorValue', 'change'])
 const $q = useQuasar()
-const router = useRouter()
 
 const bridge = computed(() => (typeof window !== 'undefined' ? window.ecvc : null))
-const RECORD_VIEW_UNSUPPORTED_SOURCE_KEYS = Object.freeze(new Set(['file-system', 'history', 'bb-file']))
 const shellSelectorOpen = ref(false)
 const runtimeStructureVersion = ref(getRuntimeStructureVersion())
 let runtimeStructureUnsub = null
@@ -470,14 +438,6 @@ const heroDocumentDialogTitle = ref('')
 const heroDocumentDialogContent = ref('')
 const heroDocumentDialogLoading = ref(false)
 const heroDocumentDialogError = ref('')
-const activeRecordFeedTab = ref('history')
-const recordViewLoading = ref(false)
-const recordViewError = ref('')
-const recordViewCurrent = ref(null)
-const recordViewFields = ref([])
-const recordViewAuditEvents = ref([])
-const expandedRecordHeroGroupKeys = ref([])
-const recordHeroFieldKeysBySource = ref({})
 const loading = ref(false)
 const error = ref('')
 const searchQuery = ref('')
@@ -502,7 +462,6 @@ const rawRowsBySource = computed(() => {
 const structureStateBySource = ref({})
 const sharedLdbLinksByRecordId = ref({})
 const selectedLeafKeysBySource = ref({})
-const focusedRecordKeyBySource = ref({})
 const selectedTokenKeysBySource = ref({})
 const selectedViewKeysBySource = ref({})
 const requiredFieldKeysBySource = ref({})
@@ -603,158 +562,20 @@ const fileHeroHealthSegments = computed(() => fileHeroPayload.value.healthSegmen
 const fileHeroActionLabel = computed(() => fileHeroPayload.value.actionLabel)
 const fileHeroActionTitle = computed(() => fileHeroPayload.value.actionTitle)
 const fileHeroActionItems = computed(() => fileHeroPayload.value.actionItems)
-
-const activeRecordViewId = computed(() => {
-  const focusedRecordId = String(focusedRecordKeyBySource.value[activeSettingsSourceKey.value] || '').trim()
-  if (focusedRecordId) return focusedRecordId
-  const firstVisibleRow = Array.isArray(displayRows.value) ? displayRows.value[0] : null
-  return String(firstVisibleRow?.key || '').trim()
+const recordHeroShellTitle = computed(() => {
+  const label = String(activeRegistryEntry.value?.singularLabel || activeRegistryEntry.value?.label || 'Record').trim() || 'Record'
+  return `${label} View`
 })
-
-const activeRecordRuntimeTableName = computed(() =>
-  String(getRuntimeTableNameForEntityName(activeRegistryEntry.value?.entityName || '') || activeRegistryEntry.value?.entityName || '').trim(),
-)
-
-const isRecordViewSupported = computed(() => !RECORD_VIEW_UNSUPPORTED_SOURCE_KEYS.has(activeSettingsSourceKey.value))
-
-const recordHeroCanonicalNameToken = computed(() => getRegistryTitleTokenForSource(activeSettingsSourceKey.value) || null)
-const recordHeroCanonicalSummaryToken = computed(() => getRegistrySummaryTokenForSource(activeSettingsSourceKey.value) || null)
-const recordHeroFieldByName = computed(() =>
-  Object.fromEntries((Array.isArray(recordViewFields.value) ? recordViewFields.value : []).map((field) => [String(field?.field_name || '').trim(), field])),
-)
-
-const recordHeroGroupedViews = computed(() =>
-  groupSurfaceViews(payloadSections.value).map((group) => {
-    if (Array.isArray(group.views) && group.views.length === 1) {
-      const viewLabel = String(group.views[0]?.label || '').trim()
-      const normalized = viewLabel.toLowerCase()
-      if (normalized === 'system' || normalized === 'ldb') {
-        return { ...group, title: viewLabel }
-      }
-    }
-    return group
-  }),
-)
-
-const recordHeroSelectableTokens = computed(() => {
-  const allowedSectionKeys = new Set(
-    recordHeroGroupedViews.value
-      .filter((group) =>
-        Array.isArray(group.views) &&
-        group.views.some((view) => {
-          const label = String(view.label || '').trim().toLowerCase()
-          return label !== 'general' && label !== 'system' && label !== 'ldb'
-        }))
-      .flatMap((group) => (Array.isArray(group.views) ? group.views : []).map((view) => view.key)),
-  )
-
-  return payloadTokens.value.filter((token) => {
-    const key = String(token?.key || '').trim()
-    const label = String(token?.label || '').trim().toLowerCase()
-    return key && allowedSectionKeys.has(token.parentKey) && label !== 'name' && label !== 'definition'
-  })
+const recordHeroShellInitials = computed(() => {
+  const label = String(activeRegistryEntry.value?.singularLabel || activeRegistryEntry.value?.label || 'Record').trim() || 'Record'
+  return label.slice(0, 2).toUpperCase()
 })
-
-const selectedRecordHeroTokenKeys = computed({
-  get() {
-    const sourceKey = activeSettingsSourceKey.value
-    const values = Array.isArray(recordHeroFieldKeysBySource.value[sourceKey]) ? recordHeroFieldKeysBySource.value[sourceKey] : []
-    const allowed = new Set(recordHeroSelectableTokens.value.map((token) => String(token?.key || '').trim()))
-    return values.map((value) => String(value || '').trim()).filter((value) => value && allowed.has(value))
-  },
-  set(value) {
-    const sourceKey = activeSettingsSourceKey.value
-    const normalized = Array.from(new Set((Array.isArray(value) ? value : []).map((item) => String(item || '').trim()).filter(Boolean)))
-    recordHeroFieldKeysBySource.value = {
-      ...recordHeroFieldKeysBySource.value,
-      [sourceKey]: normalized,
-    }
-  },
-})
-
-const selectedRecordHeroTokenKeySet = computed(() => new Set(selectedRecordHeroTokenKeys.value))
-const selectedRecordHeroTokens = computed(() =>
-  recordHeroSelectableTokens.value.filter((token) => selectedRecordHeroTokenKeySet.value.has(String(token?.key || '').trim())),
-)
-
-const recordHeroName = computed(() => {
-  if (!activeRecordViewId.value) {
-    return `No ${String(activeRegistryEntry.value?.singularLabel || 'Record').trim() || 'Record'} Loaded`
-  }
-  if (recordViewLoading.value && !recordViewCurrent.value) return 'Loading Record Hero'
-  if (!recordHeroCanonicalNameToken.value) return 'Missing canonical Name token'
-  const value = getRecordHeroTokenDisplayValue(recordHeroCanonicalNameToken.value)
-  return value || 'Missing Name value'
-})
-
-const recordHeroInitials = computed(() => {
-  const label = String(activeRegistryEntry.value?.singularLabel || '').trim()
-  return label ? label.slice(0, 2).toUpperCase() : '??'
-})
-
-const recordHeroSummaryValue = computed(() => {
-  if (!activeRecordViewId.value) {
-    return 'The hero frame stays mounted. Load or add a row in Data Section to populate this record contract.'
-  }
-  if (recordViewLoading.value && !recordViewCurrent.value) return 'Loading the focused record payload.'
-  if (!recordHeroCanonicalSummaryToken.value) return 'Missing canonical Summary token'
-  const value = getRecordHeroTokenDisplayValue(recordHeroCanonicalSummaryToken.value)
-  return value || 'Summary not set'
-})
-
-const recordHeroSummaryStatusIcon = computed(() => (recordHeroTokenHasStoredValue(recordHeroCanonicalSummaryToken.value) ? 'task_alt' : ''))
-const recordFeedGroupOptions = computed(() => RECORD_FEED_GROUP_OPTIONS)
-const recordFeedTabOptions = computed(() => filterRecordFeedTabs(recordViewAuditEvents.value))
-
-const selectedRecordHeroFieldCards = computed(() =>
-  selectedRecordHeroTokens.value.map((token) => {
-    const viewLabel = payloadSections.value.find((view) => view.key === token.parentKey)?.label || 'Unmapped view'
-    return {
-      key: token.key,
-      label: token.label,
-      description: viewLabel,
-      value: getRecordHeroTokenDisplayValue(token),
-      statusIcon: recordHeroTokenHasStoredValue(token) ? 'task_alt' : '',
-    }
-  }),
-)
-
-const recordHeroSettingsGroups = computed(() =>
-  recordHeroGroupedViews.value
-    .filter((group) =>
-      Array.isArray(group.views) &&
-      group.views.some((view) => {
-        const label = String(view.label || '').trim().toLowerCase()
-        return label !== 'general' && label !== 'system' && label !== 'ldb'
-      }))
-    .map((group) => ({
-      key: group.value,
-      label: group.title,
-      expanded: expandedRecordHeroGroupKeys.value.includes(group.value),
-      items: (Array.isArray(group.views) ? group.views : [])
-        .flatMap((view) => recordHeroSelectableTokens.value.filter((token) => token.parentKey === view.key))
-        .map((token) => ({
-          key: token.key,
-          label: token.label,
-          checked: selectedRecordHeroTokenKeySet.value.has(String(token.key || '').trim()),
-        })),
-    }))
-    .filter((group) => group.items.length),
-)
-
-const recordFeedArtifactContext = computed(() => {
-  const entityName = String(activeRegistryEntry.value?.entityName || activeRecordRuntimeTableName.value || '').trim()
-  const entityLabel = String(activeRegistryEntry.value?.label || activeRegistryEntry.value?.singularLabel || '').trim() || 'Missing record type'
-  const recordId = String(activeRecordViewId.value || '').trim()
-  const recordLabel = String(recordHeroName.value || '').trim() || recordId
-  if (!entityName || !recordId) return null
-  return {
-    entityName,
-    entityLabel,
-    recordId,
-    recordLabel,
-  }
-})
+const recordHeroShellSummary = computed(() => 'Record View shell mounted. Data contract intentionally disconnected while this section is rebuilt.')
+const recordHeroShellSettingsGroups = computed(() => [])
+const recordHeroShellFieldCards = computed(() => [])
+const recordHeroShellFeedTabs = computed(() => [])
+const recordHeroShellFeedGroups = computed(() => [])
+const recordHeroShellFeedItems = computed(() => [])
 
 const fileViewGroups = computed(() => payloadSections.value)
 const activeStructureSections = computed(() => {
@@ -1264,10 +1085,6 @@ function handleDataCellClick(row = {}, column = {}) {
   const rowKey = String(row?.key || '').trim()
   const columnKey = String(column?.key || '').trim()
   if (!rowKey || columnKey === '__select__' || columnKey === '__view__') return
-  focusedRecordKeyBySource.value = {
-    ...focusedRecordKeyBySource.value,
-    [activeSettingsSourceKey.value]: rowKey,
-  }
   const primaryColumnKey = String(recordDataColumns.value[0]?.key || '').trim()
   if (!primaryColumnKey || columnKey !== primaryColumnKey) return
 
@@ -1769,37 +1586,6 @@ function stringifyValue(value) {
   return String(value).trim()
 }
 
-function getRecordHeroFieldForToken(token) {
-  const aliases = getCanonicalTokenFieldNames(token)
-  return aliases.map((alias) => recordHeroFieldByName.value[alias]).find(Boolean) || null
-}
-
-function getRecordHeroTokenRawValue(token) {
-  if (!token) return ''
-  const field = getRecordHeroFieldForToken(token)
-  if (field && field.value != null && String(field.value).trim() !== '') return field.value
-
-  const aliases = getCanonicalTokenFieldNames(token)
-  for (const alias of aliases) {
-    const recordValue = recordViewCurrent.value?.record?.[alias]
-    if (recordValue != null && String(recordValue).trim() !== '') return recordValue
-  }
-  return ''
-}
-
-function getRecordHeroTokenDisplayValue(token) {
-  const rawValue = getRecordHeroTokenRawValue(token)
-  if (Array.isArray(rawValue)) return rawValue.length ? rawValue.join(', ') : 'Missing value'
-  const normalized = String(rawValue ?? '').trim()
-  return normalized || 'Missing value'
-}
-
-function recordHeroTokenHasStoredValue(token) {
-  const rawValue = getRecordHeroTokenRawValue(token)
-  if (Array.isArray(rawValue)) return rawValue.some((item) => String(item || '').trim())
-  return String(rawValue ?? '').trim() !== ''
-}
-
 function normalizeIpcErrorMessage(errorValue) {
   const raw = String(errorValue?.message || errorValue || '').trim()
   if (!raw) return 'An unexpected error occurred.'
@@ -1823,91 +1609,6 @@ async function handleFileHeroActionItemClick(item = {}) {
     heroDocumentDialogError.value = normalizeIpcErrorMessage(errorValue)
   } finally {
     heroDocumentDialogLoading.value = false
-  }
-}
-
-function toggleRecordHeroGroup(groupKey) {
-  expandedRecordHeroGroupKeys.value = expandedRecordHeroGroupKeys.value.includes(groupKey)
-    ? expandedRecordHeroGroupKeys.value.filter((key) => key !== groupKey)
-    : [...expandedRecordHeroGroupKeys.value, groupKey]
-}
-
-function setRecordHeroTokenSelected(tokenKey, isSelected) {
-  const next = new Set(selectedRecordHeroTokenKeys.value)
-  if (isSelected) next.add(tokenKey)
-  else next.delete(tokenKey)
-  selectedRecordHeroTokenKeys.value = Array.from(next)
-}
-
-function openRecordHeroFeedLog(eventId) {
-  if (!activeRecordRuntimeTableName.value || !activeRecordViewId.value || !eventId) return
-  router.push({
-    name: 'record-event',
-    params: {
-      tableName: activeRecordRuntimeTableName.value,
-      recordId: activeRecordViewId.value,
-      eventId,
-    },
-  })
-}
-
-function handleRecordHeroFeedAdd(feedTab) {
-  const normalizedFeedTab = String(feedTab || '').trim().toLowerCase()
-  if (!['notes', 'artifacts', 'intake'].includes(normalizedFeedTab)) return
-
-  if (normalizedFeedTab === 'intake') {
-    router.push({
-      name: 'intake-shell',
-      query: {
-        section: 'intake',
-        create: '1',
-        contextEntity: String(recordFeedArtifactContext.value?.entityName || '').trim(),
-        contextEntityLabel: String(recordFeedArtifactContext.value?.entityLabel || '').trim(),
-        contextRecordId: String(recordFeedArtifactContext.value?.recordId || '').trim(),
-        contextRecordLabel: String(recordFeedArtifactContext.value?.recordLabel || '').trim(),
-        open: String(Date.now()),
-      },
-    })
-    return
-  }
-
-  router.push({
-    name: 'draft-window',
-    query: {
-      section: normalizedFeedTab,
-      create: '1',
-      contextEntity: String(recordFeedArtifactContext.value?.entityName || '').trim(),
-      contextRecordId: String(recordFeedArtifactContext.value?.recordId || '').trim(),
-    },
-  })
-}
-
-async function loadRecordHeroView() {
-  if (!isRecordViewSupported.value || !activeRecordRuntimeTableName.value || !activeRecordViewId.value || typeof bridge.value?.records?.shellView !== 'function') {
-    recordViewCurrent.value = null
-    recordViewFields.value = []
-    recordViewAuditEvents.value = []
-    recordViewError.value = ''
-    return
-  }
-
-  recordViewLoading.value = true
-  recordViewError.value = ''
-  recordViewCurrent.value = null
-  recordViewFields.value = []
-  recordViewAuditEvents.value = []
-  try {
-    const result = await bridge.value.records.shellView(activeRecordRuntimeTableName.value, activeRecordViewId.value)
-    recordViewCurrent.value = result?.view || null
-    recordViewFields.value = Array.isArray(result?.view?.fields) ? result.view.fields : []
-    recordViewAuditEvents.value = Array.isArray(result?.auditFeedItems) ? result.auditFeedItems : []
-  } catch (loadError) {
-    recordViewError.value = normalizeIpcErrorMessage(loadError)
-    recordViewCurrent.value = null
-    recordViewFields.value = []
-    recordViewAuditEvents.value = []
-  } finally {
-    recordViewLoading.value = false
   }
 }
 
@@ -1980,49 +1681,6 @@ onBeforeUnmount(() => {
   liveOptionRowsUnsub = null
 })
 
-watch(recordHeroSettingsGroups, (groups) => {
-  const nextKeys = groups.map((group) => group.key)
-  expandedRecordHeroGroupKeys.value = nextKeys.filter((key) => expandedRecordHeroGroupKeys.value.includes(key))
-  if (!expandedRecordHeroGroupKeys.value.length && nextKeys.length) {
-    expandedRecordHeroGroupKeys.value = [...nextKeys]
-  }
-}, { immediate: true })
-
-watch(
-  [activeSettingsSourceKey, recordHeroSelectableTokens],
-  () => {
-    const sourceKey = activeSettingsSourceKey.value
-    const allowedKeys = new Set(recordHeroSelectableTokens.value.map((token) => String(token?.key || '').trim()))
-    const existing = Array.isArray(recordHeroFieldKeysBySource.value[sourceKey]) ? recordHeroFieldKeysBySource.value[sourceKey] : []
-    const normalized = existing.filter((key) => allowedKeys.has(key))
-
-    if (normalized.length) {
-      if (normalized.length !== existing.length) {
-        recordHeroFieldKeysBySource.value = {
-          ...recordHeroFieldKeysBySource.value,
-          [sourceKey]: normalized,
-        }
-      }
-      return
-    }
-
-    const defaultKeys = recordHeroSelectableTokens.value.map((token) => String(token?.key || '').trim()).filter(Boolean)
-    recordHeroFieldKeysBySource.value = {
-      ...recordHeroFieldKeysBySource.value,
-      [sourceKey]: defaultKeys,
-    }
-  },
-  { immediate: true },
-)
-
-watch(
-  [activeRecordRuntimeTableName, activeRecordViewId],
-  () => {
-    loadRecordHeroView()
-  },
-  { immediate: true },
-)
-
 watch(
   dataControlItems,
   (items) => {
@@ -2053,10 +1711,6 @@ watch(
   activeSettingsSourceKey,
   async (sourceKey) => {
     searchQuery.value = ''
-    focusedRecordKeyBySource.value = {
-      ...focusedRecordKeyBySource.value,
-      [sourceKey]: '',
-    }
     selectedLeafKeysBySource.value = {
       ...selectedLeafKeysBySource.value,
       [sourceKey]: [],
