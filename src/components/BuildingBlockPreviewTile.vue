@@ -27,7 +27,7 @@
 
     <div v-if="!isCollapsed" class="building-block-preview-tile__stage" :class="stageClass">
       <template v-if="blockKey === 'page-title'">
-        <PageTitleText title="BB Shell" />
+        <PageTitleText title="Utils" />
       </template>
 
       <template v-else-if="blockKey === 'record-title'">
@@ -186,7 +186,7 @@
 
       <template v-else-if="blockKey === 'dialog-shell-title-row'">
         <DialogShellTitleRow
-          title="Edit Building Block"
+          title="Edit Utility"
           :closable="true"
         />
       </template>
@@ -209,7 +209,7 @@
       <template v-else-if="blockKey === 'dialog-shell-frame'">
         <DialogShellFrame class="building-block-preview-tile__dialog-frame">
           <template #header>
-            <DialogShellTitleRow title="Edit Building Block" :closable="true" />
+            <DialogShellTitleRow title="Edit Utility" :closable="true" />
           </template>
           <template #default>
             <div class="building-block-preview-tile__dialog-frame-body" />
@@ -223,7 +223,7 @@
       <template v-else-if="blockKey === 'shell-title-row'">
         <FileShellTitleRow
           v-model="activeLiveActionL1"
-          title="BB Shell"
+          title="Utils"
           :show-selector="true"
           :options="liveActionOptions"
         />
@@ -974,7 +974,7 @@ const detail = computed(() => BUILDING_BLOCK_DETAILS_BY_ID[props.blockKey] || nu
 const tileRef = ref(null)
 const tileResizeObserver = ref(null)
 const isCollapsed = ref(false)
-const tileTitle = computed(() => props.title || detail.value?.title || 'Building Block')
+const tileTitle = computed(() => props.title || detail.value?.title || 'Utility')
 const tileGraphCounts = computed(() => getBuildingBlockGraphCounts(props.blockKey))
 const tileGraphLabel = computed(() => `[${tileGraphCounts.value.parentCount}/${tileGraphCounts.value.childCount}]`)
 const tileShellsLabel = computed(() => `Shells: ${(detail.value?.usedInShells || []).length}`)

@@ -72,7 +72,7 @@
       >
         <template #filters>
           <FileFilterMenu
-            :title="isBbFileSource ? 'Building Block Filter' : 'File Filter'"
+            :title="isBbFileSource ? 'Utility Filter' : 'File Filter'"
             :sections="fileFilterMenuSections"
             :expanded-section-key="isBbFileSource ? expandedBbFilterCategoryKey : expandedFilterViewKey"
             @toggle-section="handleFileFilterToggleView"
@@ -1402,7 +1402,7 @@ const heroPayload = computed(() => {
   const totalRows = rawRows.value.length
   const sharedText = isRecordShellMode.value
     ? 'This is the shared record-create shell. The selected file sets the real source entity, while the active view defines which token fields are visible in the row surface.'
-    : `This is the shared file shell for ${fileLabel}. The active file determines the local payload while the hero structure remains owned by bb:file-hero.`
+    : `This is the shared file shell for ${fileLabel}. The active file determines the local payload while the hero structure remains owned by the utility hero contract.`
 
   return {
     text: sharedText,
@@ -1420,7 +1420,7 @@ const heroPayload = computed(() => {
         tone: 'neutral',
       },
     ],
-    healthText: `This file page is rendering through the shared File Shell hero contract. Local payload comes from ${fileLabel}, while the hero structure remains linked to bb:file-hero. Validator coverage has not been attached yet.`,
+    healthText: `This file page is rendering through the shared File Shell hero contract. Local payload comes from ${fileLabel}, while the hero structure remains linked to the utility hero contract. Validator coverage has not been attached yet.`,
     healthSegments: [
       { tone: 'sparse', width: 100 },
       { tone: 'rich', width: 0 },
