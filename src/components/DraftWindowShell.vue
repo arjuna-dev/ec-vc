@@ -119,6 +119,8 @@
             :feed-groups="recordHeroShellFeedGroups"
             :feed-items="recordHeroShellFeedItems"
             feed-empty-message="Record View shell mounted. Data contract intentionally disconnected while this section is rebuilt."
+            @toggle-settings-group="toggleRecordHeroShellGroup"
+            @toggle-settings-item="setRecordHeroShellTokenSelected"
           />
         </div>
       </div>
@@ -446,6 +448,8 @@ const searchQuery = ref('')
 const governanceSearchQuery = ref('')
 const viewMode = ref('page')
 const governanceViewMode = ref('page')
+const recordHeroShellExpandedGroupKeys = ref([])
+const recordHeroShellSelectedTokenKeysBySource = ref({})
 const loadedRowsBySource = ref(getLiveOptionRowsState())
 const draftRowsBySource = ref({})
 const rawRowsBySource = computed(() => {
@@ -586,7 +590,7 @@ const recordHeroShellSummary = computed(() => {
   if (rowSummary) return rowSummary
   return 'Record View shell mounted. Summary contract not available from the current visible row yet.'
 })
-const recordHeroShellFieldCards = computed(() => {
+const recordHeroShellAvailableTokens = computed(() => {
   const summaryToken = getRegistrySummaryTokenForSource(activeSettingsSourceKey.value)
   const excludedKeys = new Set(
     [titleToken.value?.key, summaryToken?.key]
@@ -594,16 +598,53 @@ const recordHeroShellFieldCards = computed(() => {
       .filter(Boolean),
   )
 
-  return effectiveDataTokens.value
-    .filter((token) => {
+  return activeStructureSections.value
+    .filter((section) => {
+      const label = String(section?.label || '').trim().toLowerCase()
+      return label !== 'general' && label !== 'system' && label !== 'ldb'
+    })
+    .flatMap((section) =>
+      (Array.isArray(section?.tokens) ? section.tokens : []).map((token) => ({
+        token,
+        sectionLabel: String(section?.label || section?.key || 'Section').trim() || 'Section',
+      })),
+    )
+    .filter(({ token }) => {
       const tokenKey = String(token?.key || '').trim()
       return tokenKey && !excludedKeys.has(tokenKey)
     })
+})
+const selectedRecordHeroShellTokenKeys = computed({
+  get() {
+    const sourceKey = activeSettingsSourceKey.value
+    const values = Array.isArray(recordHeroShellSelectedTokenKeysBySource.value[sourceKey])
+      ? recordHeroShellSelectedTokenKeysBySource.value[sourceKey]
+      : []
+    const allowed = new Set(
+      recordHeroShellAvailableTokens.value
+        .map(({ token }) => String(token?.key || '').trim())
+        .filter(Boolean),
+    )
+    return values.map((value) => String(value || '').trim()).filter((value) => value && allowed.has(value))
+  },
+  set(value) {
+    const sourceKey = activeSettingsSourceKey.value
+    const normalized = Array.from(new Set((Array.isArray(value) ? value : []).map((item) => String(item || '').trim()).filter(Boolean)))
+    recordHeroShellSelectedTokenKeysBySource.value = {
+      ...recordHeroShellSelectedTokenKeysBySource.value,
+      [sourceKey]: normalized,
+    }
+  },
+})
+const selectedRecordHeroShellTokenKeySet = computed(() => new Set(selectedRecordHeroShellTokenKeys.value))
+const recordHeroShellFieldCards = computed(() => {
+  return recordHeroShellAvailableTokens.value
+    .filter(({ token }) => selectedRecordHeroShellTokenKeySet.value.has(String(token?.key || '').trim()))
     .slice(0, 4)
-    .map((token) => ({
+    .map(({ token, sectionLabel }) => ({
       key: String(token?.key || '').trim(),
       label: String(token?.label || token?.key || 'Field').trim() || 'Field',
-      description: String(activeViewSection.value?.label || 'Current View').trim() || 'Current View',
+      description: sectionLabel,
       value: stringifyValue(recordHeroSourceRow.value?.[token.key]) || 'No value yet',
       statusIcon: '',
     }))
@@ -620,7 +661,7 @@ const recordHeroShellSettingsGroups = computed(() =>
     .map((section) => ({
       key: String(section?.key || '').trim(),
       label: String(section?.label || section?.key || 'Section').trim() || 'Section',
-      expanded: true,
+      expanded: recordHeroShellExpandedGroupKeys.value.includes(String(section?.key || '').trim()),
       items: (Array.isArray(section?.tokens) ? section.tokens : [])
         .map((token) => {
           const key = String(token?.key || '').trim()
@@ -1666,6 +1707,23 @@ function normalizeIpcErrorMessage(errorValue) {
   return raw.replace(/^Error invoking remote method '[^']+':\s*/i, '').trim()
 }
 
+function toggleRecordHeroShellGroup(groupKey) {
+  const normalizedKey = String(groupKey || '').trim()
+  if (!normalizedKey) return
+  recordHeroShellExpandedGroupKeys.value = recordHeroShellExpandedGroupKeys.value.includes(normalizedKey)
+    ? recordHeroShellExpandedGroupKeys.value.filter((key) => key !== normalizedKey)
+    : [...recordHeroShellExpandedGroupKeys.value, normalizedKey]
+}
+
+function setRecordHeroShellTokenSelected(tokenKey, isSelected) {
+  const next = new Set(selectedRecordHeroShellTokenKeys.value)
+  const normalizedKey = String(tokenKey || '').trim()
+  if (!normalizedKey) return
+  if (isSelected) next.add(normalizedKey)
+  else next.delete(normalizedKey)
+  selectedRecordHeroShellTokenKeys.value = Array.from(next)
+}
+
 async function handleFileHeroActionItemClick(item = {}) {
   const path = String(item?.path || '').trim()
   if (!path || typeof bridge.value?.docs?.read !== 'function') return
@@ -1754,6 +1812,52 @@ onBeforeUnmount(() => {
   if (liveOptionRowsUnsub) liveOptionRowsUnsub()
   liveOptionRowsUnsub = null
 })
+
+watch(
+  [activeSettingsSourceKey, recordHeroShellAvailableTokens],
+  () => {
+    const sourceKey = activeSettingsSourceKey.value
+    const allowedKeys = recordHeroShellAvailableTokens.value
+      .map(({ token }) => String(token?.key || '').trim())
+      .filter(Boolean)
+    const allowedKeySet = new Set(allowedKeys)
+    const existing = Array.isArray(recordHeroShellSelectedTokenKeysBySource.value[sourceKey])
+      ? recordHeroShellSelectedTokenKeysBySource.value[sourceKey]
+      : []
+    const normalized = existing.filter((key) => allowedKeySet.has(String(key || '').trim()))
+    if (normalized.length) {
+      if (normalized.length !== existing.length) {
+        recordHeroShellSelectedTokenKeysBySource.value = {
+          ...recordHeroShellSelectedTokenKeysBySource.value,
+          [sourceKey]: normalized,
+        }
+      }
+      return
+    }
+
+    recordHeroShellSelectedTokenKeysBySource.value = {
+      ...recordHeroShellSelectedTokenKeysBySource.value,
+      [sourceKey]: allowedKeys.slice(0, 4),
+    }
+  },
+  { immediate: true },
+)
+
+watch(
+  recordHeroShellSettingsGroups,
+  (groups) => {
+    const nextKeys = groups.map((group) => String(group?.key || '').trim()).filter(Boolean)
+    const normalized = nextKeys.filter((key) => recordHeroShellExpandedGroupKeys.value.includes(key))
+    if (normalized.length) {
+      if (normalized.length !== recordHeroShellExpandedGroupKeys.value.length) {
+        recordHeroShellExpandedGroupKeys.value = normalized
+      }
+      return
+    }
+    recordHeroShellExpandedGroupKeys.value = [...nextKeys]
+  },
+  { immediate: true },
+)
 
 watch(
   dataControlItems,
