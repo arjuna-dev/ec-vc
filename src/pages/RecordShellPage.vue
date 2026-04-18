@@ -1375,28 +1375,31 @@ async function commitInlineFieldValue(token, explicitValue) {
   inlineFieldSavingKeys.value = [...inlineFieldSavingKeys.value, saveKey]
 
   try {
-    const result = await bridge.value?.records?.update?.({
+    const result = await bridge.value?.records?.shellUpdate?.({
       tableName: runtimeTableName.value,
       recordId: recordIdParam.value,
       changes,
+      verification: reviewTracked && verificationFieldName
+        ? {
+            tableName: String(field?.table_name || runtimeTableName.value).trim(),
+            recordId: String(field?.record_id || recordIdParam.value).trim(),
+            fieldName: verificationFieldName,
+            state: 'verified',
+            source: 'direct_user_input',
+            actionLabel: 'record_shell_field_edit',
+          }
+        : null,
       actionLabel: 'record_shell_field_edit',
     })
-    if (reviewTracked && verificationFieldName) {
-      await bridge.value?.verification?.upsert?.({
-        tableName: String(field?.table_name || runtimeTableName.value).trim(),
-        recordId: String(field?.record_id || recordIdParam.value).trim(),
-        fieldName: verificationFieldName,
-        state: 'verified',
-        source: 'direct_user_input',
-        actionLabel: 'record_shell_field_edit',
-      })
-      fieldVerificationStates.value = {
-        ...fieldVerificationStates.value,
-        [verificationFieldName]: 'verified',
-      }
-    }
     currentView.value = result?.view || currentView.value
     fields.value = Array.isArray(result?.view?.fields) ? result.view.fields : fields.value
+    fieldVerificationStates.value = Object.fromEntries(
+      (Array.isArray(result?.verificationFields) ? result.verificationFields : []).map((entry) => [
+        String(entry?.field_name || '').trim(),
+        String(entry?.state || '').trim(),
+      ]),
+    )
+    auditEvents.value = Array.isArray(result?.auditFeedItems) ? result.auditFeedItems : auditEvents.value
     inlineFieldValues.value = {
       ...inlineFieldValues.value,
       [token.key]: nextValue,
@@ -1415,18 +1418,27 @@ async function updateInlineFieldVerificationState(token, nextState) {
   const field = resolveExistingFieldForToken(token)
   if (!field) return
   try {
-    await bridge.value?.verification?.upsert?.({
-      tableName: field.table_name,
-      recordId: field.record_id,
-      fieldName: field.field_name,
-      state: String(nextState || '').trim(),
-      source: 'record_shell_field_review',
+    const result = await bridge.value?.records?.shellUpdate?.({
+      tableName: runtimeTableName.value,
+      recordId: recordIdParam.value,
+      changes: [],
+      verification: {
+        tableName: field.table_name,
+        recordId: field.record_id,
+        fieldName: field.field_name,
+        state: String(nextState || '').trim(),
+        source: 'record_shell_field_review',
+        actionLabel: 'record_shell_field_verification',
+      },
       actionLabel: 'record_shell_field_verification',
     })
-    fieldVerificationStates.value = {
-      ...fieldVerificationStates.value,
-      [String(field.field_name || '').trim()]: String(nextState || '').trim(),
-    }
+    fieldVerificationStates.value = Object.fromEntries(
+      (Array.isArray(result?.verificationFields) ? result.verificationFields : []).map((entry) => [
+        String(entry?.field_name || '').trim(),
+        String(entry?.state || '').trim(),
+      ]),
+    )
+    auditEvents.value = Array.isArray(result?.auditFeedItems) ? result.auditFeedItems : auditEvents.value
   } catch (submitError) {
     const message = normalizeIpcErrorMessage(submitError)
     error.value = message

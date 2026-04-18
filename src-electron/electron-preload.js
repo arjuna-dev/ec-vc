@@ -110,6 +110,8 @@ const api = {
   records: {
     view: (tableName, recordId) => ipcRenderer.invoke('records:view', { tableName, recordId }),
     shellView: (tableName, recordId) => ipcRenderer.invoke('records:shellView', { tableName, recordId }),
+    shellUpdate: ({ tableName, recordId, changes, verification, actionId, actionLabel } = {}) =>
+      ipcRenderer.invoke('records:shellUpdate', { tableName, recordId, changes, verification, actionId, actionLabel }),
     history: (tableName, recordId) => ipcRenderer.invoke('records:history', { tableName, recordId }),
     viewHistoryEntry: (snapshotId) => ipcRenderer.invoke('records:viewHistoryEntry', { snapshotId }),
     update: ({ tableName, recordId, changes, actionId, actionLabel } = {}) =>

@@ -5709,6 +5709,25 @@ function buildRecordShellAuditFeedItems(events = []) {
     .filter(Boolean)
 }
 
+function buildRecordShellViewPayload(tableName, recordId) {
+  const config = getRecordTableConfig(tableName)
+  const normalizedRecordId = normalizeNullableString(recordId)
+  if (!normalizedRecordId) throw new Error('recordId is required')
+
+  return {
+    view: getRecordView(config.tableName, normalizedRecordId),
+    verificationFields: listFieldVerificationMetadata({
+      tableName: config.tableName,
+      recordId: normalizedRecordId,
+    }),
+    auditFeedItems: buildRecordShellAuditFeedItems(listEvents({
+      table_name: config.tableName,
+      record_id: normalizedRecordId,
+      limit: 5,
+    })),
+  }
+}
+
 const EVENT_RELATION_FIELD_BY_ENTITY_LABEL = Object.freeze({
   User: 'Event_User',
   Contact: 'Event_Contact',
@@ -7827,22 +7846,7 @@ function registerIpc() {
 
   ipcMain.handle('records:shellView', async (_event, { tableName, recordId } = {}) => {
     initDb()
-    const config = getRecordTableConfig(tableName)
-    const normalizedRecordId = normalizeNullableString(recordId)
-    if (!normalizedRecordId) throw new Error('recordId is required')
-
-    return {
-      view: getRecordView(config.tableName, normalizedRecordId),
-      verificationFields: listFieldVerificationMetadata({
-        tableName: config.tableName,
-        recordId: normalizedRecordId,
-      }),
-      auditFeedItems: buildRecordShellAuditFeedItems(listEvents({
-        table_name: config.tableName,
-        record_id: normalizedRecordId,
-        limit: 5,
-      })),
-    }
+    return buildRecordShellViewPayload(tableName, recordId)
   })
 
   ipcMain.handle('databooks:versions', async (_event, { tableName, recordId } = {}) => {
@@ -8382,6 +8386,46 @@ function registerIpc() {
       const result = linkArtifactsToOpportunity({ artifactIds, opportunityId })
       await syncWorkspaceWorkbooksSafe()
       return result
+    },
+  )
+
+  ipcMain.handle(
+    'records:shellUpdate',
+    async (_event, { tableName, recordId, changes, verification, actionId, actionLabel } = {}) => {
+      initDb()
+      try {
+        const config = getRecordTableConfig(tableName)
+        const rid = normalizeNullableString(recordId)
+        if (!rid) throw new Error('recordId is required')
+        const normalizedActionLabel = normalizeLifecycleActionLabel(actionLabel || 'modified')
+        const result = applyAuditedChanges(changes, {
+          createRecordHistoryFor: { tableName: config.tableName, recordId: rid },
+          actionId: normalizeNullableString(actionId),
+          actionLabel: normalizedActionLabel,
+        })
+
+        if (verification && typeof verification === 'object') {
+          upsertFieldVerificationMetadata({
+            tableName: normalizeNullableString(verification.tableName) || config.tableName,
+            recordId: normalizeNullableString(verification.recordId) || rid,
+            fieldName: normalizeNullableString(verification.fieldName),
+            state: normalizeNullableString(verification.state),
+            source: normalizeNullableString(verification.source),
+            confidence: normalizeNullableString(verification.confidence),
+            actionId: normalizeNullableString(actionId),
+            actionLabel: normalizeNullableString(verification.actionLabel) || normalizedActionLabel,
+          })
+        }
+
+        await syncWorkspaceWorkbooksSafe()
+        return {
+          ...result,
+          ...buildRecordShellViewPayload(config.tableName, rid),
+        }
+      } catch (e) {
+        console.error('records:shellUpdate failed:', e)
+        throw new Error(sanitizeRecordUpdateError(e))
+      }
     },
   )
 
