@@ -695,7 +695,7 @@ const recordHeroShellFeedItems = computed(() => {
 const fileViewGroups = computed(() => payloadSections.value)
 const activeStructureSections = computed(() => {
   const sourceKey = activeSettingsSourceKey.value
-  return structureStateBySource.value[sourceKey] || cloneFileStructureSections(fileViewGroups.value)
+  return structureStateBySource.value[sourceKey] || fileViewGroups.value
 })
 const toolbarViewSplit = computed(() => splitSurfaceSections(activeStructureSections.value))
 
@@ -1703,6 +1703,12 @@ function stringifyValue(value) {
   return String(value).trim()
 }
 
+function areStringArraysEqual(left = [], right = []) {
+  if (!Array.isArray(left) || !Array.isArray(right)) return false
+  if (left.length !== right.length) return false
+  return left.every((value, index) => String(value || '').trim() === String(right[index] || '').trim())
+}
+
 function normalizeIpcErrorMessage(errorValue) {
   const raw = String(errorValue?.message || errorValue || '').trim()
   if (!raw) return 'An unexpected error occurred.'
@@ -1907,10 +1913,15 @@ watch(
     const existingRequired = Array.isArray(requiredFieldKeysBySource.value[sourceKey])
       ? requiredFieldKeysBySource.value[sourceKey].filter((itemKey) => allowedRequiredKeys.has(itemKey))
       : []
+    const nextRequired = existingRequired.length ? existingRequired : getDefaultRequiredFieldKeysForSource(sourceKey)
+
+    if (areStringArraysEqual(requiredFieldKeysBySource.value[sourceKey] || [], nextRequired)) {
+      return
+    }
 
     requiredFieldKeysBySource.value = {
       ...requiredFieldKeysBySource.value,
-      [sourceKey]: existingRequired.length ? existingRequired : getDefaultRequiredFieldKeysForSource(sourceKey),
+      [sourceKey]: nextRequired,
     }
   },
   { immediate: true },
