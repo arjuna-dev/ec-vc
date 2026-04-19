@@ -408,27 +408,10 @@ const workspaceToolNavigationItems = [
 }))
 const routeLabelByName = {
   home: 'Home',
-  utils: 'Personalize',
-  companies: 'Companies',
-  contacts: 'Contacts',
-  users: 'Users',
-  opportunities: 'Opportunities',
-  funds: 'Funds',
-  rounds: 'Rounds',
-  projects: 'Projects',
-  artifacts: 'Artifacts',
-  markets: 'Markets',
-  notes: 'Notes',
-  securities: 'Securities',
-  intake: 'Intake',
-  tasks: 'Tasks',
   'draft-window': 'PMP Window',
   'intake-shell': 'Intake',
-  'user-roles': 'User Roles',
-  'companion-roles': 'Companion Roles',
   avatar: 'Companion',
   'user-settings': 'Owner',
-  'file-system': 'System Files',
   [RECORD_VIEW_ROUTE_NAME]: 'Record View',
 }
 const router = useRouter()
