@@ -22,7 +22,7 @@ const props = defineProps({
   kind: {
     type: String,
     default: 'record',
-    validator: (value) => ['record', 'file', 'bb', 'fork'].includes(value),
+    validator: (value) => ['record', 'file', 'fork'].includes(value),
   },
   label: {
     type: String,
@@ -38,7 +38,6 @@ const resolvedLabel = computed(() => {
 
   if (props.kind === 'fork') return 'Open Fork'
   if (props.kind === 'file') return 'Open File Dialog'
-  if (props.kind === 'bb') return 'Open BB Shell'
   return 'Open Dialog'
 })
 </script>

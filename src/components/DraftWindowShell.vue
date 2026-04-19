@@ -535,7 +535,7 @@ const fileHeroPayload = computed(() => {
     : 0
 
   return {
-    text: `This is the shared file shell for ${fileLabel}. The active file determines the local payload while the hero structure remains owned by bb:file-hero.`,
+    text: `This is the shared file view for ${fileLabel}. The active file determines the local payload while the hero structure remains shared across PMP Window.`,
     stats: [
       {
         label: 'Rows',
