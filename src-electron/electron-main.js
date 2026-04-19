@@ -1920,6 +1920,12 @@ function ensureDefaultBuildingBlocks(database) {
 function listBuildingBlocks() {
   const database = initDb()
   ensureDefaultBuildingBlocks(database)
+  const allowedIds = new Set(
+    DEFAULT_BUILDING_BLOCK_FILE_ROWS
+      .map((row) => normalizeNullableString(row?.id))
+      .filter(Boolean),
+  )
+
   return dbAll(
     `
     SELECT
@@ -1948,7 +1954,7 @@ function listBuildingBlocks() {
     FROM Building_Blocks
     ORDER BY COALESCE(Sort_Order, 999999), created_at, id
   `,
-  )
+  ).filter((row) => allowedIds.has(normalizeNullableString(row?.id)))
 }
 
 function createBuildingBlock(payload = {}) {

@@ -45,7 +45,7 @@ const FILE_PAGE_ROUTE_META = Object.freeze({
     },
     requiredSubsections: ['General', 'Usage', 'Anatomy', 'Source', 'Reconstruction', 'Variants'],
     optionalStandardSubsections: [],
-    requiredRuntimeCapabilities: ['list', 'create', 'delete'],
+    requiredRuntimeCapabilities: ['list'],
     birthDefaults: {
       primaryNameField: 'Name',
       primarySummaryField: 'Summary',

@@ -77,7 +77,7 @@ export const BUILDING_BLOCK_DETAILS_BY_ID = {
   }),
   colors: defineBuildingBlockDetail({
     id: 'cmp-foundation-colors',
-    title: 'Colors',
+    title: 'Primary Colors',
     status: 'canonical',
     statusLabel: 'Canonical Shared',
     source: 'src/css/tokens.scss + src/utils/generalSettingsCatalog.js',
@@ -1210,6 +1210,11 @@ export const BUILDING_BLOCK_DETAILS_BY_ID = {
   }),
 }
 
+export const ALLOWED_UTIL_BLOCK_KEYS = Object.freeze([
+  'fonts',
+  'colors',
+])
+
 export const BUILDING_BLOCK_OPTIONS = Object.entries(BUILDING_BLOCK_DETAILS_BY_ID)
   .filter(([, detail]) => detail.status !== 'deprecated')
   .map(([value, detail]) => ({
@@ -1408,7 +1413,7 @@ const BUILDING_BLOCK_CATEGORY_BY_ID = Object.freeze({
 })
 
 export const DEFAULT_BUILDING_BLOCK_FILE_ROWS = Object.entries(BUILDING_BLOCK_DETAILS_BY_ID)
-  .filter(([, detail]) => detail.status !== 'deprecated')
+  .filter(([blockKey, detail]) => ALLOWED_UTIL_BLOCK_KEYS.includes(blockKey) && detail.status !== 'deprecated')
   .map(([blockKey, detail], index) => ({
     id: `bb:${blockKey}`,
     Sort_Order: index + 1,

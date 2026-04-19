@@ -1069,7 +1069,9 @@ const someVisibleSelected = computed(() =>
 )
 
 const canDeleteSelectedRows = computed(() =>
-  selectedDataRows.value.length > 0 && typeof bridge.value?.[activeSettingsSourceKey.value]?.delete === 'function',
+  activeSettingsSourceKey.value !== 'bb-file'
+  && selectedDataRows.value.length > 0
+  && typeof bridge.value?.[activeSettingsSourceKey.value]?.delete === 'function',
 )
 
 const dataControlContract = computed(() => ({
@@ -1078,7 +1080,7 @@ const dataControlContract = computed(() => ({
   allVisibleSelected: allVisibleSelected.value,
   someVisibleSelected: someVisibleSelected.value,
   loading: loading.value,
-  addDisabled: false,
+  addDisabled: activeSettingsSourceKey.value === 'bb-file',
   searchQuery: searchQuery.value,
   searchPlaceholder: `Search ${activeRegistryEntry.value?.label || 'Records'}`,
   viewMode: viewMode.value,
