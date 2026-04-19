@@ -28,8 +28,8 @@ export const VC_PACK_FILE_KEYS = Object.freeze([
 const FILE_PAGE_ROUTE_META = Object.freeze({
   Building_Blocks: {
     key: 'utils',
-    label: 'Utils',
-    singularLabel: 'Utility',
+    label: 'Personalize',
+    singularLabel: 'Personalization',
     routeName: 'utils',
     path: '/utils',
     icon: 'dashboard_customize',
