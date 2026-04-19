@@ -28,10 +28,10 @@ export const VC_PACK_FILE_KEYS = Object.freeze([
 const FILE_PAGE_ROUTE_META = Object.freeze({
   Building_Blocks: {
     key: 'bb-file',
-    label: 'BB Shell',
-    singularLabel: 'Building Block',
+    label: 'Utils',
+    singularLabel: 'Utility',
     routeName: 'bb-file',
-    path: '/bb-file',
+    path: '/utils',
     icon: 'dashboard_customize',
     showInWorkspaceNav: false,
     shellGroup: 'system_level',

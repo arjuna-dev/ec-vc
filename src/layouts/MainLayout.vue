@@ -408,7 +408,7 @@ const workspaceNavigationItems = WORKSPACE_FILE_NAV_ITEMS.map((item) => ({
   iconSize: item.iconSize || '18px',
 }))
 const testShellNavigationItems = [
-  { label: 'BB Shell', to: '/bb-file', exact: true, icon: 'dashboard_customize' },
+  { label: 'Utils', to: '/utils', exact: true, icon: 'dashboard_customize' },
   { label: 'File Shell', to: '/test-shell', exact: true, icon: 'science' },
   { label: 'Record Shell', to: '/record-shell?section=tasks', exact: true, icon: 'album' },
   { label: 'PMP Window', to: '/draft-window?section=file-system', exact: true, icon: 'design_services' },
@@ -420,7 +420,7 @@ const testShellNavigationItems = [
 }))
 const routeLabelByName = {
   home: 'Home',
-  'bb-file': 'BB Shell',
+  'bb-file': 'Utils',
   companies: 'Companies',
   contacts: 'Contacts',
   users: 'Users',
