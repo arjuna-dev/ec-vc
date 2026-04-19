@@ -398,7 +398,7 @@ const mainNavigationItems = [
   iconSize: '22px',
 }))
 const workspaceToolNavigationItems = [
-  { label: 'PMP Window', to: '/draft-window?section=file-system', exact: true, icon: 'design_services' },
+  { label: 'LDB Files', to: '/draft-window?section=file-system', exact: true, icon: 'design_services' },
   { label: 'Intake', to: '/intake-shell', exact: true, icon: 'hourglass_top' },
 ].map((item) => ({
   ...item,
@@ -407,7 +407,7 @@ const workspaceToolNavigationItems = [
 }))
 const routeLabelByName = {
   home: 'Home',
-  'draft-window': 'PMP Window',
+  'draft-window': 'LDB Files',
   'intake-shell': 'Intake',
   avatar: 'Companion',
   'user-settings': 'Owner',

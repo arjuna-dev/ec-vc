@@ -10,7 +10,7 @@
           @click.stop="toggleShellSelector"
         >
           <span class="draft-window-shell__title-content">
-            <RecordTitle :title="activeShellSelectorOption.label || 'PMP Window'" />
+            <RecordTitle :title="activeShellSelectorOption.label || 'LDB Files'" />
             <svg viewBox="0 0 24 24" class="draft-window-shell__title-chevron">
               <path :d="shellSelectorOpen ? 'M7 14L12 9L17 14' : 'M7 10L12 15L17 10'" />
             </svg>
@@ -535,7 +535,7 @@ const fileHeroPayload = computed(() => {
     : 0
 
   return {
-    text: `This is the shared file view for ${fileLabel}. The active file determines the local payload while the hero structure remains shared across PMP Window.`,
+    text: `This is the shared file view for ${fileLabel}. The active file determines the local payload while the hero structure remains shared across LDB Files.`,
     stats: [
       {
         label: 'Rows',
