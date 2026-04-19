@@ -30,7 +30,7 @@ import {
   isGenericLdbRelationshipContract,
 } from '../src/shared/ldbRelationshipContracts.js'
 import { formatSharedDisplayLabel } from '../src/shared/labelFormatting.js'
-import { DEFAULT_BUILDING_BLOCK_FILE_ROWS } from '../src/utils/personalize.js'
+import { DEFAULT_PERSONALIZE_ROWS } from '../src/utils/personalize.js'
 import {
   buildApprovedFileRegistryRow,
   getBootstrapFileRegistryEntries,
@@ -1776,9 +1776,9 @@ function toFileSourceKey(value) {
     .slice(0, 80)
 }
 
-function ensureDefaultBuildingBlocks(database) {
+function ensureDefaultPersonalizeRows(database) {
   const insertRow = database.prepare(`
-    INSERT INTO Building_Blocks (
+    INSERT INTO Personalize (
       id,
       Sort_Order,
       Name,
@@ -1807,19 +1807,19 @@ function ensureDefaultBuildingBlocks(database) {
     )
   `)
   const backfillShellUsage = database.prepare(`
-    UPDATE Building_Blocks
+    UPDATE Personalize
     SET Used_In_Shells = ?
     WHERE id = ?
       AND COALESCE(TRIM(Used_In_Shells), '') = ''
   `)
   const backfillConvergenceRule = database.prepare(`
-    UPDATE Building_Blocks
+    UPDATE Personalize
     SET Convergence_Rule = ?
     WHERE id = ?
       AND COALESCE(TRIM(Convergence_Rule), '') = ''
   `)
   const syncCanonicalRow = database.prepare(`
-    UPDATE Building_Blocks
+    UPDATE Personalize
     SET
       Sort_Order = ?,
       Name = ?,
@@ -1848,21 +1848,21 @@ function ensureDefaultBuildingBlocks(database) {
   const fallbackUserId = normalizeNullableString(actor?.user_id)
   const existingIds = new Set(
     database
-      .prepare('SELECT id FROM Building_Blocks')
+      .prepare('SELECT id FROM Personalize')
       .all()
       .map((row) => normalizeNullableString(row?.id))
       .filter(Boolean),
   )
 
   const tx = database.transaction(() => {
-    DEFAULT_BUILDING_BLOCK_FILE_ROWS.forEach((row) => {
+    DEFAULT_PERSONALIZE_ROWS.forEach((row) => {
       const normalizedId = normalizeNullableString(row?.id) || `bb:${crypto.randomUUID()}`
       if (existingIds.has(normalizedId)) return
 
       insertRow.run(
         normalizedId,
         Number(row?.Sort_Order || 0) || null,
-        normalizeNullableString(row?.Name) || 'Untitled Building Block',
+        normalizeNullableString(row?.Name) || 'Untitled Personalization',
         normalizeNullableString(row?.Summary),
         normalizeNullableString(row?.Category),
         normalizeNullableString(row?.Status),
@@ -1884,12 +1884,12 @@ function ensureDefaultBuildingBlocks(database) {
       )
       existingIds.add(normalizedId)
     })
-    DEFAULT_BUILDING_BLOCK_FILE_ROWS.forEach((row) => {
+    DEFAULT_PERSONALIZE_ROWS.forEach((row) => {
       const normalizedId = normalizeNullableString(row?.id)
       if (!normalizedId) return
       syncCanonicalRow.run(
         Number(row?.Sort_Order || 0) || null,
-        normalizeNullableString(row?.Name) || 'Untitled Building Block',
+        normalizeNullableString(row?.Name) || 'Untitled Personalization',
         normalizeNullableString(row?.Summary),
         normalizeNullableString(row?.Category),
         normalizeNullableString(row?.Status),
@@ -1923,11 +1923,11 @@ function ensureDefaultBuildingBlocks(database) {
   tx()
 }
 
-function listBuildingBlocks() {
+function listPersonalizeRows() {
   const database = initDb()
-  ensureDefaultBuildingBlocks(database)
+  ensureDefaultPersonalizeRows(database)
   const allowedIds = new Set(
-    DEFAULT_BUILDING_BLOCK_FILE_ROWS
+    DEFAULT_PERSONALIZE_ROWS
       .map((row) => normalizeNullableString(row?.id))
       .filter(Boolean),
   )
@@ -1957,7 +1957,7 @@ function listBuildingBlocks() {
       Variants,
       created_at,
       updated_at
-    FROM Building_Blocks
+    FROM Personalize
     ORDER BY COALESCE(Sort_Order, 999999), created_at, id
   `,
   ).filter((row) => allowedIds.has(normalizeNullableString(row?.id)))
@@ -2821,9 +2821,9 @@ const DATABOOK_TABLE_CONFIGS = Object.freeze({
     displayColumns: ['action_label', 'field_name', 'record_id', 'id'],
     readonlyColumns: new Set(['id', 'edited_at']),
   },
-  Building_Blocks: {
-    tableName: 'Building_Blocks',
-    entityLabel: 'Building Block',
+  Personalize: {
+    tableName: 'Personalize',
+    entityLabel: 'Personalization',
     displayColumns: ['Name', 'Summary', 'id'],
     readonlyColumns: new Set(['id', 'created_at', 'updated_at']),
   },
@@ -2930,12 +2930,7 @@ const DATABOOK_TABLE_CONFIGS = Object.freeze({
 })
 
 const DATABOOK_TABLE_ALIASES = Object.freeze({
-  utils: 'Building_Blocks',
-  bb_file: 'Building_Blocks',
-  bb: 'Building_Blocks',
-  building_blocks: 'Building_Blocks',
-  'building blocks': 'Building_Blocks',
-  'building block': 'Building_Blocks',
+  utils: 'Personalize',
   companies: 'Companies',
   company: 'Companies',
   contacts: 'Contacts',
@@ -8197,7 +8192,7 @@ function registerIpc() {
 
   ipcMain.handle('utils:list', async () => {
     initDb()
-    return { utils: listBuildingBlocks() }
+    return { utils: listPersonalizeRows() }
   })
 
   ipcMain.handle('artifacts:list', async () => {

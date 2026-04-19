@@ -395,7 +395,7 @@ CREATE INDEX IF NOT EXISTS idx_Files_order
 CREATE INDEX IF NOT EXISTS idx_Files_created_by
   ON Files(created_by);
 
-CREATE TABLE IF NOT EXISTS Building_Blocks (
+CREATE TABLE IF NOT EXISTS Personalize (
   id TEXT PRIMARY KEY,
   Sort_Order INTEGER,
   Name TEXT NOT NULL,
@@ -422,11 +422,11 @@ CREATE TABLE IF NOT EXISTS Building_Blocks (
   FOREIGN KEY (created_by) REFERENCES Users(id) ON UPDATE CASCADE ON DELETE SET NULL
 );
 
-CREATE INDEX IF NOT EXISTS idx_Building_Blocks_sort_order
-  ON Building_Blocks(Sort_Order);
+CREATE INDEX IF NOT EXISTS idx_Personalize_sort_order
+  ON Personalize(Sort_Order);
 
-CREATE INDEX IF NOT EXISTS idx_Building_Blocks_category
-  ON Building_Blocks(Category);
+CREATE INDEX IF NOT EXISTS idx_Personalize_category
+  ON Personalize(Category);
 
 CREATE TABLE IF NOT EXISTS Users_Roles (
   user_id TEXT PRIMARY KEY,

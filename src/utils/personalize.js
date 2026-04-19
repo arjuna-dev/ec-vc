@@ -1,4 +1,4 @@
-export const DEFAULT_BUILDING_BLOCK_FILE_ROWS = Object.freeze([
+export const DEFAULT_PERSONALIZE_ROWS = Object.freeze([
   Object.freeze({
     id: 'utils:fonts',
     Sort_Order: 10,

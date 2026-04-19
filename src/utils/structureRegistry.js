@@ -26,7 +26,7 @@ export const VC_PACK_FILE_KEYS = Object.freeze([
 ])
 
 const FILE_PAGE_ROUTE_META = Object.freeze({
-  Building_Blocks: {
+  Personalize: {
     key: 'utils',
     label: 'Personalize',
     singularLabel: 'Personalization',
@@ -50,17 +50,17 @@ const FILE_PAGE_ROUTE_META = Object.freeze({
       primaryNameField: 'Name',
       primarySummaryField: 'Summary',
     },
-    address: 'BB.0.0',
-    structureToken: 'Building_Blocks_File',
+    address: 'UT.0.0',
+    structureToken: 'Personalize_File',
     customSubsections: [
       {
         subsection: 'General',
-        subsection_address: 'BB.1.0',
-        structure_token: 'Building_Blocks_General',
+        subsection_address: 'UT.1.0',
+        structure_token: 'Personalize_General',
         tokens: [
-          { address: 'UT.1.1', token_name: 'Utils_Name', label: 'Name', db_field_aliases: ['Name'] },
-          { address: 'UT.1.2', token_name: 'Utils_Summary', label: 'Summary', db_field_aliases: ['Summary'] },
-          { address: 'UT.1.3', token_name: 'Utils_Status', label: 'Status', db_field_aliases: ['Status'] },
+          { address: 'UT.1.1', token_name: 'Personalize_Name', label: 'Name', db_field_aliases: ['Name'] },
+          { address: 'UT.1.2', token_name: 'Personalize_Summary', label: 'Summary', db_field_aliases: ['Summary'] },
+          { address: 'UT.1.3', token_name: 'Personalize_Status', label: 'Status', db_field_aliases: ['Status'] },
         ],
       },
     ],
@@ -523,7 +523,7 @@ const FILE_PAGE_ROUTE_META = Object.freeze({
 
 const FILE_PAGE_ENTITY_ORDER = [
   'Files',
-  'Building_Blocks',
+  'Personalize',
   'Events',
   'Users',
   'Companion',
@@ -1070,7 +1070,7 @@ export function getRuntimeTableNameForEntityName(entityName = '') {
     artifacts: 'Artifacts',
     'user-roles': 'Roles',
     'companion-roles': 'Companion_Roles',
-    utils: 'Building_Blocks',
+    utils: 'Personalize',
     opportunities: 'Opportunities',
     funds: 'Funds',
     rounds: 'Rounds',
