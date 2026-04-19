@@ -41,7 +41,7 @@ const routes = [
       { path: 'avatar', name: 'avatar', component: () => import('pages/SettingsPage.vue') },
       { path: 'settings', redirect: { name: 'avatar' } },
       { path: '', name: 'home', component: () => import('pages/HomePage.vue') },
-      { path: 'utils', name: 'bb-file', component: () => import('pages/UtilsPage.vue') },
+      { path: 'utils', name: 'bb-file', redirect: (to) => buildDraftWindowFileLocation(to) },
       { path: 'file-system', name: 'file-system', redirect: (to) => buildDraftWindowFileLocation(to) },
       { path: 'history', name: 'history', redirect: (to) => buildDraftWindowFileLocation(to) },
       { path: 'events', redirect: { name: 'history' } },
