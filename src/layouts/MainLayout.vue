@@ -398,7 +398,6 @@ const mainNavigationItems = [
   iconSize: '22px',
 }))
 const workspaceToolNavigationItems = [
-  { label: 'Personalize', to: '/utils', exact: true, icon: 'dashboard_customize' },
   { label: 'PMP Window', to: '/draft-window?section=file-system', exact: true, icon: 'design_services' },
   { label: 'Intake', to: '/intake-shell', exact: true, icon: 'hourglass_top' },
 ].map((item) => ({
