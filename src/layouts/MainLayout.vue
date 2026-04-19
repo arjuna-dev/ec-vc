@@ -402,7 +402,7 @@ const mainNavigationItems = [
   iconSize: '22px',
 }))
 const testShellNavigationItems = [
-  { label: 'Utils', to: '/utils', exact: true, icon: 'dashboard_customize' },
+  { label: 'Personalize', to: '/utils', exact: true, icon: 'dashboard_customize' },
   { label: 'PMP Window', to: '/draft-window?section=file-system', exact: true, icon: 'design_services' },
   { label: 'Intake Shell', to: '/intake-shell', exact: true, icon: 'hourglass_top' },
 ].map((item) => ({
@@ -412,7 +412,7 @@ const testShellNavigationItems = [
 }))
 const routeLabelByName = {
   home: 'Home',
-  utils: 'Utils',
+  utils: 'Personalize',
   companies: 'Companies',
   contacts: 'Contacts',
   users: 'Users',
