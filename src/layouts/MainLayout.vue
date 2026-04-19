@@ -362,7 +362,7 @@ const drawerSectionOpen = ref({
   radars: true,
   workspace: true,
   'local-dbs': false,
-  'test-shells': false,
+  'workspace-tools': false,
 })
 
 const QUICK_WIDGET_TRIGGER_SIZE = 112
@@ -397,10 +397,10 @@ const mainNavigationItems = [
   itemClass: 'ec-nav-item--primary',
   iconSize: '22px',
 }))
-const testShellNavigationItems = [
+const workspaceToolNavigationItems = [
   { label: 'Personalize', to: '/utils', exact: true, icon: 'dashboard_customize' },
   { label: 'PMP Window', to: '/draft-window?section=file-system', exact: true, icon: 'design_services' },
-  { label: 'Intake Shell', to: '/intake-shell', exact: true, icon: 'hourglass_top' },
+  { label: 'Intake', to: '/intake-shell', exact: true, icon: 'hourglass_top' },
 ].map((item) => ({
   ...item,
   itemClass: 'ec-nav-item--secondary ec-nav-item--shell-child',
@@ -423,7 +423,7 @@ const routeLabelByName = {
   intake: 'Intake',
   tasks: 'Tasks',
   'draft-window': 'PMP Window',
-  'intake-shell': 'Intake Shell',
+  'intake-shell': 'Intake',
   'user-roles': 'User Roles',
   'companion-roles': 'Companion Roles',
   avatar: 'Companion',
@@ -470,15 +470,15 @@ const drawerNavigationSections = computed(() => [
       ...mainNavigationItems,
       {
         kind: 'toggle',
-        label: 'Shells',
+        label: 'Workbench',
         itemClass: 'ec-nav-item--primary ec-nav-item--workspace-toggle',
         icon: 'egg',
         iconSize: '22px',
-        toggleKey: 'test-shells',
+        toggleKey: 'workspace-tools',
       },
-      ...testShellNavigationItems.map((item) => ({
+      ...workspaceToolNavigationItems.map((item) => ({
         ...item,
-        parentKey: 'test-shells',
+        parentKey: 'workspace-tools',
       })),
     ],
   },
