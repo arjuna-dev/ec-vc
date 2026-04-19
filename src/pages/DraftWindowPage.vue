@@ -50,11 +50,19 @@ function resolveValidShellSection(value, entityName = '') {
 
 function updateShellSelector(nextValue) {
   const section = resolveValidShellSection(nextValue, route.query.entity)
+  if (!section) return
+
+  const nextQuery = {
+    ...route.query,
+    section,
+  }
+
+  delete nextQuery.entity
+  delete nextQuery.recordId
+  delete nextQuery.returnTo
+
   router.replace({
-    query: {
-      ...route.query,
-      section,
-    },
+    query: nextQuery,
   })
 }
 
