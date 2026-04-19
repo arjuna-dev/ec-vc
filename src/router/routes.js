@@ -39,7 +39,6 @@ const routes = [
     children: [
       { path: 'user-settings', name: 'user-settings', component: () => import('pages/UserSettingsPage.vue') },
       { path: 'avatar', name: 'avatar', component: () => import('pages/SettingsPage.vue') },
-      { path: 'settings', redirect: { name: 'avatar' } },
       { path: '', name: 'home', component: () => import('pages/HomePage.vue') },
       { path: 'file-system', name: 'file-system', redirect: (to) => buildDraftWindowFileLocation(to) },
       { path: 'history', name: 'history', redirect: (to) => buildDraftWindowFileLocation(to) },
