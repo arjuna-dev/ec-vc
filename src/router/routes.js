@@ -60,7 +60,7 @@ const routes = [
       { path: 'intake', name: 'intake', redirect: (to) => buildDraftWindowFileLocation(to) },
       { path: 'notes', name: 'notes', redirect: (to) => buildDraftWindowFileLocation(to) },
       { path: 'tasks', name: 'tasks', redirect: (to) => buildDraftWindowFileLocation(to) },
-      { path: 'test-shell', name: 'test-shell', component: () => import('pages/TestShellPage.vue') },
+      { path: 'test-shell', name: 'test-shell', redirect: { name: 'draft-window', query: { section: 'file-system' } } },
       { path: 'record-shell', name: 'record-shell', redirect: (to) => buildDraftWindowRecordLocation(to) },
       { path: 'draft-window', name: 'draft-window', component: () => import('pages/DraftWindowPage.vue') },
       { path: 'intake-shell', name: 'intake-shell', component: () => import('pages/IntakeShellPage.vue') },
