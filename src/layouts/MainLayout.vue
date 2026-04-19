@@ -5,10 +5,7 @@
         <div class="ec-shell-toolbar-heading">
           <MainMenuIconButton @click="toggleLeftDrawer" />
           <FileShellTitleRow
-            v-model="selectedShellSection"
             :title="currentHeaderTitle"
-            :show-selector="isSelectableShellRoute"
-            :options="shellSectionOptions"
             tone="inverse"
             @back="goBack"
           />
@@ -332,7 +329,6 @@ import {
   getCreateBranchEntry,
   getFilePageRegistryEntry,
   setRuntimeFileStructures,
-  TEST_SHELL_SECTION_OPTIONS,
   } from 'src/utils/structureRegistry'
 import {
   activateNextIntakeReviewItem,
@@ -529,24 +525,6 @@ const developerHoverStyle = computed(() => ({
   left: `${developerHoverPosition.value.x}px`,
   top: `${developerHoverPosition.value.y}px`,
 }))
-const isSelectableShellRoute = computed(() => ['test-shell', 'record-shell'].includes(String(route.name || '')))
-const shellSectionOptions = TEST_SHELL_SECTION_OPTIONS
-const selectedShellSection = computed({
-  get() {
-    const current = String(route.query.section || '').trim().toLowerCase()
-    return shellSectionOptions.some((option) => option.value === current) ? current : 'tasks'
-  },
-  set(value) {
-    const nextValue = String(value || '').trim().toLowerCase()
-    const normalizedValue = shellSectionOptions.some((option) => option.value === nextValue) ? nextValue : 'tasks'
-    router.replace({
-      query: {
-        ...route.query,
-        section: normalizedValue,
-      },
-    })
-  },
-})
 
 const quickWidgetStyle = computed(() => ({
   left: `${quickWidgetPosition.value.x}px`,
