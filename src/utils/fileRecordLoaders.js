@@ -16,7 +16,7 @@ export const FILE_RECORD_LOADERS = Object.freeze({
   projects: { listFn: (bridgeValue) => bridgeValue?.projects?.list?.(), resultKey: 'projects', recordIdField: 'id' },
   notes: { listFn: (bridgeValue) => bridgeValue?.notes?.list?.(), resultKey: 'notes', recordIdField: 'id' },
   tasks: { listFn: (bridgeValue) => bridgeValue?.tasks?.list?.(), resultKey: 'tasks', recordIdField: 'id' },
-  'bb-file': { listFn: (bridgeValue) => bridgeValue?.['bb-file']?.list?.(), resultKey: 'buildingBlocks', recordIdField: 'id' },
+  utils: { listFn: (bridgeValue) => bridgeValue?.utils?.list?.(), resultKey: 'utils', recordIdField: 'id' },
   'user-roles': { listFn: (bridgeValue) => bridgeValue?.['user-roles']?.list?.(), resultKey: 'roles', recordIdField: 'id' },
   'companion-roles': { listFn: (bridgeValue) => bridgeValue?.['companion-roles']?.list?.() ?? { companionRoles: [] }, resultKey: 'companionRoles', recordIdField: 'id' },
   intake: { listFn: (bridgeValue) => bridgeValue?.intake?.list?.(), resultKey: 'intake', recordIdField: 'id' },
@@ -133,7 +133,7 @@ export async function hydrateFileRecordUniverseFromSystemFiles({
     const sourceKey = resolveApprovedFileSectionKey(
       row?.sourceKey || row?.File_Route_Name || row?.File_Runtime_Entity || row?.File_Canonical_Entity,
     )
-    if (!sourceKey || sourceKey === 'bb-file' || Array.isArray(nextRowsBySource?.[sourceKey])) continue
+    if (!sourceKey || sourceKey === 'utils' || Array.isArray(nextRowsBySource?.[sourceKey])) continue
     nextRowsBySource = await loadFileRecordRows({
       sourceKey,
       bridgeValue,

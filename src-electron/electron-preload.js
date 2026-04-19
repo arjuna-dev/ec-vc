@@ -198,10 +198,8 @@ const api = {
     create: (payload) => ipcRenderer.invoke('companion-roles:create', payload),
     delete: (companionRoleId) => ipcRenderer.invoke('companion-roles:delete', { companionRoleId }),
   },
-  'bb-file': {
-    list: () => ipcRenderer.invoke('bb-file:list'),
-    create: (payload) => ipcRenderer.invoke('bb-file:create', payload),
-    delete: (blockId) => ipcRenderer.invoke('bb-file:delete', { blockId }),
+  utils: {
+    list: () => ipcRenderer.invoke('utils:list'),
   },
   artifacts: {
     list: () => ipcRenderer.invoke('artifacts:list'),

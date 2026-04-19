@@ -550,7 +550,7 @@ const fileHeroPayload = computed(() => {
         tone: 'neutral',
       },
     ],
-    healthText: `This file page is rendering through the shared File Shell hero contract. Local payload comes from ${fileLabel}, while the hero structure remains linked to bb:file-hero. Validator coverage has not been attached yet.`,
+    healthText: `This file page is rendering through the shared file hero contract. Local payload comes from ${fileLabel}, while the hero structure remains linked to the shared file hero component. Validator coverage has not been attached yet.`,
     healthSegments: [
       { tone: 'sparse', width: 100 },
       { tone: 'rich', width: 0 },
@@ -766,7 +766,7 @@ const sharedLdbDataTokens = computed(() => {
       const sourceKey = resolveApprovedFileSectionKey(
         row?.sourceKey || row?.File_Route_Name || row?.File_Runtime_Entity || row?.File_Canonical_Entity,
       )
-      if (!sourceKey || sourceKey === 'bb-file' || seenSourceKeys.has(sourceKey)) return null
+      if (!sourceKey || sourceKey === 'utils' || seenSourceKeys.has(sourceKey)) return null
 
       const targetEntry = getFilePageRegistryEntry(sourceKey)
       const targetEntity = String(targetEntry?.entityName || '').trim()
@@ -1069,7 +1069,7 @@ const someVisibleSelected = computed(() =>
 )
 
 const canDeleteSelectedRows = computed(() =>
-  activeSettingsSourceKey.value !== 'bb-file'
+  activeSettingsSourceKey.value !== 'utils'
   && selectedDataRows.value.length > 0
   && typeof bridge.value?.[activeSettingsSourceKey.value]?.delete === 'function',
 )
@@ -1080,7 +1080,7 @@ const dataControlContract = computed(() => ({
   allVisibleSelected: allVisibleSelected.value,
   someVisibleSelected: someVisibleSelected.value,
   loading: loading.value,
-  addDisabled: activeSettingsSourceKey.value === 'bb-file',
+  addDisabled: activeSettingsSourceKey.value === 'utils',
   searchQuery: searchQuery.value,
   searchPlaceholder: `Search ${activeRegistryEntry.value?.label || 'Records'}`,
   viewMode: viewMode.value,

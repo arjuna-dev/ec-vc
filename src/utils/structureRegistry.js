@@ -27,15 +27,15 @@ export const VC_PACK_FILE_KEYS = Object.freeze([
 
 const FILE_PAGE_ROUTE_META = Object.freeze({
   Building_Blocks: {
-    key: 'bb-file',
+    key: 'utils',
     label: 'Utils',
     singularLabel: 'Utility',
-    routeName: 'bb-file',
+    routeName: 'utils',
     path: '/utils',
     icon: 'dashboard_customize',
     showInWorkspaceNav: false,
     shellGroup: 'system_level',
-    fileGuidePath: 'docs/100/Archive/100-BB_Shell.md',
+    fileGuidePath: 'docs/000/j. UXDesign.md',
     primaryStewardDoc: {
       id: 'design-steward',
       label: 'Design',
@@ -43,7 +43,7 @@ const FILE_PAGE_ROUTE_META = Object.freeze({
       path: 'docs/000/j. UXDesign.md',
       icon: 'description',
     },
-    requiredSubsections: ['General', 'Usage', 'Anatomy', 'Source', 'Reconstruction', 'Variants'],
+    requiredSubsections: ['General'],
     optionalStandardSubsections: [],
     requiredRuntimeCapabilities: ['list'],
     birthDefaults: {
@@ -58,59 +58,9 @@ const FILE_PAGE_ROUTE_META = Object.freeze({
         subsection_address: 'BB.1.0',
         structure_token: 'Building_Blocks_General',
         tokens: [
-          { address: 'BB.1.1', token_name: 'BB_Name', label: 'Name', db_field_aliases: ['Name'] },
-          { address: 'BB.1.2', token_name: 'BB_Summary', label: 'Summary', db_field_aliases: ['Summary'] },
-          { address: 'BB.1.3', token_name: 'BB_Category', label: 'Category', db_field_aliases: ['Category'] },
-          { address: 'BB.1.4', token_name: 'BB_Status', label: 'Status', db_field_aliases: ['Status'] },
-        ],
-      },
-      {
-        subsection: 'Usage',
-        subsection_address: 'BB.2.0',
-        structure_token: 'Building_Blocks_Usage',
-        tokens: [
-          { address: 'BB.2.1', token_name: 'BB_Used_In', label: 'Used In', db_field_aliases: ['Used_In'] },
-          { address: 'BB.2.2', token_name: 'BB_Used_In_Shells', label: 'Used In Shells', db_field_aliases: ['Used_In_Shells'] },
-          { address: 'BB.2.3', token_name: 'BB_Use_When', label: 'Use When', db_field_aliases: ['Use_When'] },
-          { address: 'BB.2.4', token_name: 'BB_Avoid_When', label: 'Avoid When', db_field_aliases: ['Avoid_When'] },
-        ],
-      },
-      {
-        subsection: 'Anatomy',
-        subsection_address: 'BB.3.0',
-        structure_token: 'Building_Blocks_Anatomy',
-        tokens: [
-          { address: 'BB.3.1', token_name: 'BB_Anatomy', label: 'Anatomy', db_field_aliases: ['Anatomy'] },
-          { address: 'BB.3.2', token_name: 'BB_Required_Parts', label: 'Required Parts', db_field_aliases: ['Required_Parts'] },
-          { address: 'BB.3.3', token_name: 'BB_Built_From_BBs', label: 'Built From BBs', db_field_aliases: ['Built_From_BBs'] },
-        ],
-      },
-      {
-        subsection: 'Source',
-        subsection_address: 'BB.4.0',
-        structure_token: 'Building_Blocks_Source',
-        tokens: [
-          { address: 'BB.4.1', token_name: 'BB_Source_Path', label: 'Source Path', db_field_aliases: ['Source_Path'] },
-          { address: 'BB.4.2', token_name: 'BB_Owner', label: 'Owner', db_field_aliases: ['Owner'] },
-          { address: 'BB.4.3', token_name: 'BB_Extraction_Status', label: 'Extraction Status', db_field_aliases: ['Extraction_Status'] },
-        ],
-      },
-      {
-        subsection: 'Reconstruction',
-        subsection_address: 'BB.5.0',
-        structure_token: 'Building_Blocks_Reconstruction',
-        tokens: [
-          { address: 'BB.5.1', token_name: 'BB_Reconstruction_Notes', label: 'Reconstruction Notes', db_field_aliases: ['Reconstruction_Notes'] },
-          { address: 'BB.5.2', token_name: 'BB_Convergence_Rule', label: 'Convergence Rule', db_field_aliases: ['Convergence_Rule'] },
-          { address: 'BB.5.3', token_name: 'BB_Prompt', label: 'Prompt', db_field_aliases: ['Prompt'] },
-        ],
-      },
-      {
-        subsection: 'Variants',
-        subsection_address: 'BB.6.0',
-        structure_token: 'Building_Blocks_Variants',
-        tokens: [
-          { address: 'BB.6.1', token_name: 'BB_Variants', label: 'Variants', db_field_aliases: ['Variants'] },
+          { address: 'UT.1.1', token_name: 'Utils_Name', label: 'Name', db_field_aliases: ['Name'] },
+          { address: 'UT.1.2', token_name: 'Utils_Summary', label: 'Summary', db_field_aliases: ['Summary'] },
+          { address: 'UT.1.3', token_name: 'Utils_Status', label: 'Status', db_field_aliases: ['Status'] },
         ],
       },
     ],
@@ -791,7 +741,7 @@ export const FILE_SOURCE_REGISTRY = Object.freeze(
   })),
 )
 
-const TEST_SHELL_RENDERABLE_KEYS = ['bb-file', 'file-system', 'history', 'users', 'companion', 'artifacts', 'contacts', 'companies', 'opportunities', 'projects', 'notes', 'tasks', 'user-roles', 'companion-roles', 'markets', 'securities', 'intake']
+const TEST_SHELL_RENDERABLE_KEYS = ['utils', 'file-system', 'history', 'users', 'companion', 'artifacts', 'contacts', 'companies', 'opportunities', 'projects', 'notes', 'tasks', 'user-roles', 'companion-roles', 'markets', 'securities', 'intake']
 
 export const TEST_SHELL_SECTION_OPTIONS = Object.freeze(
   FILE_SOURCE_REGISTRY.filter((entry) => TEST_SHELL_RENDERABLE_KEYS.includes(entry.sourceKey)).map((entry) => ({
@@ -1120,7 +1070,7 @@ export function getRuntimeTableNameForEntityName(entityName = '') {
     artifacts: 'Artifacts',
     'user-roles': 'Roles',
     'companion-roles': 'Companion_Roles',
-    'bb-file': 'Building_Blocks',
+    utils: 'Building_Blocks',
     opportunities: 'Opportunities',
     funds: 'Funds',
     rounds: 'Rounds',

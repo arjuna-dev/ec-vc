@@ -403,8 +403,6 @@ const mainNavigationItems = [
 }))
 const testShellNavigationItems = [
   { label: 'Utils', to: '/utils', exact: true, icon: 'dashboard_customize' },
-  { label: 'File Shell', to: '/test-shell', exact: true, icon: 'science' },
-  { label: 'Record Shell', to: '/record-shell?section=tasks', exact: true, icon: 'album' },
   { label: 'PMP Window', to: '/draft-window?section=file-system', exact: true, icon: 'design_services' },
   { label: 'Intake Shell', to: '/intake-shell', exact: true, icon: 'hourglass_top' },
 ].map((item) => ({
@@ -414,7 +412,7 @@ const testShellNavigationItems = [
 }))
 const routeLabelByName = {
   home: 'Home',
-  'bb-file': 'Utils',
+  utils: 'Utils',
   companies: 'Companies',
   contacts: 'Contacts',
   users: 'Users',
@@ -428,8 +426,6 @@ const routeLabelByName = {
   securities: 'Securities',
   intake: 'Intake',
   tasks: 'Tasks',
-  'test-shell': 'File Shell',
-  'record-shell': 'Record Shell',
   'draft-window': 'PMP Window',
   'intake-shell': 'Intake Shell',
   'user-roles': 'User Roles',

@@ -564,6 +564,8 @@ function listUsers() {
 }
 
 function listCompanion() {
+  const database = initDb()
+  ensureDefaultCompanion(database)
   return dbAll(
     `
     SELECT
@@ -1097,7 +1099,7 @@ function listCompanionRoles() {
 const ACCEPTED_FILE_STATUS_VALUES = Object.freeze(['Active', 'Archived'])
 const ACCEPTED_FILE_BUCKET_VALUES = Object.freeze(['Owner', 'Companion', 'Work', 'Shared'])
 const ACCEPTED_FORK_MODE_VALUES = Object.freeze(['none', 'view', 'create', 'view_and_create'])
-const PROTECTED_BOOTSTRAP_FILE_SOURCE_KEYS = new Set(['file-system', 'history', 'events', 'bb-file'])
+const PROTECTED_BOOTSTRAP_FILE_SOURCE_KEYS = new Set(['file-system', 'history', 'events', 'utils'])
 
 function normalizeFileStatusValue(value) {
   const normalized = String(value || '').trim().toLowerCase()
@@ -1757,6 +1759,10 @@ function createFile(payload = {}) {
     File_EventLog: normalizeNullableString(payload?.File_EventLog),
     created_by: actor.user_id,
   })
+
+  if (sourceKey === 'companion') {
+    ensureDefaultCompanion(database, actor.user_id)
+  }
 
   return { id }
 }
@@ -2999,8 +3005,8 @@ const DATABOOK_TABLE_CONFIGS = Object.freeze({
 })
 
 const DATABOOK_TABLE_ALIASES = Object.freeze({
+  utils: 'Building_Blocks',
   bb_file: 'Building_Blocks',
-  'bb-file': 'Building_Blocks',
   bb: 'Building_Blocks',
   building_blocks: 'Building_Blocks',
   'building blocks': 'Building_Blocks',
@@ -5610,6 +5616,39 @@ function listEvents(filters = {}) {
       ...row,
       payload: parseEventPayload(row?.payload_json),
     }))
+}
+
+function ensureDefaultCompanion(database, actorUserId = null) {
+  const existing = database
+    .prepare("SELECT id FROM Companion WHERE lower(trim(Companion_Name)) = 'companion' LIMIT 1")
+    .get()
+  if (existing?.id) return normalizeNullableString(existing.id) || 'companion:main'
+
+  const id = 'companion:main'
+  database
+    .prepare(
+      `
+      INSERT INTO Companion (
+        id,
+        Companion_Name,
+        Companion_Summary,
+        Status,
+        created_by,
+        created_at,
+        updated_at
+      ) VALUES (
+        ?, ?, ?, ?, ?, datetime('now'), datetime('now')
+      )
+    `,
+    )
+    .run(
+      id,
+      'Companion',
+      'Primary companion record for the current workspace.',
+      'Active',
+      normalizeNullableString(actorUserId),
+    )
+  return id
 }
 
 function stringifyRecordShellAuditValue(value) {
@@ -8231,29 +8270,9 @@ function registerIpc() {
     return result
   })
 
-  ipcMain.handle('bb-file:list', async () => {
+  ipcMain.handle('utils:list', async () => {
     initDb()
-    return { buildingBlocks: listBuildingBlocks() }
-  })
-
-  ipcMain.handle('bb-file:create', async (_event, payload = {}) => {
-    initDb()
-    try {
-      const result = createBuildingBlock(payload)
-      auditCreatedRecord('Building_Blocks', result, payload)
-      await syncWorkspaceWorkbooksSafe()
-      return result
-    } catch (e) {
-      throw new Error(toUserFriendlySaveError(e, 'bb file'))
-    }
-  })
-
-  ipcMain.handle('bb-file:delete', async (_event, { blockId } = {}) => {
-    initDb()
-    auditDeletedRecord('Building_Blocks', String(blockId || ''))
-    const result = deleteRow('Building_Blocks', 'id', String(blockId || ''))
-    await syncWorkspaceWorkbooksSafe()
-    return result
+    return { utils: listBuildingBlocks() }
   })
 
   ipcMain.handle('artifacts:list', async () => {
