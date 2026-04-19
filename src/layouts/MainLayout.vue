@@ -398,7 +398,7 @@ const mainNavigationItems = [
   iconSize: '22px',
 }))
 const workspaceToolNavigationItems = [
-  { label: 'LDB Files', to: '/draft-window?section=file-system', exact: true, icon: 'design_services' },
+  { label: 'LDB Files', to: '/ldb-files?section=file-system', exact: true, icon: 'design_services' },
   { label: 'Intake', to: '/intake-shell', exact: true, icon: 'hourglass_top' },
 ].map((item) => ({
   ...item,
@@ -407,7 +407,7 @@ const workspaceToolNavigationItems = [
 }))
 const routeLabelByName = {
   home: 'Home',
-  'draft-window': 'LDB Files',
+  'ldb-files': 'LDB Files',
   'intake-shell': 'Intake',
   avatar: 'Companion',
   'user-settings': 'Owner',
@@ -1331,7 +1331,7 @@ async function openRoundFromQuickAction() {
     if (!targetEntry) return
     if (requestedBranch && getCreateBranchEntry(sourceKey, requestedBranch)) {
       await router.push({
-        name: 'draft-window',
+        name: 'ldb-files',
         query: {
           section: sourceKey,
           create: String(Date.now()),
@@ -1341,7 +1341,7 @@ async function openRoundFromQuickAction() {
       return
     }
     await router.push({
-      name: 'draft-window',
+      name: 'ldb-files',
       query: {
         section: sourceKey,
         create: String(Date.now()),

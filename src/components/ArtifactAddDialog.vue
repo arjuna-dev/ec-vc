@@ -204,7 +204,7 @@ async function loadAll() {
 function openOpportunityCreateInPmp() {
   open.value = false
   router.push({
-    name: 'draft-window',
+    name: 'ldb-files',
     query: {
       section: 'opportunities',
       create: '1',

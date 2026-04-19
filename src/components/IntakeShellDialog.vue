@@ -1622,7 +1622,7 @@ async function startArtifactProcessing(artifactId) {
     if (intakeSessionId.value && !intakeDialogOpened.value) {
       intakeDialogOpened.value = true
       router.push({
-        name: 'draft-window',
+        name: 'ldb-files',
         query: {
           section: 'intake',
           edit: intakeSessionId.value,
