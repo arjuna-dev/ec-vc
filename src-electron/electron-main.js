@@ -30,7 +30,7 @@ import {
   isGenericLdbRelationshipContract,
 } from '../src/shared/ldbRelationshipContracts.js'
 import { formatSharedDisplayLabel } from '../src/shared/labelFormatting.js'
-import { DEFAULT_BUILDING_BLOCK_FILE_ROWS } from '../src/utils/buildingBlocks.js'
+import { DEFAULT_BUILDING_BLOCK_FILE_ROWS } from '../src/utils/personalize.js'
 import {
   buildApprovedFileRegistryRow,
   getBootstrapFileRegistryEntries,

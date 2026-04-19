@@ -945,7 +945,7 @@ const dialogFooterLegendItems = [
   { label: 'Pre-Selected', tone: 'default' },
   { label: 'Suggested', tone: 'suggested' },
 ]
-import { BUILDING_BLOCK_DETAILS_BY_ID, getBuildingBlockGraphCounts } from 'src/utils/buildingBlocks'
+import { BUILDING_BLOCK_DETAILS_BY_ID, getBuildingBlockGraphCounts } from 'src/utils/personalize'
 
 import {
   GENERAL_SETTINGS_BORDER_SAMPLES,
