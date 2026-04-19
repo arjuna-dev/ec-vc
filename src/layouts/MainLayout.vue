@@ -333,7 +333,6 @@ import {
   getFilePageRegistryEntry,
   setRuntimeFileStructures,
   TEST_SHELL_SECTION_OPTIONS,
-  WORKSPACE_FILE_NAV_ITEMS,
   } from 'src/utils/structureRegistry'
 import {
   activateNextIntakeReviewItem,
@@ -401,11 +400,6 @@ const mainNavigationItems = [
   ...item,
   itemClass: 'ec-nav-item--primary',
   iconSize: '22px',
-}))
-const workspaceNavigationItems = WORKSPACE_FILE_NAV_ITEMS.map((item) => ({
-  ...item,
-  itemClass: item.itemClass || 'ec-nav-item--secondary ec-nav-item--workspace-child',
-  iconSize: item.iconSize || '18px',
 }))
 const testShellNavigationItems = [
   { label: 'Utils', to: '/utils', exact: true, icon: 'dashboard_customize' },
@@ -482,34 +476,6 @@ const drawerNavigationSections = computed(() => [
     key: 'main',
     items: [
       ...mainNavigationItems,
-      {
-        kind: 'toggle',
-        label: 'Files',
-        itemClass: 'ec-nav-item--primary ec-nav-item--workspace-toggle',
-        icon: 'folder',
-        iconSize: '22px',
-        toggleKey: 'workspace',
-      },
-      ...workspaceNavigationItems
-        .filter((item) => item.parentKey !== 'local-dbs')
-        .map((item) => ({
-          ...item,
-          parentKey: 'workspace',
-        })),
-      {
-        kind: 'toggle',
-        label: 'Local DBs',
-        itemClass: 'ec-nav-item--primary ec-nav-item--workspace-toggle',
-        icon: 'folder',
-        iconSize: '22px',
-        toggleKey: 'local-dbs',
-      },
-      ...workspaceNavigationItems
-        .filter((item) => item.parentKey === 'local-dbs')
-        .map((item) => ({
-          ...item,
-          parentKey: 'local-dbs',
-        })),
       {
         kind: 'toggle',
         label: 'Shells',
